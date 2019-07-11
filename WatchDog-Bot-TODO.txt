@@ -1,0 +1,50 @@
+WatchDogBot
+
+Prefix: !watchdog
+Alias: !w
+
+Příkazy:
+help - Nápověda
+status - Výpis stavu bota
+    Stav databáze (Indexování repostů)
+    Využití paměti
+    Možná něco dalšího (dle nápadů)
+restart - Restart bota
+
+repost reindex {období} [room] - Smaže indexy z DB a provede reindexaci za určité období.
+repost check {postID} - Ruční kontrola na reposty
+repost stats - Statistiky (leaderboard) repostů.
+
+stats [username(Global)] [room] - Statistiky uživatele v místnosti
+stats [username(Global)] - Statistky uživatele ve všech místnostech
+stats #[Room] - Statistiky dle místností.
+mystats - Statistiky zpráv odesílatele ve všech místnostech.
+mystats #{Room} - Statistiky zprív odesílatele v místnosti.
+
+bugreport {message} - Oznámení chyb. - Ukládat do DB.
+
+Na pozadí:
+    1. Počítadla zpráv: Uživatel|Room|Počet -> Generovat statistiky.
+    2. Pokud bot detekuje zprávu s přílohou/odkazem ve sledované místnosti, tak provede
+        provede kontrolu na repost případně indexaci, pokud nedetekuje repost.
+        2.1. Pokud se detekuje repost, tak bot tagne uživatele a upozorní ho na repost a odkáže jej na původní příspěvek.
+    3. Automatické odpovědi
+        Inspirace by slackbot (Nápad vnukl slack server RJ).
+    TODO Možná něco dalšího.
+
+Hlášení chyb:
+    - Logovat do souboru na disku.
+    - Posílat do místnosti na DC (Pokud to bude povoleno v configu).
+
+Config:
+    Granted : Array of Users/Roles: - Omezení na role/uživatele, kteří s botem pracovat.
+        Př.: u{ID}, r{ID}
+        - prefix 'u' značí uživatele.
+        - prefix 'r' značí roli.
+    IndexedRooms - Seznam idnexovaných místností na serveru pro detekci repostů.
+    PrivateMessages:
+        - MessageToleranceCount: Počet zpráv, než bot začne otravovat.
+
+Zasílání privátních zpráv botovi? 
+    - Prvních N zpráv varovat.
+    - Jakmile uživatel nabere N privátních zpráv, tak bot začne posílat zajímavé věci.
