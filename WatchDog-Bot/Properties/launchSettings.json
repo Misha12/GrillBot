@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "WatchDog-Bot": {
+      "commandName": "Project",
+      "commandLineArgs": "config.json"
+    }
+  }
+}

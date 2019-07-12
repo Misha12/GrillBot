@@ -1,0 +1,18 @@
+﻿{
+	"IsDevelopment": true,
+	"Granted": [],
+	"RepostDetection": {
+		"IndexedRooms": []
+	},
+	"Database": "",
+	"Discord": {
+		"Token": ""
+	},
+	"Log": {
+		"Path": "",
+		"LogToDiscord": {
+			"Enabled": true,
+			"Room": ""
+		}
+	}
+}
