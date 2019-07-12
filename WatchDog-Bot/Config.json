@@ -1,4 +1,5 @@
 ﻿{
+	"CommandPrefix": "!",
 	"IsDevelopment": true,
 	"Granted": [],
 	"RepostDetection": {
@@ -12,7 +13,8 @@
 		"Path": "",
 		"LogToDiscord": {
 			"Enabled": true,
-			"Room": ""
+			"Room": "",
+			"ErrorTagUser": ""
 		}
 	}
 }

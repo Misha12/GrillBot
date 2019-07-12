@@ -6,6 +6,8 @@ using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
+using WatchDog_Bot.Modules;
+using WatchDog_Bot.Repository;
 
 namespace WatchDog_Bot
 {
@@ -25,7 +27,7 @@ namespace WatchDog_Bot
                 throw new ConfigException("Cannot found config. Please specify in first command line argument.");
 
             var builder = new ConfigurationBuilder()
-                .AddJsonFile(args[0], optional: false, reloadOnChange: true);
+                .AddJsonFile(args[0], optional: false);
 
             Configuration = builder.Build();
         }
@@ -36,10 +38,8 @@ namespace WatchDog_Bot
             ConfigureServices(services);
 
             var provider = services.BuildServiceProvider();
-
             provider.GetRequiredService<LoggingService>();
-            //TODO Command handler
-            //TODO Start Bot
+            provider.GetRequiredService<CommandHandler>();
 
             await provider.GetRequiredService<StartupService>().StartAsync();
             await Task.Delay(-1);
@@ -47,7 +47,7 @@ namespace WatchDog_Bot
 
         private void ConfigureServices(IServiceCollection services)
         {
-            var config = new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, MessageCacheSize = 1000 };
+            var config = new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, MessageCacheSize = 100000 };
             var client = new DiscordSocketClient(config);
 
             var commandsConfig = new CommandServiceConfig() { LogLevel = LogSeverity.Verbose, DefaultRunMode = RunMode.Async };
@@ -55,15 +55,15 @@ namespace WatchDog_Bot
 
             services
                 .AddSingleton(commands)
-                .AddSingleton(client);
-
-            // TODO register command handler
-            // todo register startupservice
-
-            services
+                .AddSingleton(client)
+                .AddSingleton<CommandHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<StartupService>()
-                .AddSingleton(Configuration);
+                .AddSingleton(Configuration)
+                .AddSingleton<MessageCounterModule>();
+
+            services
+                .AddTransient<MessagesCounterRepository>();
         }
     }
 }

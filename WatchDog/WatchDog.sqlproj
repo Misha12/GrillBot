@@ -58,4 +58,10 @@
     <Folder Include="Properties" />
     <Folder Include="Tables" />
   </ItemGroup>
+  <ItemGroup>
+    <Build Include="Tables\UsersAndMessagesCounter.sql" />
+  </ItemGroup>
+  <ItemGroup>
+    <None Include="WatchDog.publish.xml" />
+  </ItemGroup>
 </Project>

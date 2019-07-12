@@ -4,7 +4,9 @@ using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
+using System.Linq;
 using System.Threading.Tasks;
+using WatchDog_Bot.Extensions;
 
 namespace WatchDog_Bot
 {
@@ -16,6 +18,7 @@ namespace WatchDog_Bot
         private string LogDirectory { get; }
         private ulong? LogRoom { get; }
         private bool IsDevelopment { get; }
+        private ulong? ErrorTagUser { get; }
 
         public LoggingService(DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
         {
@@ -30,13 +33,16 @@ namespace WatchDog_Bot
                 Directory.CreateDirectory(LogDirectory);
 
             var discordLog = config.GetSection("Log:LogToDiscord");
-            if(Convert.ToBoolean(discordLog["Enabled"]))
+            if (Convert.ToBoolean(discordLog["Enabled"]))
             {
                 LogRoom = Convert.ToUInt64(discordLog["Room"]);
             }
 
             var isDevelopment = config["IsDevelopment"];
             if (!string.IsNullOrEmpty(isDevelopment)) IsDevelopment = Convert.ToBoolean(isDevelopment);
+
+            var errorTagUser = discordLog["ErrorTagUser"];
+            if (!string.IsNullOrEmpty(errorTagUser)) ErrorTagUser = Convert.ToUInt64(errorTagUser);
 
             Client.Log += OnLogAsync;
             Commands.Log += OnLogAsync;
@@ -49,13 +55,26 @@ namespace WatchDog_Bot
             var logFilename = GetLogFilename();
             await File.AppendAllTextAsync(logFilename, message.ToString() + Environment.NewLine);
 
-            if(message.Exception != null && LogRoom != null)
+            if (message.Exception != null && LogRoom != null)
             {
+                var exceptionMessage = message.Exception.ToString();
+                var parts = exceptionMessage.SplitInParts(1950).ToArray();
                 var channel = Client.GetChannel(LogRoom.Value) as IMessageChannel;
-                await channel?.SendMessageAsync(message.Exception.ToString());
+
+                for(var i = 0; i < parts.Length; i++)
+                {
+                    if (i == 0)
+                    {
+                        await channel?.SendMessageAsync($"<@{ErrorTagUser}> ```{parts[0]}```");
+                    }
+                    else
+                    {
+                        await channel?.SendMessageAsync($"```{parts[i]}```");
+                    }
+                }
             }
 
-            if(IsDevelopment)
+            if (IsDevelopment)
             {
                 await Console.Out.WriteLineAsync(message.ToString());
             }
