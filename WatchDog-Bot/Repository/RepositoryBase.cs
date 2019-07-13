@@ -1,8 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Data.SqlClient;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace WatchDog_Bot.Repository
@@ -19,6 +17,7 @@ namespace WatchDog_Bot.Repository
                 throw new ArgumentException("Missing database connection string");
 
             Connection = new SqlConnection(connectionString);
+            Connection.Open();
         }
 
         public void Dispose()
@@ -28,22 +27,22 @@ namespace WatchDog_Bot.Repository
 
         protected async Task<T> ExecuteCommand<T>(string sql, Func<SqlDataReader, Task<T>> processData)
         {
-            await Connection.OpenAsync();
+            if(Connection.State != System.Data.ConnectionState.Open)
+                await Connection.OpenAsync();
 
-            try
+            using(var command = new SqlCommand(sql, Connection))
             {
-                using(var command = new SqlCommand(sql, Connection))
+                using(var reader = await command.ExecuteReaderAsync())
                 {
-                    using(var reader = await command.ExecuteReaderAsync())
-                    {
-                        return await processData(reader);
-                    }
+                    return await processData(reader);
                 }
             }
-            finally
-            {
-                Connection.Close();
-            }
+        }
+
+        protected string GetOrderType(bool ascending, params string[] columns)
+        {
+            if (columns == null || columns.Length == 0) return "";
+            return $"ORDER BY {string.Join(", ", columns)} {(ascending ? "ASC" : "DESC")}";
         }
     }
 }

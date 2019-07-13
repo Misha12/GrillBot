@@ -6,8 +6,6 @@ using Microsoft.Extensions.DependencyInjection;
 using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
-using WatchDog_Bot.Modules;
-using WatchDog_Bot.Repository;
 
 namespace WatchDog_Bot
 {
@@ -47,10 +45,22 @@ namespace WatchDog_Bot
 
         private void ConfigureServices(IServiceCollection services)
         {
-            var config = new DiscordSocketConfig() { LogLevel = LogSeverity.Verbose, MessageCacheSize = 100000 };
+            var config = new DiscordSocketConfig()
+            {
+                LogLevel = LogSeverity.Verbose,
+                MessageCacheSize = 100000,
+                ExclusiveBulkDelete = true
+            };
+
             var client = new DiscordSocketClient(config);
 
-            var commandsConfig = new CommandServiceConfig() { LogLevel = LogSeverity.Verbose, DefaultRunMode = RunMode.Async };
+            var commandsConfig = new CommandServiceConfig()
+            {
+                LogLevel = LogSeverity.Verbose,
+                DefaultRunMode = RunMode.Async,
+                CaseSensitiveCommands = true
+            };
+
             var commands = new CommandService(commandsConfig);
 
             services
@@ -59,11 +69,7 @@ namespace WatchDog_Bot
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<StartupService>()
-                .AddSingleton(Configuration)
-                .AddSingleton<MessageCounterModule>();
-
-            services
-                .AddTransient<MessagesCounterRepository>();
+                .AddSingleton(Configuration);
         }
     }
 }
