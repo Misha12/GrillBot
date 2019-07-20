@@ -3,9 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Reflection;
-using System.Text;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
 
@@ -28,7 +26,7 @@ namespace WatchDog_Bot
 
         public async Task StartAsync()
         {
-            var token = Config["Discord:Token"].ToString();
+            var token = Config["Discord:Token"];
             if (string.IsNullOrEmpty(token))
                 throw new ConfigException("Missing bot token in config.");
 

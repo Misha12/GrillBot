@@ -3,21 +3,17 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using System;
 using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
+using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
 {
     public class Startup
     {
         private IConfigurationRoot Configuration { get; }
-
-        public static async Task RunAsync(string[] args)
-        {
-            var startup = new Startup(args);
-            await startup.RunAsync();
-        }
 
         public Startup(string[] args)
         {
@@ -36,8 +32,11 @@ namespace WatchDog_Bot
             ConfigureServices(services);
 
             var provider = services.BuildServiceProvider();
+
             provider.GetRequiredService<LoggingService>();
             provider.GetRequiredService<CommandHandler>();
+
+            Console.CancelKeyPress += (s, e) => Environment.Exit(0);
 
             await provider.GetRequiredService<StartupService>().StartAsync();
             await Task.Delay(-1);
@@ -48,11 +47,9 @@ namespace WatchDog_Bot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 100000,
+                MessageCacheSize = 10000000,
                 ExclusiveBulkDelete = true
             };
-
-            var client = new DiscordSocketClient(config);
 
             var commandsConfig = new CommandServiceConfig()
             {
@@ -61,11 +58,10 @@ namespace WatchDog_Bot
                 CaseSensitiveCommands = true
             };
 
-            var commands = new CommandService(commandsConfig);
-
             services
-                .AddSingleton(commands)
-                .AddSingleton(client)
+                .AddSingleton(new CommandService(commandsConfig))
+                .AddSingleton(new DiscordSocketClient(config))
+                .AddSingleton<Statistics>()
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<StartupService>()

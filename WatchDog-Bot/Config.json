@@ -16,5 +16,12 @@
 			"Room": "",
 			"ErrorTagUser": ""
 		}
+	},
+	"MethodsConfig": {
+		"Greeting": {
+			"Message": "Ahoj, {person}.",
+			"AppendEmoji": "493152294712377354",
+			"OutputMode": "bin"
+		}
 	}
 }

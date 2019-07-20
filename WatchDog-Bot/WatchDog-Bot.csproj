@@ -12,8 +12,4 @@
     <PackageReference Include="System.Data.SqlClient" Version="4.6.1" />
   </ItemGroup>
 
-  <ItemGroup>
-    <Folder Include="Modules\" />
-  </ItemGroup>
-
 </Project>
