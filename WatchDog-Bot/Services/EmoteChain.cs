@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord.Commands;
+using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -24,15 +25,15 @@ namespace WatchDog_Bot.Services
             LastMessages[channel.Id].Clear();
         }
 
-        public async Task ProcessChain(SocketUserMessage message)
+        public async Task ProcessChain(SocketCommandContext context)
         {
-            var content = message.Content;
-            var channel = message.Channel;
+            var content = context.Message.Content;
+            var channel = context.Channel;
 
             if (!LastMessages.ContainsKey(channel.Id))
                 LastMessages.Add(channel.Id, new List<string>(ReactLimit));
 
-            if (!IsEmote(content))
+            if (!IsEmote(content) || !IsLocalEmote(context))
             {
                 Cleanup(channel);
                 return;
@@ -57,6 +58,11 @@ namespace WatchDog_Bot.Services
             if (content.Contains(" ")) return false;
 
             return content.Count(c => c == ':') == 2;
+        }
+
+        private bool IsLocalEmote(SocketCommandContext context)
+        {
+            return context.Guild.Emotes.Any(o => o.ToString() == context.Message.Content);
         }
     }
 }

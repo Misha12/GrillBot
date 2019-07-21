@@ -88,7 +88,7 @@ namespace WatchDog_Bot
                 {
                     Statistics.IncrementChannelCounter(userMessage.Channel.Id);
                     await AutoReply.TryReply(userMessage);
-                    await EmoteChain.ProcessChain(userMessage);
+                    await EmoteChain.ProcessChain(context);
                 }
             }
             finally
