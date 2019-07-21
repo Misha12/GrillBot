@@ -48,10 +48,10 @@ namespace WatchDog_Bot
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
+            if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
+
             var messageStopwatch = new Stopwatch();
             messageStopwatch.Start();
-
-            if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
 
             try
             {

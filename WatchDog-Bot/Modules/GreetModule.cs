@@ -5,24 +5,23 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WatchDog_Bot.Config;
 using WatchDog_Bot.Extensions;
 
 namespace WatchDog_Bot.Modules
 {
     public class GreetModule : BotModuleBase
     {
-        private GreetConfig Config { get; }
+        private IConfiguration Config { get; }
 
         public GreetModule(IConfigurationRoot config)
         {
-            Config = new GreetConfig(config.GetSection("MethodsConfig:Greeting"));
+            Config = config.GetSection("MethodsConfig:Greeting");
         }
 
         [Command("hidog"), Alias("hihojkas")]
         public async Task Greet()
         {
-            await Greet(Config.OutputMode);
+            await Greet(Config["OutputMode"]);
         }
 
         [Command("hidog"), Alias("hihojkas")]
@@ -32,8 +31,9 @@ namespace WatchDog_Bot.Modules
 
             if (!availableModes.Contains(mode)) return;
             if (!(Context.Message.Author is SocketGuildUser sender)) return;
+            var messageTemplate = Config["Message"];
 
-            var message = Config.Message.Replace("{person}", sender.GetUsersFullName());
+            var message = messageTemplate.Replace("{person}", GetUsersFullName(sender));
 
             switch (mode)
             {
@@ -44,12 +44,12 @@ namespace WatchDog_Bot.Modules
                     message = ConvertToBinOrHexa(message, true);
                     break;
                 case "text": // text
-                    message = Config.Message.Replace("{person}", sender.Mention);
+                    message = messageTemplate.Replace("{person}", sender.Mention);
                     break;
             }
 
-            var emoji = Context.Guild.Emotes.FirstOrDefault(o => o.Name == Config.AppendEmoji);
-            if (!string.IsNullOrEmpty(Config.AppendEmoji) && emoji != null)
+            var emoji = Context.Guild.Emotes.FirstOrDefault(o => o.Name == Config["AppendEmoji"]);
+            if (emoji != null)
                 await ReplyAsync($"{message} <:{emoji.Name}:{emoji.Id}>");
             else
                 await ReplyAsync(message);

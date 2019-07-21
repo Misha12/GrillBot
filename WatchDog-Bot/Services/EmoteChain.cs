@@ -18,7 +18,11 @@ namespace WatchDog_Bot.Services
             LastMessages = new Dictionary<ulong, List<string>>();
         }
 
-        public void Cleanup(ISocketMessageChannel channel) => LastMessages[channel.Id].Clear();
+        public void Cleanup(ISocketMessageChannel channel)
+        {
+            if (!LastMessages.ContainsKey(channel.Id)) return;
+            LastMessages[channel.Id].Clear();
+        }
 
         public async Task ProcessChain(SocketUserMessage message)
         {
