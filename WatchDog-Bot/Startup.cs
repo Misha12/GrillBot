@@ -7,6 +7,7 @@ using System;
 using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
+using WatchDog_Bot.Modules;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
@@ -65,6 +66,7 @@ namespace WatchDog_Bot
                 .AddSingleton<CommandHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<StartupService>()
+                .AddSingleton<AutoReplyModule>()
                 .AddSingleton(Configuration);
         }
     }

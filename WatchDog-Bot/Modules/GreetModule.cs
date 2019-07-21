@@ -16,14 +16,7 @@ namespace WatchDog_Bot.Modules
 
         public GreetModule(IConfigurationRoot config)
         {
-            var hiHojkas = config.GetSection("MethodsConfig:Greeting");
-
-            Config = new GreetConfig()
-            {
-                AppendEmoji = hiHojkas["AppendEmoji"],
-                Message = hiHojkas["Message"],
-                OutputMode = hiHojkas["OutputMode"]
-            };
+            Config = new GreetConfig(config.GetSection("MethodsConfig:Greeting"));
         }
 
         [Command("hidog"), Alias("hihojkas")]
@@ -64,25 +57,15 @@ namespace WatchDog_Bot.Modules
 
         private string ConvertToBinOrHexa(string message, bool useHexa)
         {
-            var binaryValues = new List<string>(message.Length * 8); // 8 bits per char.
+            var values = new List<string>(message.Length * 8); // 8 bits per char.
+            int @base = useHexa ? 16 : 2;
 
-            if(!useHexa)
+            foreach(int charCode in message)
             {
-                foreach (int charCode in message)
-                {
-                    binaryValues.Add(Convert.ToString(charCode, 2));
-                }
+                values.Add(Convert.ToString(charCode, @base));
             }
-            else
-            {
-                foreach(int charCode in message)
-                {
-                    binaryValues.Add(Convert.ToString(charCode, 16));
-                }
-            }
-            
 
-            return string.Join(" ", binaryValues);
+            return string.Join(" ", values);
         }
     }
 }

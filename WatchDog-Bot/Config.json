@@ -23,5 +23,11 @@
 			"AppendEmoji": "493152294712377354",
 			"OutputMode": "bin"
 		}
-	}
+	},
+	"AutoReply": [
+		{
+			"WhenSay": "",
+			"Reply": ""
+		}
+	]
 }

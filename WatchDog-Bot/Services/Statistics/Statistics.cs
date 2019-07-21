@@ -6,6 +6,7 @@ namespace WatchDog_Bot.Services.Statistics
     public class Statistics
     {
         public Dictionary<string, StatisticsData> Data { get; }
+        public double AvgReactTime { get; private set; }
 
         public Statistics()
         {
@@ -26,6 +27,11 @@ namespace WatchDog_Bot.Services.Statistics
                 return Data.Values.OrderByDescending(o => o.AverageTime).ToList();
 
             return Data.Values.OrderByDescending(o => o.CallsCount).ToList();
+        }
+
+        public void ComputeAvgReact(long elapsedTime)
+        {
+            AvgReactTime = (AvgReactTime + elapsedTime) / 2.0D;
         }
     }
 }

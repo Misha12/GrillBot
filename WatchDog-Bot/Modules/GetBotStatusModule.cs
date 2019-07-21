@@ -1,10 +1,8 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using WatchDog_Bot.Helpers;
 using WatchDog_Bot.Services.Statistics;
@@ -39,6 +37,7 @@ namespace WatchDog_Bot.Modules
             AddInlineEmbedField(embed, "Využití RAM", FormatHelper.FormatAsSize(processStatus.WorkingSet64));
             AddInlineEmbedField(embed, "Běží od", processStatus.StartTime.ToString("dd. MM. yyyy HH:mm:ss"));
             AddInlineEmbedField(embed, "Počet vláken", GetThreadStatus(processStatus));
+            AddInlineEmbedField(embed, "Průměrná doba reakce", Statistics.AvgReactTime + "ms");
 
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStats(orderType == "time");
@@ -51,14 +50,14 @@ namespace WatchDog_Bot.Modules
             var embedData = new EmbedBuilder()
             {
                 Color = Color.DarkBlue,
-                Description = "Statistiky metod"
+                Description = "Statistiky příkazů"
             };
 
             AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
             AddInlineEmbedField(embedData, "Počet volání", 
                 string.Join(Environment.NewLine, data.Select(x => FormatHelper.FormatWithSpaces(x.CallsCount))));
             AddInlineEmbedField(embedData, "Průměrná doba", 
-                string.Join(Environment.NewLine, data.Select(o => TimeSpan.FromMilliseconds(o.AverageTime).ToString())));
+                string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
 
             await ReplyAsync("", embed: embedData.Build());
         }
