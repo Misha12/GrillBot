@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace WatchDog_Bot.Modules
 {
-    [Name("Help")]
+    [Name("Nápověda")]
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }
@@ -68,14 +68,14 @@ namespace WatchDog_Bot.Modules
 
             if (!result.IsSuccess)
             {
-                await ReplyAsync($"Sorry, I couldn't find a command like **{command}**.");
+                await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.");
                 return;
             }
 
             var builder = new EmbedBuilder()
             {
                 Color = new Color(114, 137, 218),
-                Description = $"Here are some commands like **{command}**"
+                Description = $"Tady máš různé varianty příkazů na **{command}**"
             };
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
@@ -85,14 +85,14 @@ namespace WatchDog_Bot.Modules
                 if(cmd.Parameters.Count > 0)
                 {
                     valueBuilder
-                        .Append("Parameters: ")
+                        .Append("Parametry: ")
                         .AppendLine(string.Join(", ", cmd.Parameters.Select(p => p.Name)));
                 }
 
-                valueBuilder.Append("Summary: ").AppendLine(cmd.Summary);
+                valueBuilder.AppendLine(cmd.Summary);
 
                 if(!string.IsNullOrEmpty(cmd.Remarks))
-                    valueBuilder.Append("Remarks: ").AppendLine(cmd.Remarks);
+                    valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks);
 
                 builder.AddField(x =>
                 {

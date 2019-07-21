@@ -23,14 +23,13 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("channelboard")]
-        [Summary("Channel count leaderboard.")]
         public async Task Channelboard()
         {
             await Channelboard(TakeTop);
         }
 
         [Command("channelboard")]
-        [Summary("Channel count leaderboard. Can select TOP N channels.")]
+        [Remarks("Možnost zvolit TOP N kanálů.")]
         public async Task Channelboard(int takeTop)
         {
             var channelBoardData = Statistics.ChannelCounter.OrderByDescending(o => o.Value).Take(takeTop).ToList();

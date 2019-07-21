@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace WatchDog_Bot.Modules
 {
-    [Name("Greet bot")]
+    [Name("Pozdrav bota")]
     public class GreetModule : BotModuleBase
     {
         private IConfiguration Config { get; }
@@ -19,15 +19,13 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("hidog")]
-        [Summary("Prints greeting message.")]
         public async Task Greet()
         {
             await Greet(Config["OutputMode"]);
         }
 
         [Command("hidog")]
-        [Summary("Prints greeting message in selected format.")]
-        [Remarks("Available modes: text, bin, hex")]
+        [Remarks("Možné formáty odpověi jsou 'text', 'bin', nebo 'hex'.")]
         public async Task Greet(string mode)
         {
             var availableModes = new[] { "text", "bin", "hex" };
