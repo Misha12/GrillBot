@@ -36,7 +36,7 @@ namespace WatchDog_Bot
             var provider = services.BuildServiceProvider();
 
             provider.GetRequiredService<LoggingService>();
-            provider.GetRequiredService<CommandHandler>();
+            provider.GetRequiredService<MessageHandler>();
 
             Console.CancelKeyPress += (s, e) => Environment.Exit(0);
 
@@ -64,7 +64,7 @@ namespace WatchDog_Bot
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
-                .AddSingleton<CommandHandler>()
+                .AddSingleton<MessageHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<StartupService>()
                 .AddSingleton<AutoReplyModule>()

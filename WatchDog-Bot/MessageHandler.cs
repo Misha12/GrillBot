@@ -12,7 +12,7 @@ using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
 {
-    public class CommandHandler
+    public class MessageHandler
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -23,7 +23,7 @@ namespace WatchDog_Bot
 
         private string CommandPrefix { get; }
 
-        public CommandHandler(DiscordSocketClient client, CommandService commands, IConfigurationRoot config, IServiceProvider services,
+        public MessageHandler(DiscordSocketClient client, CommandService commands, IConfigurationRoot config, IServiceProvider services,
             Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain)
         {
             Client = client;
