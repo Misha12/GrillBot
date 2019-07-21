@@ -7,6 +7,7 @@ using System.Diagnostics;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
 using WatchDog_Bot.Modules;
+using WatchDog_Bot.Services;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
@@ -18,17 +19,19 @@ namespace WatchDog_Bot
         private IServiceProvider Services { get; }
         private Statistics Statistics { get; }
         private AutoReplyModule AutoReply { get; }
+        private EmoteChain EmoteChain { get; }
 
         private string CommandPrefix { get; }
 
         public CommandHandler(DiscordSocketClient client, CommandService commands, IConfigurationRoot config, IServiceProvider services,
-            Statistics statistics, AutoReplyModule autoReply)
+            Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain)
         {
             Client = client;
             Commands = commands;
             Services = services;
             Statistics = statistics;
             AutoReply = autoReply;
+            EmoteChain = emoteChain;
 
             CommandPrefix = config["CommandPrefix"];
 
@@ -76,13 +79,16 @@ namespace WatchDog_Bot
                     }
 
                     var command = message.Content.Split(' ')[0];
+
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
                     await context.Channel.DeleteMessageAsync(userMessage);
+                    EmoteChain.Cleanup(context.Channel);
                 }
                 else
                 {
                     Statistics.IncrementChannelCounter(userMessage.Channel.Id);
                     await AutoReply.TryReply(userMessage);
+                    await EmoteChain.ProcessChain(userMessage);
                 }
             }
             finally
