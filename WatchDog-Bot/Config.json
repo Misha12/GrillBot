@@ -1,6 +1,10 @@
 ﻿{
 	"CommandPrefix": "!",
 	"IsDevelopment": true,
+	"Leaderboards": {
+		"ChannelStatsTakeTop": 10,
+		"SyncWithDBSecs": 60
+	},
 	"Granted": [],
 	"RepostDetection": {
 		"IndexedRooms": []

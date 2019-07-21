@@ -1,0 +1,5 @@
+﻿CREATE TABLE [dbo].[Channelstats]
+(
+	[ID] BIGINT NOT NULL PRIMARY KEY,
+	[Count] BIGINT NOT NULL
+)

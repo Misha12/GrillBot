@@ -44,5 +44,17 @@ namespace WatchDog_Bot.Repository
             if (columns == null || columns.Length == 0) return "";
             return $"ORDER BY {string.Join(", ", columns)} {(ascending ? "ASC" : "DESC")}";
         }
+
+        protected async Task ExecuteNonReaderQuery(string sql, Action<int> action)
+        {
+            if (Connection.State != System.Data.ConnectionState.Open)
+                await Connection.OpenAsync();
+
+            using(var command = new SqlCommand(sql, Connection))
+            {
+                var result = await command.ExecuteNonQueryAsync();
+                action(result);
+            }
+        }
     }
 }

@@ -70,6 +70,7 @@ namespace WatchDog_Bot
                 }
                 else
                 {
+                    Statistics.IncrementChannelCounter(userMessage.Channel.Id);
                     await AutoReply.TryReply(userMessage);
                 }
             }

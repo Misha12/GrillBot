@@ -8,6 +8,7 @@ using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
 using WatchDog_Bot.Modules;
+using WatchDog_Bot.Repository;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
@@ -39,6 +40,7 @@ namespace WatchDog_Bot
 
             Console.CancelKeyPress += (s, e) => Environment.Exit(0);
 
+            await provider.GetRequiredService<Statistics>().Init();
             await provider.GetRequiredService<StartupService>().StartAsync();
             await Task.Delay(-1);
         }
