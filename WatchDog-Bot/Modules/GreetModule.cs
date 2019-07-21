@@ -5,10 +5,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using WatchDog_Bot.Extensions;
 
 namespace WatchDog_Bot.Modules
 {
+    [Name("Greet bot")]
     public class GreetModule : BotModuleBase
     {
         private IConfiguration Config { get; }
@@ -18,16 +18,19 @@ namespace WatchDog_Bot.Modules
             Config = config.GetSection("MethodsConfig:Greeting");
         }
 
-        [Command("hidog"), Alias("hihojkas")]
+        [Command("hidog")]
+        [Summary("Prints greeting message.")]
         public async Task Greet()
         {
             await Greet(Config["OutputMode"]);
         }
 
-        [Command("hidog"), Alias("hihojkas")]
+        [Command("hidog")]
+        [Summary("Prints greeting message in selected format.")]
+        [Remarks("Available modes: text, bin, hex")]
         public async Task Greet(string mode)
         {
-            var availableModes = new[] { "text", "bin", "hexa" };
+            var availableModes = new[] { "text", "bin", "hex" };
 
             if (!availableModes.Contains(mode)) return;
             if (!(Context.Message.Author is SocketGuildUser sender)) return;
@@ -40,7 +43,7 @@ namespace WatchDog_Bot.Modules
                 case "bin":
                     message = ConvertToBinOrHexa(message, false);
                     break;
-                case "hexa":
+                case "hex":
                     message = ConvertToBinOrHexa(message, true);
                     break;
                 case "text": // text

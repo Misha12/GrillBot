@@ -10,6 +10,7 @@ using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
 {
+    [Name("Channel leaderboards")]
     public class ChannelboardModule : BotModuleBase
     {
         private Statistics Statistics { get; }
@@ -22,12 +23,14 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("channelboard")]
+        [Summary("Channel count leaderboard.")]
         public async Task Channelboard()
         {
             await Channelboard(TakeTop);
         }
 
         [Command("channelboard")]
+        [Summary("Channel count leaderboard. Can select TOP N channels.")]
         public async Task Channelboard(int takeTop)
         {
             var channelBoardData = Statistics.ChannelCounter.OrderByDescending(o => o.Value).Take(takeTop).ToList();

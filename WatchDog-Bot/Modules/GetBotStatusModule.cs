@@ -9,6 +9,7 @@ using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
 {
+    [Name("Get bot status")]
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
@@ -17,13 +18,16 @@ namespace WatchDog_Bot.Modules
             Statistics = statistics;
         }
 
-        [Command("dogstatus"), Alias("hojkasstatus")]
+        [Command("dogstatus")]
+        [Summary("Prints diagnostics info about bot.")]
         public async Task Status()
         {
             await Status("count");
         }
 
-        [Command("dogstatus"), Alias("hojkasstatus")]
+        [Command("dogstatus")]
+        [Summary("Prints diagnostics info about bot. Can select method statistics order.")]
+        [Remarks("OrderType is 'time' or 'count'.")]
         public async Task Status(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();

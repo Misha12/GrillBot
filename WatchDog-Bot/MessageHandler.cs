@@ -81,7 +81,6 @@ namespace WatchDog_Bot
                     var command = message.Content.Split(' ')[0];
 
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
-                    await context.Channel.DeleteMessageAsync(userMessage);
                     EmoteChain.Cleanup(context.Channel);
                 }
                 else
