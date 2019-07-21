@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -30,7 +31,16 @@ namespace WatchDog_Bot
             AutoReply = autoReply;
 
             CommandPrefix = config["CommandPrefix"];
+
             Client.MessageReceived += OnMessageReceivedAsync;
+            Client.MessageDeleted += OnMessageDeletedAsync;
+        }
+
+        private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        {
+            if (message.HasValue && (message.Value.Content.StartsWith(CommandPrefix) || message.Value.Author.IsBot)) return;
+
+            Statistics.DecrementChannelCounter(channel.Id);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -67,6 +77,7 @@ namespace WatchDog_Bot
 
                     var command = message.Content.Split(' ')[0];
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
+                    await context.Channel.DeleteMessageAsync(userMessage);
                 }
                 else
                 {

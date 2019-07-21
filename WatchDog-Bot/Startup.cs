@@ -8,7 +8,6 @@ using System.IO;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
 using WatchDog_Bot.Modules;
-using WatchDog_Bot.Repository;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
@@ -50,8 +49,7 @@ namespace WatchDog_Bot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 10000000,
-                ExclusiveBulkDelete = true
+                MessageCacheSize = 10000000
             };
 
             var commandsConfig = new CommandServiceConfig()

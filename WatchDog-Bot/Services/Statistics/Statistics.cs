@@ -16,7 +16,7 @@ namespace WatchDog_Bot.Services.Statistics
 
         private IConfigurationRoot Config { get; }
 
-        private Timer SyncTimer { get; set; }
+        private Timer DataSyncTimer { get; set; }
         private bool CanUpdateInDB { get; set; }
 
         public Statistics(IConfigurationRoot configuration)
@@ -26,7 +26,7 @@ namespace WatchDog_Bot.Services.Statistics
             Config = configuration;
 
             var syncTimerConfig = Convert.ToInt32(configuration["Leaderboards:SyncWithDBSecs"]) * 1000;
-            SyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
+            DataSyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
         }
 
         public void SyncTimerCallback(object _)
@@ -81,6 +81,14 @@ namespace WatchDog_Bot.Services.Statistics
                 ChannelCounter.Add(channelID, 1);
             else
                 ChannelCounter[channelID]++;
+
+            CanUpdateInDB = true;
+        }
+
+        public void DecrementChannelCounter(ulong channelID)
+        {
+            if (!ChannelCounter.ContainsKey(channelID)) return;
+            ChannelCounter[channelID]--;
 
             CanUpdateInDB = true;
         }
