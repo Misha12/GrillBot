@@ -32,7 +32,10 @@ namespace WatchDog_Bot.Modules
         [Remarks("Možnost zvolit TOP N kanálů.")]
         public async Task Channelboard(int takeTop)
         {
-            var channelBoardData = Statistics.ChannelCounter.OrderByDescending(o => o.Value).Take(takeTop).ToList();
+            var channelBoardData = Statistics.ChannelCounter
+                .OrderByDescending(o => o.Value)
+                .Where(o => CanAuthorToChannel(o.Key))
+                .Take(takeTop).ToList();
 
             var messageBuilder = new StringBuilder()
                 .AppendLine("=======================")
@@ -51,6 +54,14 @@ namespace WatchDog_Bot.Modules
             }
 
             await ReplyAsync(messageBuilder.ToString());
+        }
+
+        private bool CanAuthorToChannel(ulong channelID)
+        {
+            var channel = Context.Client.GetChannel(channelID);
+
+            if (channel == null) return false;
+            return channel.Users.Any(o => o.Id == Context.Message.Author.Id);
         }
     }
 }
