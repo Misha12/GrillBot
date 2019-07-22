@@ -10,15 +10,19 @@ using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
 {
-    public class AutoReplyModule
+    public class AutoReplyModule : IConfigChangeable
     {
         private Dictionary<string, string> AutoReplyData { get; }
 
         public AutoReplyModule(IConfigurationRoot configuration)
         {
             AutoReplyData = new Dictionary<string, string>();
+            Init(configuration);
+        }
 
-            foreach(var item in configuration.GetSection("AutoReply").GetChildren())
+        private void Init(IConfigurationRoot config)
+        {
+            foreach (var item in config.GetSection("AutoReply").GetChildren())
             {
                 AutoReplyData.Add(item["WhenSay"], item["Reply"]);
             }
@@ -31,6 +35,12 @@ namespace WatchDog_Bot.Modules
 
             if(!string.IsNullOrEmpty(replyMessage))
                 await message.Channel.SendMessageAsync(replyMessage);
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            AutoReplyData.Clear();
+            Init(newConfig);
         }
     }
 }

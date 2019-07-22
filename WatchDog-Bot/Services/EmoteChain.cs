@@ -8,10 +8,10 @@ using System.Threading.Tasks;
 
 namespace WatchDog_Bot.Services
 {
-    public class EmoteChain
+    public class EmoteChain : IConfigChangeable
     {
         private Dictionary<ulong, List<string>> LastMessages { get; }
-        private int ReactLimit { get; }
+        private int ReactLimit { get; set; }
 
         public EmoteChain(IConfigurationRoot configuration)
         {
@@ -63,6 +63,11 @@ namespace WatchDog_Bot.Services
         private bool IsLocalEmote(SocketCommandContext context)
         {
             return context.Guild.Emotes.Any(o => o.ToString() == context.Message.Content);
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            ReactLimit = Convert.ToInt32(newConfig["EmoteChain:CheckLastN"]);
         }
     }
 }

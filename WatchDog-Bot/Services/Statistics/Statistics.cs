@@ -8,13 +8,13 @@ using WatchDog_Bot.Repository;
 
 namespace WatchDog_Bot.Services.Statistics
 {
-    public class Statistics
+    public class Statistics : IConfigChangeable
     {
         public Dictionary<string, StatisticsData> Data { get; }
         public double AvgReactTime { get; private set; }
         public Dictionary<ulong, long> ChannelCounter { get; private set; }
 
-        private IConfigurationRoot Config { get; }
+        private IConfigurationRoot Config { get; set; }
 
         private Timer DataSyncTimer { get; set; }
         private bool CanUpdateInDB { get; set; }
@@ -91,6 +91,14 @@ namespace WatchDog_Bot.Services.Statistics
             ChannelCounter[channelID]--;
 
             CanUpdateInDB = true;
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            var syncTimerConfig = Convert.ToInt32(newConfig["Leaderboards:SyncWithDBSecs"]) * 1000;
+            DataSyncTimer.Change(syncTimerConfig, syncTimerConfig);
+
+            Config = newConfig;
         }
     }
 }

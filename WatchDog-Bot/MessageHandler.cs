@@ -12,7 +12,7 @@ using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot
 {
-    public class MessageHandler
+    public class MessageHandler : IConfigChangeable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -21,7 +21,7 @@ namespace WatchDog_Bot
         private AutoReplyModule AutoReply { get; }
         private EmoteChain EmoteChain { get; }
 
-        private string CommandPrefix { get; }
+        private string CommandPrefix { get; set; }
 
         public MessageHandler(DiscordSocketClient client, CommandService commands, IConfigurationRoot config, IServiceProvider services,
             Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain)
@@ -98,6 +98,11 @@ namespace WatchDog_Bot
                 messageStopwatch.Stop();
                 Statistics.ComputeAvgReact(messageStopwatch.ElapsedMilliseconds);
             }
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            CommandPrefix = newConfig["CommandPrefix"];
         }
     }
 }

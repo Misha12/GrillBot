@@ -10,21 +10,27 @@ using WatchDog_Bot.Extensions;
 
 namespace WatchDog_Bot
 {
-    public class LoggingService
+    public class LoggingService : IConfigChangeable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
 
-        private string LogDirectory { get; }
-        private ulong? LogRoom { get; }
-        private bool IsDevelopment { get; }
-        private ulong? ErrorTagUser { get; }
+        private string LogDirectory { get; set; }
+        private ulong? LogRoom { get; set; }
+        private bool IsDevelopment { get; set; }
+        private ulong? ErrorTagUser { get; set; }
 
         public LoggingService(DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
         {
             Client = client;
             Commands = commands;
+            Init(config);
+            Client.Log += OnLogAsync;
+            Commands.Log += OnLogAsync;
+        }
 
+        private void Init(IConfigurationRoot config)
+        {
             var logDir = config["Log:Path"].ToString();
             if (string.IsNullOrEmpty(logDir)) logDir = Environment.CurrentDirectory;
             LogDirectory = Path.Combine(logDir, "logs");
@@ -43,9 +49,6 @@ namespace WatchDog_Bot
 
             var errorTagUser = discordLog["ErrorTagUser"];
             if (!string.IsNullOrEmpty(errorTagUser)) ErrorTagUser = Convert.ToUInt64(errorTagUser);
-
-            Client.Log += OnLogAsync;
-            Commands.Log += OnLogAsync;
         }
 
         private string GetLogFilename() => Path.Combine(LogDirectory, $"{DateTime.UtcNow.ToString("yyMMdd")}_WatchDog.log");
@@ -78,6 +81,11 @@ namespace WatchDog_Bot
             {
                 await Console.Out.WriteLineAsync(message.ToString());
             }
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            Init(newConfig);
         }
     }
 }

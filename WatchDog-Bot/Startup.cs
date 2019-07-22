@@ -3,8 +3,13 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Primitives;
 using System;
 using System.IO;
+using System.Linq;
+using System.Reflection;
+using System.Security.Cryptography;
+using System.Threading;
 using System.Threading.Tasks;
 using WatchDog_Bot.Exceptions;
 using WatchDog_Bot.Modules;
@@ -16,16 +21,26 @@ namespace WatchDog_Bot
     public class Startup
     {
         private IConfigurationRoot Configuration { get; }
+        private IServiceProvider ServiceProvider { get; set; }
+
+        private byte[] ConfigHash { get; set; }
+        private string ConfigFilename { get; }
 
         public Startup(string[] args)
         {
+
             if (args.Length < 1 || !File.Exists(args[0]))
                 throw new ConfigException("Cannot found config. Please specify in first command line argument.");
 
             var builder = new ConfigurationBuilder()
-                .AddJsonFile(args[0], optional: false);
+                .AddJsonFile(args[0], optional: false, reloadOnChange: true);
 
             Configuration = builder.Build();
+
+            ConfigFilename = args[0];
+            ConfigHash = GetConfigHash();
+
+            ChangeToken.OnChange(() => Configuration.GetReloadToken(), () => ConfigChanged());
         }
 
         public async Task RunAsync()
@@ -33,15 +48,15 @@ namespace WatchDog_Bot
             var services = new ServiceCollection();
             ConfigureServices(services);
 
-            var provider = services.BuildServiceProvider();
+            ServiceProvider = services.BuildServiceProvider();
 
-            provider.GetRequiredService<LoggingService>();
-            provider.GetRequiredService<MessageHandler>();
+            ServiceProvider.GetRequiredService<LoggingService>();
+            ServiceProvider.GetRequiredService<MessageHandler>();
 
             Console.CancelKeyPress += (s, e) => Environment.Exit(0);
 
-            await provider.GetRequiredService<Statistics>().Init();
-            await provider.GetRequiredService<StartupService>().StartAsync();
+            await ServiceProvider.GetRequiredService<Statistics>().Init();
+            await ServiceProvider.GetRequiredService<StartupService>().StartAsync();
             await Task.Delay(-1);
         }
 
@@ -70,6 +85,40 @@ namespace WatchDog_Bot
                 .AddSingleton<AutoReplyModule>()
                 .AddSingleton(Configuration)
                 .AddSingleton<EmoteChain>();
+        }
+
+        private void ConfigChanged()
+        {
+            var newHash = GetConfigHash();
+
+            if (!ConfigHash.SequenceEqual(newHash))
+            {
+                var changeableTypes = Assembly.GetExecutingAssembly()
+                    .GetTypes().Where(o => o.GetInterface(typeof(IConfigChangeable).FullName) != null);
+
+                foreach (var type in changeableTypes)
+                {
+                    var service = (IConfigChangeable)ServiceProvider.GetService(type);
+                    service?.ConfigChanged(Configuration);
+                }
+
+                ConfigHash = newHash;
+            }
+        }
+
+        private byte[] GetConfigHash()
+        {
+            if(File.Exists(ConfigFilename))
+            {
+                using (var fs = File.OpenRead(ConfigFilename))
+                {
+                    return SHA1.Create().ComputeHash(fs);
+                }
+            }
+            else
+            {
+                return new byte[20];
+            }
         }
     }
 }
