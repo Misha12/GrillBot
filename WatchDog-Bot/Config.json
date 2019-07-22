@@ -24,9 +24,19 @@
 	},
 	"MethodsConfig": {
 		"Greeting": {
+			"RequireRoles": [ "Verify" ],
 			"Message": "Ahoj, {person}.",
 			"AppendEmoji": "493152294712377354",
 			"OutputMode": "bin"
+		},
+		"DogStatus": {
+			"RequireRoles": [ "TestDevRole", "dev" ]
+		},
+		"Help": {
+			"RequireRoles": [ "Verify" ]
+		},
+		"Channelboard": {
+			"RequireRoles": [ "Verify" ]
 		}
 	},
 	"AutoReply": [

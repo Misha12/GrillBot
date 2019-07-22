@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using WatchDog_Bot.Helpers;
+using WatchDog_Bot.Services;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
@@ -23,6 +24,7 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("channelboard")]
+        [RequireRole(RoleGroupName = "Channelboard")]
         public async Task Channelboard()
         {
             await Channelboard(TakeTop);
@@ -30,6 +32,7 @@ namespace WatchDog_Bot.Modules
 
         [Command("channelboard")]
         [Remarks("Možnost zvolit TOP N kanálů.")]
+        [RequireRole(RoleGroupName = "Channelboard")]
         public async Task Channelboard(int takeTop)
         {
             var channelBoardData = Statistics.ChannelCounter

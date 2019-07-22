@@ -70,6 +70,9 @@ namespace WatchDog_Bot
                         switch (result.Error.Value)
                         {
                             case CommandError.UnknownCommand: return;
+                            case CommandError.UnmetPrecondition:
+                                await context.Channel.SendMessageAsync($"Na tento příkaz nemáš dostatečná práva.");
+                                break;
                             case CommandError.BadArgCount:
                                 await context.Channel.SendMessageAsync($"Nedostatečný počet parametrů.");
                                 break;

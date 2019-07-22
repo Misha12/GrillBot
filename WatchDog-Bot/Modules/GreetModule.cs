@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using WatchDog_Bot.Services;
 
 namespace WatchDog_Bot.Modules
 {
@@ -19,6 +20,7 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("hidog")]
+        [RequireRole(RoleGroupName = "Greeting")]
         public async Task Greet()
         {
             await Greet(Config["OutputMode"]);
@@ -26,6 +28,7 @@ namespace WatchDog_Bot.Modules
 
         [Command("hidog")]
         [Remarks("Možné formáty odpověi jsou 'text', 'bin', nebo 'hex'.")]
+        [RequireRole(RoleGroupName = "Greeting")]
         public async Task Greet(string mode)
         {
             var availableModes = new[] { "text", "bin", "hex" };

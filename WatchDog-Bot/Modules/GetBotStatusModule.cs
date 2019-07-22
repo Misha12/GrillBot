@@ -5,6 +5,7 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using WatchDog_Bot.Helpers;
+using WatchDog_Bot.Services;
 using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
@@ -20,6 +21,7 @@ namespace WatchDog_Bot.Modules
 
         [Command("dogstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
+        [RequireRole(RoleGroupName = "DogStatus")]
         public async Task Status()
         {
             await Status("count");
@@ -28,6 +30,7 @@ namespace WatchDog_Bot.Modules
         [Command("dogstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
+        [RequireRole(RoleGroupName = "DogStatus")]
         public async Task Status(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();

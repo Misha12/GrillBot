@@ -6,6 +6,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using WatchDog_Bot.Services;
 
 namespace WatchDog_Bot.Modules
 {
@@ -14,14 +15,17 @@ namespace WatchDog_Bot.Modules
     {
         private CommandService CommandService { get; }
         private string CommandPrefix { get; }
+        private IServiceProvider Services { get; }
 
-        public HelpModule(CommandService commandService, IConfigurationRoot config)
+        public HelpModule(CommandService commandService, IConfigurationRoot config, IServiceProvider services)
         {
             CommandService = commandService;
             CommandPrefix = config["CommandPrefix"];
+            Services = services;
         }
 
         [Command("doghelp")]
+        [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
             var embed = new EmbedBuilder() { Color = new Color(114, 137, 218) };
@@ -32,7 +36,7 @@ namespace WatchDog_Bot.Modules
 
                 foreach (var cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context);
+                    var result = await cmd.CheckPreconditionsAsync(Context, Services);
 
                     if (result.IsSuccess)
                     {
@@ -62,6 +66,7 @@ namespace WatchDog_Bot.Modules
         }
 
         [Command("doghelp")]
+        [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync(string command)
         {
             var result = CommandService.Search(Context, command);
@@ -80,25 +85,37 @@ namespace WatchDog_Bot.Modules
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
             {
-                var valueBuilder = new StringBuilder();
+                var haveAccess = await cmd.CheckPreconditionsAsync(Context, Services);
 
-                if(cmd.Parameters.Count > 0)
+                if (haveAccess.IsSuccess)
                 {
-                    valueBuilder
-                        .Append("Parametry: ")
-                        .AppendLine(string.Join(", ", cmd.Parameters.Select(p => p.Name)));
+                    var valueBuilder = new StringBuilder();
+
+                    if (cmd.Parameters.Count > 0)
+                    {
+                        valueBuilder
+                            .Append("Parametry: ")
+                            .AppendLine(string.Join(", ", cmd.Parameters.Select(p => p.Name)));
+                    }
+
+                    if(!string.IsNullOrEmpty(cmd.Summary))
+                        valueBuilder.AppendLine(cmd.Summary);
+
+                    if (!string.IsNullOrEmpty(cmd.Remarks))
+                        valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks);
+
+                    string commandDesc = valueBuilder.ToString();
+                    builder.AddField(x =>
+                    {
+                        x.Name = string.Join(", ", cmd.Aliases);
+                        x.Value = string.IsNullOrEmpty(commandDesc) ? "Bez parametrů a popisu" : commandDesc;
+                    });
                 }
+            }
 
-                valueBuilder.AppendLine(cmd.Summary);
-
-                if(!string.IsNullOrEmpty(cmd.Remarks))
-                    valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks);
-
-                builder.AddField(x =>
-                {
-                    x.Name = string.Join(", ", cmd.Aliases);
-                    x.Value = valueBuilder.ToString();
-                });
+            if(builder.Fields.Count == 0)
+            {
+                builder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
             }
 
             await ReplyAsync("", false, builder.Build());
