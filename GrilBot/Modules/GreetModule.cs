@@ -19,14 +19,14 @@ namespace GrilBot.Modules
             Config = config.GetSection("MethodsConfig:Greeting");
         }
 
-        [Command("hidog")]
+        [Command("grilhi")]
         [RequireRole(RoleGroupName = "Greeting")]
         public async Task Greet()
         {
             await Greet(Config["OutputMode"]);
         }
 
-        [Command("hidog")]
+        [Command("grilhi")]
         [Remarks("Možné formáty odpověi jsou 'text', 'bin', nebo 'hex'.")]
         [RequireRole(RoleGroupName = "Greeting")]
         public async Task Greet(string mode)

@@ -24,7 +24,7 @@ namespace GrilBot.Modules
             Services = services;
         }
 
-        [Command("doghelp")]
+        [Command("grilhelp")]
         [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
@@ -65,7 +65,7 @@ namespace GrilBot.Modules
             await ReplyAsync("", embed: embed.Build());
         }
 
-        [Command("doghelp")]
+        [Command("grilhelp")]
         [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync(string command)
         {
