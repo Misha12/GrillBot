@@ -56,6 +56,9 @@ namespace WatchDog_Bot.Services.Statistics
 
         public void LogCall(string command, long elapsedTime)
         {
+            if (command.StartsWith(Config["CommandPrefix"]))
+                command = command.Substring(1);
+
             if (!Data.ContainsKey(command))
                 Data.Add(command, new StatisticsData(command, elapsedTime));
             else

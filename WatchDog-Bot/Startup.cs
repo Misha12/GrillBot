@@ -103,6 +103,8 @@ namespace WatchDog_Bot
                 }
 
                 ConfigHash = newHash;
+
+                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tUpdated config.");
             }
         }
 
