@@ -5,14 +5,11 @@
 		"ChannelStatsTakeTop": 10,
 		"SyncWithDBSecs": 60
 	},
-	"RepostDetection": {
-		"IndexedRooms": [],
-		"EmojiReactName": ""
-	},
 	"Database": "",
 	"Discord": {
 		"Activity": "",
-		"Token": ""
+		"Token": "",
+		"UserJoinedMessage": ""
 	},
 	"Log": {
 		"Path": "",

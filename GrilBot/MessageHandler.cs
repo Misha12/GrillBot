@@ -21,7 +21,7 @@ namespace GrilBot
         private AutoReplyModule AutoReply { get; }
         private EmoteChain EmoteChain { get; }
 
-        private string CommandPrefix { get; set; }
+        private IConfigurationRoot Config { get; set; }
 
         public MessageHandler(DiscordSocketClient client, CommandService commands, IConfigurationRoot config, IServiceProvider services,
             Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain)
@@ -32,16 +32,24 @@ namespace GrilBot
             Statistics = statistics;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
-
-            CommandPrefix = config["CommandPrefix"];
+            Config = config;
 
             Client.MessageReceived += OnMessageReceivedAsync;
             Client.MessageDeleted += OnMessageDeletedAsync;
+            Client.UserJoined += OnUserJoinedOnServerAsync;
+        }
+
+        private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
+        {
+            var message = Config["Discord:UserJoinedMessage"];
+
+            if (!string.IsNullOrEmpty(message))
+                await user.SendMessageAsync(message);
         }
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            if (message.HasValue && (message.Value.Content.StartsWith(CommandPrefix) || message.Value.Author.IsBot)) return;
+            if (message.HasValue && (message.Value.Content.StartsWith(Config["CommandPrefix"]) || message.Value.Author.IsBot)) return;
 
             Statistics.DecrementChannelCounter(channel.Id);
         }
@@ -59,7 +67,7 @@ namespace GrilBot
                 var context = new SocketCommandContext(Client, userMessage);
 
                 int argPos = 0;
-                if (userMessage.HasStringPrefix(CommandPrefix, ref argPos))
+                if (userMessage.HasStringPrefix(Config["CommandPrefix"], ref argPos))
                 {
                     commandStopwatch.Start();
                     var result = await Commands.ExecuteAsync(context, argPos, Services);
@@ -102,7 +110,7 @@ namespace GrilBot
 
         public void ConfigChanged(IConfigurationRoot newConfig)
         {
-            CommandPrefix = newConfig["CommandPrefix"];
+            Config = newConfig;
         }
     }
 }
