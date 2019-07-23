@@ -41,7 +41,10 @@
 	},
 	"AutoReply": [
 		{
-			"WhenSay": "",
+			"IsInMessage": {
+				"Regex": "",
+				"OptionsFlags": 0
+			},
 			"Reply": ""
 		}
 	],

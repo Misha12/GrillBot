@@ -2,36 +2,39 @@
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
-using System.Text;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using WatchDog_Bot.Services.Statistics;
 
 namespace WatchDog_Bot.Modules
 {
     public class AutoReplyModule : IConfigChangeable
     {
-        private Dictionary<string, string> AutoReplyData { get; }
+        private Dictionary<Regex, string> AutoReplyData { get; set; }
 
         public AutoReplyModule(IConfigurationRoot configuration)
         {
-            AutoReplyData = new Dictionary<string, string>();
             Init(configuration);
         }
 
         private void Init(IConfigurationRoot config)
         {
+            var autoReplyData = new Dictionary<Regex, string>();
+
             foreach (var item in config.GetSection("AutoReply").GetChildren())
             {
-                AutoReplyData.Add(item["WhenSay"], item["Reply"]);
+                var regexConfig = item.GetSection("IsInMessage");
+                var regex = new Regex(regexConfig["Regex"], (RegexOptions)Convert.ToInt32(regexConfig["OptionsFlags"]));
+
+                autoReplyData.Add(regex, item["Reply"]);
             }
+
+            AutoReplyData = autoReplyData;
         }
 
         public async Task TryReply(SocketUserMessage message)
         {
-            var replyMessage = AutoReplyData.FirstOrDefault(o =>
-                message.Content.Contains(o.Key, StringComparison.InvariantCultureIgnoreCase)).Value;
+            var replyMessage = AutoReplyData.FirstOrDefault(o => o.Key.IsMatch(message.Content)).Value;
 
             if(!string.IsNullOrEmpty(replyMessage))
                 await message.Channel.SendMessageAsync(replyMessage);
@@ -39,7 +42,6 @@ namespace WatchDog_Bot.Modules
 
         public void ConfigChanged(IConfigurationRoot newConfig)
         {
-            AutoReplyData.Clear();
             Init(newConfig);
         }
     }
