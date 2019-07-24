@@ -40,7 +40,7 @@ namespace GrilBot
             ConfigFilename = args[0];
             ConfigHash = GetConfigHash();
 
-            ChangeToken.OnChange(() => Configuration.GetReloadToken(), () => ConfigChanged());
+            ChangeToken.OnChange(() => Configuration.GetReloadToken(), ConfigChanged);
         }
 
         public async Task RunAsync()
@@ -65,7 +65,7 @@ namespace GrilBot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 10000000
+                MessageCacheSize = 1000000
             };
 
             var commandsConfig = new CommandServiceConfig()
