@@ -59,9 +59,9 @@
     <Folder Include="Tables" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GrilBot.publish.xml" />
+    <Build Include="Tables\Channelstats.sql" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Channelstats.sql" />
+    <None Include="GrilBot-DB.publish.xml" />
   </ItemGroup>
 </Project>

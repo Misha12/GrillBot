@@ -51,7 +51,7 @@ namespace GrilBot
         {
             if (message.HasValue && (message.Value.Content.StartsWith(Config["CommandPrefix"]) || message.Value.Author.IsBot)) return;
 
-            Statistics.DecrementChannelCounter(channel.Id);
+            await Statistics.ChannelStats.DecrementCounter(channel.Id);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -96,7 +96,7 @@ namespace GrilBot
                 }
                 else
                 {
-                    Statistics.IncrementChannelCounter(userMessage.Channel.Id);
+                    await Statistics.ChannelStats.IncrementCounter(userMessage.Channel.Id);
                     await AutoReply.TryReply(userMessage);
                     await EmoteChain.ProcessChain(context);
                 }

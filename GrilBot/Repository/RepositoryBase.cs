@@ -1,5 +1,7 @@
 ﻿using Microsoft.Extensions.Configuration;
 using System;
+using System.Collections.Generic;
+using System.Data;
 using System.Data.SqlClient;
 using System.Threading.Tasks;
 
@@ -39,21 +41,15 @@ namespace GrilBot.Repository
             }
         }
 
-        protected string GetOrderType(bool ascending, params string[] columns)
+        protected async Task ExecuteNonReaderBatch(List<SqlCommand> commands)
         {
-            if (columns == null || columns.Length == 0) return "";
-            return $"ORDER BY {string.Join(", ", columns)} {(ascending ? "ASC" : "DESC")}";
-        }
-
-        protected async Task ExecuteNonReaderQuery(string sql, Action<int> action)
-        {
-            if (Connection.State != System.Data.ConnectionState.Open)
+            if (Connection.State != ConnectionState.Open)
                 await Connection.OpenAsync();
 
-            using(var command = new SqlCommand(sql, Connection))
+            foreach(var command in commands)
             {
-                var result = await command.ExecuteNonQueryAsync();
-                action(result);
+                command.Connection = Connection;
+                await command.ExecuteNonQueryAsync();
             }
         }
     }

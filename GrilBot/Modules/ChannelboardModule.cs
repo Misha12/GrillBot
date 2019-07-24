@@ -14,12 +14,12 @@ namespace GrilBot.Modules
     [Name("Channel leaderboards")]
     public class ChannelboardModule : BotModuleBase
     {
-        private Statistics Statistics { get; }
+        private ChannelStats Stats { get; }
         private int TakeTop { get; }
 
         public ChannelboardModule(Statistics statistics, IConfigurationRoot configuration)
         {
-            Statistics = statistics;
+            Stats = statistics.ChannelStats;
             TakeTop = Convert.ToInt32(configuration["Leaderboards:ChannelStatsTakeTop"]);
         }
 
@@ -35,7 +35,7 @@ namespace GrilBot.Modules
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task Channelboard(int takeTop)
         {
-            var channelBoardData = Statistics.ChannelCounter
+            var channelBoardData = Stats.Counter
                 .OrderByDescending(o => o.Value)
                 .Where(o => CanAuthorToChannel(o.Key))
                 .Take(takeTop).ToList();

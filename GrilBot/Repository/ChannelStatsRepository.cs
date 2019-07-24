@@ -1,8 +1,9 @@
 ﻿using System;
 using System.Collections.Generic;
+using System.Data.SqlClient;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
+using GrilBot.Helpers;
 using Microsoft.Extensions.Configuration;
 
 namespace GrilBot.Repository
@@ -34,12 +35,34 @@ namespace GrilBot.Repository
             });
         }
 
-        public async Task SaveStatistics(Dictionary<ulong, long> data)
+        public async Task UpdateStatistics(Dictionary<ulong, long> dataToUpdate)
         {
-            var sql = "DELETE FROM Channelstats; INSERT INTO Channelstats ([ID], [Count]) VALUES " + 
-                string.Join(", ", data.Select(o => $"({o.Key}, {o.Value})"));
+            var commandBuilder = new List<SqlCommand>();
 
-            await ExecuteNonReaderQuery(sql, (_) => { });
+            try
+            {
+                var channels = dataToUpdate.Select(o => o.Key.ToString());
+                var deleteCommand = new SqlCommand(SqlHelper.BuildWhereInClause("DELETE FROM Channelstats WHERE ID IN ({0})", "ChannelID", channels));
+                deleteCommand.AddParamsToCommand("ChannelID", channels);
+                commandBuilder.Add(deleteCommand);
+
+                commandBuilder.AddRange(dataToUpdate.Select(o =>
+                {
+                    var cmd = new SqlCommand("INSERT INTO Channelstats (ID, [Count]) VALUES (@channelID, @count)");
+
+                    cmd.Parameters.AddWithValue("@channelID", o.Key.ToString());
+                    cmd.Parameters.AddWithValue("@count", o.Value);
+
+                    return cmd;
+                }));
+
+                await ExecuteNonReaderBatch(commandBuilder);
+            }
+            finally
+            {
+                foreach (var command in commandBuilder)
+                    command.Dispose();
+            }
         }
     }
 }
