@@ -66,5 +66,31 @@ namespace GrilBot.Modules
             if (channel == null) return false;
             return channel.Users.Any(o => o.Id == Context.Message.Author.Id);
         }
+
+        [Command("channelboardweb")]
+        [Summary("Webový leaderboard.")]
+        [RequireRole(RoleGroupName = "Channelboard")]
+        public async Task ChannelboardWeb()
+        {
+
+        }
+
+        [Command("channelboard")]
+        [Summary("Počet zpráv v místnosti.")]
+        [RequireRole(RoleGroupName = "Channelboard")]
+        public async Task ChannelboardForRoom(string roomMention)
+        {
+            var channel = Context.Guild.Channels.FirstOrDefault(o => $"<#{o.Id}>" == roomMention);
+
+            if (!CanAuthorToChannel(channel.Id))
+                await Context.Message.Author.SendMessageAsync("Do této místnosti nemáš dostatečná práva.");
+
+            var value = Stats.GetValue(channel.Id);
+            var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
+            var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
+
+            await Context.Message.Author.SendMessageAsync(message);
+            await Context.Message.DeleteAsync();
+        }
     }
 }

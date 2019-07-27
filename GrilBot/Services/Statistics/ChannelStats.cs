@@ -113,6 +113,16 @@ namespace GrilBot.Services.Statistics
             }
         }
 
+        public Tuple<int, long> GetValue(ulong channelID)
+        {
+            if (!Counter.ContainsKey(channelID))
+                return new Tuple<int, long>(0, 0);
+
+            var orderedData = Counter.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
+            var keyPosition = Counter.Keys.ToList().FindIndex(o => o == channelID) + 1;
+            return new Tuple<int, long>(keyPosition, orderedData[channelID]);
+        }
+
         #region IDisposable Support
 
         protected virtual void Dispose(bool disposing)
