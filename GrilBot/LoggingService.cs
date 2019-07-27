@@ -10,7 +10,7 @@ using GrilBot.Extensions;
 
 namespace GrilBot
 {
-    public class LoggingService : IConfigChangeable
+    public class LoggingService : IConfigChangeable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -64,7 +64,7 @@ namespace GrilBot
                 var parts = exceptionMessage.SplitInParts(1950).ToArray();
                 var channel = Client.GetChannel(LogRoom.Value) as IMessageChannel;
 
-                for(var i = 0; i < parts.Length; i++)
+                for (var i = 0; i < parts.Length; i++)
                 {
                     if (i == 0)
                     {
@@ -87,5 +87,22 @@ namespace GrilBot
         {
             Init(newConfig);
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Client.Log -= OnLogAsync;
+                Commands.Log -= OnLogAsync;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

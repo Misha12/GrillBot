@@ -9,14 +9,14 @@ using GrilBot.Exceptions;
 
 namespace GrilBot
 {
-    public class StartupService : IConfigChangeable
+    public class DiscordService : IConfigChangeable, IDisposable
     {
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IConfigurationRoot Config { get; set; }
 
-        public StartupService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
+        public DiscordService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
         {
             Services = services;
             Client = client;
@@ -42,7 +42,7 @@ namespace GrilBot
 
         private string FormatActivity(string template)
         {
-            if(template.Contains("{DateTimeNow:"))
+            if (template.Contains("{DateTimeNow:"))
             {
                 var templateFields = template.Split(new[] { "{DateTimeNow:" }, StringSplitOptions.RemoveEmptyEntries);
                 var otherTemplateFields = templateFields[1].Split("}");
@@ -65,5 +65,21 @@ namespace GrilBot
             Config = newConfig;
             SetActivity(newConfig["Discord:Activity"]).Wait();
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                Client.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

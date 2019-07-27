@@ -53,10 +53,10 @@ namespace GrilBot
             ServiceProvider.GetRequiredService<LoggingService>();
             ServiceProvider.GetRequiredService<MessageHandler>();
 
-            Console.CancelKeyPress += (s, e) => Environment.Exit(0);
+            Console.CancelKeyPress += OnBotClose;
 
             await ServiceProvider.GetRequiredService<Statistics>().Init();
-            await ServiceProvider.GetRequiredService<StartupService>().StartAsync();
+            await ServiceProvider.GetRequiredService<DiscordService>().StartAsync();
             await Task.Delay(-1);
         }
 
@@ -81,7 +81,7 @@ namespace GrilBot
                 .AddSingleton<Statistics>()
                 .AddSingleton<MessageHandler>()
                 .AddSingleton<LoggingService>()
-                .AddSingleton<StartupService>()
+                .AddSingleton<DiscordService>()
                 .AddSingleton<AutoReplyModule>()
                 .AddSingleton(Configuration)
                 .AddSingleton<EmoteChain>();
@@ -106,6 +106,25 @@ namespace GrilBot
 
                 Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tUpdated config.");
             }
+        }
+
+        private void OnBotClose(object sender, ConsoleCancelEventArgs eventArgs)
+        {
+            var disposableTypes = Assembly.GetExecutingAssembly()
+                .GetTypes().Where(o => o.GetInterface(typeof(IDisposable).FullName) != null);
+
+            foreach(var type in disposableTypes)
+            {
+                var service = (IDisposable)ServiceProvider.GetService(type);
+
+                if(service != null)
+                {
+                    service.Dispose();
+                    Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tDisposed service {type.Name}.");
+                }
+            }
+
+            Environment.Exit(0);
         }
 
         private byte[] GetConfigHash()

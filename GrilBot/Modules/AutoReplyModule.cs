@@ -36,7 +36,7 @@ namespace GrilBot.Modules
         {
             var replyMessage = AutoReplyData.FirstOrDefault(o => o.Key.IsMatch(message.Content)).Value;
 
-            if(!string.IsNullOrEmpty(replyMessage))
+            if (!string.IsNullOrEmpty(replyMessage))
                 await message.Channel.SendMessageAsync(replyMessage);
         }
 

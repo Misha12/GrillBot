@@ -12,7 +12,7 @@ using GrilBot.Services.Statistics;
 
 namespace GrilBot
 {
-    public class MessageHandler : IConfigChangeable
+    public class MessageHandler : IConfigChangeable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -112,5 +112,23 @@ namespace GrilBot
         {
             Config = newConfig;
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                Client.MessageReceived -= OnMessageReceivedAsync;
+                Client.MessageDeleted -= OnMessageDeletedAsync;
+                Client.UserJoined -= OnUserJoinedOnServerAsync;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

@@ -1,11 +1,12 @@
 ﻿using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace GrilBot.Services.Statistics
 {
-    public class Statistics : IConfigChangeable
+    public class Statistics : IConfigChangeable, IDisposable
     {
         public Dictionary<string, StatisticsData> Data { get; }
         public double AvgReactTime { get; private set; }
@@ -54,5 +55,21 @@ namespace GrilBot.Services.Statistics
             ChannelStats.ConfigChanged(newConfig);
             Config = newConfig;
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                ChannelStats.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

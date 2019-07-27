@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace GrilBot.Services.Statistics
 {
-    public class ChannelStats : IConfigChangeable
+    public class ChannelStats : IConfigChangeable, IDisposable
     {
         public Dictionary<ulong, long> Counter { get; private set; }
         private IConfigurationRoot Config { get; set; }
@@ -112,5 +112,22 @@ namespace GrilBot.Services.Statistics
                 Semaphore.Release();
             }
         }
+
+        #region IDisposable Support
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (disposing)
+            {
+                DbSyncTimer.Dispose();
+                Semaphore.Dispose();
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }
