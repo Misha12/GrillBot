@@ -3,19 +3,18 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Globalization;
 using System.Reflection;
 using System.Threading.Tasks;
 using GrilBot.Exceptions;
 
 namespace GrilBot
 {
-    public class StartupService
+    public class StartupService : IConfigChangeable
     {
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
-        private IConfigurationRoot Config { get; }
+        private IConfigurationRoot Config { get; set; }
 
         public StartupService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
         {
@@ -27,19 +26,16 @@ namespace GrilBot
 
         public async Task StartAsync()
         {
-            var token = Config["Discord:Token"];
-            var activityMessage = Config["Discord:Activity"];
+            var dcConfig = Config.GetSection("Discord");
+            var token = dcConfig["Token"];
+            var activityMessage = dcConfig["Activity"];
 
             if (string.IsNullOrEmpty(token))
                 throw new ConfigException("Missing bot token in config.");
 
             await Client.LoginAsync(TokenType.Bot, token);
             await Client.StartAsync();
-
-            if(!string.IsNullOrEmpty(activityMessage))
-            {
-                await Client.SetGameAsync(FormatActivity(activityMessage));
-            }
+            await SetActivity(activityMessage);
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
@@ -54,6 +50,20 @@ namespace GrilBot
             }
 
             return template;
+        }
+
+        private async Task SetActivity(string activityMessage)
+        {
+            if (!string.IsNullOrEmpty(activityMessage))
+                await Client.SetGameAsync(FormatActivity(activityMessage));
+            else
+                await Client.SetGameAsync(null);
+        }
+
+        public void ConfigChanged(IConfigurationRoot newConfig)
+        {
+            Config = newConfig;
+            SetActivity(newConfig["Discord:Activity"]).Wait();
         }
     }
 }
