@@ -4,60 +4,86 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text.RegularExpressions;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace GrilBot.Services
 {
     public class EmoteChain : IConfigChangeable
     {
-        private Dictionary<ulong, List<string>> LastMessages { get; }
+        // Dictionary<ChannelID, List<UserID, Message>>
+        private Dictionary<ulong, List<Tuple<ulong, string>>> LastMessages { get; }
         private int ReactLimit { get; set; }
+        private SemaphoreSlim Semaphore { get; }
 
         public EmoteChain(IConfigurationRoot configuration)
         {
             ReactLimit = Convert.ToInt32(configuration["EmoteChain:CheckLastN"]);
-            LastMessages = new Dictionary<ulong, List<string>>();
+            LastMessages = new Dictionary<ulong, List<Tuple<ulong, string>>>();
+            Semaphore = new SemaphoreSlim(1, 1);
         }
 
-        public void Cleanup(ISocketMessageChannel channel)
+        public async Task Cleanup(ISocketMessageChannel channel, bool @lock = false)
         {
-            if (!LastMessages.ContainsKey(channel.Id)) return;
-            LastMessages[channel.Id].Clear();
+            if (@lock)
+                await Semaphore.WaitAsync();
+
+            try
+            {
+                if (!LastMessages.ContainsKey(channel.Id)) return;
+                LastMessages[channel.Id].Clear();
+            }
+            finally
+            {
+                if (@lock)
+                    Semaphore.Release();
+            }
         }
 
         public async Task ProcessChain(SocketCommandContext context)
         {
-            var content = context.Message.Content;
-            var channel = context.Channel;
+            await Semaphore.WaitAsync();
 
-            if (!LastMessages.ContainsKey(channel.Id))
-                LastMessages.Add(channel.Id, new List<string>(ReactLimit));
-
-            if (!IsEmote(content) || !IsLocalEmote(context))
+            try
             {
-                Cleanup(channel);
-                return;
-            }
+                var author = context.Message.Author;
+                var content = context.Message.Content;
+                var channel = context.Channel;
 
-            LastMessages[channel.Id].Add(content);
-            await TryReact(channel);
+                if (!IsValidMessage(context))
+                {
+                    await Cleanup(channel);
+                    return;
+                }
+
+                if (!LastMessages.ContainsKey(channel.Id))
+                    LastMessages.Add(channel.Id, new List<Tuple<ulong, string>>(ReactLimit));
+
+                if (!LastMessages[channel.Id].Any(o => o.Item1 == author.Id))
+                {
+                    LastMessages[channel.Id].Add(new Tuple<ulong, string>(author.Id, content));
+                }
+
+                await TryReact(channel);
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
         }
 
         private async Task TryReact(ISocketMessageChannel channel)
         {
             if(LastMessages[channel.Id].Count == ReactLimit)
             {
-                await channel.SendMessageAsync(LastMessages[channel.Id][0]);
+                await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2);
             }
         }
 
-        private bool IsEmote(string content)
+        private bool IsEmote(SocketCommandContext context)
         {
-            if (!content.StartsWith("<:")) return false;
-            if (!content.EndsWith(">")) return false;
-            if (content.Contains(" ")) return false;
-
-            return content.Count(c => c == ':') == 2;
+            return Regex.IsMatch(context.Message.Content, @"<:[^:\s]*(?:::[^:\s]*)*:\d+>");
         }
 
         private bool IsLocalEmote(SocketCommandContext context)
@@ -65,9 +91,20 @@ namespace GrilBot.Services
             return context.Guild.Emotes.Any(o => o.ToString() == context.Message.Content);
         }
 
+        private bool IsValidMessage(SocketCommandContext context) => IsEmote(context) && IsLocalEmote(context);
+
         public void ConfigChanged(IConfigurationRoot newConfig)
         {
-            ReactLimit = Convert.ToInt32(newConfig["EmoteChain:CheckLastN"]);
+            Semaphore.Wait();
+
+            try
+            {
+                ReactLimit = Convert.ToInt32(newConfig["EmoteChain:CheckLastN"]);
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
         }
     }
 }

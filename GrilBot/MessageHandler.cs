@@ -92,7 +92,7 @@ namespace GrilBot
                     var command = message.Content.Split(' ')[0];
 
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
-                    EmoteChain.Cleanup(context.Channel);
+                    await EmoteChain.Cleanup(context.Channel, true);
                 }
                 else
                 {
