@@ -56,13 +56,14 @@ namespace GrilBot
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
-            if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
-
             var messageStopwatch = new Stopwatch();
             messageStopwatch.Start();
 
             try
             {
+                if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
+                if (message.Channel is IPrivateChannel) return;
+
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
 

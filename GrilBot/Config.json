@@ -16,7 +16,14 @@
 		"LogToDiscord": {
 			"Enabled": true,
 			"Room": "",
-			"ErrorTagUser": ""
+			"ErrorTagUser": "",
+			"ExceptionRules": [
+				{
+					"Type": "",
+					"InnerType": "",
+					"Operation": ""
+				}
+			]
 		}
 	},
 	"MethodsConfig": {
@@ -33,7 +40,12 @@
 			"RequireRoles": [ "Verify" ]
 		},
 		"Channelboard": {
-			"RequireRoles": [ "Verify" ]
+			"RequireRoles": [ "Verify" ],
+			"Web": {
+				"TokenValidMins": 0,
+				"TokenLength": 0,
+				"Url": ""
+			}
 		},
 		"Images": {
 			"RequireRoles": [ "Verify" ],

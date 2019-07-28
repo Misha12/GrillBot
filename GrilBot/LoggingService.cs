@@ -19,6 +19,7 @@ namespace GrilBot
         private ulong? LogRoom { get; set; }
         private bool IsDevelopment { get; set; }
         private ulong? ErrorTagUser { get; set; }
+        private IConfigurationRoot Config { get; set; }
 
         public LoggingService(DiscordSocketClient client, CommandService commands, IConfigurationRoot config)
         {
@@ -49,6 +50,8 @@ namespace GrilBot
 
             var errorTagUser = discordLog["ErrorTagUser"];
             if (!string.IsNullOrEmpty(errorTagUser)) ErrorTagUser = Convert.ToUInt64(errorTagUser);
+
+            Config = config;
         }
 
         private string GetLogFilename() => Path.Combine(LogDirectory, $"{DateTime.UtcNow.ToString("yyMMdd")}_WatchDog.log");
@@ -60,10 +63,40 @@ namespace GrilBot
 
             if (message.Exception != null && LogRoom != null)
             {
+                var exceptionRule = GetExceptionRule(message.Exception);
                 var exceptionMessage = message.Exception.ToString();
                 var parts = exceptionMessage.SplitInParts(1950).ToArray();
                 var channel = Client.GetChannel(LogRoom.Value) as IMessageChannel;
 
+                await SendLogMessage(parts, exceptionRule, channel);
+            }
+
+            if (IsDevelopment)
+            {
+                await Console.Out.WriteLineAsync(message.ToString());
+            }
+        }
+
+        private async Task SendLogMessage(string[] parts, IConfigurationSection rule, IMessageChannel channel)
+        {
+            if (rule != null && !string.IsNullOrEmpty(rule["Operation"]) && rule["Operation"] == "Ignore") return;
+
+            if(rule != null && !string.IsNullOrEmpty(rule["Operation"]) && rule["Operation"] == "NoTag")
+            {
+                for (var i = 0; i < parts.Length; i++)
+                {
+                    if (i == 0)
+                    {
+                        await channel?.SendMessageAsync($"```{parts[0]}```");
+                    }
+                    else
+                    {
+                        await channel?.SendMessageAsync($"```{parts[i]}```");
+                    }
+                }
+            }
+            else
+            {
                 for (var i = 0; i < parts.Length; i++)
                 {
                     if (i == 0)
@@ -76,11 +109,19 @@ namespace GrilBot
                     }
                 }
             }
+        }
 
-            if (IsDevelopment)
-            {
-                await Console.Out.WriteLineAsync(message.ToString());
-            }
+        private IConfigurationSection GetExceptionRule(Exception exception)
+        {
+            var ruleName = exception.GetType().Name;
+
+            var rules = Config.GetSection("Log:LogToDiscord:ExceptionRules").GetChildren()
+                .Where(o => o["Type"] == ruleName).ToList();
+
+            if(exception.InnerException == null)
+                return rules.FirstOrDefault();
+
+            return rules.FirstOrDefault(o => o["InnerType"] == exception.InnerException.GetType().Name);
         }
 
         public void ConfigChanged(IConfigurationRoot newConfig)
