@@ -1,4 +1,6 @@
-﻿using GrilBot.Repository;
+﻿using Discord.Commands;
+using GrilBot.Helpers;
+using GrilBot.Repository;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -15,11 +17,13 @@ namespace GrilBot.Services.Statistics
         private Timer DbSyncTimer { get; set; }
         private List<ulong> Changes { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
+        private List<ChannelboardWebToken> WebTokens { get; set; }
 
         public ChannelStats(IConfigurationRoot config)
         {
             Counter = new Dictionary<ulong, long>();
             Changes = new List<ulong>();
+            WebTokens = new List<ChannelboardWebToken>();
 
             Config = config;
             Semaphore = new SemaphoreSlim(1, 1);
@@ -41,6 +45,7 @@ namespace GrilBot.Services.Statistics
         {
             var syncTimerConfig = Convert.ToInt32(config["Leaderboards:SyncWithDBSecs"]) * 1000;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
+            Config = config;
         }
 
         public void ConfigChanged(IConfigurationRoot newConfig)
@@ -64,11 +69,19 @@ namespace GrilBot.Services.Statistics
 
                 Changes.Clear();
                 Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
+
+                CleanInvalidWebTokens();
             }
             finally
             {
                 Semaphore.Release();
             }
+        }
+
+        private void CleanInvalidWebTokens()
+        {
+            WebTokens.RemoveAll(o => !o.IsValid());
+            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
         }
 
         public async Task IncrementCounter(ulong channelID)
@@ -119,8 +132,23 @@ namespace GrilBot.Services.Statistics
                 return new Tuple<int, long>(0, 0);
 
             var orderedData = Counter.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
-            var keyPosition = Counter.Keys.ToList().FindIndex(o => o == channelID) + 1;
+            var keyPosition = orderedData.Keys.ToList().FindIndex(o => o == channelID) + 1;
             return new Tuple<int, long>(keyPosition, orderedData[channelID]);
+        }
+
+        public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
+        {
+            var config = Config.GetSection("MethodsConfig:Channelboard:Web");
+
+            var tokenValidFor = TimeSpan.FromMinutes(Convert.ToInt32(config["TokenValidMins"]));
+            var tokenLength = Convert.ToInt32(config["TokenLength"]);
+            var token = StringHelper.CreateRandomString(tokenLength);
+            var rawUrl = config["Url"];
+
+            var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
+            WebTokens.Add(webToken);
+
+            return webToken;
         }
 
         #region IDisposable Support

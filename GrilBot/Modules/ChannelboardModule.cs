@@ -72,7 +72,10 @@ namespace GrilBot.Modules
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task ChannelboardWeb()
         {
+            var token = Stats.CreateWebToken(Context);
 
+            var message = $"Tady máš odkaz na channelboard serveru **{Context.Guild.Name}**: {token.Url}. Odkaz platí do *{token.GetExpirationDate()}*";
+            await Context.Message.Author.SendMessageAsync(message);
         }
 
         [Command("channelboard")]
