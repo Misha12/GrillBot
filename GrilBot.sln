@@ -3,9 +3,9 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrilBot", "GrilBot\GrilBot.csproj", "{C4840F71-9612-44F0-AE74-8C7225FB2699}"
-EndProject
 Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "GrilBot-DB", "GrilBot-DB\GrilBot-DB.sqlproj", "{445AC672-398A-4496-8FD1-5C25858289EA}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grillbot", "Grillbot\Grillbot.csproj", "{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -13,16 +13,16 @@ Global
 		Release|Any CPU = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(ProjectConfigurationPlatforms) = postSolution
-		{C4840F71-9612-44F0-AE74-8C7225FB2699}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
-		{C4840F71-9612-44F0-AE74-8C7225FB2699}.Debug|Any CPU.Build.0 = Debug|Any CPU
-		{C4840F71-9612-44F0-AE74-8C7225FB2699}.Release|Any CPU.ActiveCfg = Release|Any CPU
-		{C4840F71-9612-44F0-AE74-8C7225FB2699}.Release|Any CPU.Build.0 = Release|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Debug|Any CPU.Deploy.0 = Debug|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Release|Any CPU.Build.0 = Release|Any CPU
 		{445AC672-398A-4496-8FD1-5C25858289EA}.Release|Any CPU.Deploy.0 = Release|Any CPU
+		{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
