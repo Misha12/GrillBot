@@ -2,6 +2,7 @@
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Models;
@@ -27,7 +28,7 @@ namespace Grillbot.Controllers
         public IActionResult Index() => NoContent();
 
         [HttpGet("[action]")]
-        public async Task<IActionResult> GetChannelboardData(string token)
+        public IActionResult GetChannelboardData(string token)
         {
             if (string.IsNullOrEmpty(token))
                 return BadRequest(new { Error = "Missing token", Code = ChannelboardErrors.MissingWebToken });
@@ -38,15 +39,30 @@ namespace Grillbot.Controllers
             var guild = DiscordClient.Guilds.First();
             var data = new Channelboard()
             {
-                Items = ChannelStats.GetChannelboardData(token, DiscordClient),
+                Items = ChannelStats.GetChannelboardData(token, DiscordClient, out ChannelboardWebToken webToken),
                 Guild = new GuildInfo()
                 {
                     AvatarUrl = guild.IconUrl,
-                    Name = guild.Name
-                }
+                    Name = guild.Name,
+                    UsersCount = guild.Users.Count
+                },
+                StatsFor = GetUsername(guild.GetUser(webToken.UserID))
             };
 
             return Ok(data);
+        }
+
+        private string GetUsername(SocketGuildUser user)
+        {
+            var builder = new StringBuilder()
+                .Append(user.Username);
+
+            if (string.IsNullOrEmpty(user.Nickname))
+                builder.Append("#").Append(user.Discriminator);
+            else
+                builder.Append(" (").Append(user.Nickname).Append("#").Append(user.Discriminator).Append(")");
+
+            return builder.ToString();
         }
     }
 }

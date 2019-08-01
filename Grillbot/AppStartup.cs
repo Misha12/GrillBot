@@ -24,6 +24,7 @@ namespace Grillbot
         public void ConfigureServices(IServiceCollection services)
         {
             services
+                .AddCors()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
@@ -61,6 +62,7 @@ namespace Grillbot
             var serviceProvider = app.ApplicationServices;
 
             app
+                .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseMvc()
                 .UseWelcomePage();
 

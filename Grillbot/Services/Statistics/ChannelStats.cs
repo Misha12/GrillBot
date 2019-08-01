@@ -6,6 +6,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -154,10 +155,11 @@ namespace Grillbot.Services.Statistics
 
         public bool ExistsWebToken(string token) => WebTokens.Any(o => o.Token == token);
 
-        public List<ChannelboardItem> GetChannelboardData(string token, DiscordSocketClient client)
+        public List<ChannelboardItem> GetChannelboardData(string token, DiscordSocketClient client, out ChannelboardWebToken webToken)
         {
             var tokenData = WebTokens.Find(o => o.Token == token);
 
+            webToken = tokenData;
             return Counter
                 .Where(o => CanUserToChannel(client, o.Key, tokenData.UserID))
                 .Select(o => GetChannelboardItem(o, client))

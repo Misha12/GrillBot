@@ -1,0 +1,25 @@
+<div *ngIf="channelboard" id="channelboard">
+  <header>
+      <img class="profile-picture" *ngIf="channelboard.guild" src="{{channelboard.guild.avatarUrl}}" alt="{{channelboard.guild.name}}">
+      <div>
+        <h2>{{channelboard.guild.name}}</h2>
+        <p>Počet uživatelů: {{channelboard.guild.usersCount}}</p>
+        <p>Statistika za uživatele: {{channelboard.statsFor}}</p>
+      </div>
+  </header>
+
+  <table>
+    <thead>
+      <tr>
+        <th>Kanál</th>
+        <th>Počet zpráv</th>
+      </tr>
+    </thead>
+    <tbody>
+      <tr *ngFor="let item of channelboard.items">
+        <td>{{item.channelName}}</td>
+        <td>{{item.count}}</td>
+      </tr>
+    </tbody>
+  </table>
+</div>
