@@ -10,9 +10,7 @@ using Grillbot.Services;
 namespace Grillbot.Modules
 {
     [Name("Pozdrav bota")]
-#pragma warning disable CS0246 // The type or namespace name 'BotModuleBase' could not be found (are you missing a using directive or an assembly reference?)
     public class GreetModule : BotModuleBase
-#pragma warning restore CS0246 // The type or namespace name 'BotModuleBase' could not be found (are you missing a using directive or an assembly reference?)
     {
         private IConfiguration Config { get; }
 

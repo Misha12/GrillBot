@@ -3,9 +3,7 @@ using System.Collections.Generic;
 using System.Data.SqlClient;
 using System.Linq;
 using System.Threading.Tasks;
-#pragma warning disable CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Helpers;
-#pragma warning restore CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Repository

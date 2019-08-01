@@ -1,7 +1,5 @@
 ﻿using System;
-#pragma warning disable CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Helpers;
-#pragma warning restore CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 
 namespace Grillbot.Services.Statistics
 {

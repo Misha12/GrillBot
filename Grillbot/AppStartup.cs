@@ -1,23 +1,14 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot;
 using Grillbot.Modules;
-#pragma warning disable CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Services;
-#pragma warning restore CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
-#pragma warning disable CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Services.Statistics;
-#pragma warning restore CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
-using System.Linq;
-using System.Reflection;
-using System.Threading.Tasks;
 
 namespace Grillbot
 {
@@ -70,7 +61,8 @@ namespace Grillbot
             var serviceProvider = app.ApplicationServices;
 
             app
-                .UseMvc();
+                .UseMvc()
+                .UseWelcomePage();
 
             serviceProvider.GetRequiredService<LoggingService>();
             serviceProvider.GetRequiredService<MessageHandler>();

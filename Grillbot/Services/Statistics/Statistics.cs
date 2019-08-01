@@ -6,9 +6,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
 {
-#pragma warning disable CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     public class Statistics : IConfigChangeable, IDisposable
-#pragma warning restore CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     {
         public Dictionary<string, StatisticsData> Data { get; }
         public double AvgReactTime { get; private set; }

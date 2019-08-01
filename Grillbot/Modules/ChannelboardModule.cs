@@ -6,39 +6,25 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
-#pragma warning disable CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Services;
-#pragma warning restore CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
-#pragma warning disable CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Services.Statistics;
-#pragma warning restore CS0234 // The type or namespace name 'Services' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 
 namespace Grillbot.Modules
 {
     [Name("Channel leaderboards")]
     public class ChannelboardModule : BotModuleBase
     {
-#pragma warning disable CS0246 // The type or namespace name 'ChannelStats' could not be found (are you missing a using directive or an assembly reference?)
         private ChannelStats Stats { get; }
-#pragma warning restore CS0246 // The type or namespace name 'ChannelStats' could not be found (are you missing a using directive or an assembly reference?)
         private int TakeTop { get; }
 
-#pragma warning disable CS0246 // The type or namespace name 'Statistics' could not be found (are you missing a using directive or an assembly reference?)
         public ChannelboardModule(Statistics statistics, IConfiguration configuration)
-#pragma warning restore CS0246 // The type or namespace name 'Statistics' could not be found (are you missing a using directive or an assembly reference?)
         {
             Stats = statistics.ChannelStats;
             TakeTop = Convert.ToInt32(configuration["Leaderboards:ChannelStatsTakeTop"]);
         }
 
         [Command("channelboard")]
-#pragma warning disable CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
         [RequireRole(RoleGroupName = "Channelboard")]
-#pragma warning restore CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
         public async Task Channelboard()
         {
             await Channelboard(TakeTop);
@@ -46,13 +32,7 @@ namespace Grillbot.Modules
 
         [Command("channelboard")]
         [Remarks("Možnost zvolit TOP N kanálů.")]
-#pragma warning disable CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
         [RequireRole(RoleGroupName = "Channelboard")]
-#pragma warning restore CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
         public async Task Channelboard(int takeTop)
         {
             var channelBoardData = Stats.Counter
@@ -89,13 +69,7 @@ namespace Grillbot.Modules
 
         [Command("channelboardweb")]
         [Summary("Webový leaderboard.")]
-#pragma warning disable CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
         [RequireRole(RoleGroupName = "Channelboard")]
-#pragma warning restore CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
         public async Task ChannelboardWeb()
         {
             var token = Stats.CreateWebToken(Context);
@@ -106,13 +80,7 @@ namespace Grillbot.Modules
 
         [Command("channelboard")]
         [Summary("Počet zpráv v místnosti.")]
-#pragma warning disable CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning disable CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
         [RequireRole(RoleGroupName = "Channelboard")]
-#pragma warning restore CS0246 // The type or namespace name 'RoleGroupName' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRole' could not be found (are you missing a using directive or an assembly reference?)
-#pragma warning restore CS0246 // The type or namespace name 'RequireRoleAttribute' could not be found (are you missing a using directive or an assembly reference?)
         public async Task ChannelboardForRoom(string roomMention)
         {
             var channel = Context.Guild.Channels.FirstOrDefault(o => $"<#{o.Id}>" == roomMention);

@@ -4,18 +4,14 @@ using System;
 using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
-#pragma warning disable CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Helpers;
-#pragma warning restore CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
 
 namespace Grillbot.Modules
 {
     [Name("Stav bota")]
-#pragma warning disable CS0246 // The type or namespace name 'BotModuleBase' could not be found (are you missing a using directive or an assembly reference?)
     public class GetBotStatusModule : BotModuleBase
-#pragma warning restore CS0246 // The type or namespace name 'BotModuleBase' could not be found (are you missing a using directive or an assembly reference?)
     {
         private Statistics Statistics { get; }
         public GetBotStatusModule(Statistics statistics)

@@ -1,7 +1,6 @@
 ﻿using Discord.Commands;
-#pragma warning disable CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
+using Discord.WebSocket;
 using Grillbot.Helpers;
-#pragma warning restore CS0234 // The type or namespace name 'Helpers' does not exist in the namespace 'Grillbot' (are you missing an assembly reference?)
 using Grillbot.Repository;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -12,9 +11,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
 {
-#pragma warning disable CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     public class ChannelStats : IConfigChangeable, IDisposable
-#pragma warning restore CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     {
         public Dictionary<ulong, long> Counter { get; private set; }
         private IConfiguration Config { get; set; }
@@ -153,6 +150,36 @@ namespace Grillbot.Services.Statistics
             WebTokens.Add(webToken);
 
             return webToken;
+        }
+
+        public bool ExistsWebToken(string token) => WebTokens.Any(o => o.Token == token);
+
+        public List<ChannelboardItem> GetChannelboardData(string token, DiscordSocketClient client)
+        {
+            var tokenData = WebTokens.Find(o => o.Token == token);
+
+            return Counter
+                .Where(o => CanUserToChannel(client, o.Key, tokenData.UserID))
+                .Select(o => GetChannelboardItem(o, client))
+                .OrderByDescending(o => o.Count)
+                .ToList();
+        }
+
+        private ChannelboardItem GetChannelboardItem(KeyValuePair<ulong, long> channelCountPair, DiscordSocketClient client)
+        {
+            var channel = client.GetChannel(channelCountPair.Key) as ISocketMessageChannel;
+
+            return new ChannelboardItem()
+            {
+                ChannelName = channel.Name,
+                Count = channelCountPair.Value
+            };
+        }
+
+        private bool CanUserToChannel(DiscordSocketClient client, ulong channelID, ulong userID)
+        {
+            var channel = client.GetChannel(channelID);
+            return channel.Users.Any(o => o.Id == userID);
         }
 
         #region IDisposable Support

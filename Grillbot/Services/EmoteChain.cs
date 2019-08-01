@@ -10,9 +10,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-#pragma warning disable CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     public class EmoteChain : IConfigChangeable
-#pragma warning restore CS0246 // The type or namespace name 'IConfigChangeable' could not be found (are you missing a using directive or an assembly reference?)
     {
         // Dictionary<ChannelID, List<UserID, Message>>
         private Dictionary<ulong, List<Tuple<ulong, string>>> LastMessages { get; }
