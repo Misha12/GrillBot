@@ -1,5 +1,3 @@
-@import url('https://fonts.googleapis.com/css?family=Red+Hat+Text&display=swap')
-
 #channelboard
     height: 100%
 
@@ -38,14 +36,7 @@ header .header-container
     margin: 0
 
 .body-content 
-    background: #4c4c4c
-    background: -moz-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
-    background: -webkit-gradient(left top, left bottom, color-stop(0%, #4c4c4c), color-stop(12%, #595959), color-stop(31%, #666666), color-stop(54%, #474747), color-stop(83%, #1c1c1c), color-stop(100%, #131313))
-    background: -webkit-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
-    background: -o-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
-    background: -ms-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
-    background: linear-gradient(to bottom, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
-    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4c4c4c', endColorstr='#131313', GradientType=0 )
+    background: #202225
     height: 100%
 
 .body-content .body-content-content
@@ -76,19 +67,32 @@ header .header-container
 .container-item-order
     border: 1px solid
     border-radius: 50%
-    padding: 10px
+    min-width: 32px
+    min-height: 32px
     font-weight: bold
-    width: 16px
-    height: 16px
     display: flex
     align-items: center
     justify-content: center
-    margin-right: 15px
+    flex-shrink: 0
+    margin-right: 16px
 
 .container-item-columns
     display: flex
     justify-content: space-between
     width: 100%
+    align-items: center
 
 .container-item-columns div
     width: 25%
+
+.status-spotify
+    border: 2px solid #1db954
+
+.status-online
+    border: 2px solid green
+
+.status-donotdisturb
+    border: 2px solid rgb(240, 71, 71)
+
+.status-idle
+    border: 2px solid rgb(250, 166, 26)

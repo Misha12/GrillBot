@@ -1,9 +1,19 @@
-* { font-family: 'Red Hat Text', sans-serif }
+@import url('https://fonts.googleapis.com/css?family=Red+Hat+Text&display=swap');
 
-html, body {
+* { 
+    font-family: 'Red Hat Text', sans-serif;
+    box-sizing: border-box;
     margin: 0;
     padding: 0;
+}
 
-    min-height: 100% !important;
-    height: 100%;
+#channelboard {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
+
+}
+
+.body-content {
+    flex-grow: 1
 }

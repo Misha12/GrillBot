@@ -14,11 +14,11 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task<List<Tuple<ulong, long>>> GetStatistics()
+        public async Task<List<Tuple<ulong, long, DateTime>>> GetStatistics()
         {
             return await ExecuteCommand("SELECT * FROM Channelstats", async (reader) =>
             {
-                var data = new List<Tuple<ulong, long>>();
+                var data = new List<Tuple<ulong, long, DateTime>>();
 
                 while(await reader.ReadAsync())
                 {
@@ -26,8 +26,9 @@ namespace Grillbot.Repository
                     {
                         ulong channelID = Convert.ToUInt64(reader["ID"]);
                         long count = Convert.ToInt64(reader["Count"]);
+                        DateTime lastMessageAt = Convert.ToDateTime(reader["LastMessageAt"]);
 
-                        data.Add(new Tuple<ulong, long>(channelID, count));
+                        data.Add(new Tuple<ulong, long, DateTime>(channelID, count, lastMessageAt));
                     }
                 }
 
@@ -35,7 +36,7 @@ namespace Grillbot.Repository
             });
         }
 
-        public async Task UpdateStatistics(Dictionary<ulong, long> dataToUpdate)
+        public async Task UpdateStatistics(Dictionary<ulong, long> dataToUpdate, Dictionary<ulong, DateTime> lastMessageDates)
         {
             var commandBuilder = new List<SqlCommand>();
 
@@ -48,10 +49,11 @@ namespace Grillbot.Repository
 
                 commandBuilder.AddRange(dataToUpdate.Select(o =>
                 {
-                    var cmd = new SqlCommand("INSERT INTO Channelstats (ID, [Count]) VALUES (@channelID, @count)");
+                    var cmd = new SqlCommand("INSERT INTO Channelstats (ID, [Count], [LastMessageAt]) VALUES (@channelID, @count, @lastMessageAt)");
 
                     cmd.Parameters.AddWithValue("@channelID", o.Key.ToString());
                     cmd.Parameters.AddWithValue("@count", o.Value);
+                    cmd.Parameters.AddWithValue("@lastMessageAt", lastMessageDates[o.Key]);
 
                     return cmd;
                 }));

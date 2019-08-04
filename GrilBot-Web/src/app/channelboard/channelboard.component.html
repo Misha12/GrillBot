@@ -2,7 +2,8 @@
   <header>
     <div class="header-container">
       <div class="server-info">
-        <img class="profile-picture" *ngIf="channelboard.guild" src="{{channelboard.guild.avatarUrl}}" alt="{{channelboard.guild.name}}">
+        <img class="profile-picture" *ngIf="channelboard.guild" src="{{channelboard.guild.avatarUrl}}"
+          alt="{{channelboard.guild.name}}">
         <div>
           <h2>{{channelboard.guild.name}}</h2>
           <p>{{channelboard.guild.getFormatedUsersCount()}}</p>
@@ -10,7 +11,9 @@
       </div>
 
       <div class="user-info">
-        <img class="profile-picture" *ngIf="channelboard.user" src="{{channelboard.user.avatarUrl}}" alt="{{channelboard.user.name}}">
+        <img class="profile-picture" *ngIf="channelboard.user" src="{{channelboard.user.avatarUrl}}"
+          alt="{{channelboard.user.name}}"
+          [ngClass]="{'status-online': channelboard.user.status === 0, 'status-donotdisturb': channelboard.user.status == 1, 'status-idle': channelboard.user.status == 2, 'status-spotify': channelboard.user.status == 3}">
         <div>
           <h2 *ngIf="!channelboard.user.nickname">{{channelboard.user.name}}</h2>
           <h2 *ngIf="channelboard.user.nickname">{{channelboard.user.nickname}} ({{channelboard.user.name}})</h2>
@@ -27,8 +30,8 @@
           <div class="container-item-order">{{i+1}}</div>
           <div class="container-item-columns">
             <div class="container-item-name">{{item.channelName}}</div>
-            <div class="container-item-count">{{item.getFormatedCount()}}</div>
-            <div class="container-item-lastMessageAt">{{item.getLocalMessageDate()}}</div>
+            <div class="container-item-count" title="Počet zpráv">{{item.getFormatedCount()}}</div>
+            <div class="container-item-lastMessageAt" title="Poslední zpráva">{{item.getLocalMessageDate()}}</div>
           </div>
         </div>
       </div>

@@ -37,7 +37,9 @@ namespace Grillbot.Services.Statistics
             using (var repository = new ChannelStatsRepository(Config))
             {
                 var data = await repository.GetStatistics();
+
                 Counter = data.ToDictionary(o => o.Item1, o => o.Item2);
+                LastMessagesAt = data.ToDictionary(o => o.Item1, o => o.Item3);
             }
 
             Reload(Config);
@@ -64,10 +66,11 @@ namespace Grillbot.Services.Statistics
             {
                 if (Changes.Count == 0) return;
                 var forUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
+                var lastMessageDates = LastMessagesAt.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
 
                 using (var repository = new ChannelStatsRepository(Config))
                 {
-                    repository.UpdateStatistics(forUpdate).Wait();
+                    repository.UpdateStatistics(forUpdate, lastMessageDates).Wait();
                 }
 
                 Changes.Clear();

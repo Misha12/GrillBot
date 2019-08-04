@@ -65,7 +65,7 @@ export class ChannelboardItem {
 
     public getLocalMessageDate(): string {
         if (this.isLastMessageLogged()) {
-            return 'Nedetekována žádná zpráva';
+            return 'Datum a čas poslední zprávy nedetekován.';
         }
 
         return new Date(this.lastMessageAt).toLocaleString();
@@ -77,6 +77,7 @@ export class User {
     public discriminator: string;
     public avatarUrl: string;
     public nickname: string;
+    public status: number;
 
     public static fromAny(data: any): User {
         const user = new User();
@@ -85,6 +86,7 @@ export class User {
         user.discriminator = data.discriminator;
         user.name = data.name;
         user.nickname = data.nickname;
+        user.status = data.status;
 
         return user;
     }
