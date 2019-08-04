@@ -1,13 +1,7 @@
-﻿using System;
-using System.Collections.Generic;
-using System.ComponentModel.DataAnnotations;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
+﻿using System.Linq;
 using Discord.WebSocket;
 using Grillbot.Models;
 using Grillbot.Services.Statistics;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers
@@ -36,33 +30,18 @@ namespace Grillbot.Controllers
             if (!ChannelStats.ExistsWebToken(token))
                 return BadRequest(new { Error = "Invalid token", Code = ChannelboardErrors.InvalidWebToken });
 
+            var channelboardData = ChannelStats.GetChannelboardData(token, DiscordClient, out ChannelboardWebToken webToken);
             var guild = DiscordClient.Guilds.First();
+            var guildUser = guild.GetUser(webToken.UserID);
+
             var data = new Channelboard()
             {
-                Items = ChannelStats.GetChannelboardData(token, DiscordClient, out ChannelboardWebToken webToken),
-                Guild = new GuildInfo()
-                {
-                    AvatarUrl = guild.IconUrl,
-                    Name = guild.Name,
-                    UsersCount = guild.Users.Count
-                },
-                StatsFor = GetUsername(guild.GetUser(webToken.UserID))
+                Items = channelboardData,
+                Guild = GuildInfo.Create(guild),
+                User = GuildUser.Create(guildUser)
             };
 
             return Ok(data);
-        }
-
-        private string GetUsername(SocketGuildUser user)
-        {
-            var builder = new StringBuilder()
-                .Append(user.Username);
-
-            if (string.IsNullOrEmpty(user.Nickname))
-                builder.Append("#").Append(user.Discriminator);
-            else
-                builder.Append(" (").Append(user.Nickname).Append("#").Append(user.Discriminator).Append(")");
-
-            return builder.ToString();
         }
     }
 }

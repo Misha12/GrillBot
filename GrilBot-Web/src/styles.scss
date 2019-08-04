@@ -1,4 +1,9 @@
-body {
+* { font-family: 'Red Hat Text', sans-serif }
+
+html, body {
     margin: 0;
     padding: 0;
+
+    min-height: 100% !important;
+    height: 100%;
 }

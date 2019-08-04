@@ -6,7 +6,6 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -20,12 +19,14 @@ namespace Grillbot.Services.Statistics
         private List<ulong> Changes { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
         private List<ChannelboardWebToken> WebTokens { get; set; }
+        private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
 
         public ChannelStats(IConfiguration config)
         {
             Counter = new Dictionary<ulong, long>();
             Changes = new List<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
+            LastMessagesAt = new Dictionary<ulong, DateTime>();
 
             Config = config;
             Semaphore = new SemaphoreSlim(1, 1);
@@ -99,6 +100,11 @@ namespace Grillbot.Services.Statistics
 
                 if (!Changes.Contains(channelID))
                     Changes.Add(channelID);
+
+                if (LastMessagesAt.ContainsKey(channelID))
+                    LastMessagesAt.Add(channelID, DateTime.Now);
+                else
+                    LastMessagesAt[channelID] = DateTime.Now;
             }
             finally
             {
@@ -128,14 +134,15 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        public Tuple<int, long> GetValue(ulong channelID)
+        public Tuple<int, long, DateTime> GetValue(ulong channelID)
         {
             if (!Counter.ContainsKey(channelID))
-                return new Tuple<int, long>(0, 0);
+                return new Tuple<int, long, DateTime>(0, 0, DateTime.MinValue);
 
             var orderedData = Counter.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
             var keyPosition = orderedData.Keys.ToList().FindIndex(o => o == channelID) + 1;
-            return new Tuple<int, long>(keyPosition, orderedData[channelID]);
+            var lastMessageAt = LastMessagesAt.ContainsKey(channelID) ? LastMessagesAt[channelID] : DateTime.MinValue;
+            return new Tuple<int, long, DateTime>(keyPosition, orderedData[channelID], lastMessageAt);
         }
 
         public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
@@ -169,18 +176,21 @@ namespace Grillbot.Services.Statistics
 
         private ChannelboardItem GetChannelboardItem(KeyValuePair<ulong, long> channelCountPair, DiscordSocketClient client)
         {
-            var channel = client.GetChannel(channelCountPair.Key) as ISocketMessageChannel;
+            if (!(client.GetChannel(channelCountPair.Key) is ISocketMessageChannel channel)) return null;
+            var lastMessageAt = LastMessagesAt.ContainsKey(channel.Id) ? LastMessagesAt[channel.Id] : DateTime.MinValue;
 
             return new ChannelboardItem()
             {
                 ChannelName = channel.Name,
-                Count = channelCountPair.Value
+                Count = channelCountPair.Value,
+                LastMessageAt = lastMessageAt
             };
         }
 
         private bool CanUserToChannel(DiscordSocketClient client, ulong channelID, ulong userID)
         {
             var channel = client.GetChannel(channelID);
+            if (channel == null) return false;
             return channel.Users.Any(o => o.Id == userID);
         }
 

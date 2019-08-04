@@ -1,37 +1,94 @@
+@import url('https://fonts.googleapis.com/css?family=Red+Hat+Text&display=swap')
+
 #channelboard
-    margin: auto
-    margin-top: 5vh
-    width: 60vw
-    font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif
+    height: 100%
 
 header
+    padding: 13px 0px
+    background: url('/assets/header.png')
+    color: whitesmoke
+    -webkit-box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
+    -moz-box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
+    box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
+    position: relative
+
+header .header-container
+    margin: auto
+    width: 80vw
     display: flex
-    align-items: flex-start
 
-header div
-    margin-left: 10px
+.server-info, .user-info
+    display: flex
 
-header div h2
+.server-info
+    width: 70%
+
+.profile-picture
+    width: 64px
+    height: 64px
+    border-radius: 40px
+    border: 1px solid black
+    margin-right: 15px
+
+.server-info h2, .user-info h2
     font-weight: 400
-    margin-bottom: 0
-    margin-top: 0
+    margin: 0
+    
+.server-info p, .user-info p
+    margin: 0
 
-header div p 
-    margin-top: 5px
-    margin-bottom: 5px
+.body-content 
+    background: #4c4c4c
+    background: -moz-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
+    background: -webkit-gradient(left top, left bottom, color-stop(0%, #4c4c4c), color-stop(12%, #595959), color-stop(31%, #666666), color-stop(54%, #474747), color-stop(83%, #1c1c1c), color-stop(100%, #131313))
+    background: -webkit-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
+    background: -o-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
+    background: -ms-linear-gradient(top, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
+    background: linear-gradient(to bottom, #4c4c4c 0%, #595959 12%, #666666 31%, #474747 54%, #1c1c1c 83%, #131313 100%)
+    filter: progid:DXImageTransform.Microsoft.gradient( startColorstr='#4c4c4c', endColorstr='#131313', GradientType=0 )
+    height: 100%
 
-img 
-    border-radius: 500px
+.body-content .body-content-content
+    margin: auto
+    width: 80vw
+    padding-top: 8vh
 
-table
-    margin: 20px
-    margin-top: 30px
-    width: 60%
-    border-collapse: collapse
+.items-container
+    width: 65vw
 
-table tr th
-    text-align: left
+.container-item
+    display: flex
+    background: rgba(0, 0, 0, 0.2)
+    color: white
+    border-bottom: 1px solid rgba(81, 85, 90, 1)
+    padding: 10px
+    align-items: center
 
-table tr td
-    padding: 5px
-    border-bottom: 1.5px solid lightgray
+.container-item:first-child
+    border-top-left-radius: 15px
+    border-top-right-radius: 15px
+
+.container-item:last-child
+    border-bottom-left-radius: 15px
+    border-bottom-right-radius: 15px
+    border-bottom: none
+
+.container-item-order
+    border: 1px solid
+    border-radius: 50%
+    padding: 10px
+    font-weight: bold
+    width: 16px
+    height: 16px
+    display: flex
+    align-items: center
+    justify-content: center
+    margin-right: 15px
+
+.container-item-columns
+    display: flex
+    justify-content: space-between
+    width: 100%
+
+.container-item-columns div
+    width: 25%

@@ -1,25 +1,37 @@
 <div *ngIf="channelboard" id="channelboard">
   <header>
-      <img class="profile-picture" *ngIf="channelboard.guild" src="{{channelboard.guild.avatarUrl}}" alt="{{channelboard.guild.name}}">
-      <div>
-        <h2>{{channelboard.guild.name}}</h2>
-        <p>Počet uživatelů: {{channelboard.guild.usersCount}}</p>
-        <p>Statistika za uživatele: {{channelboard.statsFor}}</p>
+    <div class="header-container">
+      <div class="server-info">
+        <img class="profile-picture" *ngIf="channelboard.guild" src="{{channelboard.guild.avatarUrl}}" alt="{{channelboard.guild.name}}">
+        <div>
+          <h2>{{channelboard.guild.name}}</h2>
+          <p>{{channelboard.guild.getFormatedUsersCount()}}</p>
+        </div>
       </div>
+
+      <div class="user-info">
+        <img class="profile-picture" *ngIf="channelboard.user" src="{{channelboard.user.avatarUrl}}" alt="{{channelboard.user.name}}">
+        <div>
+          <h2 *ngIf="!channelboard.user.nickname">{{channelboard.user.name}}</h2>
+          <h2 *ngIf="channelboard.user.nickname">{{channelboard.user.nickname}} ({{channelboard.user.name}})</h2>
+          <p>#{{channelboard.user.discriminator}}</p>
+        </div>
+      </div>
+    </div>
   </header>
 
-  <table>
-    <thead>
-      <tr>
-        <th>Kanál</th>
-        <th>Počet zpráv</th>
-      </tr>
-    </thead>
-    <tbody>
-      <tr *ngFor="let item of channelboard.items">
-        <td>{{item.channelName}}</td>
-        <td>{{item.count}}</td>
-      </tr>
-    </tbody>
-  </table>
+  <section class="body-content">
+    <div class="body-content-content">
+      <div class="items-container">
+        <div *ngFor="let item of channelboard.items; let i=index" class="container-item">
+          <div class="container-item-order">{{i+1}}</div>
+          <div class="container-item-columns">
+            <div class="container-item-name">{{item.channelName}}</div>
+            <div class="container-item-count">{{item.getFormatedCount()}}</div>
+            <div class="container-item-lastMessageAt">{{item.getLocalMessageDate()}}</div>
+          </div>
+        </div>
+      </div>
+    </div>
+  </section>
 </div>
