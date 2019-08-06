@@ -1,4 +1,4 @@
-<div *ngIf="channelboard" id="channelboard">
+<div *ngIf="channelboard" id="channelboard" class="block">
   <header>
     <div class="header-container">
       <div class="server-info">
@@ -38,3 +38,19 @@
     </div>
   </section>
 </div>
+
+<section *ngIf="errorMessage" class="block" id="errorMessage">
+  <div class="body-content">
+    <div class="body-content-content">
+      <div class="items-container">
+        <div class="container-item flex-on-columns">
+          <span class="container-item-headericon far fa-frown"></span>
+          <h1 class="container-item-header">Při načítání dat došlo k chybě</h1>
+          <div class="container-item-text">
+            {{errorMessage}}
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+</section>

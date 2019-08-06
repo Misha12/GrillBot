@@ -1,10 +1,15 @@
-#channelboard
+$backgroundColor: #202225
+$textColor: whitesmoke
+$modalBackground: rgba(0, 0, 0, 0.2)
+    
+.block
     height: 100%
+    color: $textColor
 
 header
     padding: 13px 0px
     background: url('/assets/header.png')
-    color: whitesmoke
+    color: $textColor
     -webkit-box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
     -moz-box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
     box-shadow: 0px 10px 50px 0px rgba(0,0,0,0.75)
@@ -36,7 +41,7 @@ header .header-container
     margin: 0
 
 .body-content 
-    background: #202225
+    background: $backgroundColor
     height: 100%
 
 .body-content .body-content-content
@@ -49,7 +54,7 @@ header .header-container
 
 .container-item
     display: flex
-    background: rgba(0, 0, 0, 0.2)
+    background: $modalBackground
     color: white
     border-bottom: 1px solid rgba(81, 85, 90, 1)
     padding: 10px
@@ -96,3 +101,16 @@ header .header-container
 
 .status-idle
     border: 2px solid rgb(250, 166, 26)
+
+.flex-on-columns
+    flex-direction: column
+
+.container-item-header
+    margin: 20px
+    font-weight: 400
+
+.container-item-text
+    padding: 15px
+
+.container-item-headericon
+    font-size: 100px

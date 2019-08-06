@@ -91,3 +91,8 @@ export class User {
         return user;
     }
 }
+
+export enum ErrorCodes {
+    InvalidToken = 1,
+    MissingToken
+}
