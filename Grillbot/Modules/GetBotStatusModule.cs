@@ -19,7 +19,7 @@ namespace Grillbot.Modules
             Statistics = statistics;
         }
 
-        [Command("grilstatus")]
+        [Command("grillstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
         [RequireRole(RoleGroupName = "DogStatus")]
         [DisabledCheck(RoleGroupName = "DogStatus")]
@@ -28,7 +28,7 @@ namespace Grillbot.Modules
             await Status("count");
         }
 
-        [Command("grilstatus")]
+        [Command("grillstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
         [RequireRole(RoleGroupName = "DogStatus")]

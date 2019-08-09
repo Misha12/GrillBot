@@ -99,6 +99,12 @@ namespace Grillbot
             {
                 for (var i = 0; i < parts.Length; i++)
                 {
+                    if(ErrorTagUser == null)
+                    {
+                        await channel?.SendMessageAsync($"```{parts[i]}```");
+                        continue;
+                    }
+
                     if (i == 0)
                     {
                         await channel?.SendMessageAsync($"<@{ErrorTagUser}> ```{parts[0]}```");

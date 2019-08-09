@@ -19,7 +19,7 @@ namespace Grillbot.Modules
             Config = config.GetSection("MethodsConfig:Greeting");
         }
 
-        [Command("grilhi")]
+        [Command("grillhi")]
         [DisabledCheck(RoleGroupName = "Greeting")]
         [RequireRole(RoleGroupName = "Greeting")]
         public async Task Greet()
@@ -27,7 +27,7 @@ namespace Grillbot.Modules
             await Greet(Config["OutputMode"]);
         }
 
-        [Command("grilhi")]
+        [Command("grillhi")]
         [DisabledCheck(RoleGroupName = "Greeting")]
         [Remarks("Možné formáty odpověi jsou 'text', 'bin', nebo 'hex'.")]
         [RequireRole(RoleGroupName = "Greeting")]

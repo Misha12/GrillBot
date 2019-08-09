@@ -42,6 +42,7 @@ namespace Grillbot
 
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
         {
+            if (user.IsBot || user.IsWebhook) return;
             var message = Config["Discord:UserJoinedMessage"];
 
             if (!string.IsNullOrEmpty(message))
