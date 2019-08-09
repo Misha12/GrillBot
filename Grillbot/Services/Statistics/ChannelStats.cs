@@ -104,7 +104,7 @@ namespace Grillbot.Services.Statistics
                 if (!Changes.Contains(channelID))
                     Changes.Add(channelID);
 
-                if (LastMessagesAt.ContainsKey(channelID))
+                if (!LastMessagesAt.ContainsKey(channelID))
                     LastMessagesAt.Add(channelID, DateTime.Now);
                 else
                     LastMessagesAt[channelID] = DateTime.Now;

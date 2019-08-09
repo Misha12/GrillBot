@@ -81,7 +81,7 @@ namespace Grillbot
                         {
                             case CommandError.UnknownCommand: return;
                             case CommandError.UnmetPrecondition:
-                                await context.Channel.SendMessageAsync($"Na tento příkaz nemáš dostatečná práva.");
+                                await context.Channel.SendMessageAsync(result.ErrorReason);
                                 break;
                             case CommandError.BadArgCount:
                                 await context.Channel.SendMessageAsync($"Nedostatečný počet parametrů.");

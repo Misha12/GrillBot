@@ -1,0 +1,17 @@
+- Příkazy
+  - Stav bota (!grilstatus)
+  - Pozdrav (!grilhi)
+  - Nápověda (!help)
+  - Channelboard (!channelboard, !channelboard {takeTop}, !channelboard #roomMention)
+    - Channelboardweb (!channelboardweb)
+  - Posílání obrázků
+    - !nudes
+    - !notnudes
+    - !meow
+  - Správa rolí
+    - !rolereport
+- Automatizované funkce
+  - Počítadlo zpráv pro channelboard.
+  - Zaslání uvítací zprávy do PM.
+  - Automatické odpovědi
+  - Řetěz z emotikonů.

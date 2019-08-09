@@ -16,7 +16,7 @@ namespace Grillbot.Models
         {
             var guildUser = new GuildUser()
             {
-                AvatarUrl = user.GetAvatarUrl(ImageFormat.Png),
+                AvatarUrl = user.GetAvatarUrl(ImageFormat.Png) ?? user.GetDefaultAvatarUrl(),
                 Discriminator = user.Discriminator,
                 Name = user.Username,
                 Nickname = user.Nickname
