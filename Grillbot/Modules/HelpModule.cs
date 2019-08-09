@@ -25,6 +25,7 @@ namespace Grillbot.Modules
         }
 
         [Command("grilhelp")]
+        [DisabledCheck(RoleGroupName = "Help")]
         [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
@@ -66,6 +67,7 @@ namespace Grillbot.Modules
         }
 
         [Command("grilhelp")]
+        [DisabledCheck(RoleGroupName = "Help")]
         [RequireRole(RoleGroupName = "Help")]
         public async Task HelpAsync(string command)
         {

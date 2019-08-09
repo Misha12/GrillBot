@@ -12,6 +12,7 @@ namespace Grillbot.Modules
     {
         [Command("rolereport")]
         [RequireRole(RoleGroupName = "RoleManager")]
+        [DisabledCheck(RoleGroupName = "RoleManager")]
         public async Task GetRoleCounts()
         {
             var embed = new EmbedBuilder();

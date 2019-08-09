@@ -22,6 +22,7 @@ namespace Grillbot.Modules
         [Command("grilstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
         [RequireRole(RoleGroupName = "DogStatus")]
+        [DisabledCheck(RoleGroupName = "DogStatus")]
         public async Task Status()
         {
             await Status("count");
@@ -31,6 +32,7 @@ namespace Grillbot.Modules
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
         [RequireRole(RoleGroupName = "DogStatus")]
+        [DisabledCheck(RoleGroupName = "DogStatus")]
         public async Task Status(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();

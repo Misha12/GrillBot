@@ -24,6 +24,7 @@ namespace Grillbot.Modules
         }
 
         [Command("channelboard")]
+        [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task Channelboard()
         {
@@ -32,6 +33,7 @@ namespace Grillbot.Modules
 
         [Command("channelboard")]
         [Remarks("Možnost zvolit TOP N kanálů.")]
+        [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task Channelboard(int takeTop)
         {
@@ -69,6 +71,7 @@ namespace Grillbot.Modules
 
         [Command("channelboardweb")]
         [Summary("Webový leaderboard.")]
+        [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task ChannelboardWeb()
         {
@@ -80,6 +83,7 @@ namespace Grillbot.Modules
 
         [Command("channelboard")]
         [Summary("Počet zpráv v místnosti.")]
+        [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRole(RoleGroupName = "Channelboard")]
         public async Task ChannelboardForRoom(string roomMention)
         {

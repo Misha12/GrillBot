@@ -9,6 +9,7 @@ using Grillbot.Exceptions;
 using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
+using System.Linq;
 
 namespace Grillbot
 {
@@ -91,7 +92,6 @@ namespace Grillbot
                     }
 
                     var command = message.Content.Split(' ')[0];
-
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
                     await EmoteChain.Cleanup(context.Channel, true);
                 }
