@@ -19,7 +19,7 @@ import { HttpClientModule } from '@angular/common/http';
     HttpClientModule
   ],
   providers: [
-    { provide: 'BaseUrl', useValue: 'http://localhost:5000/' }
+    { provide: 'BaseUrl', useValue: (window as any).apiBaseUrl }
   ],
   bootstrap: [AppComponent]
 })
