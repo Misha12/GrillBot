@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
+using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Modules
 {
@@ -14,15 +15,18 @@ namespace Grillbot.Modules
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
-        public GetBotStatusModule(Statistics statistics)
+        private IConfiguration Config { get; }
+
+        public GetBotStatusModule(Statistics statistics, IConfiguration config)
         {
             Statistics = statistics;
+            Config = config;
         }
 
         [Command("grillstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
-        [RequireRole(RoleGroupName = "DogStatus")]
-        [DisabledCheck(RoleGroupName = "DogStatus")]
+        [RequireRole(RoleGroupName = "GrillStatus")]
+        [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task Status()
         {
             await Status("count");
@@ -31,8 +35,8 @@ namespace Grillbot.Modules
         [Command("grillstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
-        [RequireRole(RoleGroupName = "DogStatus")]
-        [DisabledCheck(RoleGroupName = "DogStatus")]
+        [RequireRole(RoleGroupName = "GrillStatus")]
+        [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task Status(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();
@@ -46,7 +50,8 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Využití RAM", FormatHelper.FormatAsSize(processStatus.WorkingSet64));
             AddInlineEmbedField(embed, "Běží od", processStatus.StartTime.ToString("dd. MM. yyyy HH:mm:ss"));
             AddInlineEmbedField(embed, "Počet vláken", GetThreadStatus(processStatus));
-            AddInlineEmbedField(embed, "Průměrná doba reakce", Statistics.AvgReactTime + "ms");
+            AddInlineEmbedField(embed, "Průměrná doba reakce", Statistics.GetAvgReactTime());
+            AddInlineEmbedField(embed, "Instance", GetInstanceType());
 
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStats(orderType == "time");
@@ -61,6 +66,7 @@ namespace Grillbot.Modules
                 Color = Color.DarkBlue,
                 Description = "Statistiky příkazů"
             };
+
 
             AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
             AddInlineEmbedField(embedData, "Počet volání", 
@@ -80,6 +86,14 @@ namespace Grillbot.Modules
                     sleepCount++;
 
             return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
+        }
+
+        public string GetInstanceType()
+        {
+            var configValue = Config["IsDevelopment"];
+            if (string.IsNullOrEmpty(configValue)) return "Release";
+
+            return Convert.ToBoolean(configValue) ? "Development" : "Release";
         }
     }
 }

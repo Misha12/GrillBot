@@ -25,5 +25,7 @@ namespace Grillbot.Services.Statistics
         {
             return $"{Command}\t{FormatHelper.FormatWithSpaces(CallsCount)}\t{TimeSpan.FromMilliseconds(AverageTime)}";
         }
+
+        public TimeSpan GetAverageTime() => TimeSpan.FromMilliseconds(AverageTime);
     }
 }

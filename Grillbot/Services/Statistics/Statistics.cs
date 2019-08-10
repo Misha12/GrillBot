@@ -50,6 +50,8 @@ namespace Grillbot.Services.Statistics
             AvgReactTime = (AvgReactTime + elapsedTime) / 2.0D;
         }
 
+        public TimeSpan GetAvgReactTime() => TimeSpan.FromMilliseconds(AvgReactTime);
+
         public void ConfigChanged(IConfiguration newConfig)
         {
             ChannelStats.ConfigChanged(newConfig);
