@@ -11,7 +11,7 @@ namespace Grillbot.Modules
     public class RoleManagerModule : BotModuleBase
     {
         [Command("rolereport")]
-        [RequireRole(RoleGroupName = "RoleManager")]
+        [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
         [DisabledCheck(RoleGroupName = "RoleManager")]
         public async Task GetRoleCounts()
         {

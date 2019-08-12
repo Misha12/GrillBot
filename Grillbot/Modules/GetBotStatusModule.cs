@@ -25,7 +25,7 @@ namespace Grillbot.Modules
 
         [Command("grillstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
-        [RequireRole(RoleGroupName = "GrillStatus")]
+        [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
         [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task Status()
         {
@@ -35,7 +35,7 @@ namespace Grillbot.Modules
         [Command("grillstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
-        [RequireRole(RoleGroupName = "GrillStatus")]
+        [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
         [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task Status(string orderType)
         {

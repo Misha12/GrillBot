@@ -21,17 +21,17 @@ namespace Grillbot.Modules
 
         [Command("nudes")]
         [DisabledCheck(RoleGroupName = "Images")]
-        [RequireRole(RoleGroupName = "Images")]
+        [RequireRoleOrAdmin(RoleGroupName = "Images")]
         public async Task SendNude() => await Send("Nudes");
 
         [Command("notnudes")]
         [DisabledCheck(RoleGroupName = "Images")]
-        [RequireRole(RoleGroupName = "Images")]
+        [RequireRoleOrAdmin(RoleGroupName = "Images")]
         public async Task SendNotNudes() => await Send("NotNudes");
 
         [Command("meow")]
         [DisabledCheck(RoleGroupName = "Images")]
-        [RequireRole(RoleGroupName = "Images")]
+        [RequireRoleOrAdmin(RoleGroupName = "Images")]
         public async Task Meow() => await Send("Meow");
 
         private async Task Send(string category)

@@ -7,17 +7,22 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class RequireRoleAttribute : PreconditionAttribute
+    public class RequireRoleOrAdminAttribute : PreconditionAttribute
     {
         public string RoleGroupName { get; set; }
         
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var config = (IConfiguration)services.GetService(typeof(IConfiguration));
+
             var requiredRoles = config.GetSection($"MethodsConfig:{RoleGroupName}:RequireRoles").GetChildren().Select(o => o.Value).ToList();
+            var allowedAdmins = config.GetSection($"Discord:Administrators").GetChildren().Select(o => o.Value).ToList();
 
             if(context.User is SocketGuildUser user)
             {
+                if (allowedAdmins.Contains(user.Id.ToString()))
+                    return Task.FromResult(PreconditionResult.FromSuccess());
+
                 foreach(var role in user.Roles)
                 {
                     if (requiredRoles.Any(o => o == role.Name))

@@ -26,7 +26,7 @@ namespace Grillbot.Modules
 
         [Command("grillhelp")]
         [DisabledCheck(RoleGroupName = "Help")]
-        [RequireRole(RoleGroupName = "Help")]
+        [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
             var embed = new EmbedBuilder() { Color = new Color(114, 137, 218) };
@@ -68,7 +68,7 @@ namespace Grillbot.Modules
 
         [Command("grillhelp")]
         [DisabledCheck(RoleGroupName = "Help")]
-        [RequireRole(RoleGroupName = "Help")]
+        [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync(string command)
         {
             var result = CommandService.Search(Context, command);
