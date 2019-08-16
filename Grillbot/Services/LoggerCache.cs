@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Models;
 using Grillbot.Repository;
+using Grillbot.Repository.Entity;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -34,7 +34,7 @@ namespace Grillbot.Services
 
             using (var repository = new LoggerCacheRepository(Config))
             {
-                await repository.InsertMessage(message);
+                await repository.InserMessageToCache(message);
             }
         }
 
@@ -51,12 +51,12 @@ namespace Grillbot.Services
 
                 if(deleteRecord)
                 {
-                    await repository.DeleteMessageFromCache(messageID);
+                    await repository.DeleteMessageFromCache(message);
                 }
             }
         }
 
-        private async Task SendToLoggerRoom(LoggerUserMessage message)
+        private async Task SendToLoggerRoom(LoggerMessage message)
         {
             var streams = new List<Tuple<string, Stream>>();
 
@@ -66,8 +66,8 @@ namespace Grillbot.Services
                 if (!(Client.GetChannel(loggerChannelID) is ISocketMessageChannel loggerChannel))
                     return;
 
-                var author = Client.GetUser(message.AuthorID);
-                var messageChannel = Client.GetChannel(message.ChannelID) as ISocketMessageChannel;
+                var author = Client.GetUser(message.SnowflakeAuthorID);
+                var messageChannel = Client.GetChannel(message.SnowflakeChannelID) as ISocketMessageChannel;
 
                 var logEmbed = new EmbedBuilder()
                 {

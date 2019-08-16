@@ -9,6 +9,8 @@ namespace Grillbot.Repository
 {
     public abstract class RepositoryBase : IDisposable
     {
+        protected GrillBotContext Context { get; set; }
+
         private SqlConnection Connection { get; }
 
         protected RepositoryBase(IConfiguration config)
@@ -18,6 +20,8 @@ namespace Grillbot.Repository
             if (string.IsNullOrEmpty(connectionString))
                 throw new ArgumentException("Missing database connection string");
 
+            Context = new GrillBotContext(connectionString);
+
             Connection = new SqlConnection(connectionString);
             Connection.Open();
         }
@@ -25,6 +29,7 @@ namespace Grillbot.Repository
         public void Dispose()
         {
             Connection.Dispose();
+            Context.Dispose();
         }
 
         protected async Task<T> ExecuteCommand<T>(string sql, Func<SqlDataReader, Task<T>> processData, params SqlParameter[] parameters)

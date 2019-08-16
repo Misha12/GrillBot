@@ -1,9 +1,8 @@
 ﻿using System;
 using System.Collections.Generic;
-using System.Data.SqlClient;
-using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Helpers;
+using Grillbot.Repository.Entity;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Repository
@@ -14,57 +13,35 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task<List<Tuple<ulong, long, DateTime>>> GetStatistics()
+        public async Task<List<ChannelStat>> GetChannelStatistics()
         {
-            return await ExecuteCommand("SELECT * FROM Channelstats", async (reader) =>
-            {
-                var data = new List<Tuple<ulong, long, DateTime>>();
-
-                while(await reader.ReadAsync())
-                {
-                    unchecked
-                    {
-                        ulong channelID = Convert.ToUInt64(reader["ID"]);
-                        long count = Convert.ToInt64(reader["Count"]);
-                        DateTime lastMessageAt = Convert.ToDateTime(reader["LastMessageAt"]);
-
-                        data.Add(new Tuple<ulong, long, DateTime>(channelID, count, lastMessageAt));
-                    }
-                }
-
-                return data;
-            });
+            return await Context.ChannelStats.ToListAsync();
         }
 
-        public async Task UpdateStatistics(Dictionary<ulong, long> dataToUpdate, Dictionary<ulong, DateTime> lastMessageDates)
+        public async Task UpdateChannelboardStatistics(Dictionary<ulong, long> dataForUpdate, Dictionary<ulong, DateTime> lastMessageData)
         {
-            var commandBuilder = new List<SqlCommand>();
-
-            try
+            foreach(var itemForUpdate in dataForUpdate)
             {
-                var channels = dataToUpdate.Select(o => o.Key.ToString());
-                var deleteCommand = new SqlCommand(SqlHelper.BuildWhereInClause("DELETE FROM Channelstats WHERE ID IN ({0})", "ChannelID", channels));
-                deleteCommand.AddParamsToCommand("ChannelID", channels);
-                commandBuilder.Add(deleteCommand);
-
-                commandBuilder.AddRange(dataToUpdate.Select(o =>
+                var entity = await Context.ChannelStats.FirstOrDefaultAsync(o => o.ID == itemForUpdate.Key.ToString());
+                if (entity == null)
                 {
-                    var cmd = new SqlCommand("INSERT INTO Channelstats (ID, [Count], [LastMessageAt]) VALUES (@channelID, @count, @lastMessageAt)");
+                    entity = new ChannelStat()
+                    {
+                        Count = itemForUpdate.Value,
+                        SnowflakeID = itemForUpdate.Key,
+                        LastMessageAt = lastMessageData[itemForUpdate.Key]
+                    };
 
-                    cmd.Parameters.AddWithValue("@channelID", o.Key.ToString());
-                    cmd.Parameters.AddWithValue("@count", o.Value);
-                    cmd.Parameters.AddWithValue("@lastMessageAt", lastMessageDates[o.Key]);
-
-                    return cmd;
-                }));
-
-                await ExecuteNonReaderBatch(commandBuilder);
+                    await Context.AddAsync(entity);
+                }
+                else
+                {
+                    entity.Count = itemForUpdate.Value;
+                    entity.LastMessageAt = lastMessageData[itemForUpdate.Key];
+                }
             }
-            finally
-            {
-                foreach (var command in commandBuilder)
-                    command.Dispose();
-            }
+
+            await Context.SaveChangesAsync();
         }
     }
 }

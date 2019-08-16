@@ -9,7 +9,6 @@ using Grillbot.Exceptions;
 using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
-using System.Linq;
 
 namespace Grillbot
 {

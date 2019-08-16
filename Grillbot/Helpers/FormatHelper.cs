@@ -22,13 +22,11 @@ namespace Grillbot.Helpers
             return $"{Math.Round(finalSize, 2)} {sizes[factor]}";
         }
 
-        public static string Format(ulong number, string format) => number.ToString(format, GetFormatInfo());
         public static string Format(int number, string format) => number.ToString(format, GetFormatInfo());
         public static string Format(long number, string format) => number.ToString(format, GetFormatInfo());
 
         public static string FormatWithSpaces(int number) => Format(number, SpacedNumberFormat);
         public static string FormatWithSpaces(uint number) => Format(number, SpacedNumberFormat);
-        public static string FormatWithSpaces(ulong number) => Format(number, SpacedNumberFormat);
         public static string FormatWithSpaces(long number) => Format(number, SpacedNumberFormat);
 
         private static NumberFormatInfo GetFormatInfo()

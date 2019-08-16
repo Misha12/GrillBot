@@ -36,10 +36,10 @@ namespace Grillbot.Services.Statistics
         {
             using (var repository = new ChannelStatsRepository(Config))
             {
-                var data = await repository.GetStatistics();
+                var data = await repository.GetChannelStatistics();
 
-                Counter = data.ToDictionary(o => o.Item1, o => o.Item2);
-                LastMessagesAt = data.ToDictionary(o => o.Item1, o => o.Item3);
+                Counter = data.ToDictionary(o => o.SnowflakeID, o => o.Count);
+                LastMessagesAt = data.ToDictionary(o => o.SnowflakeID, o => o.LastMessageAt);
             }
 
             Reload(Config);
@@ -70,7 +70,7 @@ namespace Grillbot.Services.Statistics
 
                 using (var repository = new ChannelStatsRepository(Config))
                 {
-                    repository.UpdateStatistics(forUpdate, lastMessageDates).Wait();
+                    repository.UpdateChannelboardStatistics(forUpdate, lastMessageDates).Wait();
                 }
 
                 Changes.Clear();
