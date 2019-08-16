@@ -27,13 +27,18 @@ namespace Grillbot.Repository
             Connection.Dispose();
         }
 
-        protected async Task<T> ExecuteCommand<T>(string sql, Func<SqlDataReader, Task<T>> processData)
+        protected async Task<T> ExecuteCommand<T>(string sql, Func<SqlDataReader, Task<T>> processData, params SqlParameter[] parameters)
         {
             if(Connection.State != System.Data.ConnectionState.Open)
                 await Connection.OpenAsync();
 
             using(var command = new SqlCommand(sql, Connection))
             {
+                if(parameters != null && parameters.Length > 0)
+                {
+                    command.Parameters.AddRange(parameters);
+                }
+
                 using(var reader = await command.ExecuteReaderAsync())
                 {
                     return await processData(reader);

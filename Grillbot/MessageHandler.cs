@@ -21,11 +21,12 @@ namespace Grillbot
         private Statistics Statistics { get; }
         private AutoReplyModule AutoReply { get; }
         private EmoteChain EmoteChain { get; }
+        private LoggerCache LoggerCache { get; }
 
         private IConfiguration Config { get; set; }
 
         public MessageHandler(DiscordSocketClient client, CommandService commands, IConfiguration config, IServiceProvider services,
-            Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain)
+            Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain, LoggerCache loggerCache)
         {
             Client = client;
             Commands = commands;
@@ -34,6 +35,7 @@ namespace Grillbot
             AutoReply = autoReply;
             EmoteChain = emoteChain;
             Config = config;
+            LoggerCache = loggerCache;
 
             Client.MessageReceived += OnMessageReceivedAsync;
             Client.MessageDeleted += OnMessageDeletedAsync;
@@ -54,6 +56,7 @@ namespace Grillbot
             if (message.HasValue && (message.Value.Content.StartsWith(Config["CommandPrefix"]) || message.Value.Author.IsBot)) return;
 
             await Statistics.ChannelStats.DecrementCounter(channel.Id);
+            await LoggerCache.SendAttachmentToLoggerRoom(message.Id);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -98,6 +101,7 @@ namespace Grillbot
                 }
                 else
                 {
+                    await LoggerCache.InsertMessageToCache(userMessage);
                     await Statistics.ChannelStats.IncrementCounter(userMessage.Channel.Id);
                     await AutoReply.TryReply(userMessage);
                     await EmoteChain.ProcessChain(context);

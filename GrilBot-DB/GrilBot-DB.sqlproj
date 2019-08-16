@@ -60,6 +60,8 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Channelstats.sql" />
+    <Build Include="Tables\LoggerMessageCache.sql" />
+    <Build Include="Tables\LoggerAttachmentCache.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrilBot-DB.publish.xml" />

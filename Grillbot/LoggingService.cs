@@ -7,6 +7,7 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Extensions;
+using System.Net.WebSockets;
 
 namespace Grillbot
 {
@@ -61,7 +62,7 @@ namespace Grillbot
             var logFilename = GetLogFilename();
             await File.AppendAllTextAsync(logFilename, message.ToString() + Environment.NewLine);
 
-            if (message.Exception != null && LogRoom != null)
+            if (message.Exception != null && LogRoom != null && !IsWebSocketException(message.Exception))
             {
                 var exceptionRule = GetExceptionRule(message.Exception);
                 var exceptionMessage = message.Exception.ToString();
@@ -133,6 +134,11 @@ namespace Grillbot
         public void ConfigChanged(IConfiguration newConfig)
         {
             Init(newConfig);
+        }
+
+        private bool IsWebSocketException(Exception ex)
+        {
+            return ex.InnerException != null && ex.InnerException is WebSocketException;
         }
 
         #region IDisposable Support
