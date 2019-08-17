@@ -51,14 +51,14 @@ namespace Grillbot.Services
                 var content = context.Message.Content;
                 var channel = context.Channel;
 
+                if (!LastMessages.ContainsKey(channel.Id))
+                    LastMessages.Add(channel.Id, new List<Tuple<ulong, string>>(ReactLimit));
+
                 if (!IsValidMessage(context))
                 {
                     await Cleanup(channel);
                     return;
                 }
-
-                if (!LastMessages.ContainsKey(channel.Id))
-                    LastMessages.Add(channel.Id, new List<Tuple<ulong, string>>(ReactLimit));
 
                 if (!LastMessages[channel.Id].Any(o => o.Item1 == author.Id))
                 {
@@ -91,7 +91,20 @@ namespace Grillbot.Services
             return context.Guild.Emotes.Any(o => o.ToString() == context.Message.Content);
         }
 
-        private bool IsValidMessage(SocketCommandContext context) => IsEmote(context) && IsLocalEmote(context);
+        private bool IsValidWithWithFirstInChannel(SocketCommandContext context)
+        {
+            var channel = LastMessages[context.Channel.Id];
+
+            if (channel.Count == 0)
+                return true;
+
+            return context.Message.Content == channel[0].Item2;
+        }
+
+        private bool IsValidMessage(SocketCommandContext context)
+        {
+            return IsEmote(context) && IsLocalEmote(context) && IsValidWithWithFirstInChannel(context);
+        }
 
         public void ConfigChanged(IConfiguration newConfig)
         {
