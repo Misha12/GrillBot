@@ -8,6 +8,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Extensions;
 using System.Net.WebSockets;
+using Discord.Net;
 
 namespace Grillbot
 {
@@ -138,7 +139,7 @@ namespace Grillbot
 
         private bool IsWebSocketException(Exception ex)
         {
-            return ex.InnerException != null && ex.InnerException is WebSocketException;
+            return ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
         }
 
         #region IDisposable Support
