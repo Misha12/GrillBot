@@ -1,8 +1,5 @@
 ﻿using Discord.Commands;
 using Grillbot.Services;
-using System;
-using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -17,6 +14,8 @@ namespace Grillbot.Modules
         }
 
         [Command("solve")]
+        [RequireRoleOrAdmin(RoleGroupName = "Math")]
+        [DisabledCheck(RoleGroupName = "Math")]
         public async Task Solve(params string[] expressions)
         {
             var expressionData = string.Join(" ", expressions);
