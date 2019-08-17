@@ -14,7 +14,7 @@ namespace Grillbot.Models
             {
                 AvatarUrl = guild.IconUrl,
                 Name = guild.Name,
-                UsersCount = guild.Users.Count
+                UsersCount = guild.MemberCount
             };
         }
     }
