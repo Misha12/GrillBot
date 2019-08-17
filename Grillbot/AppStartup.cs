@@ -66,7 +66,8 @@ namespace Grillbot
                 .AddSingleton<DiscordService>()
                 .AddSingleton<AutoReplyModule>()
                 .AddSingleton<EmoteChain>()
-                .AddSingleton<LoggerCache>();
+                .AddSingleton<LoggerCache>()
+                .AddTransient<MathCalculator>();
         }
 
         public void Configure(IApplicationBuilder app, IApplicationLifetime lifetime)

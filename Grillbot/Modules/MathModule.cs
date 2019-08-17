@@ -1,0 +1,34 @@
+﻿using Discord.Commands;
+using Grillbot.Services;
+using System;
+using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
+
+namespace Grillbot.Modules
+{
+    public class MathModule : BotModuleBase
+    {
+        private MathCalculator Calculator { get; }
+
+        public MathModule(MathCalculator calculator)
+        {
+            Calculator = calculator;
+        }
+
+        [Command("solve")]
+        public async Task Solve(params string[] expressions)
+        {
+            var expressionData = string.Join(" ", expressions);
+            var result = Calculator.Solve(expressionData);
+
+            if(!result.IsValid)
+            {
+                await ReplyAsync(result.ErrorMessage);
+                return;
+            }
+
+            await ReplyAsync($"Výsledek je: {result.Result.ToString()}");
+        }
+    }
+}
