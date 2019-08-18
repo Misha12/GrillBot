@@ -1,13 +1,23 @@
 ﻿using Grillbot.Models;
+using Microsoft.Extensions.Configuration;
 using org.mariuszgromada.math.mxparser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
     public class MathCalculator
     {
+        private IConfiguration Config { get; }
+
+        public MathCalculator(IConfiguration config)
+        {
+            Config = config;
+        }
+
         public MathCalcResult Solve(string input)
         {
             var expressionFields = input.Split(';').Select(o => o.Trim());
@@ -37,7 +47,13 @@ namespace Grillbot.Services
                 };
             }
 
-            return new MathCalcResult() { IsValid = true, Result = expression.calculate() };
+            var calcTask = Task.Run(() => expression.calculate());
+            var calcTime = Convert.ToInt32(Config["MethodsConfig:Math:ComputingTime"]);
+            
+            if(!calcTask.Wait(calcTime))
+                return new MathCalcResult() { ErrorMessage = $"Request for compute `{input}` timed out" };
+
+            return new MathCalcResult() { IsValid = true, Result = calcTask.Result };
         }
 
         private bool MissingDataCheck(Expression expression, Func<Expression, string[]> func, string errorMessageTemplate, out string errorMessage)
