@@ -16,20 +16,34 @@ namespace Grillbot.Modules
         [DisabledCheck(RoleGroupName = "RoleManager")]
         public async Task GetRoleCounts()
         {
-            var roleInfoBuilder = new StringBuilder();
+            var roleInfoFields = new List<EmbedFieldBuilder>();
 
             foreach (var role in Context.Guild.Roles.Where(o => !o.IsEveryone && !o.IsManaged).OrderByDescending(o => o.Position))
             {
                 var roleInfo = new StringBuilder()
-                    .Append($"**{role.Name}**: ")
-                    .Append("Uživatelů: ").Append($"**{role.Members.Count()}**").Append(", ")
+                    .Append("Uživatelů: ").AppendLine($"**{role.Members.Count()}**")
                     .Append("Tagovatelná role: ").Append($"**{(role.IsMentionable ? "Ano" : "Ne")}**")
                     .ToString();
 
-                roleInfoBuilder.AppendLine(roleInfo.ToString());
+                roleInfoFields.Add(new EmbedFieldBuilder()
+                {
+                    Name = role.Name,
+                    Value = roleInfo.ToString()
+                });
             }
 
-            await ReplyAsync(roleInfoBuilder.ToString());
+            const int roleMaxCount = 20;
+            for(int i = 0; i < (float)roleInfoFields.Count / roleMaxCount; i++)
+            {
+                var embed = new EmbedBuilder();
+
+                foreach(var field in roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount))
+                {
+                    embed.AddField(field);
+                }
+
+                await ReplyAsync(embed: embed.Build());
+            }
         }
 
         [Command("rolereport")]
