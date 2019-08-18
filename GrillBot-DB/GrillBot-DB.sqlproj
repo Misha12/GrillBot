@@ -3,7 +3,7 @@
   <PropertyGroup>
     <Configuration Condition=" '$(Configuration)' == '' ">Debug</Configuration>
     <Platform Condition=" '$(Platform)' == '' ">AnyCPU</Platform>
-    <Name>GrilBot-DB</Name>
+    <Name>GrillBot-DB</Name>
     <SchemaVersion>2.0</SchemaVersion>
     <ProjectVersion>4.1</ProjectVersion>
     <ProjectGuid>{445ac672-398a-4496-8fd1-5c25858289ea}</ProjectGuid>
@@ -11,8 +11,8 @@
     <OutputType>Database</OutputType>
     <RootPath>
     </RootPath>
-    <RootNamespace>GrilBot-DB</RootNamespace>
-    <AssemblyName>GrilBot-DB</AssemblyName>
+    <RootNamespace>GrillBot-DB</RootNamespace>
+    <AssemblyName>GrillBot-DB</AssemblyName>
     <ModelCollation>1033, CI</ModelCollation>
     <DefaultFileStructure>BySchemaAndSchemaType</DefaultFileStructure>
     <DeployToDatabase>True</DeployToDatabase>
@@ -64,6 +64,6 @@
     <Build Include="Tables\LoggerAttachmentCache.sql" />
   </ItemGroup>
   <ItemGroup>
-    <None Include="GrilBot-DB.publish.xml" />
+    <None Include="GrillBot-DB.publish.xml" />
   </ItemGroup>
 </Project>

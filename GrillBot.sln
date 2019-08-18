@@ -3,7 +3,7 @@ Microsoft Visual Studio Solution File, Format Version 12.00
 # Visual Studio Version 16
 VisualStudioVersion = 16.0.29025.244
 MinimumVisualStudioVersion = 10.0.40219.1
-Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "GrilBot-DB", "GrilBot-DB\GrilBot-DB.sqlproj", "{445AC672-398A-4496-8FD1-5C25858289EA}"
+Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "GrillBot-DB", "GrillBot-DB\GrillBot-DB.sqlproj", "{445AC672-398A-4496-8FD1-5C25858289EA}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "Grillbot", "Grillbot\Grillbot.csproj", "{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}"
 EndProject
