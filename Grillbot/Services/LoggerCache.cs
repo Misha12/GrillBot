@@ -30,7 +30,7 @@ namespace Grillbot.Services
 
         public async Task InsertMessageToCache(SocketUserMessage message)
         {
-            if (!message.Attachments.Any()) return;
+            if (!message.Attachments.Any(o => o.Width != null)) return;
 
             using (var repository = new LoggerCacheRepository(Config))
             {

@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Repository.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -23,9 +24,9 @@ namespace Grillbot.Repository
                 CreatedAt = message.CreatedAt.UtcDateTime
             };
 
-            foreach(var attachment in message.Attachments)
+            foreach(var attachment in message.Attachments.Where(o => o.Width != null))
             {
-                loggerMessage.Attachments.Add(new Entity.LoggerAttachment()
+                loggerMessage.Attachments.Add(new LoggerAttachment()
                 {
                     SnowflakeAttachmentID = attachment.Id,
                     ProxyUrl = attachment.ProxyUrl,
