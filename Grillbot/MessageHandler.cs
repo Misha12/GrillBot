@@ -84,6 +84,7 @@ namespace Grillbot
                         {
                             case CommandError.UnknownCommand: return;
                             case CommandError.UnmetPrecondition:
+                            case CommandError.ParseFailed:
                                 await context.Channel.SendMessageAsync(result.ErrorReason);
                                 break;
                             case CommandError.BadArgCount:
