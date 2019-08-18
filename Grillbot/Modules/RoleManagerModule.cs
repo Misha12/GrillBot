@@ -49,10 +49,10 @@ namespace Grillbot.Modules
         [Command("rolereport")]
         [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
         [DisabledCheck(RoleGroupName = "RoleManager")]
-        public async Task GetRoleReport(string rolename)
+        public async Task GetRoleReport(params string[] roleNameFields)
         {
             var embed = new EmbedBuilder();
-            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == rolename);
+            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == string.Join(" ", roleNameFields));
 
             if (role == null)
             {
@@ -80,10 +80,12 @@ namespace Grillbot.Modules
             if (permissions.Administrator)
                 return new List<string>() { "Administrator" };
 
-            return permissions.GetType().GetProperties()
+            var permissionItems = permissions.GetType().GetProperties()
                 .Where(p => p.PropertyType == typeof(bool) && (bool)p.GetValue(permissions, null))
                 .Select(o => o.Name)
                 .ToList();
+
+            return permissionItems.Count == 0 ? new List<string>() { "-" } : permissionItems;
         }
     }
 }
