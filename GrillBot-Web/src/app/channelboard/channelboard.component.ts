@@ -2,6 +2,7 @@ import { Component, OnInit, Inject } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
 import { HttpClient, HttpErrorResponse } from '@angular/common/http';
 import { Channelboard, ErrorCodes } from '../models/channelboard.models';
+import { GetCommandPrefix, SettingsApi } from '../core';
 
 @Component({
   selector: 'app-channelboard',
@@ -9,12 +10,15 @@ import { Channelboard, ErrorCodes } from '../models/channelboard.models';
   styleUrls: ['./channelboard.component.sass']
 })
 export class ChannelboardComponent implements OnInit {
-  constructor(private httpClient: HttpClient, private route: ActivatedRoute, @Inject('BaseUrl') private baseUrl: string) { }
+  constructor(private httpClient: HttpClient,
+              private route: ActivatedRoute,
+              @Inject('BaseUrl') private baseUrl: string,
+              private settings: SettingsApi) { }
 
   private unspecifiedError = 'Došlo k nespecifikované chybě';
   private missingToken = 'Nebyl zadán uživatelský token.';
   private invalidToken = 'Byl zadán neplatný token.';
-  private botRequestMessage = ' Požádej bota o nový token příkazem !channelboardweb.';
+  private botRequestMessage = ' Požádej bota o nový token příkazem {command}.';
 
   public token: string;
   public channelboard: Channelboard;
@@ -23,7 +27,12 @@ export class ChannelboardComponent implements OnInit {
 
   ngOnInit() {
     this.token = this.route.snapshot.queryParamMap.get('token');
-    this.getChannelBoardData();
+
+    this.settings.getCommandPrefix().subscribe(data => {
+      this.botRequestMessage = this.botRequestMessage.replace('{command}', data.commandPrefix + 'channelboardweb');
+
+      this.getChannelBoardData();
+    });
   }
 
   private getChannelBoardData() {
