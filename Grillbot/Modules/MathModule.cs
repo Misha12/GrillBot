@@ -20,15 +20,15 @@ namespace Grillbot.Modules
         public async Task Solve(params string[] expressions)
         {
             var expressionData = string.Join(" ", expressions);
-            var result = Calculator.Solve(expressionData);
+            var result = Calculator.Solve(expressionData, Context.Message);
 
             if(!result.IsValid)
             {
-                await ReplyAsync(result.ErrorMessage);
+                await ReplyAsync($"{result.Mention} {result.ErrorMessage}");
                 return;
             }
 
-            await ReplyAsync($"Výsledek je: {result.Result.ToString()}");
+            await ReplyAsync($"{result.Mention} Výsledek je: {result.Result.ToString()}");
         }
     }
 }

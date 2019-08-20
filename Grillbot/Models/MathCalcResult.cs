@@ -5,5 +5,6 @@
         public bool IsValid { get; set; }
         public string ErrorMessage { get; set; }
         public double Result { get; set; }
+        public string Mention { get; set; }
     }
 }

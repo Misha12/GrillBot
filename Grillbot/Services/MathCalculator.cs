@@ -1,4 +1,5 @@
-﻿using Grillbot.Models;
+﻿using Discord.WebSocket;
+using Grillbot.Models;
 using Microsoft.Extensions.Configuration;
 using org.mariuszgromada.math.mxparser;
 using System;
@@ -18,7 +19,7 @@ namespace Grillbot.Services
             Config = config;
         }
 
-        public MathCalcResult Solve(string input)
+        public MathCalcResult Solve(string input, SocketUserMessage message)
         {
             var expressionFields = input.Split(';').Select(o => o.Trim());
 
@@ -43,6 +44,7 @@ namespace Grillbot.Services
             {
                 return new MathCalcResult()
                 {
+                    Mention = message.Author.Mention,
                     ErrorMessage = string.Join(Environment.NewLine, errorMessages)
                 };
             }
@@ -51,9 +53,9 @@ namespace Grillbot.Services
             var calcTime = Convert.ToInt32(Config["MethodsConfig:Math:ComputingTime"]);
             
             if(!calcTask.Wait(calcTime))
-                return new MathCalcResult() { ErrorMessage = $"Request for compute `{input}` timed out" };
+                return new MathCalcResult() { ErrorMessage = $"Request for compute `{input}` timed out", Mention = message.Author.Mention };
 
-            return new MathCalcResult() { IsValid = true, Result = calcTask.Result };
+            return new MathCalcResult() { IsValid = true, Result = calcTask.Result, Mention = message.Author.Mention };
         }
 
         private bool MissingDataCheck(Expression expression, Func<Expression, string[]> func, string errorMessageTemplate, out string errorMessage)
