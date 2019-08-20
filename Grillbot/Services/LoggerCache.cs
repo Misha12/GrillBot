@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -71,7 +72,8 @@ namespace Grillbot.Services
 
                 var logEmbed = new EmbedBuilder()
                 {
-                    Title = "Zpráva s přílohou byla odebrána."
+                    Title = "Zpráva s přílohou byla odebrána.",
+                    Color = Color.Red
                 };
 
                 if (author == null)
@@ -81,16 +83,31 @@ namespace Grillbot.Services
 
                 logEmbed
                     .WithCurrentTimestamp()
-                    .AddField("Channel", messageChannel.Name + $" <#{messageChannel.Id}>");
+                    .WithFooter(o =>o.WithText($"MessageID: {message.MessageID} | AuthorID: {message.AuthorID}"))
+                    .AddField("Channel", $" <#{messageChannel.Id}> {messageChannel.Id}")
+                    .AddField("Obsah", string.IsNullOrEmpty(message.Content) ? "-" : message.Content);
 
-                if (!string.IsNullOrEmpty(message.Content))
-                    logEmbed.AddField("Obsah", message.Content);
-
-                foreach (var attachment in message.Attachments)
+                if(message.Attachments.Count > 1)
                 {
-                    var attachmentStream = await GetAttachmentStream(attachment);
-                    if (attachmentStream.Item1 != null && attachmentStream.Item2 != null)
-                        streams.Add(attachmentStream);
+                    foreach (var attachment in message.Attachments)
+                    {
+                        var attachmentStream = await GetAttachmentStream(attachment);
+                        if (attachmentStream.Item1 != null && attachmentStream.Item2 != null)
+                            streams.Add(attachmentStream);
+                    }
+                }
+                else
+                {
+                    var attachment = message.Attachments.First();
+
+                    if (await IsSiteAvailable(attachment.ProxyUrl))
+                    {
+                        logEmbed.WithImageUrl(attachment.ProxyUrl);
+                    }
+                    else if(await IsSiteAvailable(attachment.UrlLink))
+                    {
+                        logEmbed.WithImageUrl(attachment.UrlLink);
+                    }
                 }
 
                 await loggerChannel.SendMessageAsync(embed: logEmbed.Build());
@@ -134,6 +151,23 @@ namespace Grillbot.Services
                 {
                     return new Tuple<string, Stream>(null, null);
                 }
+            }
+        }
+
+        private async Task<bool> IsSiteAvailable(string url)
+        {
+            var request = WebRequest.CreateHttp(url);
+
+            try
+            {
+                using (var response = (HttpWebResponse)(await request.GetResponseAsync()))
+                {
+                    return response.StatusCode == HttpStatusCode.OK;
+                }
+            }
+            catch(WebException)
+            {
+                return false;
             }
         }
     }
