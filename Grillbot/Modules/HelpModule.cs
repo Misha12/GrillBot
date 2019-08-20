@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -29,7 +28,7 @@ namespace Grillbot.Modules
         [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
-            var embed = new EmbedBuilder() { Color = new Color(114, 137, 218) };
+            var embed = new EmbedBuilder() { Color = Color.Blue };
 
             foreach(var module in CommandService.Modules)
             {
@@ -54,13 +53,7 @@ namespace Grillbot.Modules
                 }
 
                 if (descBuilder.Length > 0)
-                {
-                    embed.AddField(x =>
-                    {
-                        x.Name = module.Name;
-                        x.Value = descBuilder.ToString();
-                    });
-                }
+                    embed.AddField(x => x.WithName(module.Name).WithValue(descBuilder.ToString()));
             }
 
             await ReplyAsync("", embed: embed.Build());
@@ -79,10 +72,10 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var builder = new EmbedBuilder()
+            var embedBuilder = new EmbedBuilder()
             {
-                Color = new Color(114, 137, 218),
-                Description = $"Tady máš různé varianty příkazů na **{command}**"
+                Color = Color.Blue,
+                Title = $"Tady máš různé varianty příkazů na **{command}**"
             };
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
@@ -107,20 +100,18 @@ namespace Grillbot.Modules
                         valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks);
 
                     string commandDesc = valueBuilder.ToString();
-                    builder.AddField(x =>
+                    embedBuilder.AddField(x =>
                     {
-                        x.Name = string.Join(", ", cmd.Aliases);
-                        x.Value = string.IsNullOrEmpty(commandDesc) ? "Bez parametrů a popisu" : commandDesc;
+                        x.WithValue(string.IsNullOrEmpty(commandDesc) ? "Bez parametrů a popisu" : commandDesc)
+                         .WithName(string.Join(", ", cmd.Aliases));
                     });
                 }
             }
 
-            if(builder.Fields.Count == 0)
-            {
-                builder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
-            }
+            if(embedBuilder.Fields.Count == 0)
+                embedBuilder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
 
-            await ReplyAsync("", false, builder.Build());
+            await ReplyAsync(embed: embedBuilder.Build());
         }
     }
 }

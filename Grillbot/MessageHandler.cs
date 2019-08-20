@@ -18,14 +18,14 @@ namespace Grillbot
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
         private Statistics Statistics { get; }
-        private AutoReplyModule AutoReply { get; }
+        private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private LoggerCache LoggerCache { get; }
 
         private IConfiguration Config { get; set; }
 
         public MessageHandler(DiscordSocketClient client, CommandService commands, IConfiguration config, IServiceProvider services,
-            Statistics statistics, AutoReplyModule autoReply, EmoteChain emoteChain, LoggerCache loggerCache)
+            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, LoggerCache loggerCache)
         {
             Client = client;
             Commands = commands;
@@ -38,16 +38,6 @@ namespace Grillbot
 
             Client.MessageReceived += OnMessageReceivedAsync;
             Client.MessageDeleted += OnMessageDeletedAsync;
-            Client.UserJoined += OnUserJoinedOnServerAsync;
-        }
-
-        private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
-        {
-            if (user.IsBot || user.IsWebhook) return;
-            var message = Config["Discord:UserJoinedMessage"];
-
-            if (!string.IsNullOrEmpty(message))
-                await user.SendMessageAsync(message);
         }
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -121,20 +111,12 @@ namespace Grillbot
 
         #region IDisposable Support
 
-        protected virtual void Dispose(bool disposing)
-        {
-            if(disposing)
-            {
-                Client.MessageReceived -= OnMessageReceivedAsync;
-                Client.MessageDeleted -= OnMessageDeletedAsync;
-                Client.UserJoined -= OnUserJoinedOnServerAsync;
-            }
-        }
-
         public void Dispose()
         {
-            Dispose(true);
+            Client.MessageReceived -= OnMessageReceivedAsync;
+            Client.MessageDeleted -= OnMessageDeletedAsync;
         }
+
         #endregion
     }
 }

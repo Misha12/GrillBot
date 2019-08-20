@@ -16,11 +16,13 @@ namespace Grillbot.Modules
     {
         private Statistics Statistics { get; }
         private IConfiguration Config { get; }
+        private AutoReplyService AutoReply { get; }
 
-        public GetBotStatusModule(Statistics statistics, IConfiguration config)
+        public GetBotStatusModule(Statistics statistics, IConfiguration config, AutoReplyService autoReply)
         {
             Statistics = statistics;
             Config = config;
+            AutoReply = autoReply;
         }
 
         [Command("grillstatus")]
@@ -44,7 +46,7 @@ namespace Grillbot.Modules
             var embed = new EmbedBuilder()
             {
                 Color = Color.Blue,
-                Description = "Stav bota",
+                Title = "Stav bota",
             };
 
             AddInlineEmbedField(embed, "Využití RAM", FormatHelper.FormatAsSize(processStatus.WorkingSet64));
@@ -52,19 +54,24 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Počet vláken", GetThreadStatus(processStatus));
             AddInlineEmbedField(embed, "Průměrná doba reakce", Statistics.GetAvgReactTime());
             AddInlineEmbedField(embed, "Instance", GetInstanceType());
+            AddInlineEmbedField(embed, "Počet aktivních tokenů", Statistics.ChannelStats.GetActiveWebTokensCount());
 
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStats(orderType == "time");
+            await PrintAutoReplyStats();
         }
 
         private async Task PrintCallStats(bool orderByTime)
         {
             var data = Statistics.GetOrderedData(orderByTime);
 
+            if (data.Count == 0)
+                return;
+
             var embedData = new EmbedBuilder()
             {
                 Color = Color.DarkBlue,
-                Description = "Statistiky příkazů"
+                Title = "Statistiky příkazů"
             };
 
 
@@ -74,7 +81,26 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embedData, "Průměrná doba", 
                 string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
 
-            await ReplyAsync("", embed: embedData.Build());
+            await ReplyAsync(embed: embedData.Build());
+        }
+
+        private async Task PrintAutoReplyStats()
+        {
+            var data = AutoReply.GetStatsData();
+
+            if (data.Count == 0)
+                return;
+
+            var embedBuilder = new EmbedBuilder()
+            {
+                Color = Color.DarkBlue,
+                Title = "Statistiky automatických odpovědí"
+            };
+
+            AddInlineEmbedField(embedBuilder, "Hledaný řetězec", string.Join(Environment.NewLine, data.Select(o => o.Key)));
+            AddInlineEmbedField(embedBuilder, "Počet reakcí", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+
+            await ReplyAsync(embed: embedBuilder.Build());
         }
 
         private string GetThreadStatus(Process process)

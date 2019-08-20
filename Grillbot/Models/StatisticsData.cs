@@ -1,7 +1,7 @@
 ﻿using System;
 using Grillbot.Helpers;
 
-namespace Grillbot.Services.Statistics
+namespace Grillbot.Models
 {
     public class StatisticsData
     {

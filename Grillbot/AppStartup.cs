@@ -62,15 +62,16 @@ namespace Grillbot
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
                 .AddSingleton<MessageHandler>()
+                .AddSingleton<UserJoinedHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<DiscordService>()
-                .AddSingleton<AutoReplyModule>()
+                .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<LoggerCache>()
                 .AddTransient<MathCalculator>();
         }
 
-        public void Configure(IApplicationBuilder app, IApplicationLifetime lifetime)
+        public void Configure(IApplicationBuilder app)
         {
             var serviceProvider = app.ApplicationServices;
             ServiceProvider = serviceProvider;
@@ -82,6 +83,7 @@ namespace Grillbot
 
             serviceProvider.GetRequiredService<LoggingService>();
             serviceProvider.GetRequiredService<MessageHandler>();
+            serviceProvider.GetRequiredService<UserJoinedHandler>();
 
             serviceProvider.GetRequiredService<Statistics>().Init().Wait();
             serviceProvider.GetRequiredService<DiscordService>().StartAsync().Wait();

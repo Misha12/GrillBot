@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Helpers;
+using Grillbot.Models;
 using Grillbot.Repository;
 using Microsoft.Extensions.Configuration;
 using System;
@@ -196,6 +197,8 @@ namespace Grillbot.Services.Statistics
             if (channel == null) return false;
             return channel.Users.Any(o => o.Id == userID);
         }
+
+        public int GetActiveWebTokensCount() => WebTokens.Count(o => o.IsValid());
 
         #region IDisposable Support
 

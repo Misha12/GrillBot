@@ -29,7 +29,7 @@ namespace Grillbot.Modules
 
         [Command("grillhi"), Alias("hojkashi")]
         [DisabledCheck(RoleGroupName = "Greeting")]
-        [Remarks("Možné formáty odpověi jsou 'text', 'bin', nebo 'hex'.")]
+        [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
         public async Task Greet(string mode)
         {
@@ -44,10 +44,10 @@ namespace Grillbot.Modules
             switch (mode)
             {
                 case "bin":
-                    message = ConvertToBinOrHexa(message, false);
+                    message = ConvertToBinOrHexa(message, 2);
                     break;
                 case "hex":
-                    message = ConvertToBinOrHexa(message, true);
+                    message = ConvertToBinOrHexa(message, 16);
                     break;
                 case "text": // text
                     message = messageTemplate.Replace("{person}", sender.Mention);
@@ -61,17 +61,31 @@ namespace Grillbot.Modules
                 await ReplyAsync(message);
         }
 
-        private string ConvertToBinOrHexa(string message, bool useHexa)
+        [Command("grillhi"), Alias("hojkashi")]
+        [DisabledCheck(RoleGroupName = "Greeting")]
+        [Remarks("Možné základy soustav odpovědi jsou 2, 8, 10, nebo 16.")]
+        [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
+        public async Task Greet(int @base)
         {
-            var values = new List<string>(message.Length * 8); // 8 bits per char.
-            int @base = useHexa ? 16 : 2;
+            var supportedBases = new[] { 2, 8, 10, 16 };
 
-            foreach(int charCode in message)
-            {
-                values.Add(Convert.ToString(charCode, @base));
-            }
+            if (!supportedBases.Contains(@base)) return;
+            if (!(Context.Message.Author is SocketGuildUser sender)) return;
 
-            return string.Join(" ", values);
+            var messageTemplate = Config["Message"];
+            var message = messageTemplate.Replace("{person}", GetUsersFullName(sender));
+            var converted = ConvertToBinOrHexa(message, @base);
+
+            var emoji = Context.Guild.Emotes.FirstOrDefault(o => o.Name == Config["AppendEmoji"]);
+            if (emoji != null)
+                await ReplyAsync($"{converted} <:{emoji.Name}:{emoji.Id}>");
+            else
+                await ReplyAsync(converted);
+        }
+
+        private string ConvertToBinOrHexa(string message, int @base)
+        {
+            return string.Join(" ", message.Select(o => Convert.ToString(o, @base)));
         }
     }
 }

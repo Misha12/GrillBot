@@ -78,6 +78,7 @@ namespace Grillbot.Services
             if(LastMessages[channel.Id].Count == ReactLimit)
             {
                 await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2);
+                await Cleanup(channel);
             }
         }
 

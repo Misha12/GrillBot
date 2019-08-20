@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Grillbot.Services.Statistics
+namespace Grillbot.Models
 {
     public class ChannelboardItem
     {
