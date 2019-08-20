@@ -5,7 +5,6 @@ using org.mariuszgromada.math.mxparser;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services
@@ -83,7 +82,6 @@ namespace Grillbot.Services
         }
 
         private bool IsVariableDeclaration(string field) => field.Trim().StartsWith("var", StringComparison.InvariantCultureIgnoreCase);
-        private bool IsFunctionDeclaration(string field) => field.Trim().StartsWith("func", StringComparison.InvariantCultureIgnoreCase);   
 
         private Argument[] ParseArguments(IEnumerable<string> expressionFields)
         {
