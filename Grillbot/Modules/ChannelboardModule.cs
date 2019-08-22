@@ -58,7 +58,7 @@ namespace Grillbot.Modules
                     .AppendLine();
             }
 
-            await ReplyAsync(messageBuilder.ToString());
+            await Context.Message.Author.SendMessageAsync(messageBuilder.ToString());
         }
 
         private bool CanAuthorToChannel(ulong channelID)

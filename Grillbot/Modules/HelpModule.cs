@@ -6,6 +6,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Services;
+using Discord.WebSocket;
 
 namespace Grillbot.Modules
 {
@@ -13,13 +14,13 @@ namespace Grillbot.Modules
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }
-        private string CommandPrefix { get; }
+        private IConfiguration Config { get; }
         private IServiceProvider Services { get; }
 
         public HelpModule(CommandService commandService, IConfiguration config, IServiceProvider services)
         {
             CommandService = commandService;
-            CommandPrefix = config["CommandPrefix"];
+            Config = config;
             Services = services;
         }
 
@@ -28,7 +29,13 @@ namespace Grillbot.Modules
         [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
-            var embed = new EmbedBuilder() { Color = Color.Blue };
+            var guildUser = Context.Guild.GetUser(Context.User.Id);
+
+            var embed = new EmbedBuilder()
+            {
+                Color = Color.Blue,
+                Title = $"Nápověda pro uživatele {GetUsersFullName(guildUser)} ({GetBotBestPermissions(guildUser)})"
+            };
 
             foreach(var module in CommandService.Modules)
             {
@@ -41,7 +48,7 @@ namespace Grillbot.Modules
                     if (result.IsSuccess)
                     {
                         descBuilder
-                            .Append(CommandPrefix)
+                            .Append(Config["CommandPrefix"])
                             .Append(cmd.Name).Append(' ')
                             .Append(string.Join(" ", cmd.Parameters.Select(o => "{" + o.Name + "}")));
 
@@ -112,6 +119,16 @@ namespace Grillbot.Modules
                 embedBuilder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
 
             await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        private string GetBotBestPermissions(SocketGuildUser user)
+        {
+            var serverAdmins = Config.GetSection("Discord:Administrators").GetChildren().Select(o => Convert.ToUInt64(o.Value));
+
+            if (serverAdmins.Any(o => o == user.Id))
+                return "BotAdmin";
+
+            return user.Roles.FirstOrDefault(o => o.Position == user.Roles.Max(x => x.Position)).Name;
         }
     }
 }
