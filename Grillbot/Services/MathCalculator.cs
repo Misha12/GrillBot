@@ -25,6 +25,16 @@ namespace Grillbot.Services
             var arguments = ParseArguments(expressionFields);
 
             var expressionData = expressionFields.FirstOrDefault(o => !IsVariableDeclaration(o));
+
+            if(string.IsNullOrEmpty(expressionData))
+            {
+                return new MathCalcResult()
+                {
+                    ErrorMessage = "Nelze spočítat prázdný požadavek.",
+                    Mention = message?.Author.Mention
+                };
+            }
+
             var expression = new Expression(expressionData, arguments);
 
             var errorMessages = new List<string>();
