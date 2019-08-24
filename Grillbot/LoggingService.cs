@@ -70,7 +70,7 @@ namespace Grillbot
                 var parts = exceptionMessage.SplitInParts(1950).ToArray();
                 var channel = Client.GetChannel(LogRoom.Value) as IMessageChannel;
 
-                await SendLogMessage(parts, exceptionRule, channel);
+                await SendLogMessageAsync(parts, exceptionRule, channel);
             }
 
             if (IsDevelopment)
@@ -79,7 +79,7 @@ namespace Grillbot
             }
         }
 
-        private async Task SendLogMessage(string[] parts, IConfigurationSection rule, IMessageChannel channel)
+        private async Task SendLogMessageAsync(string[] parts, IConfigurationSection rule, IMessageChannel channel)
         {
             if (rule != null && !string.IsNullOrEmpty(rule["Operation"]) && rule["Operation"] == "Ignore") return;
 

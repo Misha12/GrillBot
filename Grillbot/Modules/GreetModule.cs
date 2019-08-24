@@ -22,16 +22,16 @@ namespace Grillbot.Modules
         [Command("grillhi"), Alias("hojkashi")]
         [DisabledCheck(RoleGroupName = "Greeting")]
         [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
-        public async Task Greet()
+        public async Task GreetAsync()
         {
-            await Greet(Config["OutputMode"]);
+            await GreetAsync(Config["OutputMode"]);
         }
 
         [Command("grillhi"), Alias("hojkashi")]
         [DisabledCheck(RoleGroupName = "Greeting")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
-        public async Task Greet(string mode)
+        public async Task GreetAsync(string mode)
         {
             var availableModes = new[] { "text", "bin", "hex" };
 
@@ -65,7 +65,7 @@ namespace Grillbot.Modules
         [DisabledCheck(RoleGroupName = "Greeting")]
         [Remarks("Možné základy soustav odpovědi jsou 2, 8, 10, nebo 16.")]
         [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
-        public async Task Greet(int @base)
+        public async Task GreetAsync(int @base)
         {
             var supportedBases = new[] { 2, 8, 10, 16 };
 

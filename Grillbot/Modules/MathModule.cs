@@ -17,7 +17,7 @@ namespace Grillbot.Modules
         [Command("solve")]
         [RequireRoleOrAdmin(RoleGroupName = "Math")]
         [DisabledCheck(RoleGroupName = "Math")]
-        public async Task Solve(params string[] expressions)
+        public async Task SolveAsync(params string[] expressions)
         {
             var expressionData = string.Join(" ", expressions);
             var result = Calculator.Solve(expressionData, Context.Message);

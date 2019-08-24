@@ -24,7 +24,7 @@ namespace Grillbot.Services
             Semaphore = new SemaphoreSlim(1, 1);
         }
 
-        public async Task Cleanup(ISocketMessageChannel channel, bool @lock = false)
+        public async Task CleanupAsync(ISocketMessageChannel channel, bool @lock = false)
         {
             if (@lock)
                 await Semaphore.WaitAsync();
@@ -41,7 +41,7 @@ namespace Grillbot.Services
             }
         }
 
-        public async Task ProcessChain(SocketCommandContext context)
+        public async Task ProcessChainAsync(SocketCommandContext context)
         {
             await Semaphore.WaitAsync();
 
@@ -56,7 +56,7 @@ namespace Grillbot.Services
 
                 if (!IsValidMessage(context))
                 {
-                    await Cleanup(channel);
+                    await CleanupAsync(channel);
                     return;
                 }
 
@@ -65,7 +65,7 @@ namespace Grillbot.Services
                     LastMessages[channel.Id].Add(new Tuple<ulong, string>(author.Id, content));
                 }
 
-                await TryReact(channel);
+                await TryReactAsync(channel);
             }
             finally
             {
@@ -73,12 +73,12 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task TryReact(ISocketMessageChannel channel)
+        private async Task TryReactAsync(ISocketMessageChannel channel)
         {
             if(LastMessages[channel.Id].Count == ReactLimit)
             {
                 await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2);
-                await Cleanup(channel);
+                await CleanupAsync(channel);
             }
         }
 

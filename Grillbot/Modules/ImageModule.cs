@@ -22,14 +22,14 @@ namespace Grillbot.Modules
         [Command("nudes")]
         [DisabledCheck(RoleGroupName = "Images")]
         [RequireRoleOrAdmin(RoleGroupName = "Images")]
-        public async Task SendNude() => await Send("Nudes");
+        public async Task SendNudeAsync() => await SendAsync("Nudes");
 
         [Command("notnudes")]
         [DisabledCheck(RoleGroupName = "Images")]
         [RequireRoleOrAdmin(RoleGroupName = "Images")]
-        public async Task SendNotNudes() => await Send("NotNudes");
+        public async Task SendNotNudesAsync() => await SendAsync("NotNudes");
 
-        private async Task Send(string category)
+        private async Task SendAsync(string category)
         {
             var config = Config.GetSection("MethodsConfig:Images");
 

@@ -29,9 +29,9 @@ namespace Grillbot.Modules
         [Summary("Vypíše diagnostické informace o botovi.")]
         [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
         [DisabledCheck(RoleGroupName = "GrillStatus")]
-        public async Task Status()
+        public async Task StatusAsync()
         {
-            await Status("count");
+            await StatusAsync("count");
         }
 
         [Command("grillstatus")]
@@ -39,7 +39,7 @@ namespace Grillbot.Modules
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
         [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
         [DisabledCheck(RoleGroupName = "GrillStatus")]
-        public async Task Status(string orderType)
+        public async Task StatusAsync(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();
 
@@ -57,11 +57,11 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Počet aktivních tokenů", Statistics.ChannelStats.GetActiveWebTokensCount());
 
             await ReplyAsync("", embed: embed.Build());
-            await PrintCallStats(orderType == "time");
-            await PrintAutoReplyStats();
+            await PrintCallStatsAsync(orderType == "time");
+            await PrintAutoReplyStatsAsync();
         }
 
-        private async Task PrintCallStats(bool orderByTime)
+        private async Task PrintCallStatsAsync(bool orderByTime)
         {
             var data = Statistics.GetOrderedData(orderByTime);
 
@@ -84,7 +84,7 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embedData.Build());
         }
 
-        private async Task PrintAutoReplyStats()
+        private async Task PrintAutoReplyStatsAsync()
         {
             var data = AutoReply.GetStatsData();
 

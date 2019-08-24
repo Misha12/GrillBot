@@ -18,7 +18,7 @@ namespace Grillbot.Repository
             return await Context.ChannelStats.ToListAsync();
         }
 
-        public async Task UpdateChannelboardStatistics(Dictionary<ulong, long> dataForUpdate, Dictionary<ulong, DateTime> lastMessageData)
+        public async Task UpdateChannelboardStatisticsAsync(Dictionary<ulong, long> dataForUpdate, Dictionary<ulong, DateTime> lastMessageData)
         {
             foreach(var itemForUpdate in dataForUpdate)
             {

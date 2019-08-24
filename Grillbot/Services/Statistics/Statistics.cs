@@ -24,7 +24,7 @@ namespace Grillbot.Services.Statistics
 
         public async Task Init()
         {
-            await ChannelStats.Init();
+            await ChannelStats.InitAsync();
         }
 
         public void LogCall(string command, long elapsedTime)

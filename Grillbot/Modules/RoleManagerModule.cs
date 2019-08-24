@@ -14,7 +14,7 @@ namespace Grillbot.Modules
         [Command("rolereport")]
         [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
         [DisabledCheck(RoleGroupName = "RoleManager")]
-        public async Task GetRoleCounts()
+        public async Task GetRoleReportAsync()
         {
             var roleInfoFields = new List<EmbedFieldBuilder>();
 
@@ -49,7 +49,7 @@ namespace Grillbot.Modules
         [Command("rolereport")]
         [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
         [DisabledCheck(RoleGroupName = "RoleManager")]
-        public async Task GetRoleReport(params string[] roleNameFields)
+        public async Task GetRoleReportAsync(params string[] roleNameFields)
         {
             var embed = new EmbedBuilder();
             var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == string.Join(" ", roleNameFields));

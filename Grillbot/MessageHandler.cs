@@ -44,8 +44,8 @@ namespace Grillbot
         {
             if (message.HasValue && (message.Value.Content.StartsWith(Config["CommandPrefix"]) || message.Value.Author.IsBot)) return;
 
-            await Statistics.ChannelStats.DecrementCounter(channel.Id);
-            await LoggerCache.SendAttachmentToLoggerRoom(message.Id);
+            await Statistics.ChannelStats.DecrementCounterAsync(channel.Id);
+            await LoggerCache.SendAttachmentToLoggerRoomAsync(message.Id);
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -87,14 +87,14 @@ namespace Grillbot
 
                     var command = message.Content.Split(' ')[0];
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
-                    await EmoteChain.Cleanup(context.Channel, true);
+                    await EmoteChain.CleanupAsync(context.Channel, true);
                 }
                 else
                 {
-                    await LoggerCache.InsertMessageToCache(userMessage);
-                    await Statistics.ChannelStats.IncrementCounter(userMessage.Channel.Id);
-                    await AutoReply.TryReply(userMessage);
-                    await EmoteChain.ProcessChain(context);
+                    await LoggerCache.InsertMessageToCacheAsync(userMessage);
+                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel.Id);
+                    await AutoReply.TryReplyAsync(userMessage);
+                    await EmoteChain.ProcessChainAsync(context);
                 }
             }
             finally

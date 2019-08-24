@@ -29,35 +29,35 @@ namespace Grillbot.Services
             Config = newConfig;
         }
 
-        public async Task InsertMessageToCache(SocketUserMessage message)
+        public async Task InsertMessageToCacheAsync(SocketUserMessage message)
         {
             if (!message.Attachments.Any(o => o.Width != null)) return;
 
             using (var repository = new LoggerCacheRepository(Config))
             {
-                await repository.InserMessageToCache(message);
+                await repository.InserMessageToCacheAsync(message);
             }
         }
 
-        public async Task SendAttachmentToLoggerRoom(ulong messageID, bool deleteRecord = true)
+        public async Task SendAttachmentToLoggerRoomAsync(ulong messageID, bool deleteRecord = true)
         {
             if (string.IsNullOrEmpty(Config["Discord:LoggerRoomID"])) return;
 
             using (var repository = new LoggerCacheRepository(Config))
             {
-                var message = await repository.GetMessage(messageID);
+                var message = await repository.GetMessageAsync(messageID);
                 if (message == null) return;
 
-                await SendToLoggerRoom(message);
+                await SendToLoggerRoomAsync(message);
 
                 if(deleteRecord)
                 {
-                    await repository.DeleteMessageFromCache(message);
+                    await repository.DeleteMessageFromCacheAsync(message);
                 }
             }
         }
 
-        private async Task SendToLoggerRoom(LoggerMessage message)
+        private async Task SendToLoggerRoomAsync(LoggerMessage message)
         {
             var streams = new List<Tuple<string, Stream>>();
 
@@ -91,7 +91,7 @@ namespace Grillbot.Services
                 {
                     foreach (var attachment in message.Attachments)
                     {
-                        var attachmentStream = await GetAttachmentStream(attachment);
+                        var attachmentStream = await GetAttachmentStreamAsync(attachment);
                         if (attachmentStream.Item1 != null && attachmentStream.Item2 != null)
                             streams.Add(attachmentStream);
                     }
@@ -100,11 +100,11 @@ namespace Grillbot.Services
                 {
                     var attachment = message.Attachments.First();
 
-                    if (await IsSiteAvailable(attachment.ProxyUrl))
+                    if (await IsSiteAvailableAsync(attachment.ProxyUrl))
                     {
                         logEmbed.WithImageUrl(attachment.ProxyUrl);
                     }
-                    else if(await IsSiteAvailable(attachment.UrlLink))
+                    else if(await IsSiteAvailableAsync(attachment.UrlLink))
                     {
                         logEmbed.WithImageUrl(attachment.UrlLink);
                     }
@@ -123,7 +123,7 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task<Tuple<string, Stream>> GetAttachmentStream(LoggerAttachment attachment)
+        private async Task<Tuple<string, Stream>> GetAttachmentStreamAsync(LoggerAttachment attachment)
         {
             Stream stream;
 
@@ -154,7 +154,7 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task<bool> IsSiteAvailable(string url)
+        private async Task<bool> IsSiteAvailableAsync(string url)
         {
             var request = WebRequest.CreateHttp(url);
 

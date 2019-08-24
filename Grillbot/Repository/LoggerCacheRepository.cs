@@ -13,7 +13,7 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task InserMessageToCache(SocketUserMessage message)
+        public async Task InserMessageToCacheAsync(SocketUserMessage message)
         {
             var loggerMessage = new LoggerMessage
             {
@@ -38,14 +38,14 @@ namespace Grillbot.Repository
             await Context.SaveChangesAsync();
         }
 
-        public async Task<LoggerMessage> GetMessage(ulong messageID)
+        public async Task<LoggerMessage> GetMessageAsync(ulong messageID)
         {
             return await Context.LoggerMessages
                 .Include(o => o.Attachments)
                 .FirstOrDefaultAsync(o => o.MessageID == messageID.ToString());
         }
 
-        public async Task DeleteMessageFromCache(LoggerMessage message)
+        public async Task DeleteMessageFromCacheAsync(LoggerMessage message)
         {
             foreach(var attachment in message.Attachments)
             {

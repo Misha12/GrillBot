@@ -26,16 +26,16 @@ namespace Grillbot.Modules
         [Command("channelboard")]
         [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRoleOrAdmin(RoleGroupName = "Channelboard")]
-        public async Task Channelboard()
+        public async Task ChannelboardAsync()
         {
-            await Channelboard(TakeTop);
+            await ChannelboardAsync(TakeTop);
         }
 
         [Command("channelboard")]
         [Remarks("Možnost zvolit TOP N kanálů.")]
         [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRoleOrAdmin(RoleGroupName = "Channelboard")]
-        public async Task Channelboard(int takeTop)
+        public async Task ChannelboardAsync(int takeTop)
         {
             var channelBoardData = Stats.Counter
                 .OrderByDescending(o => o.Value)
@@ -71,7 +71,7 @@ namespace Grillbot.Modules
         [Summary("Webový leaderboard.")]
         [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRoleOrAdmin(RoleGroupName = "Channelboard")]
-        public async Task ChannelboardWeb()
+        public async Task ChannelboardWebAsync()
         {
             var token = Stats.CreateWebToken(Context);
 
@@ -83,7 +83,7 @@ namespace Grillbot.Modules
         [Summary("Počet zpráv v místnosti.")]
         [DisabledCheck(RoleGroupName = "Channelboard")]
         [RequireRoleOrAdmin(RoleGroupName = "Channelboard")]
-        public async Task ChannelboardForRoom(string roomMention)
+        public async Task ChannelboardForRoomAsync(string roomMention)
         {
             var channel = Context.Guild.Channels.FirstOrDefault(o => $"<#{o.Id}>" == roomMention);
 

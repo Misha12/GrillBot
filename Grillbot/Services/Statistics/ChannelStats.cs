@@ -33,7 +33,7 @@ namespace Grillbot.Services.Statistics
             Semaphore = new SemaphoreSlim(1, 1);
         }
 
-        public async Task Init()
+        public async Task InitAsync()
         {
             using (var repository = new ChannelStatsRepository(Config))
             {
@@ -71,7 +71,7 @@ namespace Grillbot.Services.Statistics
 
                 using (var repository = new ChannelStatsRepository(Config))
                 {
-                    repository.UpdateChannelboardStatistics(forUpdate, lastMessageDates).Wait();
+                    repository.UpdateChannelboardStatisticsAsync(forUpdate, lastMessageDates).Wait();
                 }
 
                 Changes.Clear();
@@ -91,7 +91,7 @@ namespace Grillbot.Services.Statistics
             Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
         }
 
-        public async Task IncrementCounter(ulong channelID)
+        public async Task IncrementCounterAsync(ulong channelID)
         {
             await Semaphore.WaitAsync();
 
@@ -116,7 +116,7 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        public async Task DecrementCounter(ulong channelID)
+        public async Task DecrementCounterAsync(ulong channelID)
         {
             await Semaphore.WaitAsync();
 

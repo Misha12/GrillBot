@@ -37,7 +37,7 @@ namespace Grillbot.Modules
             AutoReplyData = autoReplyData;
         }
 
-        public async Task TryReply(SocketUserMessage message)
+        public async Task TryReplyAsync(SocketUserMessage message)
         {
             var replyMessage = AutoReplyData.FirstOrDefault(o => o.Key.IsMatch(message.Content));
 
