@@ -19,5 +19,15 @@ namespace GrillBot_Tests.Services
 
             Assert.IsFalse(result.IsValid);
         }
+
+        [TestMethod]
+        public void Solve_NotANumber()
+        {
+            var calculator = new MathCalculator(null);
+
+            var result = calculator.Solve("nan", null);
+
+            Assert.IsFalse(result.IsValid);
+        }
     }
 }

@@ -17,10 +17,9 @@ namespace Grillbot.Modules
         [Command("solve")]
         [RequireRoleOrAdmin(RoleGroupName = "Math")]
         [DisabledCheck(RoleGroupName = "Math")]
-        public async Task SolveAsync(params string[] expressions)
+        public async Task SolveAsync([Remainder] string expression)
         {
-            var expressionData = string.Join(" ", expressions);
-            var result = Calculator.Solve(expressionData, Context.Message);
+            var result = Calculator.Solve(expression, Context.Message);
 
             if(!result.IsValid)
             {
@@ -28,7 +27,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            await ReplyAsync($"{result.Mention} Výsledek je: {result.Result.ToString()}");
+            await ReplyAsync($"{result.Mention} Výsledek je: {result.Result.ToString()}, doba zpracování byla {result.ComputingTime} ms");
         }
     }
 }

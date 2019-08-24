@@ -65,7 +65,7 @@ namespace Grillbot
                 if (userMessage.HasStringPrefix(Config["CommandPrefix"], ref argPos))
                 {
                     commandStopwatch.Start();
-                    var result = await Commands.ExecuteAsync(context, argPos, Services);
+                    var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services);
                     commandStopwatch.Stop();
 
                     if (!result.IsSuccess && result.Error != null)
