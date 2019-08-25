@@ -32,6 +32,13 @@ namespace Grillbot.Modules
             }
 
             var emoteInfo = EmoteStats.GetValue(emote);
+
+            if(emoteInfo == null)
+            {
+                await ReplyAsync("Tento emote ještě nebyl použit.");
+                return;
+            }
+
             var emoteInfoEmbed = new EmbedBuilder()
                 .WithColor(Color.Blue)
                 .AddField(o => o.WithName(emoteInfo.EmoteID).WithValue(emoteInfo.GetFormatedInfo()));
