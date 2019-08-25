@@ -11,6 +11,8 @@ namespace Grillbot
 {
     public class DiscordService : IConfigChangeable, IDisposable
     {
+        public const int MaxEmbedFields = 20;
+
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }

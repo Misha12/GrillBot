@@ -5,7 +5,6 @@ using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Hosting;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;

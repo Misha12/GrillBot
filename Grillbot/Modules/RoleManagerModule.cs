@@ -32,15 +32,12 @@ namespace Grillbot.Modules
                 });
             }
 
-            const int roleMaxCount = 20;
+            const int roleMaxCount = DiscordService.MaxEmbedFields;
             for(int i = 0; i < (float)roleInfoFields.Count / roleMaxCount; i++)
             {
-                var embed = new EmbedBuilder();
-
-                foreach(var field in roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount))
-                {
-                    embed.AddField(field);
-                }
+                var embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithFields(roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount));
 
                 await ReplyAsync(embed: embed.Build());
             }

@@ -63,8 +63,11 @@ namespace Grillbot.Services.Statistics
         {
             Semaphore.Wait();
 
+
             try
             {
+                CleanInvalidWebTokens();
+
                 if (Changes.Count == 0) return;
                 var forUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
                 var lastMessageDates = LastMessagesAt.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
@@ -76,8 +79,6 @@ namespace Grillbot.Services.Statistics
 
                 Changes.Clear();
                 Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
-
-                CleanInvalidWebTokens();
             }
             finally
             {

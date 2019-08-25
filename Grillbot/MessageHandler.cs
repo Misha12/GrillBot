@@ -9,6 +9,7 @@ using Grillbot.Exceptions;
 using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
+using Grillbot.Services.EmoteStats;
 
 namespace Grillbot
 {
@@ -95,6 +96,7 @@ namespace Grillbot
                     await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel.Id);
                     await AutoReply.TryReplyAsync(userMessage);
                     await EmoteChain.ProcessChainAsync(context);
+                    await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context);
                 }
             }
             finally

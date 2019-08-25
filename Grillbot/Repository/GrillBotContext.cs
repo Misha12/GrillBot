@@ -27,5 +27,6 @@ namespace Grillbot.Repository
 
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<LoggerMessage> LoggerMessages { get; set; }
+        public virtual DbSet<EmoteStat> EmoteStats { get; set; }
     }
 }

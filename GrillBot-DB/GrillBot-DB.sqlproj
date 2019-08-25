@@ -62,6 +62,7 @@
     <Build Include="Tables\Channelstats.sql" />
     <Build Include="Tables\LoggerMessageCache.sql" />
     <Build Include="Tables\LoggerAttachmentCache.sql" />
+    <Build Include="Tables\EmoteStatistics.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />
