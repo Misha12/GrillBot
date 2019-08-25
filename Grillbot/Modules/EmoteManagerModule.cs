@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Services;
 using Grillbot.Services.EmoteStats;
+using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,7 +9,10 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [IgnorePM]
     [Name("Správa emotů")]
+    [DisabledCheck(RoleGroupName = "EmoteManager")]
+    [RequireRoleOrAdmin(RoleGroupName = "EmoteManager")]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }
@@ -21,8 +24,6 @@ namespace Grillbot.Modules
 
         [Command("emoteinfo")]
         [Summary("Statistika emotu")]
-        [RequireRoleOrAdmin(RoleGroupName = "EmoteManager")]
-        [DisabledCheck(RoleGroupName = "EmoteManager")]
         public async Task GetEmoteInfoAsync(string emote)
         {
             if(!Context.Guild.Emotes.Any(o => o.ToString() == emote))
@@ -48,8 +49,6 @@ namespace Grillbot.Modules
 
         [Command("emoteinfo")]
         [Summary("Statistika všech emotů")]
-        [RequireRoleOrAdmin(RoleGroupName = "EmoteManager")]
-        [DisabledCheck(RoleGroupName = "EmoteManager")]
         public async Task GetEmoteInfoAsync()
         {
             var emoteInfos = EmoteStats.GetAllValues()

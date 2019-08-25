@@ -2,14 +2,16 @@
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Services;
+using Grillbot.Services.Preconditions;
 
 namespace Grillbot.Modules
 {
+    [IgnorePM]
     [Name("Pozdrav bota")]
+    [DisabledCheck(RoleGroupName = "Greeting")]
+    [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
     public class GreetModule : BotModuleBase
     {
         private IConfiguration Config { get; }
@@ -20,17 +22,13 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhi"), Alias("hojkashi")]
-        [DisabledCheck(RoleGroupName = "Greeting")]
-        [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
         public async Task GreetAsync()
         {
             await GreetAsync(Config["OutputMode"]);
         }
 
         [Command("grillhi"), Alias("hojkashi")]
-        [DisabledCheck(RoleGroupName = "Greeting")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
-        [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
         public async Task GreetAsync(string mode)
         {
             var availableModes = new[] { "text", "bin", "hex" };
@@ -62,9 +60,7 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhi"), Alias("hojkashi")]
-        [DisabledCheck(RoleGroupName = "Greeting")]
         [Remarks("Možné základy soustav odpovědi jsou 2, 8, 10, nebo 16.")]
-        [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
         public async Task GreetAsync(int @base)
         {
             var supportedBases = new[] { 2, 8, 10, 16 };

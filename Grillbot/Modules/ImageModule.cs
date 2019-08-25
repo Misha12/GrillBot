@@ -5,11 +5,14 @@ using System.IO;
 using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
-using Grillbot.Services;
+using Grillbot.Services.Preconditions;
 
 namespace Grillbot.Modules
 {
+    [IgnorePM]
     [Name("Nudes a další zajímavé fotky")]
+    [DisabledCheck(RoleGroupName = "Images")]
+    [RequireRoleOrAdmin(RoleGroupName = "Images")]
     public class ImageModule : BotModuleBase
     {
         private IConfiguration Config { get; }
@@ -20,13 +23,9 @@ namespace Grillbot.Modules
         }
 
         [Command("nudes")]
-        [DisabledCheck(RoleGroupName = "Images")]
-        [RequireRoleOrAdmin(RoleGroupName = "Images")]
         public async Task SendNudeAsync() => await SendAsync("Nudes");
 
         [Command("notnudes")]
-        [DisabledCheck(RoleGroupName = "Images")]
-        [RequireRoleOrAdmin(RoleGroupName = "Images")]
         public async Task SendNotNudesAsync() => await SendAsync("NotNudes");
 
         private async Task SendAsync(string category)

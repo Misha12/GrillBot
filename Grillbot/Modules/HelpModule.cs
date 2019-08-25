@@ -5,12 +5,14 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Grillbot.Services;
 using Discord.WebSocket;
+using Grillbot.Services.Preconditions;
 
 namespace Grillbot.Modules
 {
     [Name("Nápověda")]
+    [DisabledCheck(RoleGroupName = "Help")]
+    [RequireRoleOrAdmin(RoleGroupName = "Help")]
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }
@@ -25,16 +27,14 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhelp")]
-        [DisabledCheck(RoleGroupName = "Help")]
-        [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync()
         {
-            var guildUser = Context.Guild.GetUser(Context.User.Id);
+            var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
             var embed = new EmbedBuilder()
             {
                 Color = Color.Blue,
-                Title = $"Nápověda pro uživatele {GetUsersFullName(guildUser)} ({GetBotBestPermissions(guildUser)})"
+                Title = $"Nápověda pro uživatele {GetUsersFullName(user)} ({GetBotBestPermissions(user)})"
             };
 
             foreach(var module in CommandService.Modules)
@@ -67,8 +67,6 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhelp")]
-        [DisabledCheck(RoleGroupName = "Help")]
-        [RequireRoleOrAdmin(RoleGroupName = "Help")]
         public async Task HelpAsync(string command)
         {
             var result = CommandService.Search(Context, command);
@@ -121,14 +119,19 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embedBuilder.Build());
         }
 
-        private string GetBotBestPermissions(SocketGuildUser user)
+        private string GetBotBestPermissions(SocketUser user)
         {
             var serverAdmins = Config.GetSection("Discord:Administrators").GetChildren().Select(o => Convert.ToUInt64(o.Value));
 
             if (serverAdmins.Any(o => o == user.Id))
                 return "BotAdmin";
 
-            return user.Roles.FirstOrDefault(o => o.Position == user.Roles.Max(x => x.Position)).Name;
+            if(user is SocketGuildUser sgUser)
+            {
+                return sgUser.Roles.FirstOrDefault(o => o.Position == sgUser.Roles.Max(x => x.Position)).Name;
+            }
+
+            return "-";
         }
     }
 }

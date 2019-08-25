@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Services;
+using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -8,12 +8,13 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [IgnorePM]
     [Name("Správa rolí")]
+    [DisabledCheck(RoleGroupName = "RoleManager")]
+    [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
     public class RoleManagerModule : BotModuleBase
     {
         [Command("rolereport")]
-        [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
-        [DisabledCheck(RoleGroupName = "RoleManager")]
         public async Task GetRoleReportAsync()
         {
             var roleInfoFields = new List<EmbedFieldBuilder>();
@@ -44,8 +45,6 @@ namespace Grillbot.Modules
         }
 
         [Command("rolereport")]
-        [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
-        [DisabledCheck(RoleGroupName = "RoleManager")]
         public async Task GetRoleReportAsync(params string[] roleNameFields)
         {
             var embed = new EmbedBuilder();

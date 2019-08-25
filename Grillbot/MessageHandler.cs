@@ -10,6 +10,7 @@ using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using Grillbot.Services.EmoteStats;
+using System.Linq;
 
 namespace Grillbot
 {
@@ -57,10 +58,15 @@ namespace Grillbot
             try
             {
                 if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
-                if (message.Channel is IPrivateChannel) return;
 
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
+
+                if (message.Channel is IPrivateChannel)
+                {
+                    var allowedAdmins = Config.GetSection($"Discord:Administrators").GetChildren().Select(o => o.Value).ToList();
+                    if (!allowedAdmins.Contains(userMessage.Author.Id.ToString())) return;
+                }
 
                 int argPos = 0;
                 if (userMessage.HasStringPrefix(Config["CommandPrefix"], ref argPos))

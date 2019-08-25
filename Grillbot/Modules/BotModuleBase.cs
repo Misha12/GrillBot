@@ -10,15 +10,35 @@ namespace Grillbot.Modules
         protected void AddInlineEmbedField(EmbedBuilder embed, string name, object value) =>
             embed.AddField(o => o.WithIsInline(true).WithName(name).WithValue(value));
 
-        protected string GetUsersFullName(SocketGuildUser user)
+        protected string GetUsersFullName(SocketUser user)
         {
-            var builder = new StringBuilder()
-                .Append(user.Username);
+            var builder = new StringBuilder();
 
-            if (string.IsNullOrEmpty(user.Nickname))
-                builder.Append("#").Append(user.Discriminator);
+            if (user is SocketGuildUser sgUser)
+            {
+                if (string.IsNullOrEmpty(sgUser.Nickname))
+                {
+                    builder.Append(user.Username).Append("#").Append(user.Discriminator);
+
+                    if (string.IsNullOrEmpty(sgUser.Nickname))
+                        builder.Append("#").Append(user.Discriminator);
+                    else
+                        builder.Append(" (").Append(user.Username).Append("#").Append(user.Discriminator).Append(")");
+                }
+                else
+                {
+                    builder.Append(sgUser.Nickname)
+                        .Append(" (")
+                        .Append(user.Username)
+                        .Append("#")
+                        .Append(user.Discriminator)
+                        .Append(")");
+                }
+            }
             else
-                builder.Append(" (").Append(user.Nickname).Append("#").Append(user.Discriminator).Append(")");
+            {
+                builder.Append(user.Username).Append("#").Append(user.Discriminator);
+            }
 
             return builder.ToString();
         }

@@ -5,13 +5,15 @@ using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
-using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.Configuration;
+using Grillbot.Services.Preconditions;
 
 namespace Grillbot.Modules
 {
     [Name("Stav bota")]
+    [DisabledCheck(RoleGroupName = "GrillStatus")]
+    [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
@@ -27,8 +29,6 @@ namespace Grillbot.Modules
 
         [Command("grillstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
-        [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
-        [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task StatusAsync()
         {
             await StatusAsync("count");
@@ -37,8 +37,6 @@ namespace Grillbot.Modules
         [Command("grillstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
-        [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
-        [DisabledCheck(RoleGroupName = "GrillStatus")]
         public async Task StatusAsync(string orderType)
         {
             var processStatus = Process.GetCurrentProcess();

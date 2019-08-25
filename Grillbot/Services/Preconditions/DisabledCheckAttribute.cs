@@ -3,7 +3,7 @@ using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
 
-namespace Grillbot.Services
+namespace Grillbot.Services.Preconditions
 {
     public class DisabledCheckAttribute : PreconditionAttribute
     {
