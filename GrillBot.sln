@@ -7,7 +7,9 @@ Project("{00D1A9C2-B5F0-4AF3-8072-F6C62B433612}") = "GrillBot-DB", "GrillBot-DB\
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Grillbot", "Grillbot\Grillbot.csproj", "{F72CAB11-1CE7-4FAD-9253-3DFD679D6DAC}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrillBot-Tests", "GrillBot-Tests\GrillBot-Tests.csproj", "{DB72818F-76F1-4335-9151-5E499707E7F4}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrillBot-Tests", "GrillBot-Tests\GrillBot-Tests.csproj", "{DB72818F-76F1-4335-9151-5E499707E7F4}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrillBotMath", "GrillBotMath\GrillBotMath.csproj", "{30CF1678-5378-4D83-A341-F447B2DB8259}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
@@ -29,6 +31,10 @@ Global
 		{DB72818F-76F1-4335-9151-5E499707E7F4}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{DB72818F-76F1-4335-9151-5E499707E7F4}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{DB72818F-76F1-4335-9151-5E499707E7F4}.Release|Any CPU.Build.0 = Release|Any CPU
+		{30CF1678-5378-4D83-A341-F447B2DB8259}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{30CF1678-5378-4D83-A341-F447B2DB8259}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{30CF1678-5378-4D83-A341-F447B2DB8259}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{30CF1678-5378-4D83-A341-F447B2DB8259}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

@@ -1,0 +1,8 @@
+{
+  "profiles": {
+    "GrillBotMath": {
+      "commandName": "Project",
+      "commandLineArgs": "int(cos(sin(cos(sin(cos(sin(cos(cos(sin(cos(x^3) + cos(x)) + sin(x^2)) + cos(x^3)) + sin(x^3)) + cos(x^3)) * sin(x^3)) + cos(x^3)) - cos(x^3))), x, -2000, 2000)"
+    }
+  }
+}
