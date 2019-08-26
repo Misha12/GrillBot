@@ -2,12 +2,8 @@
 using Grillbot.Models;
 using Microsoft.Extensions.Configuration;
 using Newtonsoft.Json;
-using org.mariuszgromada.math.mxparser;
 using System;
-using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
