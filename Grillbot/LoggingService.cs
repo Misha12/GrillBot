@@ -9,6 +9,7 @@ using System.Threading.Tasks;
 using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
+using Grillbot.Services.Config;
 
 namespace Grillbot
 {

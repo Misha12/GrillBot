@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;

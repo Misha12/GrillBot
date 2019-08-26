@@ -6,6 +6,7 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
+using Grillbot.Services.Config;
 
 namespace Grillbot
 {

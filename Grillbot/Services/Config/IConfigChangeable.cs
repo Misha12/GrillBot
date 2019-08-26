@@ -1,6 +1,6 @@
 ﻿using Microsoft.Extensions.Configuration;
 
-namespace Grillbot
+namespace Grillbot.Services.Config
 {
     public interface IConfigChangeable
     {

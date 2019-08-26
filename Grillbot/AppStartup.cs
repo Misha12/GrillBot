@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
+using Grillbot.Services.Config;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -133,7 +134,10 @@ namespace Grillbot
             {
                 using (var fs = File.OpenRead("appsettings.json"))
                 {
-                    return SHA1.Create().ComputeHash(fs);
+                    using(var sha1 = SHA1.Create())
+                    {
+                        return sha1.ComputeHash(fs);
+                    }
                 }
             }
             else

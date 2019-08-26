@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Repository;
+using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
