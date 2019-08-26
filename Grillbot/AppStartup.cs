@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
@@ -56,12 +57,16 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
+            // Handlers
+            services
+                .AddSingleton<MessageReceivedHandler>()
+                .AddSingleton<UserJoinedHandler>()
+                .AddSingleton<MessageDeletedHandler>();
+
             services
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
-                .AddSingleton<MessageHandler>()
-                .AddSingleton<UserJoinedHandler>()
                 .AddSingleton<LoggingService>()
                 .AddSingleton<DiscordService>()
                 .AddSingleton<AutoReplyService>()
@@ -80,12 +85,26 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            serviceProvider.GetRequiredService<LoggingService>();
-            serviceProvider.GetRequiredService<MessageHandler>();
-            serviceProvider.GetRequiredService<UserJoinedHandler>();
+            var toInit = new[]
+            {
+                typeof(LoggingService),
+                typeof(MessageReceivedHandler),
+                typeof(UserJoinedHandler),
+                typeof(MessageDeletedHandler)
+            };
+
+            InitServices(ServiceProvider, toInit);
 
             serviceProvider.GetRequiredService<Statistics>().Init().Wait();
             serviceProvider.GetRequiredService<DiscordService>().StartAsync().Wait();
+        }
+
+        private void InitServices(IServiceProvider provider, Type[] services)
+        {
+            foreach(var service in services)
+            {
+                provider.GetRequiredService(service);
+            }
         }
 
         private void OnConfigChange()

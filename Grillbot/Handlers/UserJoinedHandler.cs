@@ -4,7 +4,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Configuration;
 
-namespace Grillbot
+namespace Grillbot.Handlers
 {
     public class UserJoinedHandler : IConfigChangeable, IDisposable
     {
