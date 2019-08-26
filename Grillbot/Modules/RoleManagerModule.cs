@@ -33,7 +33,7 @@ namespace Grillbot.Modules
                 });
             }
 
-            const int roleMaxCount = DiscordService.MaxEmbedFields;
+            const int roleMaxCount = GrillBotService.MaxEmbedFields;
             for(int i = 0; i < (float)roleInfoFields.Count / roleMaxCount; i++)
             {
                 var embed = new EmbedBuilder()

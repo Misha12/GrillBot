@@ -69,7 +69,7 @@ namespace Grillbot
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
                 .AddSingleton<BotLoggingService>()
-                .AddSingleton<DiscordService>()
+                .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<LoggerCache>()
@@ -97,7 +97,7 @@ namespace Grillbot
             InitServices(ServiceProvider, toInit);
 
             serviceProvider.GetRequiredService<Statistics>().Init().Wait();
-            serviceProvider.GetRequiredService<DiscordService>().StartAsync().Wait();
+            serviceProvider.GetRequiredService<GrillBotService>().StartAsync().Wait();
         }
 
         private void InitServices(IServiceProvider provider, Type[] services)

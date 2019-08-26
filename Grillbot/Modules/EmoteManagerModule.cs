@@ -65,11 +65,11 @@ namespace Grillbot.Modules
                 embedFields.Add(field);
             }
 
-            for(int i = 0; i < (float)embedFields.Count / DiscordService.MaxEmbedFields; i++)
+            for(int i = 0; i < (float)embedFields.Count / GrillBotService.MaxEmbedFields; i++)
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
-                    .WithFields(embedFields.Skip(i * DiscordService.MaxEmbedFields).Take(DiscordService.MaxEmbedFields));
+                    .WithFields(embedFields.Skip(i * GrillBotService.MaxEmbedFields).Take(GrillBotService.MaxEmbedFields));
 
                 await ReplyAsync(embed: embed.Build());
             }
