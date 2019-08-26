@@ -68,7 +68,7 @@ namespace Grillbot
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
-                .AddSingleton<LoggingService>()
+                .AddSingleton<BotLoggingService>()
                 .AddSingleton<DiscordService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
@@ -88,7 +88,7 @@ namespace Grillbot
 
             var toInit = new[]
             {
-                typeof(LoggingService),
+                typeof(BotLoggingService),
                 typeof(MessageReceivedHandler),
                 typeof(UserJoinedHandler),
                 typeof(MessageDeletedHandler)
