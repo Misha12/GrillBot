@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
+using Grillbot.Services.Config;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -56,14 +58,18 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
+            // Handlers
+            services
+                .AddSingleton<MessageReceivedHandler>()
+                .AddSingleton<UserJoinedHandler>()
+                .AddSingleton<MessageDeletedHandler>();
+
             services
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<Statistics>()
-                .AddSingleton<MessageHandler>()
-                .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<LoggingService>()
-                .AddSingleton<DiscordService>()
+                .AddSingleton<BotLoggingService>()
+                .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<LoggerCache>()
@@ -80,12 +86,26 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            serviceProvider.GetRequiredService<LoggingService>();
-            serviceProvider.GetRequiredService<MessageHandler>();
-            serviceProvider.GetRequiredService<UserJoinedHandler>();
+            var toInit = new[]
+            {
+                typeof(BotLoggingService),
+                typeof(MessageReceivedHandler),
+                typeof(UserJoinedHandler),
+                typeof(MessageDeletedHandler)
+            };
+
+            InitServices(ServiceProvider, toInit);
 
             serviceProvider.GetRequiredService<Statistics>().Init().Wait();
-            serviceProvider.GetRequiredService<DiscordService>().StartAsync().Wait();
+            serviceProvider.GetRequiredService<GrillBotService>().StartAsync().Wait();
+        }
+
+        private void InitServices(IServiceProvider provider, Type[] services)
+        {
+            foreach(var service in services)
+            {
+                provider.GetRequiredService(service);
+            }
         }
 
         private void OnConfigChange()
@@ -114,7 +134,10 @@ namespace Grillbot
             {
                 using (var fs = File.OpenRead("appsettings.json"))
                 {
-                    return SHA1.Create().ComputeHash(fs);
+                    using(var sha1 = SHA1.Create())
+                    {
+                        return sha1.ComputeHash(fs);
+                    }
                 }
             }
             else

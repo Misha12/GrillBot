@@ -6,10 +6,11 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
+using Grillbot.Services.Config;
 
 namespace Grillbot
 {
-    public class DiscordService : IConfigChangeable, IDisposable
+    public class GrillBotService : IConfigChangeable, IDisposable
     {
         public const int MaxEmbedFields = 20;
 
@@ -18,7 +19,7 @@ namespace Grillbot
         private CommandService Commands { get; }
         private IConfiguration Config { get; set; }
 
-        public DiscordService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfiguration config)
+        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfiguration config)
         {
             Services = services;
             Client = client;

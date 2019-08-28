@@ -9,10 +9,11 @@ using System.Threading.Tasks;
 using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
+using Grillbot.Services.Config;
 
-namespace Grillbot
+namespace Grillbot.Services
 {
-    public class LoggingService : IConfigChangeable, IDisposable
+    public class BotLoggingService : IConfigChangeable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -23,7 +24,7 @@ namespace Grillbot
         private ulong? ErrorTagUser { get; set; }
         private IConfiguration Config { get; set; }
 
-        public LoggingService(DiscordSocketClient client, CommandService commands, IConfiguration config)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IConfiguration config)
         {
             Client = client;
             Commands = commands;

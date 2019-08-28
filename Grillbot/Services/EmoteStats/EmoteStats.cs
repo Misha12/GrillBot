@@ -8,6 +8,7 @@ using Discord.Commands;
 using Grillbot.Extensions;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
+using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services.EmoteStats
