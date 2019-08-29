@@ -73,8 +73,9 @@ namespace Grillbot.Services.EmoteStats
 
         public async Task AnylyzeMessageAndIncrementValuesAsync(SocketCommandContext context)
         {
-            await Semaphore.WaitAsync();
+            if (context.Guild == null) return;
 
+            await Semaphore.WaitAsync();
             try
             {
                 var serverEmotes = context.Guild.Emotes;

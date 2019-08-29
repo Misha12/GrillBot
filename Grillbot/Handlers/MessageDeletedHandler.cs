@@ -41,7 +41,7 @@ namespace Grillbot.Handlers
                 if (message.Value.Author.IsBot || message.Value.Author.IsWebhook) return;
             }
 
-            await Statistics.ChannelStats.DecrementCounterAsync(channel.Id);
+            await Statistics.ChannelStats.DecrementCounterAsync(channel);
             await LoggerCache.SendAttachmentToLoggerRoomAsync(message.Id);
         }
 

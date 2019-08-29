@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models;
@@ -18,7 +19,7 @@ namespace Grillbot.Services.Statistics
         public Dictionary<ulong, long> Counter { get; private set; }
         private IConfiguration Config { get; set; }
         private Timer DbSyncTimer { get; set; }
-        private List<ulong> Changes { get; set; }
+        private HashSet<ulong> Changes { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
         private List<ChannelboardWebToken> WebTokens { get; set; }
         private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
@@ -26,7 +27,7 @@ namespace Grillbot.Services.Statistics
         public ChannelStats(IConfiguration config)
         {
             Counter = new Dictionary<ulong, long>();
-            Changes = new List<ulong>();
+            Changes = new HashSet<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
             LastMessagesAt = new Dictionary<ulong, DateTime>();
 
@@ -64,7 +65,6 @@ namespace Grillbot.Services.Statistics
         {
             Semaphore.Wait();
 
-
             try
             {
                 CleanInvalidWebTokens();
@@ -93,24 +93,24 @@ namespace Grillbot.Services.Statistics
             Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
         }
 
-        public async Task IncrementCounterAsync(ulong channelID)
+        public async Task IncrementCounterAsync(ISocketMessageChannel channel)
         {
-            await Semaphore.WaitAsync();
+            if (channel is IPrivateChannel) return;
 
+            await Semaphore.WaitAsync();
             try
             {
-                if (!Counter.ContainsKey(channelID))
-                    Counter.Add(channelID, 1);
+                if (!Counter.ContainsKey(channel.Id))
+                    Counter.Add(channel.Id, 1);
                 else
-                    Counter[channelID]++;
+                    Counter[channel.Id]++;
 
-                if (!Changes.Contains(channelID))
-                    Changes.Add(channelID);
+                Changes.Add(channel.Id);
 
-                if (!LastMessagesAt.ContainsKey(channelID))
-                    LastMessagesAt.Add(channelID, DateTime.Now);
+                if (!LastMessagesAt.ContainsKey(channel.Id))
+                    LastMessagesAt.Add(channel.Id, DateTime.Now);
                 else
-                    LastMessagesAt[channelID] = DateTime.Now;
+                    LastMessagesAt[channel.Id] = DateTime.Now;
             }
             finally
             {
@@ -118,21 +118,22 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        public async Task DecrementCounterAsync(ulong channelID)
+        public async Task DecrementCounterAsync(ISocketMessageChannel channel)
         {
+            if (channel is IPrivateChannel) return;
+
             await Semaphore.WaitAsync();
 
             try
             {
-                if (!Counter.ContainsKey(channelID)) return;
+                if (!Counter.ContainsKey(channel.Id)) return;
 
-                Counter[channelID]--;
+                Counter[channel.Id]--;
 
-                if (Counter[channelID] < 0)
-                    Counter[channelID] = 0;
+                if (Counter[channel.Id] < 0)
+                    Counter[channel.Id] = 0;
 
-                if (!Changes.Contains(channelID))
-                    Changes.Add(channelID);
+                Changes.Add(channel.Id);
             }
             finally
             {

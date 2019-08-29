@@ -63,6 +63,8 @@ namespace Grillbot.Modules
         private bool CanAuthorToChannel(ulong channelID)
         {
             var channel = Context.Client.GetChannel(channelID);
+            if (channel is IPrivateChannel) return false;
+
             return channel?.Users.Any(o => o.Id == Context.Message.Author.Id) ?? false;
         }
 

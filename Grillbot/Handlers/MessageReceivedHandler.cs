@@ -91,7 +91,7 @@ namespace Grillbot.Handlers
                 else
                 {
                     await LoggerCache.InsertMessageToCacheAsync(userMessage);
-                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel.Id);
+                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel);
                     await AutoReply.TryReplyAsync(userMessage);
                     await EmoteChain.ProcessChainAsync(context);
                     await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context);
