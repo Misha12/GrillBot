@@ -5,6 +5,7 @@ using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -73,7 +74,8 @@ namespace Grillbot
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<LoggerCache>()
-                .AddTransient<MathCalculator>();
+                .AddTransient<MathCalculator>()
+                .AddSingleton<Logger>();
 
             services.AddHostedService<GrillBotService>();
         }
