@@ -35,18 +35,18 @@ namespace Grillbot.Services.Statistics
             Semaphore = new SemaphoreSlim(1, 1);
         }
 
-        public async Task InitAsync()
+        public void Init()
         {
             using (var repository = new ChannelStatsRepository(Config))
             {
-                var data = await repository.GetChannelStatistics();
+                var data = repository.GetChannelStatistics().Result;
 
                 Counter = data.ToDictionary(o => o.SnowflakeID, o => o.Count);
                 LastMessagesAt = data.ToDictionary(o => o.SnowflakeID, o => o.LastMessageAt);
             }
 
             Reload(Config);
-            await Console.Out.WriteLineAsync($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics loaded from database. (Rows: {Counter.Count})");
+            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void Reload(IConfiguration config)

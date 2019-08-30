@@ -36,16 +36,15 @@ namespace Grillbot.Services.EmoteStats
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
         }
 
-        public async Task InitAsync()
+        public void Init()
         {
             using(var repository = new EmoteStatsRepository(Config))
             {
-                var data = await repository.GetEmoteStatistics();
-
+                var data = repository.GetEmoteStatistics().Result;
                 Counter = data.ToDictionary(o => o.EmoteID, o => o);
             }
 
-            await Console.Out.WriteLineAsync($"{DateTime.Now.ToLongTimeString()} BOT\tEmote statistics loaded from database. (Rows: {Counter.Count})");
+            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tEmote statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void SyncTimerCallback(object _)

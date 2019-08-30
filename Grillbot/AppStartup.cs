@@ -74,6 +74,8 @@ namespace Grillbot
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<LoggerCache>()
                 .AddTransient<MathCalculator>();
+
+            services.AddHostedService<GrillBotService>();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -95,9 +97,7 @@ namespace Grillbot
             };
 
             InitServices(ServiceProvider, toInit);
-
-            serviceProvider.GetRequiredService<Statistics>().Init().Wait();
-            serviceProvider.GetRequiredService<GrillBotService>().StartAsync().Wait();
+            serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
         private void InitServices(IServiceProvider provider, Type[] services)

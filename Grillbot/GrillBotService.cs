@@ -7,10 +7,12 @@ using System.Reflection;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
 using Grillbot.Services.Config;
+using Microsoft.Extensions.Hosting;
+using System.Threading;
 
 namespace Grillbot
 {
-    public class GrillBotService : IConfigChangeable, IDisposable
+    public class GrillBotService : IConfigChangeable, IHostedService
     {
         public const int MaxEmbedFields = 20;
 
@@ -27,20 +29,26 @@ namespace Grillbot
             Config = config;
         }
 
-        public async Task StartAsync()
+        public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var dcConfig = Config.GetSection("Discord");
-            var token = dcConfig["Token"];
-            var activityMessage = dcConfig["Activity"];
+            var config = Config.GetSection("Discord");
+            var token = config["Token"];
 
             if (string.IsNullOrEmpty(token))
                 throw new ConfigException("Missing bot token in config.");
 
             await Client.LoginAsync(TokenType.Bot, token);
             await Client.StartAsync();
-            await SetActivity(activityMessage);
+            await SetActivity(config["Activity"]);
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+        }
+
+        public async Task StopAsync(CancellationToken cancellationToken)
+        {
+            await Client.StopAsync();
+            await Client.LogoutAsync();
+            Client.Dispose();
         }
 
         private string FormatActivity(string template)
@@ -68,21 +76,5 @@ namespace Grillbot
             Config = newConfig;
             SetActivity(newConfig["Discord:Activity"]).Wait();
         }
-
-        #region IDisposable Support
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                Client.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
     }
 }

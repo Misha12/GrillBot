@@ -1,9 +1,11 @@
 ﻿using Grillbot.Models;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
@@ -25,10 +27,10 @@ namespace Grillbot.Services.Statistics
             Config = configuration;
         }
 
-        public async Task Init()
+        public void Init()
         {
-            await ChannelStats.InitAsync();
-            await EmoteStats.InitAsync();
+            ChannelStats.Init();
+            EmoteStats.Init();
         }
 
         public void LogCall(string command, long elapsedTime)
@@ -63,8 +65,6 @@ namespace Grillbot.Services.Statistics
             Config = newConfig;
         }
 
-        #region IDisposable Support
-
         protected virtual void Dispose(bool disposing)
         {
             if (disposing)
@@ -77,6 +77,5 @@ namespace Grillbot.Services.Statistics
         {
             Dispose(true);
         }
-        #endregion
     }
 }
