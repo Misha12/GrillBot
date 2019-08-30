@@ -49,7 +49,7 @@ namespace Grillbot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 100000
+                MessageCacheSize = 1000000
             };
 
             var commandsConfig = new CommandServiceConfig()
