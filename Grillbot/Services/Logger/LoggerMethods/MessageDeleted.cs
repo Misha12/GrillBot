@@ -4,6 +4,7 @@ using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -18,17 +19,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task ProcessAsync(Cacheable<IMessage, ulong> message)
+        public async Task ProcessAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
             if (message.HasValue)
                 await ProcessWithCacheRecord(message.Value);
             else
-                await ProcessWithoutCacheRecord();
+                await ProcessWithoutCacheRecord(message.Value, channel);
         }
 
-        private async Task ProcessWithoutCacheRecord()
+        private async Task ProcessWithoutCacheRecord(IMessage message, ISocketMessageChannel channel)
         {
-
+            //TODO
         }
 
         private async Task ProcessWithCacheRecord(IMessage message)
@@ -41,7 +42,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
                 logEmbedBuilder
                     .SetAuthor(message.Author)
+                    .SetTimestamp(true)
                     .SetFooter(message)
+                    .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss", CultureInfo.InvariantCulture))
                     .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})")
                     .AddField("Obsah", string.IsNullOrEmpty(message.Content) ? "-" : $"```{message.Content}```");
 
@@ -88,7 +91,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             try
             {
-                using (var response = (HttpWebResponse)(await request.GetResponseAsync()))
+                using (var response = (HttpWebResponse)await request.GetResponseAsync())
                 {
                     return response.StatusCode == HttpStatusCode.OK;
                 }
@@ -107,7 +110,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
             {
                 using (var client = new HttpClient())
                 {
-                    var filename = $"Attachment_{attachment.Id}.{Path.GetExtension(attachment.Url)}";
+                    var filename = CreateAttachmentFilename(attachment.Id, attachment.Url);
                     stream = await client.GetStreamAsync(attachment.Url);
                     return new Tuple<string, Stream>(filename, stream);
                 }
@@ -118,7 +121,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 {
                     using (var client = new HttpClient())
                     {
-                        var filename = $"Attachment_{attachment.Id}.{Path.GetExtension(attachment.ProxyUrl)}";
+                        var filename = CreateAttachmentFilename(attachment.Id, attachment.ProxyUrl);
                         stream = await client.GetStreamAsync(attachment.ProxyUrl);
                         return new Tuple<string, Stream>(filename, stream);
                     }
@@ -128,6 +131,11 @@ namespace Grillbot.Services.Logger.LoggerMethods
                     return new Tuple<string, Stream>(null, null);
                 }
             }
+        }
+
+        private string CreateAttachmentFilename(ulong id, string url)
+        {
+            return $"Attachment_{id}_{Path.GetExtension(url)}";
         }
     }
 }

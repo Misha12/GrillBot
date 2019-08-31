@@ -11,10 +11,10 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         private string Title { get; set; }
         private LogEmbedType Type { get; }
 
-        private EmbedAuthorBuilder AuthorBuilder { get; set; }
         private EmbedFooterBuilder FooterBuilder { get; set; }
         private bool CanSetTimestamp { get; set; }
         private List<EmbedFieldBuilder> FieldBuilders { get; }
+        private string AvatarUrl { get; set; }
         private string ImageUrl { get; set; }
 
         public LogEmbedBuilder(string title, LogEmbedType type)
@@ -29,9 +29,9 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             var builder = new EmbedBuilder()
             {
-                Title = Title,
                 Color = GetColor(Type),
-                Author = AuthorBuilder
+                Author = new EmbedAuthorBuilder().WithName(Title),
+                ThumbnailUrl = AvatarUrl
             };
 
             if (CanSetTimestamp)
@@ -40,30 +40,32 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             if (FooterBuilder != null)
                 builder.WithFooter(FooterBuilder);
 
+            if (!string.IsNullOrEmpty(ImageUrl))
+                builder.WithImageUrl(ImageUrl);
+
             builder.WithFields(FieldBuilders);
             return builder.Build();
         }
 
         public LogEmbedBuilder SetAuthor(IUser user)
         {
-            AuthorBuilder = new EmbedAuthorBuilder();
-
-            if (user == null)
-                AuthorBuilder.WithName("Neznámý uživatel");
-            else
-                AuthorBuilder.WithIconUrl(user.GetAvatarUrl()).WithName(user.Username);
+            AddField("Uživatel", user?.ToString() ?? "Neznámý");
+            AvatarUrl = user?.GetAvatarUrl() ?? user?.GetDefaultAvatarUrl();
 
             return this;
         }
 
         public LogEmbedBuilder SetFooter(IMessage message)
         {
-            CanSetTimestamp = true;
             FooterBuilder = new EmbedFooterBuilder();
+            FooterBuilder.WithText($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}");
 
-            FooterBuilder
-                .WithText($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}");
+            return this;
+        }
 
+        public LogEmbedBuilder SetTimestamp(bool active)
+        {
+            CanSetTimestamp = active;
             return this;
         }
 

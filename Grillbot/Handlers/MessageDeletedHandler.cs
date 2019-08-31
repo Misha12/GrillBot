@@ -45,7 +45,6 @@ namespace Grillbot.Handlers
             }
 
             await Statistics.ChannelStats.DecrementCounterAsync(channel);
-            await LoggerCache.SendAttachmentToLoggerRoomAsync(message.Id);
             await Logger.OnMessageDelete(message, channel);
         }
 
