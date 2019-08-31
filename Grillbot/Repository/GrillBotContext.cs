@@ -21,12 +21,9 @@ namespace Grillbot.Repository
         protected override void OnModelCreating(ModelBuilder modelBuilder)
         {
             base.OnModelCreating(modelBuilder);
-
-            modelBuilder.Entity<LoggerMessage>().HasMany(o => o.Attachments).WithOne(o => o.Message);
         }
 
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
-        public virtual DbSet<LoggerMessage> LoggerMessages { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
     }
 }

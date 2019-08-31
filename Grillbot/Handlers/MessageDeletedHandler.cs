@@ -13,16 +13,14 @@ namespace Grillbot.Handlers
 {
     public class MessageDeletedHandler : IConfigChangeable, IDisposable
     {
-        private LoggerCache LoggerCache { get; }
         private Statistics Statistics { get; }
         private IConfiguration Config { get; set; }
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, LoggerCache loggerCache, Statistics statistics, IConfiguration config, Logger logger)
+        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IConfiguration config, Logger logger)
         {
             Client = client;
-            LoggerCache = loggerCache;
             Statistics = statistics;
             Logger = logger;
 
