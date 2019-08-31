@@ -63,10 +63,10 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             return this;
         }
 
-        public LogEmbedBuilder SetFooter(IMessage message)
+        public LogEmbedBuilder SetFooter(string text)
         {
             FooterBuilder = new EmbedFooterBuilder();
-            FooterBuilder.WithText($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}");
+            FooterBuilder.WithText(text);
 
             return this;
         }
@@ -108,11 +108,9 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             switch(type)
             {
-                case LogEmbedType.MessageDeleted:
-                    return Color.Red;
-
-                default:
-                    return Color.Blue;
+                case LogEmbedType.MessageDeleted: return Color.Red;
+                case LogEmbedType.UserJoined: return Color.Green;
+                default: return Color.Blue;
             }
         }
     }

@@ -32,7 +32,7 @@ namespace Grillbot.Services.Logger
             await method.ProcessAsync(message, channel);
         }
 
-        public async Task OnMessageUpdated(Cacheable<IMessage, UInt64> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
+        public async Task OnMessageUpdated(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
             //TODO
         }
@@ -64,7 +64,8 @@ namespace Grillbot.Services.Logger
 
         public async Task OnUserJoined(SocketGuildUser user)
         {
-            //TODO
+            var method = new UserJoined(Client, Config);
+            await method.Process(user);
         }
 
         public async Task OnUserLeft(SocketGuildUser user)

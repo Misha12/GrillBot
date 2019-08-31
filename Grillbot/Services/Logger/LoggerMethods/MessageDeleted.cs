@@ -42,7 +42,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             logEmbedBuilder
                 .SetTimestamp(true)
-                .SetFooter(messageId)
+                .SetFooter($"MessageID: {messageId}")
                 .SetTitle("Zpráva nebyla nalezena v cache.")
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
 
@@ -61,7 +61,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 logEmbedBuilder
                     .SetAuthor(message.Author)
                     .SetTimestamp(true)
-                    .SetFooter(message)
+                    .SetFooter($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}")
                     .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss", CultureInfo.InvariantCulture))
                     .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})")
                     .AddField("Obsah", string.IsNullOrEmpty(message.Content) ? "-" : $"```{message.Content}```");
