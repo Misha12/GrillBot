@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Logger.LoggerMethods;
+using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Threading.Tasks;
@@ -11,11 +12,13 @@ namespace Grillbot.Services.Logger
     {
         private DiscordSocketClient Client { get; }
         private IConfiguration Config { get; }
+        private IMessageCache MessageCache { get; }
 
-        public Logger(DiscordSocketClient client, IConfiguration config)
+        public Logger(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache)
         {
             Client = client;
             Config = config;
+            MessageCache = messageCache;
         }
 
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser userBefore, SocketGuildUser userAfter)
@@ -25,7 +28,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var method = new MessageDeleted(Client, Config);
+            var method = new MessageDeleted(Client, Config, MessageCache);
             await method.ProcessAsync(message, channel);
         }
 

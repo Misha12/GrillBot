@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
+using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
@@ -15,27 +16,33 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageDeleted : LoggerMethodBase
     {
-        public MessageDeleted(DiscordSocketClient client, IConfiguration config) : base(client, config)
+        public MessageDeleted(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache) : base(client, config, messageCache)
         {
         }
 
         public async Task ProcessAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            //TODO Implement custom message cache and if message.Value is null, check custom cache.
+            var deletedMessage = message.Value;
 
-            if (message.HasValue)
-                await ProcessWithCacheRecord(message.Value);
+            if (!message.HasValue)
+                deletedMessage = MessageCache.TryRemove(message.Id);
+
+            if (deletedMessage != null)
+                await ProcessWithCacheRecord(deletedMessage);
             else
-                await ProcessWithoutCacheRecord(message, channel);
+                await ProcessWithoutCacheRecord(message.Id, channel);
+
+            if (MessageCache.Exists(message.Id))
+                MessageCache.TryRemove(message.Id);
         }
 
-        private async Task ProcessWithoutCacheRecord(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
+        private async Task ProcessWithoutCacheRecord(ulong messageId, ISocketMessageChannel channel)
         {
             var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla odeslána.", LogEmbedType.MessageDeleted);
 
             logEmbedBuilder
                 .SetTimestamp(true)
-                .SetFooter(message.Id)
+                .SetFooter(messageId)
                 .SetTitle("Zpráva nebyla nalezena v cache.")
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
 
