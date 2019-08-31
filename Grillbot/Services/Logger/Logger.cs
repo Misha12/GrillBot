@@ -26,7 +26,7 @@ namespace Grillbot.Services.Logger
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
             var method = new MessageDeleted(Client, Config);
-            await method.ProcessAsync(message);
+            await method.ProcessAsync(message, channel);
         }
 
         public async Task OnMessageUpdated(Cacheable<IMessage, UInt64> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)

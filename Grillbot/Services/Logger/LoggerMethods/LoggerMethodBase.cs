@@ -10,8 +10,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public abstract class LoggerMethodBase
     {
-        private DiscordSocketClient Client { get; }
-        private IConfiguration Config { get; }
+        protected DiscordSocketClient Client { get; }
+        protected IConfiguration Config { get; }
 
         protected LoggerMethodBase(DiscordSocketClient client, IConfiguration config)
         {

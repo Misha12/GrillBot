@@ -21,15 +21,26 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         public async Task ProcessAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
+            //TODO Implement custom message cache and if message.Value is null, check custom cache.
+
             if (message.HasValue)
                 await ProcessWithCacheRecord(message.Value);
             else
-                await ProcessWithoutCacheRecord(message.Value, channel);
+                await ProcessWithoutCacheRecord(message, channel);
         }
 
-        private async Task ProcessWithoutCacheRecord(IMessage message, ISocketMessageChannel channel)
+        private async Task ProcessWithoutCacheRecord(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            //TODO
+            var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla odeslána.", LogEmbedType.MessageDeleted);
+
+            logEmbedBuilder
+                .SetTimestamp(true)
+                .SetFooter(message.Id)
+                .SetTitle("Zpráva nebyla nalezena v cache.")
+                .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
+
+            var loggerRoom = GetLoggerRoom();
+            await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
         }
 
         private async Task ProcessWithCacheRecord(IMessage message)

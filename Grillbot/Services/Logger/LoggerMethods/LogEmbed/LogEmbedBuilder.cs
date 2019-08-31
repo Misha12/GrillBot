@@ -8,6 +8,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
 {
     public class LogEmbedBuilder
     {
+        private string Header { get; set; }
         private string Title { get; set; }
         private LogEmbedType Type { get; }
 
@@ -19,7 +20,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
 
         public LogEmbedBuilder(string title, LogEmbedType type)
         {
-            Title = title;
+            Header = title;
             Type = type;
 
             FieldBuilders = new List<EmbedFieldBuilder>();
@@ -30,8 +31,9 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             var builder = new EmbedBuilder()
             {
                 Color = GetColor(Type),
-                Author = new EmbedAuthorBuilder().WithName(Title),
-                ThumbnailUrl = AvatarUrl
+                Author = new EmbedAuthorBuilder().WithName(Header),
+                ThumbnailUrl = AvatarUrl,
+                Title = Title
             };
 
             if (CanSetTimestamp)
@@ -47,6 +49,12 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             return builder.Build();
         }
 
+        public LogEmbedBuilder SetTitle(string title)
+        {
+            Title = title;
+            return this;
+        }
+
         public LogEmbedBuilder SetAuthor(IUser user)
         {
             AddField("Uživatel", user?.ToString() ?? "Neznámý");
@@ -59,6 +67,14 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             FooterBuilder = new EmbedFooterBuilder();
             FooterBuilder.WithText($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}");
+
+            return this;
+        }
+
+        public LogEmbedBuilder SetFooter(ulong messageId)
+        {
+            FooterBuilder = new EmbedFooterBuilder();
+            FooterBuilder.WithText($"MessageID: {messageId}");
 
             return this;
         }
