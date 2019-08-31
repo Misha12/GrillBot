@@ -1,11 +1,11 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading;
 using System.Threading.Tasks;
 
@@ -83,16 +83,6 @@ namespace Grillbot.Services
             }
         }
 
-        private bool IsEmote(SocketCommandContext context)
-        {
-            return Regex.IsMatch(context.Message.Content, @"<:[^:\s]*(?:::[^:\s]*)*:\d+>");
-        }
-
-        private bool IsLocalEmote(SocketCommandContext context)
-        {
-            return context.Guild.Emotes.Any(o => o.ToString() == context.Message.Content);
-        }
-
         private bool IsValidWithWithFirstInChannel(SocketCommandContext context)
         {
             var channel = LastMessages[context.Channel.Id];
@@ -105,7 +95,14 @@ namespace Grillbot.Services
 
         private bool IsValidMessage(SocketCommandContext context)
         {
-            return IsEmote(context) && IsLocalEmote(context) && IsValidWithWithFirstInChannel(context);
+            var emotes = context.Message.Tags
+               .Where(o => o.Type == TagType.Emoji && context.Guild.Emotes.Any(x => x.Id == o.Key))
+               .ToList();
+
+            if (emotes.Count == 0) return false;
+
+            var emoteTemplate = string.Join(" ", emotes.Select(o => o.Value.ToString()));
+            return emoteTemplate == context.Message.Content && IsValidWithWithFirstInChannel(context);
         }
 
         public void ConfigChanged(IConfiguration newConfig)
