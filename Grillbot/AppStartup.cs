@@ -64,7 +64,8 @@ namespace Grillbot
             services
                 .AddSingleton<MessageReceivedHandler>()
                 .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<MessageDeletedHandler>();
+                .AddSingleton<MessageDeletedHandler>()
+                .AddSingleton<MessageEditedHandler>();
 
             services
                 .AddSingleton(new CommandService(commandsConfig))
@@ -98,7 +99,8 @@ namespace Grillbot
                 typeof(BotLoggingService),
                 typeof(MessageReceivedHandler),
                 typeof(UserJoinedHandler),
-                typeof(MessageDeletedHandler)
+                typeof(MessageDeletedHandler),
+                typeof(MessageEditedHandler)
             };
 
             InitServices(ServiceProvider, toInit);

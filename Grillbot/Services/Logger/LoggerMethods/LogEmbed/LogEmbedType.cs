@@ -3,6 +3,7 @@
     public enum LogEmbedType
     {
         MessageDeleted,
+        MessageEdited,
         UserJoined
     }
 }

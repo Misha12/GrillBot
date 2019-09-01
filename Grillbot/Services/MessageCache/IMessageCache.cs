@@ -8,6 +8,8 @@ namespace Grillbot.Services.MessageCache
     {
         Task InitAsync();
         IMessage TryRemove(ulong id);
+        IMessage Get(ulong id);
+        void Update(IMessage message);
         bool Exists(ulong id);
     }
 }

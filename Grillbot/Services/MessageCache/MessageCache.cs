@@ -54,5 +54,17 @@ namespace Grillbot.Services.MessageCache
             Data.Clear();
             Data = null;
         }
+
+        public IMessage Get(ulong id)
+        {
+            return Data.TryGetValue(id, out IMessage message) ? message : null;
+        }
+
+        public void Update(IMessage message)
+        {
+            if (!Exists(message.Id)) return;
+
+            Data[message.Id] = message;
+        }
     }
 }
