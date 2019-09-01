@@ -20,9 +20,10 @@ namespace Grillbot.Services.Logger
             MessageCache = messageCache;
         }
 
-        public async Task OnGuildMemberUpdatedAsync(SocketGuildUser userBefore, SocketGuildUser userAfter)
+        public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            // TODO
+            var method = new GuildMemberUpdated(Client, Config);
+            await method.Process(guildUserBefore, guildUserAfter);
         }
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)

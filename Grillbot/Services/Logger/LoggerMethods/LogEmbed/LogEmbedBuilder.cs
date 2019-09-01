@@ -114,6 +114,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
                 case LogEmbedType.UserLeft:
                 case LogEmbedType.UserUpdated:
                     return Color.Green;
+                case LogEmbedType.GuildMemberUpdated: return Color.DarkBlue;
                 default: return Color.Blue;
             }
         }

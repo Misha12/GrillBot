@@ -6,6 +6,7 @@
         MessageEdited,
         UserJoined,
         UserLeft,
-        UserUpdated
+        UserUpdated,
+        GuildMemberUpdated
     }
 }
