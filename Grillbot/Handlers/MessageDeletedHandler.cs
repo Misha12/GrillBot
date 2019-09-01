@@ -11,7 +11,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Handlers
 {
-    public class MessageDeletedHandler : IConfigChangeable, IDisposable
+    public class MessageDeletedHandler : IConfigChangeable, IHandle
     {
         private Statistics Statistics { get; }
         private IConfiguration Config { get; set; }

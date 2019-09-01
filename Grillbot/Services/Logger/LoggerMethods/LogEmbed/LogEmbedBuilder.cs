@@ -110,7 +110,9 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             {
                 case LogEmbedType.MessageDeleted: return Color.Red;
                 case LogEmbedType.MessageEdited: return new Color(255, 255, 0);
-                case LogEmbedType.UserJoined: return Color.Green;
+                case LogEmbedType.UserJoined:
+                case LogEmbedType.UserLeft:
+                    return Color.Green;
                 default: return Color.Blue;
             }
         }

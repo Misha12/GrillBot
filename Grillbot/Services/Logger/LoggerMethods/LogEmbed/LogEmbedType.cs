@@ -4,6 +4,7 @@
     {
         MessageDeleted,
         MessageEdited,
-        UserJoined
+        UserJoined,
+        UserLeft
     }
 }

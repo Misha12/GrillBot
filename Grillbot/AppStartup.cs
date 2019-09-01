@@ -14,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -60,12 +61,10 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
-            // Handlers
-            services
-                .AddSingleton<MessageReceivedHandler>()
-                .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<MessageDeletedHandler>()
-                .AddSingleton<MessageEditedHandler>();
+            foreach(var handler in GetHandlers())
+            {
+                services.AddSingleton(handler);
+            }
 
             services
                 .AddSingleton(new CommandService(commandsConfig))
@@ -94,16 +93,10 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            var toInit = new[]
-            {
-                typeof(BotLoggingService),
-                typeof(MessageReceivedHandler),
-                typeof(UserJoinedHandler),
-                typeof(MessageDeletedHandler),
-                typeof(MessageEditedHandler)
-            };
+            var handlers = GetHandlers().ToArray();
 
-            InitServices(ServiceProvider, toInit);
+            InitServices(ServiceProvider, new[] { typeof(BotLoggingService) });
+            InitServices(ServiceProvider, handlers);
             serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
@@ -112,6 +105,7 @@ namespace Grillbot
             foreach(var service in services)
             {
                 provider.GetRequiredService(service);
+                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tService init: {service.Name}. DONE");
             }
         }
 
@@ -151,6 +145,11 @@ namespace Grillbot
             {
                 return new byte[20];
             }
+        }
+
+        private List<Type> GetHandlers()
+        {
+            return Assembly.GetExecutingAssembly().GetTypes().Where(o => o.GetInterface(nameof(IHandle)) != null).ToList();
         }
     }
 }

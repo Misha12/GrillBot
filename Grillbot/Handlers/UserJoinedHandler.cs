@@ -8,7 +8,7 @@ using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Handlers
 {
-    public class UserJoinedHandler : IConfigChangeable, IDisposable
+    public class UserJoinedHandler : IConfigChangeable, IHandle
     {
         private DiscordSocketClient Client { get; }
         private IConfiguration Config { get; set; }
