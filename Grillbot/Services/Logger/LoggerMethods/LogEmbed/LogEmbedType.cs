@@ -5,6 +5,7 @@
         MessageDeleted,
         MessageEdited,
         UserJoined,
-        UserLeft
+        UserLeft,
+        UserUpdated
     }
 }
