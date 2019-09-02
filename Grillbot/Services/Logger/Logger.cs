@@ -38,11 +38,6 @@ namespace Grillbot.Services.Logger
             await method.Process(messageBefore, messageAfter, channel);
         }
 
-        public async Task OnReactionsCleared(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel)
-        {
-            //TODO
-        }
-
         public async Task OnUserJoined(SocketGuildUser user)
         {
             var method = new UserJoined(Client, Config);
