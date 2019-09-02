@@ -42,7 +42,9 @@ namespace Grillbot.Modules
 
             var emoteInfoEmbed = new EmbedBuilder()
                 .WithColor(Color.Blue)
-                .AddField(o => o.WithName(emoteInfo.EmoteID).WithValue(emoteInfo.GetFormatedInfo()));
+                .AddField(o => o.WithName(emoteInfo.EmoteID).WithValue(emoteInfo.GetFormatedInfo()))
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: emoteInfoEmbed.Build());
         }
@@ -65,11 +67,13 @@ namespace Grillbot.Modules
                 embedFields.Add(field);
             }
 
-            for(int i = 0; i < (float)embedFields.Count / GrillBotService.MaxEmbedFields; i++)
+            for(int i = 0; i < (float)embedFields.Count / EmbedBuilder.MaxFieldCount; i++)
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
-                    .WithFields(embedFields.Skip(i * GrillBotService.MaxEmbedFields).Take(GrillBotService.MaxEmbedFields));
+                    .WithFields(embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount))
+                    .WithFooter($"Strana {i} | Odpověď pro {GetUsersShortName(Context.Message.Author)}")
+                    .WithCurrentTimestamp();
 
                 await ReplyAsync(embed: embed.Build());
             }

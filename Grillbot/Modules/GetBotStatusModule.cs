@@ -54,6 +54,10 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Instance", GetInstanceType());
             AddInlineEmbedField(embed, "Počet aktivních tokenů", Statistics.ChannelStats.GetActiveWebTokensCount());
 
+            embed
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStatsAsync(orderType == "time");
             await PrintAutoReplyStatsAsync();
@@ -79,6 +83,10 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embedData, "Průměrná doba", 
                 string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
 
+            embedData
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+
             await ReplyAsync(embed: embedData.Build());
         }
 
@@ -97,6 +105,10 @@ namespace Grillbot.Modules
 
             AddInlineEmbedField(embedBuilder, "Hledaný řetězec", string.Join(Environment.NewLine, data.Select(o => o.Key)));
             AddInlineEmbedField(embedBuilder, "Počet reakcí", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+
+            embedBuilder
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedBuilder.Build());
         }

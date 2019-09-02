@@ -35,7 +35,9 @@ namespace Grillbot.Modules
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
-                    .WithFields(roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount));
+                    .WithFields(roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount))
+                    .WithFooter($"Strana {i} | Odpověď pro {GetUsersShortName(Context.Message.Author)}")
+                    .WithCurrentTimestamp();
 
                 await ReplyAsync(embed: embed.Build());
             }

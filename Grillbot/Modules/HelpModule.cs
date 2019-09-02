@@ -63,6 +63,10 @@ namespace Grillbot.Modules
                     embed.AddField(x => x.WithName(module.Name).WithValue(descBuilder.ToString()));
             }
 
+            embed
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpoveď pro {GetUsersShortName(Context.Message.Author)}");
+
             await ReplyAsync("", embed: embed.Build());
         }
 
@@ -115,6 +119,10 @@ namespace Grillbot.Modules
 
             if(embedBuilder.Fields.Count == 0)
                 embedBuilder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
+
+            embedBuilder
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpoveď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedBuilder.Build());
         }
