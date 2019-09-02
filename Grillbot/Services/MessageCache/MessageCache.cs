@@ -19,6 +19,9 @@ namespace Grillbot.Services.MessageCache
 
         public async Task InitAsync()
         {
+            if (Data.Count > 0)
+                Data.Clear();
+
             var textChannels = Client.Guilds.SelectMany(o => o.Channels).Where(o => o is SocketTextChannel);
 
             foreach(var channel in textChannels.Select(o => (SocketTextChannel)o))
