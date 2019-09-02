@@ -20,9 +20,7 @@ namespace Grillbot.Services
 
         private string LogDirectory { get; set; }
         private ulong? LogRoom { get; set; }
-        private bool IsDevelopment { get; set; }
         private ulong? ErrorTagUser { get; set; }
-        private IConfiguration Config { get; set; }
 
         public BotLoggingService(DiscordSocketClient client, CommandService commands, IConfiguration config)
         {
@@ -48,89 +46,44 @@ namespace Grillbot.Services
                 LogRoom = Convert.ToUInt64(discordLog["Room"]);
             }
 
-            var isDevelopment = config["IsDevelopment"];
-            if (!string.IsNullOrEmpty(isDevelopment)) IsDevelopment = Convert.ToBoolean(isDevelopment);
-
             var errorTagUser = discordLog["ErrorTagUser"];
             if (!string.IsNullOrEmpty(errorTagUser)) ErrorTagUser = Convert.ToUInt64(errorTagUser);
-
-            Config = config;
         }
-
-        private string GetLogFilename() => Path.Combine(LogDirectory, $"{DateTime.UtcNow.ToString("yyMMdd")}_WatchDog.log");
 
         private async Task OnLogAsync(LogMessage message)
         {
-            var logFilename = GetLogFilename();
-            await File.AppendAllTextAsync(logFilename, message.ToString() + Environment.NewLine);
+            await PostException(message);
+            await Console.Out.WriteLineAsync(message.ToString());
+        }
 
-            if (message.Exception != null && LogRoom != null && !IsWebSocketException(message.Exception))
+        private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
+        {
+            for (var i = 0; i < parts.Length; i++)
             {
-                var exceptionRule = GetExceptionRule(message.Exception);
-                var exceptionMessage = message.Exception.ToString();
-                var parts = exceptionMessage.SplitInParts(1950).ToArray();
-                var channel = Client.GetChannel(LogRoom.Value) as IMessageChannel;
+                if (ErrorTagUser == null)
+                {
+                    await channel?.SendMessageAsync($"```{parts[i]}```");
+                    continue;
+                }
 
-                await SendLogMessageAsync(parts, exceptionRule, channel);
-            }
-
-            if (IsDevelopment)
-            {
-                await Console.Out.WriteLineAsync(message.ToString());
+                if (i == 0)
+                    await channel?.SendMessageAsync($"<@{ErrorTagUser}> ```{parts[0]}```");
+                else
+                    await channel?.SendMessageAsync($"```{parts[i]}```");
             }
         }
 
-        private async Task SendLogMessageAsync(string[] parts, IConfigurationSection rule, IMessageChannel channel)
+        private async Task PostException(LogMessage message)
         {
-            if (rule != null && !string.IsNullOrEmpty(rule["Operation"]) && rule["Operation"] == "Ignore") return;
+            if (!CanSendToDiscord(message)) return;
 
-            if(rule != null && !string.IsNullOrEmpty(rule["Operation"]) && rule["Operation"] == "NoTag")
+            var exceptionMessage = message.Exception.ToString();
+            var parts = exceptionMessage.SplitInParts(1950).ToArray();
+
+            if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {
-                for (var i = 0; i < parts.Length; i++)
-                {
-                    if (i == 0)
-                    {
-                        await channel?.SendMessageAsync($"```{parts[0]}```");
-                    }
-                    else
-                    {
-                        await channel?.SendMessageAsync($"```{parts[i]}```");
-                    }
-                }
+                await SendLogMessageAsync(parts, channel);
             }
-            else
-            {
-                for (var i = 0; i < parts.Length; i++)
-                {
-                    if(ErrorTagUser == null)
-                    {
-                        await channel?.SendMessageAsync($"```{parts[i]}```");
-                        continue;
-                    }
-
-                    if (i == 0)
-                    {
-                        await channel?.SendMessageAsync($"<@{ErrorTagUser}> ```{parts[0]}```");
-                    }
-                    else
-                    {
-                        await channel?.SendMessageAsync($"```{parts[i]}```");
-                    }
-                }
-            }
-        }
-
-        private IConfigurationSection GetExceptionRule(Exception exception)
-        {
-            var ruleName = exception.GetType().Name;
-
-            var rules = Config.GetSection("Log:LogToDiscord:ExceptionRules").GetChildren()
-                .Where(o => o["Type"] == ruleName).ToList();
-
-            if(exception.InnerException == null)
-                return rules.FirstOrDefault();
-
-            return rules.FirstOrDefault(o => o["InnerType"] == exception.InnerException.GetType().Name);
         }
 
         public void ConfigChanged(IConfiguration newConfig)
@@ -143,21 +96,19 @@ namespace Grillbot.Services
             return ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
         }
 
-        #region IDisposable Support
-
-        protected virtual void Dispose(bool disposing)
+        private bool CanSendToDiscord(LogMessage message)
         {
-            if (disposing)
-            {
-                Client.Log -= OnLogAsync;
-                Commands.Log -= OnLogAsync;
-            }
+            var haveException = message.Exception != null;
+            var haveLogRoom = LogRoom != null;
+            var isWebSocketException = haveException && IsWebSocketException(message.Exception);
+
+            return haveException && haveLogRoom && !isWebSocketException;
         }
 
         public void Dispose()
         {
-            Dispose(true);
+            Client.Log -= OnLogAsync;
+            Commands.Log -= OnLogAsync;
         }
-        #endregion
     }
 }
