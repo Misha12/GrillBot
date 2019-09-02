@@ -24,8 +24,15 @@ namespace Grillbot.Modules
 
         [Command("emoteinfo")]
         [Summary("Statistika emotu")]
+        [Remarks("Pokud se místo emotu zadá 'all', tak se vypíší všechny použité emoty.")]
         public async Task GetEmoteInfoAsync(string emote)
         {
+            if(emote == "all")
+            {
+                await GetCompleteEmoteInfoListAsync();
+                return;
+            }
+
             if(!Context.Guild.Emotes.Any(o => o.ToString() == emote))
             {
                 await ReplyAsync("Neznámý emote");
@@ -49,9 +56,7 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: emoteInfoEmbed.Build());
         }
 
-        [Command("emoteinfo")]
-        [Summary("Statistika všech emotů")]
-        public async Task GetEmoteInfoAsync()
+        public async Task GetCompleteEmoteInfoListAsync()
         {
             var emoteInfos = EmoteStats.GetAllValues()
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
@@ -72,11 +77,33 @@ namespace Grillbot.Modules
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
                     .WithFields(embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount))
-                    .WithFooter($"Strana {i} | Odpověď pro {GetUsersShortName(Context.Message.Author)}")
+                    .WithFooter($"Strana {i + 1} | Odpověď pro {GetUsersShortName(Context.Message.Author)}")
                     .WithCurrentTimestamp();
 
                 await ReplyAsync(embed: embed.Build());
             }
+        }
+
+        [Command("emoteinfo")]
+        [Summary("TOP 25 statistika emotů.")]
+        public async Task GetTopUsedEmotes()
+        {
+            var emoteInfos = EmoteStats.GetAllValues()
+                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
+                .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastOccuredAt)
+                .Take(EmbedBuilder.MaxFieldCount)
+                .ToList();
+
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+
+            var embedBuilder = new EmbedBuilder()
+                .WithColor(Color.Blue)
+                .WithFields(emoteFields)
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}")
+                .WithCurrentTimestamp();
+
+            await ReplyAsync(embed: embedBuilder.Build());
         }
     }
 }
