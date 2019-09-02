@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,17 +15,13 @@ namespace Grillbot.Modules
     [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
     public class RoleManagerModule : BotModuleBase
     {
-        [Command("rolereport")]
-        public async Task GetRoleReportAsync()
+        public async Task GetCompleteRoleListAsync()
         {
             var roleInfoFields = new List<EmbedFieldBuilder>();
 
             foreach (var role in Context.Guild.Roles.Where(o => !o.IsEveryone && !o.IsManaged).OrderByDescending(o => o.Position))
             {
-                var roleInfo = new StringBuilder()
-                    .Append("Uživatelů: ").AppendLine($"**{role.Members.Count()}**")
-                    .Append("Tagovatelná role: ").Append($"**{(role.IsMentionable ? "Ano" : "Ne")}**")
-                    .ToString();
+                var roleInfo = CreateRoleInfo(role, false);
 
                 roleInfoFields.Add(new EmbedFieldBuilder()
                 {
@@ -33,7 +30,7 @@ namespace Grillbot.Modules
                 });
             }
 
-            const int roleMaxCount = GrillBotService.MaxEmbedFields;
+            const int roleMaxCount = EmbedBuilder.MaxFieldCount;
             for(int i = 0; i < (float)roleInfoFields.Count / roleMaxCount; i++)
             {
                 var embed = new EmbedBuilder()
@@ -44,11 +41,40 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("rolereport")]
-        public async Task GetRoleReportAsync(params string[] roleNameFields)
+        [Command("roleinfo")]
+        public async Task GetTopRoleList()
         {
+            var topRoles = Context.Guild.Roles.Where(o => !o.IsEveryone && !o.IsManaged)
+                .OrderByDescending(o => o.Members.Count())
+                .ThenByDescending(o => o.Position)
+                .Take(EmbedBuilder.MaxFieldCount)
+                .ToList();
+
+            var embedBuilder = new EmbedBuilder() { Color = topRoles[0].Color };
+
+            foreach(var role in topRoles)
+            {
+                embedBuilder.AddField(o => o.WithName(role.Name).WithValue(CreateRoleInfo(role, false)));
+            }
+
+            embedBuilder
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+
+            await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        [Command("roleinfo")]
+        public async Task GetRoleReportAsync([Remainder] string roleName)
+        {
+            if(roleName == "all")
+            {
+                await GetCompleteRoleListAsync();
+                return;
+            }
+
             var embed = new EmbedBuilder();
-            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == string.Join(" ", roleNameFields));
+            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
 
             if (role == null)
             {
@@ -56,17 +82,12 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var roleInfo = new StringBuilder()
-                .Append("Počet uživatelů: ").AppendLine(role.Members.Count().ToString())
-                .Append("Tagovatelná role: ").AppendLine(role.IsMentionable ? "Ano" : "Ne")
-                .Append("Oprávnění: ").AppendLine(string.Join(", ", GetPermissionNames(role.Permissions)))
-                .ToString();
+            embed.Color = role.Color;
+            embed.AddField(o => o.WithName(role.Name).WithValue(CreateRoleInfo(role, true)));
 
-            embed.AddField(o =>
-            {
-                o.Name = role.Name;
-                o.Value = roleInfo;
-            });
+            embed
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embed.Build());
         }
@@ -82,6 +103,20 @@ namespace Grillbot.Modules
                 .ToList();
 
             return permissionItems.Count == 0 ? new List<string>() { "-" } : permissionItems;
+        }
+
+        private string CreateRoleInfo(SocketRole role, bool includePermissions)
+        {
+            var roleInfo = new StringBuilder()
+                .Append("Počet uživatelů: ").AppendLine(role.Members.Count().ToString())
+                .Append("Tagovatelná role: ").AppendLine(role.IsMentionable ? "Ano" : "Ne");
+
+            if(includePermissions)
+            {
+                roleInfo.Append("Oprávnění: ").AppendLine(string.Join(", ", GetPermissionNames(role.Permissions)));
+            }
+
+            return roleInfo.ToString();
         }
     }
 }

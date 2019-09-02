@@ -42,5 +42,10 @@ namespace Grillbot.Modules
 
             return builder.ToString();
         }
+
+        protected string GetUsersShortName(SocketUser user)
+        {
+            return $"{user.Username}#{user.Discriminator}";
+        }
     }
 }
