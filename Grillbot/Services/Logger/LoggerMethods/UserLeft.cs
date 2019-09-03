@@ -11,7 +11,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task Process(SocketGuildUser user)
+        public async Task ProcessAsync(SocketGuildUser user)
         {
             var logEmbedBuilder = new LogEmbedBuilder("Uživatel opustil server.", LogEmbedType.UserLeft);
 

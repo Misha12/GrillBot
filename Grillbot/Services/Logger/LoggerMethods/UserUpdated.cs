@@ -11,7 +11,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task Process(SocketUser userBefore, SocketUser userAfter)
+        public async Task ProcessAsync(SocketUser userBefore, SocketUser userAfter)
         {
             var logEmbedBuilder = new LogEmbedBuilder("Uživatel si aktualizoval profil", LogEmbedType.UserUpdated);
 

@@ -12,7 +12,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task Process(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
+        public async Task ProcessAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
             if (!IsChangeDetected(guildUserBefore, guildUserAfter)) return;
 

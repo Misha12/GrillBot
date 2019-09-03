@@ -23,7 +23,7 @@ namespace Grillbot.Services.Logger
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
             var method = new GuildMemberUpdated(Client, Config);
-            await method.Process(guildUserBefore, guildUserAfter);
+            await method.ProcessAsync(guildUserBefore, guildUserAfter);
         }
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -35,25 +35,25 @@ namespace Grillbot.Services.Logger
         public async Task OnMessageEdited(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
             var method = new MessageEdited(Client, Config, MessageCache);
-            await method.Process(messageBefore, messageAfter, channel);
+            await method.ProcessAsync(messageBefore, messageAfter, channel);
         }
 
         public async Task OnUserJoined(SocketGuildUser user)
         {
             var method = new UserJoined(Client, Config);
-            await method.Process(user);
+            await method.ProcessAsync(user);
         }
 
         public async Task OnUserLeft(SocketGuildUser user)
         {
             var method = new UserLeft(Client, Config);
-            await method.Process(user);
+            await method.ProcessAsync(user);
         }
 
         public async Task OnUserUpdated(SocketUser userBefore, SocketUser userAfter)
         {
             var method = new UserUpdated(Client, Config);
-            await method.Process(userBefore, userAfter);
+            await method.ProcessAsync(userBefore, userAfter);
         }
     }
 }

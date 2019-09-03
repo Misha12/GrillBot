@@ -28,15 +28,15 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 deletedMessage = MessageCache.TryRemove(message.Id);
 
             if (deletedMessage != null)
-                await ProcessWithCacheRecord(deletedMessage);
+                await ProcessWithCacheRecordAsync(deletedMessage);
             else
-                await ProcessWithoutCacheRecord(message.Id, channel);
+                await ProcessWithoutCacheRecordAsync(message.Id, channel);
 
             if (MessageCache.Exists(message.Id))
                 MessageCache.TryRemove(message.Id);
         }
 
-        private async Task ProcessWithoutCacheRecord(ulong messageId, ISocketMessageChannel channel)
+        private async Task ProcessWithoutCacheRecordAsync(ulong messageId, ISocketMessageChannel channel)
         {
             var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla odeslána.", LogEmbedType.MessageDeleted);
 
@@ -50,7 +50,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
             await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
         }
 
-        private async Task ProcessWithCacheRecord(IMessage message)
+        private async Task ProcessWithCacheRecordAsync(IMessage message)
         {
             var streams = new List<Tuple<string, Stream>>();
 

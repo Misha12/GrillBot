@@ -11,7 +11,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task Process(SocketUser user)
+        public async Task ProcessAsync(SocketUser user)
         {
             var guildUser = (SocketGuildUser)user;
             var logEmbedBuilder = new LogEmbedBuilder("Připojil se uživatel", LogEmbedType.UserJoined);
