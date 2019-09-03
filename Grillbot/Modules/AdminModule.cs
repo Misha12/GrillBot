@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
@@ -6,7 +7,10 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [IgnorePM]
     [Name("Administrační funkce")]
+    [RequireRoleOrAdmin(RoleGroupName = "Adminstration")]
+    [DisabledCheck(RoleGroupName = "Administration")]
     public class AdminModule : BotModuleBase
     {
         private IConfiguration Config { get; }
