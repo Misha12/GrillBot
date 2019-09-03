@@ -27,13 +27,13 @@ namespace Grillbot.Modules
         [Remarks("Pokud se místo emotu zadá 'all', tak se vypíší všechny použité emoty.")]
         public async Task GetEmoteInfoAsync(string emote)
         {
-            if(emote == "all")
+            if (emote == "all")
             {
                 await GetCompleteEmoteInfoListAsync();
                 return;
             }
 
-            if(!Context.Guild.Emotes.Any(o => o.ToString() == emote))
+            if (!Context.Guild.Emotes.Any(o => o.ToString() == emote))
             {
                 await ReplyAsync("Neznámý emote");
                 return;
@@ -41,7 +41,7 @@ namespace Grillbot.Modules
 
             var emoteInfo = EmoteStats.GetValue(emote);
 
-            if(emoteInfo == null)
+            if (emoteInfo == null)
             {
                 await ReplyAsync("Tento emote ještě nebyl použit.");
                 return;
@@ -63,7 +63,7 @@ namespace Grillbot.Modules
                 .ToList();
 
             var embedFields = new List<EmbedFieldBuilder>();
-            foreach(var emote in emoteInfos)
+            foreach (var emote in emoteInfos)
             {
                 var field = new EmbedFieldBuilder()
                     .WithName(emote.EmoteID)
@@ -72,7 +72,7 @@ namespace Grillbot.Modules
                 embedFields.Add(field);
             }
 
-            for(int i = 0; i < (float)embedFields.Count / EmbedBuilder.MaxFieldCount; i++)
+            for (int i = 0; i < (float)embedFields.Count / EmbedBuilder.MaxFieldCount; i++)
             {
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
