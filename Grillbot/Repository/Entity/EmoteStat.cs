@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Extensions;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Text;
@@ -38,7 +39,7 @@ namespace Grillbot.Repository.Entity
         {
             return new StringBuilder()
                 .Append("Počet použití: ").AppendLine(Count.ToString())
-                .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToString())
+                .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime())
                 .ToString();
         }
     }
