@@ -60,8 +60,6 @@
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Channelstats.sql" />
-    <Build Include="Tables\LoggerMessageCache.sql" />
-    <Build Include="Tables\LoggerAttachmentCache.sql" />
     <Build Include="Tables\EmoteStatistics.sql" />
   </ItemGroup>
   <ItemGroup>

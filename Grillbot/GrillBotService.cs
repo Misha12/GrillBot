@@ -9,6 +9,7 @@ using Grillbot.Exceptions;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
+using Grillbot.Services.MessageCache;
 
 namespace Grillbot
 {
@@ -20,13 +21,23 @@ namespace Grillbot
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IConfiguration Config { get; set; }
+        private IMessageCache Cache { get; set; }
 
-        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfiguration config)
+        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfiguration config,
+            IMessageCache cache)
         {
             Services = services;
             Client = client;
             Commands = commands;
             Config = config;
+            Cache = cache;
+
+            Client.Ready += OnClientReadyAsync;
+        }
+
+        private async Task OnClientReadyAsync()
+        {
+            await Cache.InitAsync();
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)

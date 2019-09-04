@@ -5,23 +5,24 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Handlers
 {
-    public class MessageDeletedHandler : IConfigChangeable, IDisposable
+    public class MessageDeletedHandler : IConfigChangeable, IHandle
     {
-        private LoggerCache LoggerCache { get; }
         private Statistics Statistics { get; }
         private IConfiguration Config { get; set; }
         private DiscordSocketClient Client { get; }
+        private Logger Logger { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, LoggerCache loggerCache, Statistics statistics, IConfiguration config)
+        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IConfiguration config, Logger logger)
         {
             Client = client;
-            LoggerCache = loggerCache;
             Statistics = statistics;
+            Logger = logger;
 
             ConfigChanged(config);
 
@@ -42,7 +43,7 @@ namespace Grillbot.Handlers
             }
 
             await Statistics.ChannelStats.DecrementCounterAsync(channel);
-            await LoggerCache.SendAttachmentToLoggerRoomAsync(message.Id);
+            await Logger.OnMessageDelete(message, channel);
         }
 
         public void ConfigChanged(IConfiguration newConfig)

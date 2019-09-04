@@ -3,18 +3,22 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
+using Grillbot.Services.Logger;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Handlers
 {
-    public class UserJoinedHandler : IConfigChangeable, IDisposable
+    public class UserJoinedHandler : IConfigChangeable, IHandle
     {
         private DiscordSocketClient Client { get; }
         private IConfiguration Config { get; set; }
+        private Logger Logger { get; }
 
-        public UserJoinedHandler(DiscordSocketClient client, IConfiguration config)
+        public UserJoinedHandler(DiscordSocketClient client, IConfiguration config, Logger logger)
         {
             Client = client;
+            Logger = logger;
+            
             ConfigChanged(config);
 
             Client.UserJoined += OnUserJoinedOnServerAsync;
@@ -27,6 +31,8 @@ namespace Grillbot.Handlers
 
             if (!string.IsNullOrEmpty(message))
                 await user.SendMessageAsync(message);
+
+            await Logger.OnUserJoined(user);
         }
 
         #region IDisposable Support

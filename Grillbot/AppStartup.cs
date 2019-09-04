@@ -5,6 +5,8 @@ using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Logger;
+using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
@@ -12,6 +14,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Primitives;
 using System;
+using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Reflection;
@@ -48,7 +51,7 @@ namespace Grillbot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 100000
+                MessageCacheSize = 1000000
             };
 
             var commandsConfig = new CommandServiceConfig()
@@ -58,11 +61,10 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
-            // Handlers
-            services
-                .AddSingleton<MessageReceivedHandler>()
-                .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<MessageDeletedHandler>();
+            foreach(var handler in GetHandlers())
+            {
+                services.AddSingleton(handler);
+            }
 
             services
                 .AddSingleton(new CommandService(commandsConfig))
@@ -72,8 +74,11 @@ namespace Grillbot
                 .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
-                .AddSingleton<LoggerCache>()
                 .AddTransient<MathCalculator>();
+
+            services
+                .AddSingleton<Logger>()
+                .AddSingleton<IMessageCache, MessageCache>();
 
             services.AddHostedService<GrillBotService>();
         }
@@ -88,15 +93,10 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            var toInit = new[]
-            {
-                typeof(BotLoggingService),
-                typeof(MessageReceivedHandler),
-                typeof(UserJoinedHandler),
-                typeof(MessageDeletedHandler)
-            };
+            var handlers = GetHandlers().ToArray();
 
-            InitServices(ServiceProvider, toInit);
+            InitServices(ServiceProvider, new[] { typeof(BotLoggingService) });
+            InitServices(ServiceProvider, handlers);
             serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
@@ -105,6 +105,7 @@ namespace Grillbot
             foreach(var service in services)
             {
                 provider.GetRequiredService(service);
+                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tService init: {service.Name}. DONE");
             }
         }
 
@@ -144,6 +145,11 @@ namespace Grillbot
             {
                 return new byte[20];
             }
+        }
+
+        private List<Type> GetHandlers()
+        {
+            return Assembly.GetExecutingAssembly().GetTypes().Where(o => o.GetInterface(nameof(IHandle)) != null).ToList();
         }
     }
 }

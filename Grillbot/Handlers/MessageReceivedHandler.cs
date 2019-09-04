@@ -14,7 +14,7 @@ using Grillbot.Services.Config;
 
 namespace Grillbot.Handlers
 {
-    public class MessageReceivedHandler : IConfigChangeable, IDisposable
+    public class MessageReceivedHandler : IConfigChangeable, IHandle
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -22,12 +22,11 @@ namespace Grillbot.Handlers
         private Statistics Statistics { get; }
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
-        private LoggerCache LoggerCache { get; }
 
         private IConfiguration Config { get; set; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IConfiguration config, IServiceProvider services,
-            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, LoggerCache loggerCache)
+            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain)
         {
             Client = client;
             Commands = commands;
@@ -35,7 +34,6 @@ namespace Grillbot.Handlers
             Statistics = statistics;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
-            LoggerCache = loggerCache;
 
             ConfigChanged(config);
 
@@ -90,7 +88,6 @@ namespace Grillbot.Handlers
                 }
                 else
                 {
-                    await LoggerCache.InsertMessageToCacheAsync(userMessage);
                     await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel);
                     await AutoReply.TryReplyAsync(userMessage);
                     await EmoteChain.ProcessChainAsync(context);
