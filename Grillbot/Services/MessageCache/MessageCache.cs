@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
@@ -26,18 +27,27 @@ namespace Grillbot.Services.MessageCache
 
             foreach(var channel in textChannels.Select(o => (SocketTextChannel)o))
             {
-                var messages = (await channel.GetMessagesAsync().FlattenAsync()).ToList();
-                var pinnedMessages = await channel.GetPinnedMessagesAsync();
-
-                foreach(var message in messages)
+                try
                 {
-                    Data.Add(message.Id, message);
+                    var messages = (await channel.GetMessagesAsync().FlattenAsync()).ToList();
+                    var pinnedMessages = await channel.GetPinnedMessagesAsync();
+
+                    foreach (var message in messages)
+                    {
+                        Data.Add(message.Id, message);
+                    }
+
+                    foreach (var pinnedMessage in pinnedMessages)
+                    {
+                        if (!Exists(pinnedMessage.Id))
+                            Data.Add(pinnedMessage.Id, pinnedMessage);
+                    }
                 }
-
-                foreach(var pinnedMessage in pinnedMessages)
+                catch(HttpException httpEx)
                 {
-                    if (!Exists(pinnedMessage.Id))
-                        Data.Add(pinnedMessage.Id, pinnedMessage);
+                    if (httpEx.DiscordCode != null && httpEx.DiscordCode.Value == 50001) continue;
+
+                    throw;
                 }
             }
         }
