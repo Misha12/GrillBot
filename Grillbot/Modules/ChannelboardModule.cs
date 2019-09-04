@@ -1,7 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.Configuration;
-using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,18 +16,16 @@ namespace Grillbot.Modules
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }
-        private int TakeTop { get; }
 
-        public ChannelboardModule(Statistics statistics, IConfiguration configuration)
+        public ChannelboardModule(Statistics statistics)
         {
             Stats = statistics.ChannelStats;
-            TakeTop = Convert.ToInt32(configuration["Leaderboards:ChannelStatsTakeTop"]);
         }
 
         [Command("channelboard")]
         public async Task ChannelboardAsync()
         {
-            await ChannelboardAsync(TakeTop);
+            await ChannelboardAsync(ChannelStats.ChannelboardTakeTop);
         }
 
         [Command("channelboard")]

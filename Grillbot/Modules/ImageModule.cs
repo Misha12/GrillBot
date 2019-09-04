@@ -45,16 +45,7 @@ namespace Grillbot.Modules
             }
             else
             {
-                var noImageText = config["NoImage"];
-                var serverEmotes = Context.Guild.Emotes;
-
-                foreach(var matchString in Regex.Matches(noImageText, @":([^:]+):").Select(m => m.Value.Replace(":", "")).Distinct())
-                {
-                    var serverEmote = serverEmotes.FirstOrDefault(o => o.Name == matchString);
-                    noImageText = noImageText.Replace($":{matchString}:", serverEmote?.ToString() ?? "");
-                }
-
-                await ReplyAsync(noImageText);
+                await ReplyAsync("Nemám žádný obrázek");
             }
         }
     }

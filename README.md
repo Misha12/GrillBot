@@ -26,10 +26,6 @@
 - Config parts
   - AllowedHosts (string): Semicollon delimited list of allowed hostnames without port numbers.
   - CommandPrefix (string): Message content, that must contain to invoke command.
-  - IsDevelopment (bool): Runtime mode **(Deprecated)**.
-  - Leaderboards: Channelboard config
-    - ChannelStatsTakeTop (int): Count of top channels **(Deprecated)**
-    - SyncWithDbStats (int): Time in miliseconds to sync data in memory with database. **(Deprecated)**
   - Database (string): Connection string to database.
   - Discord: Bot configuration
     - Activity (string): Activity message
@@ -37,7 +33,10 @@
     - UserJoinedMessage (string): Message, that will be sent, when user joined to guild.
     - Administrators (string[]): List of bot administrators. Can use bot independently of roles.
     - LoggerRoomID (string): ID of channel to send logging data.
-  - Log: Bot logging configuration **(Deprecated)**
+  - Log: Bot logging configuration
+    - LogToDiscord: Sending errors to discord room.
+      - Enabled (bool)
+      - Room (ulong): Channel ID
   - MethodsConfig: Bot features configuration.
     - *In common*:
       - RequireRoles (string[]): List of required roles. User must have at least one of these roles.
@@ -51,13 +50,11 @@
     - Channelboard: Channelboard commands configuration.
       - Web: REST API and client configuration.
         - TokenValidMins (int): Time in minutes, to remove token from memory.
-        - TokenLength (int): Length of token string. **(Deprecated)**
         - Url (string): Url to client.
     - Images
       - NudesDataPath (string): Path to directory of images. Bot take one of these images on nudes command.
       - NotNudesDataPath (string): Path to directory of images. Bot take one of these images on notnudes command.
       - AllowedDataPath (string[]): List of image extensions.
-      - NoImage (string): Message to send, when directory is empty **(Deprecated)**
     - RoleManager
     - Math:
       - ComputingTime (int): Time in miliseconds to compute. When time is up, computing will be killed.
@@ -70,5 +67,3 @@
       - Reply (string): Reply message when user sent message with regex match.
   - EmoteChain:
     - CheckLastN (int): Count of same emotes before bot send emote.
-  - EmoteStats:
-    - SyncWithDBSecs (int): Time in secondsto sync data in memory with database. **(Deprecated)**

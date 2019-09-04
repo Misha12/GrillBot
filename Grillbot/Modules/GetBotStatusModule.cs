@@ -6,8 +6,8 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
-using Microsoft.Extensions.Configuration;
 using Grillbot.Services.Preconditions;
+using Microsoft.AspNetCore.Hosting;
 
 namespace Grillbot.Modules
 {
@@ -17,14 +17,14 @@ namespace Grillbot.Modules
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
-        private IConfiguration Config { get; }
         private AutoReplyService AutoReply { get; }
+        private IHostingEnvironment HostingEnvironment { get; }
 
-        public GetBotStatusModule(Statistics statistics, IConfiguration config, AutoReplyService autoReply)
+        public GetBotStatusModule(Statistics statistics, AutoReplyService autoReply, IHostingEnvironment hostingEnvironment)
         {
             Statistics = statistics;
-            Config = config;
             AutoReply = autoReply;
+            HostingEnvironment = hostingEnvironment;
         }
 
         [Command("grillstatus")]
@@ -126,10 +126,10 @@ namespace Grillbot.Modules
 
         public string GetInstanceType()
         {
-            var configValue = Config["IsDevelopment"];
-            if (string.IsNullOrEmpty(configValue)) return "Release";
+            if (HostingEnvironment.IsProduction()) return "Release";
+            if (HostingEnvironment.IsStaging()) return "Staging";
 
-            return Convert.ToBoolean(configValue) ? "Development" : "Release";
+            return "Development";
         }
     }
 }

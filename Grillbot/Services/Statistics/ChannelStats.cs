@@ -16,6 +16,9 @@ namespace Grillbot.Services.Statistics
 {
     public class ChannelStats : IConfigChangeable, IDisposable
     {
+        public const int ChannelboardTakeTop = 10;
+        public const int TokenLength = 20;
+
         public Dictionary<ulong, long> Counter { get; private set; }
         private IConfiguration Config { get; set; }
         private Timer DbSyncTimer { get; set; }
@@ -31,7 +34,7 @@ namespace Grillbot.Services.Statistics
             WebTokens = new List<ChannelboardWebToken>();
             LastMessagesAt = new Dictionary<ulong, DateTime>();
 
-            Config = config;
+            Reload(config);
             Semaphore = new SemaphoreSlim(1, 1);
         }
 
@@ -45,14 +48,15 @@ namespace Grillbot.Services.Statistics
                 LastMessagesAt = data.ToDictionary(o => o.SnowflakeID, o => o.LastMessageAt);
             }
 
+            var syncPeriod = GrillBotService.DatabaseSyncPeriod;
+            DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
+
             Reload(Config);
             Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void Reload(IConfiguration config)
         {
-            var syncTimerConfig = Convert.ToInt32(config["Leaderboards:SyncWithDBSecs"]) * 1000;
-            DbSyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
             Config = config;
         }
 
@@ -157,8 +161,7 @@ namespace Grillbot.Services.Statistics
             var config = Config.GetSection("MethodsConfig:Channelboard:Web");
 
             var tokenValidFor = TimeSpan.FromMinutes(Convert.ToInt32(config["TokenValidMins"]));
-            var tokenLength = Convert.ToInt32(config["TokenLength"]);
-            var token = StringHelper.CreateRandomString(tokenLength);
+            var token = StringHelper.CreateRandomString(TokenLength);
             var rawUrl = config["Url"];
 
             var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);

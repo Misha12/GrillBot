@@ -14,7 +14,7 @@ namespace Grillbot
 {
     public class GrillBotService : IConfigChangeable, IHostedService
     {
-        public const int MaxEmbedFields = 20;
+        public static TimeSpan DatabaseSyncPeriod { get; } = TimeSpan.FromSeconds(60);
 
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }

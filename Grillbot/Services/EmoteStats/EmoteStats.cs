@@ -28,12 +28,9 @@ namespace Grillbot.Services.EmoteStats
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
             Semaphore = new SemaphoreSlim(1, 1);
-        }
 
-        private void Reload()
-        {
-            var syncTimerConfig = Convert.ToInt32(Config["EmoteStats:SyncWithDBSecs"]) * 1000;
-            DbSyncTimer = new Timer(SyncTimerCallback, null, syncTimerConfig, syncTimerConfig);
+            var syncPeriod = GrillBotService.DatabaseSyncPeriod;
+            DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
         }
 
         public void Init()
@@ -113,8 +110,6 @@ namespace Grillbot.Services.EmoteStats
         public void ConfigChanged(IConfiguration newConfig)
         {
             Config = newConfig;
-
-            Reload();
         }
 
         public void Dispose()
