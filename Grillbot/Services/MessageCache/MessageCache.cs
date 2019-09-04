@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.MessageCache
@@ -23,32 +25,33 @@ namespace Grillbot.Services.MessageCache
             if (Data.Count > 0)
                 Data.Clear();
 
-            var textChannels = Client.Guilds.SelectMany(o => o.Channels).Where(o => o is SocketTextChannel);
+            var textChannels = Client.Guilds.SelectMany(o => o.Channels).OfType<SocketTextChannel>().ToList();
+            var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 15000 };
 
-            foreach(var channel in textChannels.Select(o => (SocketTextChannel)o))
+            foreach (var channel in textChannels)
             {
-                try
+                await InitChannel(channel, options);
+                Thread.Sleep(1500);
+            }
+        }
+
+        private async Task InitChannel(SocketTextChannel channel, RequestOptions options = null, bool removeExists = false)
+        {
+            try
+            {
+                var messages = (await channel.GetMessagesAsync(50, options).FlattenAsync()).ToList();
+
+                foreach (var message in messages)
                 {
-                    var messages = (await channel.GetMessagesAsync().FlattenAsync()).ToList();
-                    var pinnedMessages = await channel.GetPinnedMessagesAsync();
+                    if (removeExists && Data.ContainsKey(message.Id))
+                        Data.Remove(message.Id);
 
-                    foreach (var message in messages)
-                    {
-                        Data.Add(message.Id, message);
-                    }
-
-                    foreach (var pinnedMessage in pinnedMessages)
-                    {
-                        if (!Exists(pinnedMessage.Id))
-                            Data.Add(pinnedMessage.Id, pinnedMessage);
-                    }
+                    Data.Add(message.Id, message);
                 }
-                catch(HttpException httpEx)
-                {
-                    if (httpEx.DiscordCode != null && httpEx.DiscordCode.Value == 50001) continue;
-
-                    throw;
-                }
+            }
+            catch (Exception ex)
+            {
+                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
             }
         }
 
