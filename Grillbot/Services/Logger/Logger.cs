@@ -49,11 +49,5 @@ namespace Grillbot.Services.Logger
             var method = new UserLeft(Client, Config);
             await method.ProcessAsync(user);
         }
-
-        public async Task OnUserUpdated(SocketUser userBefore, SocketUser userAfter)
-        {
-            var method = new UserUpdated(Client, Config);
-            await method.ProcessAsync(userBefore, userAfter);
-        }
     }
 }
