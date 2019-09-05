@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Configuration;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Logger
@@ -13,41 +14,65 @@ namespace Grillbot.Services.Logger
         private IConfiguration Config { get; }
         private IMessageCache MessageCache { get; }
 
+        public Dictionary<string, uint> Counters { get; }
+
         public Logger(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache)
         {
             Client = client;
             Config = config;
             MessageCache = messageCache;
+
+            Counters = new Dictionary<string, uint>();
         }
 
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
             var method = new GuildMemberUpdated(Client, Config);
-            await method.ProcessAsync(guildUserBefore, guildUserAfter);
+            var result = await method.ProcessAsync(guildUserBefore, guildUserAfter);
+
+            if (result)
+                IncrementEventHandle("GuildMemberUpdated");
         }
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
             var method = new MessageDeleted(Client, Config, MessageCache);
             await method.ProcessAsync(message, channel);
+
+            IncrementEventHandle("MessageDeleted");
         }
 
         public async Task OnMessageEdited(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
             var method = new MessageEdited(Client, Config, MessageCache);
-            await method.ProcessAsync(messageBefore, messageAfter, channel);
+            var result = await method.ProcessAsync(messageBefore, messageAfter, channel);
+
+            if (result)
+                IncrementEventHandle("MessageEdited");
         }
 
         public async Task OnUserJoined(SocketGuildUser user)
         {
             var method = new UserJoined(Client, Config);
             await method.ProcessAsync(user);
+
+            IncrementEventHandle("UserJoined");
         }
 
         public async Task OnUserLeft(SocketGuildUser user)
         {
             var method = new UserLeft(Client, Config);
             await method.ProcessAsync(user);
+
+            IncrementEventHandle("UserLeft");
+        }
+
+        private void IncrementEventHandle(string name)
+        {
+            if (!Counters.ContainsKey(name))
+                Counters.Add(name, 1);
+            else
+                Counters[name]++;
         }
     }
 }

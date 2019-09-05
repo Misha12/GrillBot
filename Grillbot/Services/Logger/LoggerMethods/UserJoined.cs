@@ -11,19 +11,18 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task ProcessAsync(SocketUser user)
+        public async Task ProcessAsync(SocketGuildUser user)
         {
-            var guildUser = (SocketGuildUser)user;
             var logEmbedBuilder = new LogEmbedBuilder("Připojil se uživatel", LogEmbedType.UserJoined);
 
-            var createdAt = guildUser.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss");
+            var createdAt = user.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss");
 
             logEmbedBuilder
                 .SetAuthor(user)
                 .SetTimestamp(true)
-                .SetFooter($"MemberID: {guildUser.Id}")
+                .SetFooter($"MemberID: {user.Id}")
                 .AddField("Založen", createdAt)
-                .AddField("Počet členů na serveru", guildUser.Guild.MemberCount);
+                .AddField("Počet členů na serveru", user.Guild.MemberCount);
 
             var loggerRoom = GetLoggerRoom();
             await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());

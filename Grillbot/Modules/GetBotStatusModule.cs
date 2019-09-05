@@ -8,6 +8,7 @@ using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
 using Microsoft.AspNetCore.Hosting;
+using Grillbot.Services.Logger;
 
 namespace Grillbot.Modules
 {
@@ -19,12 +20,15 @@ namespace Grillbot.Modules
         private Statistics Statistics { get; }
         private AutoReplyService AutoReply { get; }
         private IHostingEnvironment HostingEnvironment { get; }
+        private Logger Logger { get; }
 
-        public GetBotStatusModule(Statistics statistics, AutoReplyService autoReply, IHostingEnvironment hostingEnvironment)
+        public GetBotStatusModule(Statistics statistics, AutoReplyService autoReply, IHostingEnvironment hostingEnvironment,
+            Logger logger)
         {
             Statistics = statistics;
             AutoReply = autoReply;
             HostingEnvironment = hostingEnvironment;
+            Logger = logger;
         }
 
         [Command("grillstatus")]
@@ -61,6 +65,7 @@ namespace Grillbot.Modules
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStatsAsync(orderType == "time");
             await PrintAutoReplyStatsAsync();
+            await PrintLoggerStatistics();
         }
 
         private async Task PrintCallStatsAsync(bool orderByTime)
@@ -105,6 +110,28 @@ namespace Grillbot.Modules
 
             AddInlineEmbedField(embedBuilder, "Hledaný řetězec", string.Join(Environment.NewLine, data.Select(o => o.Key)));
             AddInlineEmbedField(embedBuilder, "Počet reakcí", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+
+            embedBuilder
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+
+            await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        private async Task PrintLoggerStatistics()
+        {
+            var data = Logger.Counters.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
+
+            if (data.Count == 0) return;
+
+            var embedBuilder = new EmbedBuilder()
+            {
+                Color = Color.DarkBlue,
+                Title = "Statistiky logování"
+            };
+
+            AddInlineEmbedField(embedBuilder, "Vyvolaná událost", string.Join(Environment.NewLine, data.Select(o => o.Key)));
+            AddInlineEmbedField(embedBuilder, "Počet provedené", string.Join(Environment.NewLine, data.Select(o => o.Value)));
 
             embedBuilder
                 .WithCurrentTimestamp()

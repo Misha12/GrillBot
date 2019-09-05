@@ -12,9 +12,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
         }
 
-        public async Task ProcessAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
+        public async Task<bool> ProcessAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            if (!IsChangeDetected(guildUserBefore, guildUserAfter)) return;
+            if (!IsChangeDetected(guildUserBefore, guildUserAfter)) return false;
 
             var logEmbedBuilder = new LogEmbedBuilder("Uživatel na serveru byl aktualizován.", LogEmbedType.GuildMemberUpdated);
 
@@ -36,6 +36,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             var loggerRoom = GetLoggerRoom();
             await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+            return true;
         }
 
         private bool IsChangeDetected(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)

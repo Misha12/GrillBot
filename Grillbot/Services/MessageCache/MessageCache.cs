@@ -1,5 +1,4 @@
 ﻿using Discord;
-using Discord.Net;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -31,7 +30,7 @@ namespace Grillbot.Services.MessageCache
             foreach (var channel in textChannels)
             {
                 await InitChannel(channel, options);
-                Thread.Sleep(1500);
+                Thread.Sleep(1000);
             }
         }
 
