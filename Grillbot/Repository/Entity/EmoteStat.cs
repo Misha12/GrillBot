@@ -35,6 +35,11 @@ namespace Grillbot.Repository.Entity
             Count++;
         }
 
+        public void Decrement()
+        {
+            Count--;
+        }
+
         public string GetFormatedInfo()
         {
             return new StringBuilder()

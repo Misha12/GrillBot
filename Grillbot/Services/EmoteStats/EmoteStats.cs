@@ -5,6 +5,7 @@ using System.Threading;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
@@ -37,8 +38,7 @@ namespace Grillbot.Services.EmoteStats
         {
             using(var repository = new EmoteStatsRepository(Config))
             {
-                var data = repository.GetEmoteStatistics().Result;
-                Counter = data.ToDictionary(o => o.EmoteID, o => o);
+                Counter = repository.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
             }
 
             Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tEmote statistics loaded from database. (Rows: {Counter.Count})");
@@ -83,18 +83,68 @@ namespace Grillbot.Services.EmoteStats
 
                 foreach(var emoteId in mentionedEmotes)
                 {
-                    if (!Counter.ContainsKey(emoteId))
-                        Counter.Add(emoteId, new EmoteStat(emoteId));
-                    else
-                        Counter[emoteId].IncrementAndUpdate();
-
-                    Changes.Add(emoteId);
+                    IncrementCounter(emoteId);
                 }
             }
             finally
             {
                 Semaphore.Release();
             }
+        }
+
+        public async Task IncrementFromReaction(SocketReaction reaction)
+        {
+            if (!(reaction.Channel is SocketGuildChannel channel)) return;
+
+            await Semaphore.WaitAsync();
+            try
+            {
+                var serverEmotes = channel.Guild.Emotes;
+
+                if (serverEmotes.Contains(reaction.Emote))
+                    IncrementCounter(reaction.Emote.ToString());
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        public async Task DecrementFromReaction(SocketReaction reaction)
+        {
+            if (!(reaction.Channel is SocketGuildChannel channel)) return;
+
+            await Semaphore.WaitAsync();
+            try
+            {
+                var serverEmotes = channel.Guild.Emotes;
+
+                if (serverEmotes.Contains(reaction.Emote))
+                    DecrementCounter(reaction.Emote.ToString());
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
+        }
+
+        private void IncrementCounter(string emoteId)
+        {
+            if (!Counter.ContainsKey(emoteId))
+                Counter.Add(emoteId, new EmoteStat(emoteId));
+            else
+                GetValue(emoteId).IncrementAndUpdate();
+
+            Changes.Add(emoteId);
+        }
+
+        private void DecrementCounter(string emoteId)
+        {
+            var value = GetValue(emoteId);
+            if (value == null || value.Count == 0) return;
+
+            value.Decrement();
+            Changes.Add(emoteId);
         }
 
         public EmoteStat GetValue(string emoteId)
@@ -104,7 +154,10 @@ namespace Grillbot.Services.EmoteStats
 
         public List<EmoteStat> GetAllValues()
         {
-            return Counter.Values.OrderByDescending(o => o.LastOccuredAt).ToList();
+            return Counter.Values
+                .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastOccuredAt)
+                .ToList();
         }
 
         public void ConfigChanged(IConfiguration newConfig)
@@ -119,6 +172,7 @@ namespace Grillbot.Services.EmoteStats
             Counter.Clear();
             Changes.Clear();
             Semaphore.Dispose();
+            DbSyncTimer.Dispose();
         }
     }
 }
