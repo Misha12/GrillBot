@@ -28,6 +28,18 @@ namespace GrillBot_Tests.Repository.Entity
             var result = emoteStat.GetFormatedInfo();
 
             Assert.IsFalse(string.IsNullOrEmpty(result));
+
+            string expectedContains = $"Počet použití: 1";
+            Assert.IsTrue(result.Contains(expectedContains));
+        }
+
+        [TestMethod]
+        public void Decrement()
+        {
+            var emote = new EmoteStat("<:rtzW:123456>");
+            emote.Decrement();
+
+            Assert.AreEqual(0, emote.Count);
         }
     }
 }
