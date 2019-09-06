@@ -15,7 +15,7 @@ namespace Grillbot.Services.Statistics
         public Dictionary<string, StatisticsData> Data { get; }
         public double AvgReactTime { get; private set; }
         public ChannelStats ChannelStats { get; }
-        public EmoteStats.EmoteStats EmoteStats { get; }
+        public EmoteStats EmoteStats { get; }
 
         private IConfiguration Config { get; set; }
 
@@ -23,7 +23,7 @@ namespace Grillbot.Services.Statistics
         {
             Data = new Dictionary<string, StatisticsData>();
             ChannelStats = new ChannelStats(configuration);
-            EmoteStats = new EmoteStats.EmoteStats(configuration);
+            EmoteStats = new EmoteStats(configuration);
             Config = configuration;
         }
 

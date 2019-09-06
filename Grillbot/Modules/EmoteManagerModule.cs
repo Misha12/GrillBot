@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Services.EmoteStats;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using System.Collections.Generic;
@@ -90,8 +90,6 @@ namespace Grillbot.Modules
         {
             var emoteInfos = EmoteStats.GetAllValues()
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
-                .OrderByDescending(o => o.Count)
-                .ThenByDescending(o => o.LastOccuredAt)
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 

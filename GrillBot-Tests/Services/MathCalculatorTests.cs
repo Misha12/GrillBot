@@ -1,9 +1,5 @@
-﻿using Discord.WebSocket;
-using Grillbot.Services;
-using GrillBot_Tests.Mocks;
+﻿using Grillbot.Services;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
-using System.Linq;
-using System.Reflection;
 
 namespace GrillBot_Tests.Services
 {
