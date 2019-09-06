@@ -12,7 +12,7 @@ using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 
-namespace Grillbot.Services.EmoteStats
+namespace Grillbot.Services
 {
     public class EmoteStats : IConfigChangeable, IDisposable
     {

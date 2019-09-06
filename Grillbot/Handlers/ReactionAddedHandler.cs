@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Services.EmoteStats;
+using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using System.Threading.Tasks;
 
