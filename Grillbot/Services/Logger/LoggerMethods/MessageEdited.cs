@@ -36,7 +36,13 @@ namespace Grillbot.Services.Logger.LoggerMethods
             return true;
         }
 
-        private bool IsDetectedChange(IMessage messageBefore, IMessage messageAfter) => messageBefore.Content != messageAfter.Content;
+        private bool IsDetectedChange(IMessage messageBefore, IMessage messageAfter)
+        {
+            if (messageBefore == null) return false;
+            if (messageAfter == null) return false;
+
+            return messageBefore.Content != messageAfter.Content;
+        }
 
         private string CutToDiscordLimit(string content)
         {
