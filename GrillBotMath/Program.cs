@@ -56,7 +56,7 @@ namespace GrillBotMath
             var errorMessages = new List<string>();
 
             if (!expression.checkLexSyntax())
-                errorMessages.Add(expression.getErrorMessage());
+                errorMessages.Add("Lexical error");
 
             if (!expression.checkSyntax())
             {
