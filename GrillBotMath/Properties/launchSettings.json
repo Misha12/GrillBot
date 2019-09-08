@@ -2,7 +2,7 @@
   "profiles": {
     "GrillBotMath": {
       "commandName": "Project",
-      "commandLineArgs": "var horse=0; var čepka=0; horse*horse/čepka*čepka"
+      "commandLineArgs": "var horse=pi; var čepka=0; horse*horse/čepka*čepka"
     }
   }
 }

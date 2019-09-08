@@ -13,22 +13,36 @@ namespace GrillBotMath
             MathCalcResult result = null;
             var input = string.Join(" ", args);
 
-            var expressionFields = input.Split(';').Select(o => o.Trim());
-            var arguments = ParseArguments(expressionFields);
-            var expressionData = expressionFields.FirstOrDefault(o => !IsVariableDeclaration(o));
+            var errorMessages = new List<string>();
+            Expression expression = null;
 
-            if(string.IsNullOrEmpty(expressionData))
+            try
             {
-                Console.WriteLine(JsonConvert.SerializeObject(new MathCalcResult()
-                {
-                    ErrorMessage = "Nelze spočítat prázdný požadavek."
-                }));
+                var expressionFields = input.Split(';').Select(o => o.Trim());
+                var arguments = ParseArguments(expressionFields);
+                var expressionData = expressionFields.FirstOrDefault(o => !IsVariableDeclaration(o));
 
-                return;
+                if (string.IsNullOrEmpty(expressionData))
+                {
+                    Console.WriteLine(JsonConvert.SerializeObject(new MathCalcResult()
+                    {
+                        ErrorMessage = "Nelze spočítat prázdný požadavek."
+                    }));
+
+                    return;
+                }
+
+                expression = new Expression(expressionData, arguments.ToArray());
+                errorMessages.AddRange(ValidateAndGetErrors(expression));
+            }
+            catch (Exception ex)
+            {
+                if(ex is FormatException)
+                    errorMessages.Add("Cannot correctly format input data");
             }
 
-            var expression = new Expression(expressionData, arguments.ToArray());
-            var errorMessages = ValidateAndGetErrors(expression);
+            if (expression == null)
+                errorMessages.Add("Occured error in expression parsing.");
 
             if (errorMessages.Count > 0)
             {
@@ -41,14 +55,17 @@ namespace GrillBotMath
                 return;
             }
 
-            result = new MathCalcResult()
+            if(expression != null)
             {
-                IsValid = true,
-                Result = expression.calculate(),
-                ComputingTime = expression.getComputingTime(),
-            };
+                result = new MathCalcResult()
+                {
+                    IsValid = true,
+                    Result = expression.calculate(),
+                    ComputingTime = expression.getComputingTime(),
+                };
 
-            Console.WriteLine(JsonConvert.SerializeObject(result));
+                Console.WriteLine(JsonConvert.SerializeObject(result));
+            }
         }
 
         public static List<string> ValidateAndGetErrors(Expression expression)
