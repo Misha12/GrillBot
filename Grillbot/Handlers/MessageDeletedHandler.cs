@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -27,6 +28,15 @@ namespace Grillbot.Handlers
             ConfigChanged(config);
 
             Client.MessageDeleted += OnMessageDeletedAsync;
+            Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
+        }
+
+        private async Task OnMessageBulkDeletedAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
+        {
+            foreach(var message in messages)
+            {
+                await OnMessageDeletedAsync(message, channel);
+            }
         }
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -54,6 +64,7 @@ namespace Grillbot.Handlers
         public void Dispose()
         {
             Client.MessageDeleted -= OnMessageDeletedAsync;
+            Client.MessagesBulkDeleted -= OnMessageBulkDeletedAsync;
         }
     }
 }
