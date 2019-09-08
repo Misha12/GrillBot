@@ -35,7 +35,7 @@ namespace Grillbot.Modules
             var searches = await TeamSearchService.Repository.GetAllSearchesAsync();
             if (!searches.Any())
             {
-                await ReplyAsync("Nikdo nic nehleda zatim");
+                await ReplyAsync("Zatím nikdo nic nehledá");
                 return;
             }
             
@@ -56,21 +56,21 @@ namespace Grillbot.Modules
         [Command("remove")]
         public async Task RemoveTeamSearchAsync([Remainder] string stringId)
         {
-            int.TryParse(stringId, out int rowId);
-            if (rowId == 0)
+            if(!int.TryParse(stringId, out int rowId))
             {
-                await ReplyAsync("Spatne Id");
+                await ReplyAsync("Neplatné ID");
                 return;
             }
             
             var searches = await TeamSearchService.Repository.GetAllSearchesAsync();
-            if (searches.All(x => x.Id != rowId))
+            if (!searches.Any(x => x.Id == rowId))
             {
-                await ReplyAsync("Zadna takova zprava neni");
+                await ReplyAsync("Hledaná zpráva neexistuje");
                 return;
             }
-
+            // shouldn't fail as I already checked if such
             var row = searches.First(x => x.Id == rowId);
+            // should always work if the row state is correct
             ulong.TryParse(row.UserId, out ulong userId);
 
             if (userId == Context.User.Id)

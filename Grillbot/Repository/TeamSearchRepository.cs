@@ -30,7 +30,8 @@ namespace Grillbot.Repository
         
         public async Task RemoveSearch(int id)
         {
-            var row = Context.TeamSearch.First(d => d.Id == id);
+            var row = await Context.TeamSearch.FirstOrDefaultAsync(d => d.Id == id);
+            if(row == null) return;
             Context.TeamSearch.Remove(row);
             await Context.SaveChangesAsync();
         }
