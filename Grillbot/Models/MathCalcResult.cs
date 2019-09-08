@@ -26,6 +26,6 @@ namespace Grillbot.Models
             ComputingTime = computingTime;
         }
 
-        public TimeSpan GetComputingTime() => TimeSpan.FromMilliseconds(ComputingTime);
+        public string GetMention() => !string.IsNullOrEmpty(Mention) ? Mention : "";
     }
 }

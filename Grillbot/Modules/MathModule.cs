@@ -24,11 +24,11 @@ namespace Grillbot.Modules
 
             if(!result.IsValid)
             {
-                await ReplyAsync($"{result.Mention} {result.ErrorMessage}");
+                await ReplyAsync($"{result.GetMention()} {result.ErrorMessage}".Trim());
                 return;
             }
 
-            await ReplyAsync($"{result.Mention} Výsledek je: {result.Result.ToString()}, doba zpracování byla {result.ComputingTime} ms");
+            await ReplyAsync($"{result.GetMention()} Výsledek je: {result.Result.ToString()}, doba zpracování byla {result.ComputingTime} ms".Trim());
         }
     }
 }

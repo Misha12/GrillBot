@@ -40,7 +40,7 @@ namespace Grillbot.Services
                 if(!process.WaitForExit(calcTime))
                 {
                     process.Kill();
-                    return new MathCalcResult(message.Author.Mention, "Vypršel mi časový limit na výpočet příkladu.");
+                    return new MathCalcResult(message?.Author?.Mention, "Vypršel mi časový limit na výpočet příkladu.");
                 }
 
                 var output = process.StandardOutput.ReadToEnd();
