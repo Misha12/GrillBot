@@ -16,7 +16,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         public async Task<bool> ProcessAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
             var oldMessage = messageBefore.HasValue ? messageBefore.Value : MessageCache.Get(messageBefore.Id);
-            if (!IsDetectedChange(messageBefore.Value, messageAfter)) return false;
+            if (!IsDetectedChange(oldMessage, messageAfter)) return false;
 
             var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla upravena", LogEmbedType.MessageEdited);
 
