@@ -1,0 +1,7 @@
+CREATE TABLE [dbo].[TeamSearch]
+(
+    [Id] INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+    [UserId] VARCHAR(255)  NOT NULL,
+    [Category] VARCHAR(255) NOT NULL,
+    [Message] VARCHAR(2000) NOT NULL
+)

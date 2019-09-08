@@ -22,7 +22,7 @@ namespace Grillbot.Repository
         {
             base.OnModelCreating(modelBuilder);
         }
-
+        public virtual DbSet<TeamSearch> TeamSearch { get; set; }
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
     }

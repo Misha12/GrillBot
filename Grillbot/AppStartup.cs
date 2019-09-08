@@ -74,6 +74,7 @@ namespace Grillbot
                 .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
+                .AddSingleton<TeamSearchService>()
                 .AddTransient<MathCalculator>();
 
             services
