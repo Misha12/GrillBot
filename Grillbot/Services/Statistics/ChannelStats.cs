@@ -93,6 +93,8 @@ namespace Grillbot.Services.Statistics
 
         private void CleanInvalidWebTokens()
         {
+            if (WebTokens.Count == 0) return;
+
             WebTokens.RemoveAll(o => !o.IsValid());
             Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
         }
