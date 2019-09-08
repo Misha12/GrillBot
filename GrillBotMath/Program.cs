@@ -55,14 +55,24 @@ namespace GrillBotMath
         {
             var errorMessages = new List<string>();
 
-            if (!expression.checkLexSyntax() || !expression.checkSyntax())
+            if (!expression.checkLexSyntax())
+                errorMessages.Add(expression.getErrorMessage());
+
+            if (!expression.checkSyntax())
             {
-                if (!CheckMissingParameters(expression, out string errorMessage))
-                    errorMessages.Add(errorMessage);
-                else if (!CheckMissingFunctions(expression, out errorMessage))
-                    errorMessages.Add(errorMessage);
-                else
-                    errorMessages.Add("Syntax error");
+                try
+                {
+                    if (!CheckMissingParameters(expression, out string errorMessage))
+                        errorMessages.Add(errorMessage);
+                    else if (!CheckMissingFunctions(expression, out errorMessage))
+                        errorMessages.Add(errorMessage);
+                    else
+                        errorMessages.Add("Syntax error");
+                }
+                catch(Exception ex)
+                {
+                    errorMessages.Add(ex.Message);
+                }
             }
 
             return errorMessages;
