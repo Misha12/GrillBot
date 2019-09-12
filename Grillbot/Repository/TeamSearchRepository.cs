@@ -21,10 +21,10 @@ namespace Grillbot.Repository
             return await Context.TeamSearch.ToArrayAsync();
         }
         
-        public async Task AddSearch(IUser user, IChannel channel, string message)
+        public async Task AddSearch(IUser user, IChannel channel, ulong messageId)
         {
             await Context.TeamSearch.AddAsync(new TeamSearch
-                {UserId = user.Id.ToString(), Message = message, Category = channel.Name});
+                            {UserId = user.Id.ToString(), MessageId = messageId.ToString(), ChannelId = channel.Id.ToString()});
             await Context.SaveChangesAsync();
         }
         
