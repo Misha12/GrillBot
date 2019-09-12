@@ -19,7 +19,7 @@
     },
     "Grillbot": {
       "commandName": "Project",
-      "workingDirectory": "bin\\debug\\netcoreapp2.2",
+      "workingDirectory": "bin/Debug/netcoreapp2.2",
       "launchUrl": "api/values",
       "environmentVariables": {
         "ASPNETCORE_ENVIRONMENT": "Development"

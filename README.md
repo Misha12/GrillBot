@@ -22,14 +22,15 @@
 - MathParser.org-mXParser
 
 ## GrillBot config
+**Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
 - Config parts
   - AllowedHosts (string): Semicollon delimited list of allowed hostnames without port numbers.
   - CommandPrefix (string): Message content, that must contain to invoke command.
-  - Database (string): Connection string to database.
+  - **Database** (string): Connection string to database. **If you don't want to setup Db locally ask Misha for remote connection string**
   - Discord: Bot configuration
     - Activity (string): Activity message
-    - Token (string): Bot login token
+    - **Token** (string): Bot login token **You will need to create your own Discord Application to get a Token for local development**
     - UserJoinedMessage (string): Message, that will be sent, when user joined to guild.
     - Administrators (string[]): List of bot administrators. Can use bot independently of roles.
     - LoggerRoomID (string): ID of channel to send logging data.
