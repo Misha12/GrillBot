@@ -22,8 +22,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             logEmbedBuilder
                 .SetAuthor(messageAfter.Author)
-                .AddField("Před", $"```{CutToDiscordLimit(oldMessage.Content)}```")
-                .AddField("Po", $"```{CutToDiscordLimit(messageAfter.Content)}```")
+                .AddCodeBlockField("Před", oldMessage.Content)
+                .AddCodeBlockField("Po", messageAfter.Content)
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})")
                 .AddField("Odkaz", messageAfter.GetJumpUrl())
                 .SetTimestamp(true)
@@ -42,16 +42,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
             if (messageAfter == null) return false;
 
             return messageBefore.Content != messageAfter.Content;
-        }
-
-        private string CutToDiscordLimit(string content)
-        {
-            const int embedSize = 1018;
-
-            if (content.Length > embedSize)
-                return content.Substring(0, embedSize - 3) + "...";
-
-            return content;
         }
     }
 }
