@@ -40,7 +40,7 @@ namespace Grillbot.Services
         private async Task OnLogAsync(LogMessage message)
         {
             await PostException(message);
-            await Console.Out.WriteLineAsync(message.ToString());
+            await WriteToLogAsync($"{message.Severity}\t{message.Message}", message.Source);
         }
 
         private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
