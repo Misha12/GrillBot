@@ -4,6 +4,7 @@ using Grillbot.Repository.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,18 +15,22 @@ namespace Grillbot.Modules
     {
         private List<AutoReplyItem> Data { get; set; }
         private BotLoggingService BotLogging { get; }
+        private IConfiguration Config { get; set; }
 
         public AutoReplyService(IConfiguration configuration, BotLoggingService botLogging)
         {
             Data = new List<AutoReplyItem>();
             BotLogging = botLogging;
+            Config = configuration;
 
-            Init(configuration);
+            Init();
         }
 
-        private void Init(IConfiguration config)
+        private void Init()
         {
-            using(var repository = new AutoReplyRepository(config))
+            Data.Clear();
+
+            using(var repository = new AutoReplyRepository(Config))
             {
                 var autoReplyData = repository.GetAllItems();
                 Data.AddRange(autoReplyData);
@@ -45,11 +50,84 @@ namespace Grillbot.Modules
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig) => Init(newConfig);
+        public void ConfigChanged(IConfiguration newConfig)
+        {
+            Config = newConfig;
+            Init();
+        }
 
         public Dictionary<string, int> GetStatsData()
         {
             return Data.OrderByDescending(o => o.CallsCount).ToDictionary(o => o.MustContains, o => o.CallsCount);
+        }
+
+        public List<string> ListItems() => Data.Select(o => o.ToString()).ToList();
+
+        public async Task SetActiveStatusAsync(int id, bool disabled)
+        {
+            var item = Data.FirstOrDefault(o => o.ID == id);
+
+            if (item == null)
+                throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.SetActiveStatus(id, disabled);
+            }
+
+            if (item.IsDisabled == disabled)
+                throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
+
+            item.IsDisabled = disabled;
+        }
+
+        public async Task AddReplyAsync(string mustContains, string reply, bool disabled = false)
+        {
+            if (Data.Any(o => o.MustContains == mustContains))
+                throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
+
+            var item = new AutoReplyItem()
+            {
+                MustContains = mustContains,
+                IsDisabled = disabled,
+                ReplyMessage = reply
+            };
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.AddItemAsync(item);
+            }
+
+            Data.Add(item);
+        }
+
+        public async Task EditReplyAsync(int id, string mustContains, string reply)
+        {
+            var item = Data.FirstOrDefault(o => o.ID == id);
+
+            if (item == null)
+                throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.EditItemAsync(id, mustContains, reply);
+            }
+
+            item.MustContains = mustContains;
+            item.ReplyMessage = reply;
+        }
+
+        public async Task RemoveReplyAsync(int id)
+        {
+            if (!Data.Any(o => o.ID == id))
+                throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.RemoveItemAsync(id);
+            }
+
+            Data.RemoveAll(o => o.ID == id);
         }
     }
 }

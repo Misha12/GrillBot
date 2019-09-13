@@ -20,5 +20,13 @@ namespace Grillbot.Extensions
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
         }
+
+        public static string FormatDiscordUrl(this string str)
+        {
+            if (Uri.IsWellFormedUriString(str, UriKind.Absolute))
+                return $"<{str}>";
+
+            return str;
+        }
     }
 }

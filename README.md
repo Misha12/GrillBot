@@ -60,7 +60,8 @@
     - Math:
       - ComputingTime (int): Time in miliseconds to compute. When time is up, computing will be killed.
       - ProcessPath (string): Path to executable dll to computing engine.
-  - AutoReply (array of objects):
+    - AutoReply
+  - AutoReply (array of objects) (Deprecated):
     - In object:
       - IsInMessage:
         - Regex

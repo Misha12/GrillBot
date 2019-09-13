@@ -22,7 +22,6 @@ namespace Grillbot.Helpers
             }
 
             return str.ToString();
-
         }
     }
 }

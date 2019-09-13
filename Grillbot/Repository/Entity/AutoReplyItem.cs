@@ -1,4 +1,6 @@
-﻿using System.ComponentModel.DataAnnotations;
+﻿using Grillbot.Extensions;
+using System;
+using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
 namespace Grillbot.Repository.Entity
@@ -28,5 +30,15 @@ namespace Grillbot.Repository.Entity
         public int CallsCount { get; set; }
 
         public bool CanReply() => !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled;
+
+        public override string ToString()
+        {
+            var activeText = IsDisabled ? "Neaktivní" : "Aktivní";
+
+            var mustContains = MustContains.FormatDiscordUrl();
+            var reply = ReplyMessage.FormatDiscordUrl();
+
+            return $"**{ID}** - {mustContains} => {reply} - {activeText}";
+        }
     }
 }
