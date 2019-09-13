@@ -1,8 +1,7 @@
 ﻿using Grillbot.Repository.Entity;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
-using System.Threading.Tasks;
+using System.Linq;
 
 namespace Grillbot.Repository
 {
@@ -12,9 +11,9 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task<List<AutoReplyItem>> GetAllItemsAsync()
+        public List<AutoReplyItem> GetAllItems()
         {
-            return await Context.AutoReply.ToListAsync();
+            return Context.AutoReply.ToList();
         }
     }
 }

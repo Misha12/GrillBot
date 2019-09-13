@@ -88,5 +88,15 @@ namespace Grillbot.Services
             Client.Log -= OnLogAsync;
             Commands.Log -= OnLogAsync;
         }
+
+        public void WriteToLog(string message, string source = "BOT")
+        {
+            WriteToLogAsync(message, source).GetAwaiter().GetResult();
+        }
+
+        public async Task WriteToLogAsync(string message, string source = "BOT")
+        {
+            await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}");
+        }
     }
 }

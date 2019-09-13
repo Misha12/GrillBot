@@ -23,5 +23,10 @@ namespace Grillbot.Repository.Entity
         [Column]
         [Required]
         public bool IsDisabled { get; set; }
+
+        [NotMapped]
+        public int CallsCount { get; set; }
+
+        public bool CanReply() => !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled;
     }
 }
