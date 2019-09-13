@@ -58,7 +58,9 @@ namespace Grillbot.Modules
 
         public Dictionary<string, int> GetStatsData()
         {
-            return Data.OrderByDescending(o => o.CallsCount).ToDictionary(o => o.MustContains, o => o.CallsCount);
+            return Data
+                .OrderByDescending(o => o.CallsCount)
+                .ToDictionary(o => o.MustContains, o => o.CallsCount);
         }
 
         public List<string> ListItems() => Data.Select(o => o.ToString()).ToList();

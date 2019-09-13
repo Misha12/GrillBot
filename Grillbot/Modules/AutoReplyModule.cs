@@ -93,17 +93,5 @@ namespace Grillbot.Modules
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.");
             });
         }
-
-        private async Task DoAsync(Func<Task> method)
-        {
-            try
-            {
-                await method();
-            }
-            catch(Exception ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
-        }
     }
 }
