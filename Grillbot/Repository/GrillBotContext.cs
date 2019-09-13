@@ -18,12 +18,8 @@ namespace Grillbot.Repository
             optionsBuilder.UseSqlServer(ConnectionString);
         }
 
-        protected override void OnModelCreating(ModelBuilder modelBuilder)
-        {
-            base.OnModelCreating(modelBuilder);
-        }
-
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
+        public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
     }
 }

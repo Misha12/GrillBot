@@ -1,0 +1,7 @@
+﻿CREATE TABLE [dbo].[AutoReply]
+(
+	[ID] INT NOT NULL PRIMARY KEY IDENTITY (1,1),
+	[MustContains] VARCHAR(MAX) NOT NULL,
+	[ReplyMessage] VARCHAR(MAX) NOT NULL,
+	[IsDisabled] BIT NOT NULL
+)
