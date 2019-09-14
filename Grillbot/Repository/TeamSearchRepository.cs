@@ -1,9 +1,5 @@
-using System;
-using System.Collections;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
 using Grillbot.Repository.Entity;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
@@ -16,24 +12,38 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task<IEnumerable<TeamSearch>> GetAllSearchesAsync()
+        public IQueryable<TeamSearch> GetAllSearches()
         {
-            return await Context.TeamSearch.ToArrayAsync();
+            return Context.TeamSearch.AsQueryable();
         }
-        
-        public async Task AddSearch(IUser user, IChannel channel, ulong messageId)
+
+        public async Task AddSearchAsync(ulong userID, ulong channelID, ulong messageID)
         {
-            await Context.TeamSearch.AddAsync(new TeamSearch
-                            {UserId = user.Id.ToString(), MessageId = messageId.ToString(), ChannelId = channel.Id.ToString()});
+            var entity = new TeamSearch()
+            {
+                UserId = userID.ToString(),
+                MessageId = messageID.ToString(),
+                ChannelId = channelID.ToString()
+            };
+            
+            await Context.TeamSearch.AddAsync(entity);
             await Context.SaveChangesAsync();
         }
-        
+
         public async Task RemoveSearch(int id)
         {
             var row = await Context.TeamSearch.FirstOrDefaultAsync(d => d.Id == id);
-            if(row == null) return;
+
+            if (row == null)
+                return;
+
             Context.TeamSearch.Remove(row);
             await Context.SaveChangesAsync();
+        }
+
+        public async Task<TeamSearch> FindSearchByID(int id)
+        {
+            return await Context.TeamSearch.FirstOrDefaultAsync(o => o.Id == id);
         }
     }
 }

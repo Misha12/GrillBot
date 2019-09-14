@@ -61,5 +61,9 @@ namespace Grillbot.Modules
                 await ReplyAsync(ex.Message);
             }
         }
+
+        protected SocketTextChannel GetTextChannel(string id) => GetTextChannel(Convert.ToUInt64(id));
+
+        protected SocketTextChannel GetTextChannel(ulong id) => Context.Guild.GetChannel(id) as SocketTextChannel;
     }
 }
