@@ -116,12 +116,12 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             return content;
         }
 
-        private string FormatData(object input)
+        private string FormatData(string input)
         {
-            if (!(input is string str))
-                return input.ToString();
+            if (input == null)
+                input = "";
 
-            var formated = str.Replace("```", "``");
+            var formated = input.Replace("```", "``");
 
             if (formated.EndsWith("`"))
                 formated += " ";
