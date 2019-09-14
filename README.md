@@ -60,11 +60,6 @@
     - Math:
       - ComputingTime (int): Time in miliseconds to compute. When time is up, computing will be killed.
       - ProcessPath (string): Path to executable dll to computing engine.
-  - AutoReply (array of objects):
-    - In object:
-      - IsInMessage:
-        - Regex
-        - OptionsFlags: Regex configuration ([RegexOptions](https://docs.microsoft.com/cs-cz/dotnet/api/system.text.regularexpressions.regexoptions?view=netframework-4.8))
-      - Reply (string): Reply message when user sent message with regex match.
+    - AutoReply
   - EmoteChain:
     - CheckLastN (int): Count of same emotes before bot send emote.

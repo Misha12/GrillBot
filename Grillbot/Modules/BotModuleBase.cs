@@ -1,7 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using System;
 using System.Text;
+using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
@@ -46,6 +48,18 @@ namespace Grillbot.Modules
         protected string GetUsersShortName(SocketUser user)
         {
             return $"{user.Username}#{user.Discriminator}";
+        }
+
+        protected async Task DoAsync(Func<Task> method)
+        {
+            try
+            {
+                await method();
+            }
+            catch (ArgumentException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }

@@ -1,68 +1,135 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Repository;
+using Grillbot.Repository.Entity;
+using Grillbot.Services;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
     public class AutoReplyService : IConfigChangeable
     {
-        private Dictionary<Regex, string> AutoReplyData { get; set; }
-        private Dictionary<string, uint> Stats { get; set; }
+        private List<AutoReplyItem> Data { get; set; }
+        private BotLoggingService BotLogging { get; }
+        private IConfiguration Config { get; set; }
 
-        public AutoReplyService(IConfiguration configuration)
+        public AutoReplyService(IConfiguration configuration, BotLoggingService botLogging)
         {
-            Init(configuration);
+            Data = new List<AutoReplyItem>();
+            BotLogging = botLogging;
+            Config = configuration;
+
+            Init();
         }
 
-        private void Init(IConfiguration config)
+        private void Init()
         {
-            var autoReplyData = new Dictionary<Regex, string>();
-            var statsData = new Dictionary<string, uint>();
+            Data.Clear();
 
-            foreach (var item in config.GetSection("AutoReply").GetChildren())
+            using(var repository = new AutoReplyRepository(Config))
             {
-                var regexConfig = item.GetSection("IsInMessage");
-                var rawRegex = regexConfig["Regex"];
+                var autoReplyData = repository.GetAllItems();
+                Data.AddRange(autoReplyData);
 
-                var regex = new Regex(rawRegex, (RegexOptions)Convert.ToInt32(regexConfig["OptionsFlags"]));
-
-                autoReplyData.Add(regex, item["Reply"]);
+                BotLogging.WriteToLog($"AutoReply module loaded (loaded {Data.Count} templates)");
             }
-
-            Stats = statsData;
-            AutoReplyData = autoReplyData;
         }
 
         public async Task TryReplyAsync(SocketUserMessage message)
         {
-            var replyMessage = AutoReplyData.FirstOrDefault(o => o.Key.IsMatch(message.Content));
+            var replyMessage = Data.FirstOrDefault(o => message.Content.Contains(o.MustContains));
 
-            if (!string.IsNullOrEmpty(replyMessage.Value))
+            if (replyMessage?.CanReply() == true)
             {
-                var regex = replyMessage.Key.ToString();
-
-                if (!Stats.ContainsKey(regex))
-                    Stats.Add(regex, 1);
-                else
-                    Stats[regex]++;
-
-                await message.Channel.SendMessageAsync(replyMessage.Value);
+                replyMessage.CallsCount++;
+                await message.Channel.SendMessageAsync(replyMessage.ReplyMessage);
             }
         }
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Init(newConfig);
+            Config = newConfig;
+            Init();
         }
 
-        public Dictionary<string, uint> GetStatsData()
+        public Dictionary<string, int> GetStatsData()
         {
-            return Stats.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
+            return Data
+                .OrderByDescending(o => o.CallsCount)
+                .ToDictionary(o => o.MustContains, o => o.CallsCount);
+        }
+
+        public List<string> ListItems() => Data.Select(o => o.ToString()).ToList();
+
+        public async Task SetActiveStatusAsync(int id, bool disabled)
+        {
+            var item = Data.FirstOrDefault(o => o.ID == id);
+
+            if (item == null)
+                throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.SetActiveStatus(id, disabled);
+            }
+
+            if (item.IsDisabled == disabled)
+                throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
+
+            item.IsDisabled = disabled;
+        }
+
+        public async Task AddReplyAsync(string mustContains, string reply, bool disabled = false)
+        {
+            if (Data.Any(o => o.MustContains == mustContains))
+                throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
+
+            var item = new AutoReplyItem()
+            {
+                MustContains = mustContains,
+                IsDisabled = disabled,
+                ReplyMessage = reply
+            };
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.AddItemAsync(item);
+            }
+
+            Data.Add(item);
+        }
+
+        public async Task EditReplyAsync(int id, string mustContains, string reply)
+        {
+            var item = Data.FirstOrDefault(o => o.ID == id);
+
+            if (item == null)
+                throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.EditItemAsync(id, mustContains, reply);
+            }
+
+            item.MustContains = mustContains;
+            item.ReplyMessage = reply;
+        }
+
+        public async Task RemoveReplyAsync(int id)
+        {
+            if (!Data.Any(o => o.ID == id))
+                throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
+
+            using(var repository = new AutoReplyRepository(Config))
+            {
+                await repository.RemoveItemAsync(id);
+            }
+
+            Data.RemoveAll(o => o.ID == id);
         }
     }
 }
