@@ -29,6 +29,7 @@ namespace Grillbot.Modules
         [Command("grillhelp")]
         public async Task HelpAsync()
         {
+            var commandPrefix = Config["CommandPrefix"];
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
             var embed = new EmbedBuilder()
@@ -47,8 +48,12 @@ namespace Grillbot.Modules
 
                     if (result.IsSuccess)
                     {
+                        descBuilder.Append(commandPrefix);
+
+                        if (!string.IsNullOrEmpty(module.Group))
+                            descBuilder.Append(module.Group).Append(' ');
+                        
                         descBuilder
-                            .Append(Config["CommandPrefix"])
                             .Append(cmd.Name).Append(' ')
                             .Append(string.Join(" ", cmd.Parameters.Select(o => "{" + o.Name + "}")));
 
