@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Configuration;
@@ -62,9 +63,13 @@ namespace Grillbot.Services.Logger.LoggerMethods
                     .SetAuthor(message.Author)
                     .SetTimestamp(true)
                     .SetFooter($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}")
-                    .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss", CultureInfo.InvariantCulture))
-                    .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})")
-                    .AddField("Obsah", string.IsNullOrEmpty(message.Content) ? "-" : $"```{message.Content}```");
+                    .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToLocaleDatetime())
+                    .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})");
+
+                if (string.IsNullOrEmpty(message.Content))
+                    logEmbedBuilder.AddField("Obsah", "-");
+                else
+                    logEmbedBuilder.AddCodeBlockField("Obsah", message.Content);
 
                 if (message.Attachments.Any())
                 {

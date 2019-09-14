@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Microsoft.Extensions.Configuration;
 
@@ -15,7 +16,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
             var logEmbedBuilder = new LogEmbedBuilder("Připojil se uživatel", LogEmbedType.UserJoined);
 
-            var createdAt = user.CreatedAt.LocalDateTime.ToString("dd. MM. yyyy HH:mm:ss");
+            var createdAt = user.CreatedAt.LocalDateTime.ToLocaleDatetime();
 
             logEmbedBuilder
                 .SetAuthor(user)

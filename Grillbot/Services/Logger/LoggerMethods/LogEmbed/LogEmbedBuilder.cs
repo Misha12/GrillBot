@@ -91,11 +91,42 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
 
             field
                 .WithName(name)
-                .WithValue(value)
+                .WithValue(CutToDiscordLimit(value.ToString()))
                 .WithIsInline(isInline);
 
             FieldBuilders.Add(field);
             return this;
+        }
+
+        public LogEmbedBuilder AddCodeBlockField(string name, string value, bool isInline = false)
+        {
+            var formated = FormatData(value);
+
+            AddField(name, $"```{formated}```", isInline);
+            return this;
+        }
+
+        private string CutToDiscordLimit(string content)
+        {
+            const int embedSize = 1018;
+
+            if (content.Length > embedSize)
+                return content.Substring(0, embedSize - 3) + "...";
+
+            return content;
+        }
+
+        private string FormatData(object input)
+        {
+            if (!(input is string str))
+                return input.ToString();
+
+            var formated = str.Replace("```", "``");
+
+            if (formated.EndsWith("`"))
+                formated += " ";
+
+            return formated;
         }
 
         public LogEmbedBuilder SetImage(string url)
