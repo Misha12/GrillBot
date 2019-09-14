@@ -7,9 +7,11 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Services.Preconditions;
+using System.Collections.Generic;
 
 namespace Grillbot.Modules
 {
+    [Group("grillhelp")]
     [Name("Nápověda")]
     [DisabledCheck(RoleGroupName = "Help")]
     [RequireRoleOrAdmin(RoleGroupName = "Help")]
@@ -26,17 +28,13 @@ namespace Grillbot.Modules
             Services = services;
         }
 
-        [Command("grillhelp")]
+        [Command("")]
         public async Task HelpAsync()
         {
             var commandPrefix = Config["CommandPrefix"];
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
-            var embed = new EmbedBuilder()
-            {
-                Color = Color.Blue,
-                Title = $"Nápověda pro uživatele {GetUsersFullName(user)} ({GetBotBestPermissions(user)})"
-            };
+            var embedFields = new List<EmbedFieldBuilder>();
 
             foreach(var module in CommandService.Modules)
             {
@@ -65,24 +63,52 @@ namespace Grillbot.Modules
                 }
 
                 if (descBuilder.Length > 0)
-                    embed.AddField(x => x.WithName(module.Name).WithValue(descBuilder.ToString()));
+                    embedFields.Add(new EmbedFieldBuilder().WithName(module.Name).WithValue(descBuilder.ToString()));
             }
 
-            embed
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpoveď pro {GetUsersShortName(Context.Message.Author)}");
+            for(var i = 0; i < Math.Ceiling(embedFields.Count / (double)EmbedBuilder.MaxFieldCount); i++)
+            {
+                var fields = embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount).ToList();
+                var embed = CreateEmbed(fields, user, i + 1);
 
-            await ReplyAsync("", embed: embed.Build());
+                await ReplyAsync(embed: embed);
+            }
         }
 
-        [Command("grillhelp")]
-        public async Task HelpAsync(string command)
+        private Embed CreateEmbed(List<EmbedFieldBuilder> fields, SocketUser user, int pageNumber)
+        {
+            var builder = new EmbedBuilder()
+            {
+                Color = Color.Blue,
+                Title = $"Nápověda pro uživatele {GetUsersFullName(user)} ({GetBotBestPermissions(user)})",
+                Fields = fields,
+                ThumbnailUrl = GetUserAvatarUrl(Context.Client.CurrentUser)
+            };
+
+            builder
+                .WithFooter($"Odpověď pro {GetUsersShortName(user)} | Strana {pageNumber}", GetUserAvatarUrl(user))
+                .WithCurrentTimestamp();
+
+            return builder.Build();
+        }
+
+        [Command("")]
+        public async Task HelpAsync([Remainder] string command)
         {
             var result = CommandService.Search(Context, command);
 
             if (!result.IsSuccess)
             {
-                await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.");
+                switch(result.Error)
+                {
+                    case CommandError.UnknownCommand:
+                        await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.");
+                        break;
+                    case CommandError.UnmetPrecondition:
+                        await ReplyAsync(result.ErrorReason);
+                        break;
+                }
+
                 return;
             }
 

@@ -20,12 +20,10 @@ namespace Grillbot.Modules
             {
                 if (string.IsNullOrEmpty(sgUser.Nickname))
                 {
-                    builder.Append(user.Username).Append("#").Append(user.Discriminator);
-
-                    if (string.IsNullOrEmpty(sgUser.Nickname))
-                        builder.Append("#").Append(user.Discriminator);
-                    else
-                        builder.Append(" (").Append(user.Username).Append("#").Append(user.Discriminator).Append(")");
+                    builder
+                        .Append(user.Username)
+                        .Append("#")
+                        .Append(user.Discriminator);
                 }
                 else
                 {
@@ -65,5 +63,7 @@ namespace Grillbot.Modules
         protected SocketTextChannel GetTextChannel(string id) => GetTextChannel(Convert.ToUInt64(id));
 
         protected SocketTextChannel GetTextChannel(ulong id) => Context.Guild.GetChannel(id) as SocketTextChannel;
+
+        protected string GetUserAvatarUrl(SocketUser user) => user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl();
     }
 }

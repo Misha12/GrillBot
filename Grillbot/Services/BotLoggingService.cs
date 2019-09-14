@@ -56,7 +56,7 @@ namespace Grillbot.Services
             if (!CanSendToDiscord(message)) return;
 
             var exceptionMessage = message.Exception.ToString();
-            var parts = exceptionMessage.SplitInParts(1950).ToArray();
+            var parts = exceptionMessage.SplitInParts(1980).ToArray();
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {

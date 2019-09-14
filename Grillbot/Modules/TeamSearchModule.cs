@@ -45,7 +45,7 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command]
+        [Command("")]
         [Summary("Vypíše informace o hledání")]
         public async Task TeamSearchInfoAsync()
         {
