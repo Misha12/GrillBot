@@ -18,6 +18,7 @@ namespace Grillbot.Repository
             optionsBuilder.UseSqlServer(ConnectionString);
         }
 
+        public virtual DbSet<TeamSearch> TeamSearch { get; set; }
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
