@@ -24,7 +24,11 @@ namespace Grillbot.Modules
         public async Task ListItemsAsync()
         {
             var data = Service.ListItems();
-            await ReplyAsync(string.Join(Environment.NewLine, data));
+
+            if (data.Count > 0)
+                await ReplyAsync(string.Join(Environment.NewLine, data));
+            else
+                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
         }
 
         [Command("disable")]
