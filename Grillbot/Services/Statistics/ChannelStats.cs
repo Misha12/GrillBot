@@ -28,13 +28,15 @@ namespace Grillbot.Services.Statistics
         private SemaphoreSlim Semaphore { get; set; }
         private List<ChannelboardWebToken> WebTokens { get; set; }
         private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
+        private BotLoggingService LoggingService { get; }
 
-        public ChannelStats(Configuration config)
+        public ChannelStats(Configuration config, BotLoggingService loggingService)
         {
             Counter = new Dictionary<ulong, long>();
             Changes = new HashSet<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
             LastMessagesAt = new Dictionary<ulong, DateTime>();
+            LoggingService = loggingService;
 
             Reload(config);
             Semaphore = new SemaphoreSlim(1, 1);
@@ -54,7 +56,7 @@ namespace Grillbot.Services.Statistics
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
 
             Reload(Config);
-            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics loaded from database. (Rows: {Counter.Count})");
+            LoggingService.WriteToLog($"Channel statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void Reload(Configuration config)
@@ -85,7 +87,7 @@ namespace Grillbot.Services.Statistics
                 }
 
                 Changes.Clear();
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
+                LoggingService.WriteToLog($"Channel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
             }
             finally
             {
@@ -98,7 +100,7 @@ namespace Grillbot.Services.Statistics
             if (WebTokens.Count == 0) return;
 
             WebTokens.RemoveAll(o => !o.IsValid());
-            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
+            LoggingService.WriteToLog($"Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)

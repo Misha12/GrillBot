@@ -11,7 +11,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Nudes a další zajímavé fotky")]
-    [RequirePermissions("Images")]
+    [RequirePermissions("MemeImages")]
     public class ImageModule : BotModuleBase
     {
         private Configuration Config { get; }

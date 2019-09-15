@@ -18,11 +18,11 @@ namespace Grillbot.Services.Statistics
 
         private Configuration Config { get; set; }
 
-        public Statistics(IOptions<Configuration> configuration)
+        public Statistics(IOptions<Configuration> configuration, BotLoggingService loggingService)
         {
             Data = new Dictionary<string, StatisticsData>();
-            ChannelStats = new ChannelStats(configuration.Value);
-            EmoteStats = new EmoteStats(configuration.Value);
+            ChannelStats = new ChannelStats(configuration.Value, loggingService);
+            EmoteStats = new EmoteStats(configuration.Value, loggingService);
             Config = configuration.Value;
         }
 

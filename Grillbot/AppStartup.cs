@@ -97,19 +97,19 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            var handlers = GetHandlers().ToArray();
+            var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
 
-            InitServices(ServiceProvider, new[] { typeof(BotLoggingService) });
-            InitServices(ServiceProvider, handlers);
+            var handlers = GetHandlers().ToArray();
+            InitServices(ServiceProvider, handlers, loggingService);
             serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
-        private void InitServices(IServiceProvider provider, Type[] services)
+        private void InitServices(IServiceProvider provider, Type[] services, BotLoggingService loggingService)
         {
             foreach(var service in services)
             {
                 provider.GetRequiredService(service);
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tService init: {service.Name}. DONE");
+                loggingService.WriteToLog($"Service {service.Name} initialized");
             }
         }
 
