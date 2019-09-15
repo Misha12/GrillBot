@@ -52,9 +52,9 @@ namespace Grillbot.Modules
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            // Config = newConfig; // TODO
+            Config = newConfig;
             Init();
         }
 

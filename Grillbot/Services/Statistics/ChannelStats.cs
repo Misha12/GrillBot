@@ -62,9 +62,9 @@ namespace Grillbot.Services.Statistics
             Config = config;
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            // Reload(newConfig); TODO
+            Reload(newConfig);
         }
 
         private void SyncTimerCallback(object _)

@@ -58,10 +58,10 @@ namespace Grillbot.Services.Statistics
 
         public TimeSpan GetAvgReactTime() => TimeSpan.FromMilliseconds(AvgReactTime);
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             ChannelStats.ConfigChanged(newConfig);
-            // Config = newConfig; // TODO
+            Config = newConfig;
         }
 
         protected virtual void Dispose(bool disposing)

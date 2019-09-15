@@ -67,9 +67,9 @@ namespace Grillbot.Services
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            // Init(newConfig); //TODO
+            Init(newConfig);
         }
 
         private bool IsWebSocketException(Exception ex)

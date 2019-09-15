@@ -37,8 +37,7 @@ namespace Grillbot.Handlers
             AutoReply = autoReply;
             EmoteChain = emoteChain;
 
-            //TODO
-            //ConfigChanged(config);
+            ConfigChanged(config.Value);
 
             Client.MessageReceived += OnMessageReceivedAsync;
         }
@@ -55,10 +54,7 @@ namespace Grillbot.Handlers
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
 
-                if (message.Channel is IPrivateChannel)
-                {
-                    if (!Config.Discord.IsUserBotAdmin(userMessage.Author.Id)) return;
-                }
+                if (message.Channel is IPrivateChannel && !Config.Discord.IsUserBotAdmin(userMessage.Author.Id)) return;
 
                 int argPos = 0;
                 if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos))
@@ -103,10 +99,9 @@ namespace Grillbot.Handlers
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            // TODO
-            //Config = newConfig;
+            Config = newConfig;
         }
 
         public void Dispose()

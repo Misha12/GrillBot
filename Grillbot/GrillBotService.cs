@@ -81,11 +81,10 @@ namespace Grillbot
                 await Client.SetGameAsync(null);
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            //TODO
-            //Config = newConfig;
-            //SetActivity(newConfig["Discord:Activity"]).Wait();
+            Config = newConfig;
+            SetActivity(newConfig.Discord.Activity).Wait();
         }
     }
 }

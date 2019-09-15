@@ -25,7 +25,7 @@ namespace Grillbot.Handlers
             Statistics = statistics;
             Logger = logger;
 
-            //ConfigChanged(config.Value); TODO
+            ConfigChanged(config.Value);
 
             Client.MessageDeleted += OnMessageDeletedAsync;
             Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
@@ -56,10 +56,9 @@ namespace Grillbot.Handlers
             await Logger.OnMessageDelete(message, channel);
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            //TODO
-            //Config = newConfig;
+            Config = newConfig;
         }
 
         public void Dispose()

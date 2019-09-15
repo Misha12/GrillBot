@@ -122,14 +122,18 @@ namespace Grillbot
                 var changeableTypes = Assembly.GetExecutingAssembly()
                     .GetTypes().Where(o => o.GetInterface(typeof(IConfigChangeable).FullName) != null);
 
+                var configurationInstance = Configuration.Get<Configuration>();
+                var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
+
                 foreach(var type in changeableTypes)
                 {
                     var service = (IConfigChangeable)ServiceProvider.GetService(type);
-                    service?.ConfigChanged(Configuration);
+                    service?.ConfigChanged(configurationInstance);
                 }
 
+                var oldHash = ActualConfigHash;
                 ActualConfigHash = newHash;
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tUpdated config.");
+                loggingService.WriteToLog($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
             }
         }
 

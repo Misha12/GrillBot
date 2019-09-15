@@ -107,14 +107,13 @@ namespace Grillbot.Services
             return emoteTemplate == context.Message.Content && IsValidWithWithFirstInChannel(context);
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            //TODO
             Semaphore.Wait();
 
             try
             {
-                ReactLimit = Convert.ToInt32(newConfig["EmoteChain:CheckLastN"]);
+                ReactLimit = newConfig.EmoteChain_CheckLastCount;
             }
             finally
             {

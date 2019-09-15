@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Handlers
@@ -20,7 +19,7 @@ namespace Grillbot.Handlers
             Client = client;
             Logger = logger;
             
-            //ConfigChanged(config); // TODO
+            ConfigChanged(config.Value);
 
             Client.UserJoined += OnUserJoinedOnServerAsync;
         }
@@ -45,10 +44,9 @@ namespace Grillbot.Handlers
 
         #endregion
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            //TODO
-            //Config = newConfig;
+            Config = newConfig;
         }
     }
 }

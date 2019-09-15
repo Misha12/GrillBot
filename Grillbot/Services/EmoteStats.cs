@@ -25,7 +25,7 @@ namespace Grillbot.Services
 
         public EmoteStats(Configuration configuration)
         {
-            // ConfigChanged(configuration); // TODO
+            ConfigChanged(configuration);
 
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
@@ -161,9 +161,9 @@ namespace Grillbot.Services
                 .ToList();
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
-            // Config = newConfig; // TODO
+            Config = newConfig;
         }
 
         public void Dispose()

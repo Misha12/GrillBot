@@ -1,9 +1,9 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Grillbot.Services.Config.Models;
 
 namespace Grillbot.Services.Config
 {
     public interface IConfigChangeable
     {
-        void ConfigChanged(IConfiguration newConfig);
+        void ConfigChanged(Configuration newConfig);
     }
 }
