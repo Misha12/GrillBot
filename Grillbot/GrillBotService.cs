@@ -10,6 +10,8 @@ using Grillbot.Services.Config;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using Grillbot.Services.MessageCache;
+using Microsoft.Extensions.Options;
+using Grillbot.Services.Config.Models;
 
 namespace Grillbot
 {
@@ -20,16 +22,16 @@ namespace Grillbot
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private IMessageCache Cache { get; set; }
 
-        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IConfiguration config,
-            IMessageCache cache)
+        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IMessageCache cache,
+            IOptions<Configuration> config)
         {
             Services = services;
             Client = client;
             Commands = commands;
-            Config = config;
+            Config = config.Value;
             Cache = cache;
 
             Client.Ready += OnClientReadyAsync;
@@ -42,15 +44,12 @@ namespace Grillbot
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            var config = Config.GetSection("Discord");
-            var token = config["Token"];
-
-            if (string.IsNullOrEmpty(token))
+            if (string.IsNullOrEmpty(Config.Discord.Token))
                 throw new ConfigException("Missing bot token in config.");
 
-            await Client.LoginAsync(TokenType.Bot, token);
+            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
             await Client.StartAsync();
-            await SetActivity(config["Activity"]);
+            await SetActivity(Config.Discord.Activity);
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
@@ -84,8 +83,9 @@ namespace Grillbot
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Config = newConfig;
-            SetActivity(newConfig["Discord:Activity"]).Wait();
+            //TODO
+            //Config = newConfig;
+            //SetActivity(newConfig["Discord:Activity"]).Wait();
         }
     }
 }

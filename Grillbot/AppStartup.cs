@@ -5,6 +5,7 @@ using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
@@ -44,6 +45,8 @@ namespace Grillbot
 
             ActualConfigHash = GetConfigHash();
             ChangeToken.OnChange(() => Configuration.GetReloadToken(), OnConfigChange);
+
+            services.Configure<Configuration>(Configuration);
         }
 
         private void ConfigureDiscord(IServiceCollection services)
