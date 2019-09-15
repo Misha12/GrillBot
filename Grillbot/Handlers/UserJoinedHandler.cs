@@ -1,25 +1,26 @@
-﻿using System;
-using System.Threading.Tasks;
+﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Handlers
 {
     public class UserJoinedHandler : IConfigChangeable, IHandle
     {
         private DiscordSocketClient Client { get; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private Logger Logger { get; }
 
-        public UserJoinedHandler(DiscordSocketClient client, IConfiguration config, Logger logger)
+        public UserJoinedHandler(DiscordSocketClient client, IOptions<Configuration> config, Logger logger)
         {
             Client = client;
             Logger = logger;
             
-            ConfigChanged(config);
+            //ConfigChanged(config); // TODO
 
             Client.UserJoined += OnUserJoinedOnServerAsync;
         }
@@ -27,7 +28,7 @@ namespace Grillbot.Handlers
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
         {
             if (user.IsBot || user.IsWebhook) return;
-            var message = Config["Discord:UserJoinedMessage"];
+            var message = Config.Discord.UserJoinedMessage;
 
             if (!string.IsNullOrEmpty(message))
                 await user.SendMessageAsync(message);
@@ -46,7 +47,8 @@ namespace Grillbot.Handlers
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Config = newConfig;
+            //TODO
+            //Config = newConfig;
         }
     }
 }

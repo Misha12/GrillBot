@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Services.Config.Models
 {
@@ -12,5 +13,12 @@ namespace Grillbot.Services.Config.Models
         public string UserJoinedMessage { get; set; }
         public List<string> Administrators { get; set; }
         public string LoggerRoomID { get; set; }
+
+        public DiscordConfig()
+        {
+            Administrators = new List<string>();
+        }
+
+        public bool IsUserBotAdmin(ulong id) => Administrators.Any(o => o == id.ToString());
     }
 }

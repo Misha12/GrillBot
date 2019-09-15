@@ -9,6 +9,8 @@ using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Services
 {
@@ -19,21 +21,22 @@ namespace Grillbot.Services
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IConfiguration config)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config)
         {
             Client = client;
             Commands = commands;
-            Init(config);
+            Init(config.Value);
             Client.Log += OnLogAsync;
             Commands.Log += OnLogAsync;
         }
 
-        private void Init(IConfiguration config)
+        private void Init(Configuration config)
         {
-            var discordLog = config.GetSection("Log:LogToDiscord");
-            if (Convert.ToBoolean(discordLog["Enabled"]))
+            var logRoom = config.Log.LogRoomID;
+
+            if(!string.IsNullOrEmpty(logRoom))
             {
-                LogRoom = Convert.ToUInt64(discordLog["Room"]);
+                LogRoom = Convert.ToUInt64(logRoom);
             }
         }
 
@@ -66,7 +69,7 @@ namespace Grillbot.Services
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Init(newConfig);
+            // Init(newConfig); //TODO
         }
 
         private bool IsWebSocketException(Exception ex)

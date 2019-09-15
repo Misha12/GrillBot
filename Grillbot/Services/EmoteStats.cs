@@ -10,6 +10,7 @@ using Grillbot.Extensions;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services
@@ -18,13 +19,13 @@ namespace Grillbot.Services
     {
         public Dictionary<string, EmoteStat> Counter { get; private set; }
         public HashSet<string> Changes { get; private set; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
         private Timer DbSyncTimer { get; set; }
 
-        public EmoteStats(IConfiguration configuration)
+        public EmoteStats(Configuration configuration)
         {
-            ConfigChanged(configuration);
+            // ConfigChanged(configuration); // TODO
 
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
@@ -162,7 +163,7 @@ namespace Grillbot.Services
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Config = newConfig;
+            // Config = newConfig; // TODO
         }
 
         public void Dispose()

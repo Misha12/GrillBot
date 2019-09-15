@@ -11,8 +11,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Správa emotů")]
-    [DisabledCheck(RoleGroupName = "EmoteManager")]
-    [RequireRoleOrAdmin(RoleGroupName = "EmoteManager")]
+    [RequirePermissions("EmoteManager")]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }

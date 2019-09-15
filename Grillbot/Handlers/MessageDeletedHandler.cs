@@ -1,31 +1,31 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Handlers
 {
     public class MessageDeletedHandler : IConfigChangeable, IHandle
     {
         private Statistics Statistics { get; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IConfiguration config, Logger logger)
+        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IOptions<Configuration> config, Logger logger)
         {
             Client = client;
             Statistics = statistics;
             Logger = logger;
 
-            ConfigChanged(config);
+            //ConfigChanged(config.Value); TODO
 
             Client.MessageDeleted += OnMessageDeletedAsync;
             Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
@@ -46,7 +46,7 @@ namespace Grillbot.Handlers
                 if(message.Value is SocketUserMessage userMessage)
                 {
                     int argPos = 0;
-                    if (userMessage.HasStringPrefix(Config["CommandPrefix"], ref argPos)) return;
+                    if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos)) return;
                 }
 
                 if (message.Value.Author.IsBot || message.Value.Author.IsWebhook) return;
@@ -58,7 +58,8 @@ namespace Grillbot.Handlers
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Config = newConfig;
+            //TODO
+            //Config = newConfig;
         }
 
         public void Dispose()

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Services.Config.Models
 {
@@ -15,5 +16,9 @@ namespace Grillbot.Services.Config.Models
             AllowedUsers = new List<string>();
             BannedUsers = new List<string>();
         }
+
+        public bool IsUserAllowed(ulong userID) => AllowedUsers.Contains(userID.ToString());
+        public bool IsUserBanned(ulong userID) => BannedUsers.Contains(userID.ToString());
+        public bool IsRoleAllowed(string roleName) => RequiredRoles.Contains(roleName);
     }
 }

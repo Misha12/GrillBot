@@ -1,5 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
-using Microsoft.Extensions.Configuration;
+﻿using Grillbot.Services.Config.Models;
+using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Controllers
 {
@@ -7,17 +8,14 @@ namespace Grillbot.Controllers
     [ApiController]
     public class SettingsController : ControllerBase
     {
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
 
-        public SettingsController(IConfiguration config)
+        public SettingsController(IOptions<Configuration> config)
         {
-            Config = config;
+            Config = config.Value;
         }
 
         [HttpGet("[action]")]
-        public IActionResult GetCommandPrefix()
-        {
-            return Ok(new { CommandPrefix = Config["CommandPrefix"] });
-        }
+        public IActionResult GetCommandPrefix() => Ok(new { Config.CommandPrefix });
     }
 }

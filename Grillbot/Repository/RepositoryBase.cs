@@ -1,4 +1,4 @@
-﻿using Microsoft.Extensions.Configuration;
+﻿using Grillbot.Services.Config.Models;
 using System;
 
 namespace Grillbot.Repository
@@ -7,14 +7,12 @@ namespace Grillbot.Repository
     {
         protected GrillBotContext Context { get; set; }
 
-        protected RepositoryBase(IConfiguration config)
+        protected RepositoryBase(Configuration config)
         {
-            var connectionString = config["Database"];
-
-            if (string.IsNullOrEmpty(connectionString))
+            if (string.IsNullOrEmpty(config.Database))
                 throw new ArgumentException("Missing database connection string");
 
-            Context = new GrillBotContext(connectionString);
+            Context = new GrillBotContext(config.Database);
         }
 
         public void Dispose()

@@ -1,4 +1,7 @@
-﻿namespace Grillbot.Services.Config.Models
+﻿using Grillbot.Exceptions;
+using System;
+
+namespace Grillbot.Services.Config.Models
 {
     public class MethodsConfig
     {
@@ -11,5 +14,15 @@
         public MathConfig Math { get; set; }
         public AutoReplyConfig AutoReply { get; set; }
         public TeamSearchConfig TeamSearch { get; set; }
+
+        public PermissionsConfig GetPermissions(string section)
+        {
+            var property = GetType().GetProperty(section);
+
+            if (property == null)
+                throw new ConfigException($"Section {section} not found in config");
+
+            return ((MethodConfigBase)property.GetValue(this, null))?.Permissions;
+        }
     }
 }

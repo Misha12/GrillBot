@@ -10,8 +10,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Pozdrav bota")]
-    [DisabledCheck(RoleGroupName = "Greeting")]
-    [RequireRoleOrAdmin(RoleGroupName = "Greeting")]
+    [RequirePermissions("Greeting")]
     public class GreetModule : BotModuleBase
     {
         private IConfiguration Config { get; }

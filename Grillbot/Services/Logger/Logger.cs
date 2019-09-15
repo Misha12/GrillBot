@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
-using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -11,15 +12,15 @@ namespace Grillbot.Services.Logger
     public class Logger
     {
         private DiscordSocketClient Client { get; }
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
 
         public Dictionary<string, uint> Counters { get; }
 
-        public Logger(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache)
+        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache)
         {
             Client = client;
-            Config = config;
+            Config = config.Value;
             MessageCache = messageCache;
 
             Counters = new Dictionary<string, uint>();

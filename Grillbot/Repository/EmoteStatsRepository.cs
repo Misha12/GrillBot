@@ -1,16 +1,14 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Linq;
+﻿using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grillbot.Repository.Entity;
+using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Repository
 {
     public class EmoteStatsRepository : RepositoryBase
     {
-        public EmoteStatsRepository(IConfiguration config) : base(config)
+        public EmoteStatsRepository(Configuration config) : base(config)
         {
         }
 

@@ -2,7 +2,9 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +20,9 @@ namespace Grillbot.Services
         private int ReactLimit { get; set; }
         private SemaphoreSlim Semaphore { get; }
 
-        public EmoteChain(IConfiguration configuration)
+        public EmoteChain(IOptions<Configuration> configuration)
         {
-            ReactLimit = Convert.ToInt32(configuration["EmoteChain:CheckLastN"]);
+            ReactLimit = configuration.Value.EmoteChain_CheckLastCount;
             LastMessages = new Dictionary<ulong, List<Tuple<ulong, string>>>();
             Semaphore = new SemaphoreSlim(1, 1);
         }
@@ -107,6 +109,7 @@ namespace Grillbot.Services
 
         public void ConfigChanged(IConfiguration newConfig)
         {
+            //TODO
             Semaphore.Wait();
 
             try

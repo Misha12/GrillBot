@@ -1,14 +1,14 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
-using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class UserJoined : LoggerMethodBase
     {
-        public UserJoined(DiscordSocketClient client, IConfiguration config) : base(client, config, null)
+        public UserJoined(DiscordSocketClient client, Configuration config) : base(client, config, null)
         {
         }
 

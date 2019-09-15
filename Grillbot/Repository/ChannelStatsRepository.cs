@@ -2,14 +2,14 @@
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grillbot.Repository.Entity;
+using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Repository
 {
     public class ChannelStatsRepository : RepositoryBase
     {
-        public ChannelStatsRepository(IConfiguration config) : base(config)
+        public ChannelStatsRepository(Configuration config) : base(config)
         {
         }
 

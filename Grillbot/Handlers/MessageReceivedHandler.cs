@@ -11,6 +11,8 @@ using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using System.Linq;
 using Grillbot.Services.Config;
+using Microsoft.Extensions.Options;
+using Grillbot.Services.Config.Models;
 
 namespace Grillbot.Handlers
 {
@@ -23,9 +25,9 @@ namespace Grillbot.Handlers
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
 
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
 
-        public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IConfiguration config, IServiceProvider services,
+        public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
             Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain)
         {
             Client = client;
@@ -35,7 +37,8 @@ namespace Grillbot.Handlers
             AutoReply = autoReply;
             EmoteChain = emoteChain;
 
-            ConfigChanged(config);
+            //TODO
+            //ConfigChanged(config);
 
             Client.MessageReceived += OnMessageReceivedAsync;
         }
@@ -54,12 +57,11 @@ namespace Grillbot.Handlers
 
                 if (message.Channel is IPrivateChannel)
                 {
-                    var allowedAdmins = Config.GetSection($"Discord:Administrators").GetChildren().Select(o => o.Value).ToList();
-                    if (!allowedAdmins.Contains(userMessage.Author.Id.ToString())) return;
+                    if (!Config.Discord.IsUserBotAdmin(userMessage.Author.Id)) return;
                 }
 
                 int argPos = 0;
-                if (userMessage.HasStringPrefix(Config["CommandPrefix"], ref argPos))
+                if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos))
                 {
                     commandStopwatch.Start();
                     var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services);
@@ -103,7 +105,8 @@ namespace Grillbot.Handlers
 
         public void ConfigChanged(IConfiguration newConfig)
         {
-            Config = newConfig;
+            // TODO
+            //Config = newConfig;
         }
 
         public void Dispose()
