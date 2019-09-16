@@ -15,7 +15,6 @@ namespace Grillbot
         public static IWebHostBuilder CreateWebHostBuilder(string[] args)
         {
             return WebHost.CreateDefaultBuilder(args)
-                .ConfigureAppConfiguration((_, config) => config.AddJsonFile("appsettings.json", optional: false, reloadOnChange: true))
                 .UseStartup<AppStartup>()
                 .ConfigureLogging(o => o.SetMinimumLevel(LogLevel.Warning));
         }

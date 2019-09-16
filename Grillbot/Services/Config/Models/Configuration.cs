@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Grillbot.Extensions;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Grillbot.Services.Config.Models
@@ -24,5 +25,7 @@ namespace Grillbot.Services.Config.Models
         }
 
         public bool IsUserBotAdmin(ulong id) => Administrators.Any(o => o == id.ToString());
+
+        public string GetValue(string route) => this.GetPropertyValue(route)?.ToString();
     }
 }
