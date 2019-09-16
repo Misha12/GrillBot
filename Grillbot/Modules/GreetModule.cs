@@ -5,57 +5,52 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Name("Pozdrav bota")]
     [RequirePermissions("Greeting")]
     public class GreetModule : BotModuleBase
     {
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
 
-        public GreetModule(IConfiguration config)
+        public GreetModule(IOptions<Configuration> config)
         {
-            Config = config.GetSection("MethodsConfig:Greeting");
+            Config = config.Value;
         }
 
         [Command("grillhi"), Alias("hojkashi")]
-        public async Task GreetAsync()
-        {
-            await GreetAsync(Config["OutputMode"]);
-        }
+        public async Task GreetAsync() => await GreetAsync(Config.MethodsConfig.Greeting.OutputMode.ToString().ToLower());
 
         [Command("grillhi"), Alias("hojkashi")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         public async Task GreetAsync(string mode)
         {
-            var availableModes = new[] { "text", "bin", "hex" };
+            mode = char.ToUpper(mode[0]) + mode.Substring(1);
+            var availableModes = new[] { "Text", "Bin", "Hex" };
 
             if (!availableModes.Contains(mode)) return;
-            if (!(Context.Message.Author is SocketGuildUser sender)) return;
-            var messageTemplate = Config["Message"];
+            var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
 
-            var message = messageTemplate.Replace("{person}", GetUsersFullName(sender));
+            var message = messageTemplate.Replace("{person}", GetUsersFullName(Context.User));
+            var outputMode = Enum.Parse<GreetingOutputModes>(mode);
 
-            switch (mode)
+            switch (outputMode)
             {
-                case "bin":
+                case GreetingOutputModes.Bin:
                     message = ConvertToBinOrHexa(message, 2);
                     break;
-                case "hex":
+                case GreetingOutputModes.Hex:
                     message = ConvertToBinOrHexa(message, 16);
                     break;
-                case "text": // text
-                    message = messageTemplate.Replace("{person}", sender.Mention);
+                case GreetingOutputModes.Text:
+                    message = messageTemplate.Replace("{person}", Context.User.Mention);
                     break;
             }
 
-            var emoji = Context.Guild.Emotes.FirstOrDefault(o => o.Name == Config["AppendEmoji"]);
-            if (emoji != null)
-                await ReplyAsync($"{message} <:{emoji.Name}:{emoji.Id}>");
-            else
-                await ReplyAsync(message);
+            await ReplyAsync(message);
         }
 
         [Command("grillhi"), Alias("hojkashi")]
@@ -65,17 +60,12 @@ namespace Grillbot.Modules
             var supportedBases = new[] { 2, 8, 10, 16 };
 
             if (!supportedBases.Contains(@base)) return;
-            if (!(Context.Message.Author is SocketGuildUser sender)) return;
 
-            var messageTemplate = Config["Message"];
-            var message = messageTemplate.Replace("{person}", GetUsersFullName(sender));
+            var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
+            var message = messageTemplate.Replace("{person}", GetUsersFullName(Context.User));
             var converted = ConvertToBinOrHexa(message, @base);
 
-            var emoji = Context.Guild.Emotes.FirstOrDefault(o => o.Name == Config["AppendEmoji"]);
-            if (emoji != null)
-                await ReplyAsync($"{converted} <:{emoji.Name}:{emoji.Id}>");
-            else
-                await ReplyAsync(converted);
+            await ReplyAsync(converted);
         }
 
         private string ConvertToBinOrHexa(string message, int @base)
