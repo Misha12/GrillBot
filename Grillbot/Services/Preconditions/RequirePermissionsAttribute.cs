@@ -21,7 +21,7 @@ namespace Grillbot.Services.Preconditions
             var config = (IOptions<Configuration>)services.GetService(typeof(IOptions<Configuration>));
             var permissions = config.Value.MethodsConfig.GetPermissions(PermsGroupName);
 
-            if(config.Value.Discord.IsUserBotAdmin(context.User.Id))
+            if(config.Value.IsUserBotAdmin(context.User.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             if(context.User is SocketGuildUser user)

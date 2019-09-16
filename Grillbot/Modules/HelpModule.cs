@@ -160,7 +160,7 @@ namespace Grillbot.Modules
 
         private string GetBotBestPermissions(SocketUser user)
         {
-            if (Config.Discord.IsUserBotAdmin(user.Id))
+            if (Config.IsUserBotAdmin(user.Id))
                 return "BotAdmin";
 
             if (user is SocketGuildUser sgUser)

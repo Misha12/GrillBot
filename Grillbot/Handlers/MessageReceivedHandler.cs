@@ -54,7 +54,7 @@ namespace Grillbot.Handlers
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
 
-                if (message.Channel is IPrivateChannel && !Config.Discord.IsUserBotAdmin(userMessage.Author.Id)) return;
+                if (message.Channel is IPrivateChannel && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
 
                 int argPos = 0;
                 if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos))
