@@ -1,5 +1,4 @@
 ﻿using Grillbot.Exceptions;
-using System;
 
 namespace Grillbot.Services.Config.Models
 {
