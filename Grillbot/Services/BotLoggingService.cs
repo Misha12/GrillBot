@@ -11,6 +11,8 @@ using Discord.Net;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
+using System.IO;
+using Grillbot.Helpers;
 
 namespace Grillbot.Services
 {
@@ -100,6 +102,29 @@ namespace Grillbot.Services
         public async Task WriteToLogAsync(string message, string source = "BOT")
         {
             await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}");
+        }
+
+        public void SendConfigChangeInfo(string oldHash, string newHash)
+        {
+            var fileInfo = new FileInfo("appsettings.json");
+
+            var embed = new EmbedBuilder()
+            {
+                Color = Color.Gold,
+                Title = "Konfigurační soubor byl aktualizován"
+            };
+
+            embed
+                .AddField(o => o.WithIsInline(true).WithName("Starý hash").WithValue(oldHash))
+                .AddField(o => o.WithIsInline(true).WithName("Nový hash").WithValue(newHash))
+                .AddField(o => o.WithIsInline(true).WithName("Velikost").WithValue(FormatHelper.FormatAsSize(fileInfo.Length)))
+                .WithAuthor(Client.CurrentUser)
+                .WithCurrentTimestamp();
+
+            if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
+            {
+                channel.SendMessageAsync(embed: embed.Build()).GetAwaiter().GetResult();
+            }
         }
     }
 }

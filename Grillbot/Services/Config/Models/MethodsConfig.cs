@@ -1,4 +1,6 @@
 ﻿using Grillbot.Exceptions;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Services.Config.Models
 {
@@ -24,6 +26,44 @@ namespace Grillbot.Services.Config.Models
                 throw new ConfigException($"Section {section} not found in config");
 
             return ((MethodConfigBase)property.GetValue(this, null))?.Permissions;
+        }
+
+        public void SetPermissions(string section, string type, string value)
+        {
+            var permissions = GetPermissions(section);
+
+            switch(type)
+            {
+                case "AddUser":
+                    permissions.AllowedUsers.Add(value);
+                    break;
+                case "AddRole":
+                    permissions.RequiredRoles.Add(value);
+                    break;
+                case "RemoveUser":
+                    permissions.AllowedUsers.Remove(value);
+                    break;
+                case "BanUser":
+                    permissions.BannedUsers.Add(value);
+                    break;
+                case "UnbanUser":
+                    permissions.BannedUsers.Remove(value);
+                    break;
+                case "RemoveRole":
+                    permissions.RequiredRoles.Remove(value);
+                    break;
+                case "OnlyAdmins":
+                    if(bool.TryParse(value, out bool result))
+                    {
+                        permissions.OnlyAdmins = result;
+                    }
+                    break;
+            }
+        }
+
+        public List<string> GetPermissionNames()
+        {
+            return GetType().GetProperties().Select(o => $"- {o.Name}").ToList();
         }
     }
 }
