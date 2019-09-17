@@ -41,18 +41,11 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            if(message.HasValue)
-            {
-                if(message.Value is SocketUserMessage userMessage)
-                {
-                    int argPos = 0;
-                    if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos)) return;
-                }
+            if (message.HasValue && (message.Value.Author.IsBot || message.Value.Author.IsWebhook)) return;
 
-                if (message.Value.Author.IsBot || message.Value.Author.IsWebhook) return;
-            }
-
-            await Statistics.ChannelStats.DecrementCounterAsync(channel);
+            if (message.Value is SocketUserMessage)
+                await Statistics.ChannelStats.DecrementCounterAsync(channel);
+            
             await Logger.OnMessageDelete(message, channel);
         }
 

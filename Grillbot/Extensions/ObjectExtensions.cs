@@ -41,6 +41,9 @@ namespace Grillbot.Extensions
 
             var value = property.GetValue(obj, null);
 
+            if (value is string str)
+                return str;
+
             if (typeof(IEnumerable).IsAssignableFrom(property.PropertyType))
                 return string.Join(", ", (IEnumerable<string>)value);
 

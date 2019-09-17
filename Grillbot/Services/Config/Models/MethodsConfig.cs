@@ -63,7 +63,10 @@ namespace Grillbot.Services.Config.Models
 
         public List<string> GetPermissionNames()
         {
-            return GetType().GetProperties().Select(o => $"- {o.Name}").ToList();
+            return GetType()
+                .GetProperties()
+                .Select(o => $"- {o.Name} - {(GetPermissions(o.Name) != null ? "OK" : "Problem")}")
+                .ToList();
         }
     }
 }

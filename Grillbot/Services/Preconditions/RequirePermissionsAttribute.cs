@@ -21,15 +21,18 @@ namespace Grillbot.Services.Preconditions
             var config = (IOptions<Configuration>)services.GetService(typeof(IOptions<Configuration>));
             var permissions = config.Value.MethodsConfig.GetPermissions(PermsGroupName);
 
-            if(config.Value.IsUserBotAdmin(context.User.Id))
+            if (permissions == null)
+                return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat."));
+
+            if(config.Value.IsUserBotAdmin(context.Message.Author.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if(context.User is SocketGuildUser user)
+            if(context.Message.Author is SocketGuildUser user)
             {
-                if (permissions.IsUserAllowed(context.User.Id))
+                if (permissions.IsUserAllowed(user.Id))
                     return Task.FromResult(PreconditionResult.FromSuccess());
 
-                if (permissions.IsUserBanned(context.User.Id))
+                if (permissions.IsUserBanned(user.Id))
                     return Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít."));
 
                 foreach (var role in user.Roles)
