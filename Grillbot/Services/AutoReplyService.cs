@@ -3,7 +3,9 @@ using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +17,13 @@ namespace Grillbot.Modules
     {
         private List<AutoReplyItem> Data { get; set; }
         private BotLoggingService BotLogging { get; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
 
-        public AutoReplyService(IConfiguration configuration, BotLoggingService botLogging)
+        public AutoReplyService(IOptions<Configuration> configuration, BotLoggingService botLogging)
         {
             Data = new List<AutoReplyItem>();
             BotLogging = botLogging;
-            Config = configuration;
+            Config = configuration.Value;
 
             Init();
         }
@@ -50,7 +52,7 @@ namespace Grillbot.Modules
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             Config = newConfig;
             Init();

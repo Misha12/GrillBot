@@ -9,6 +9,10 @@ using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
+using System.IO;
+using Grillbot.Helpers;
 
 namespace Grillbot.Services
 {
@@ -19,21 +23,22 @@ namespace Grillbot.Services
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IConfiguration config)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config)
         {
             Client = client;
             Commands = commands;
-            Init(config);
+            Init(config.Value);
             Client.Log += OnLogAsync;
             Commands.Log += OnLogAsync;
         }
 
-        private void Init(IConfiguration config)
+        private void Init(Configuration config)
         {
-            var discordLog = config.GetSection("Log:LogToDiscord");
-            if (Convert.ToBoolean(discordLog["Enabled"]))
+            var logRoom = config.Log.LogRoomID;
+
+            if(!string.IsNullOrEmpty(logRoom))
             {
-                LogRoom = Convert.ToUInt64(discordLog["Room"]);
+                LogRoom = Convert.ToUInt64(logRoom);
             }
         }
 
@@ -64,7 +69,7 @@ namespace Grillbot.Services
             }
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             Init(newConfig);
         }
@@ -97,6 +102,29 @@ namespace Grillbot.Services
         public async Task WriteToLogAsync(string message, string source = "BOT")
         {
             await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}");
+        }
+
+        public void SendConfigChangeInfo(string oldHash, string newHash)
+        {
+            var fileInfo = new FileInfo("appsettings.json");
+
+            var embed = new EmbedBuilder()
+            {
+                Color = Color.Gold,
+                Title = "Konfigurační soubor byl aktualizován"
+            };
+
+            embed
+                .AddField(o => o.WithIsInline(true).WithName("Starý hash").WithValue(oldHash))
+                .AddField(o => o.WithIsInline(true).WithName("Nový hash").WithValue(newHash))
+                .AddField(o => o.WithIsInline(true).WithName("Velikost").WithValue(FormatHelper.FormatAsSize(fileInfo.Length)))
+                .WithAuthor(Client.CurrentUser)
+                .WithCurrentTimestamp();
+
+            if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
+            {
+                channel.SendMessageAsync(embed: embed.Build()).GetAwaiter().GetResult();
+            }
         }
     }
 }

@@ -5,6 +5,7 @@ using Grillbot.Handlers;
 using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
@@ -44,6 +45,9 @@ namespace Grillbot
 
             ActualConfigHash = GetConfigHash();
             ChangeToken.OnChange(() => Configuration.GetReloadToken(), OnConfigChange);
+
+            services.Configure<Configuration>(Configuration);
+            services.AddTransient<OptionsWriter>();
         }
 
         private void ConfigureDiscord(IServiceCollection services)
@@ -74,7 +78,7 @@ namespace Grillbot
                 .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
-                .AddSingleton<TeamSearchService>()
+                .AddTransient<TeamSearchService>()
                 .AddTransient<MathCalculator>();
 
             services
@@ -94,19 +98,19 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            var handlers = GetHandlers().ToArray();
+            var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
 
-            InitServices(ServiceProvider, new[] { typeof(BotLoggingService) });
-            InitServices(ServiceProvider, handlers);
+            var handlers = GetHandlers().ToArray();
+            InitServices(ServiceProvider, handlers, loggingService);
             serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
-        private void InitServices(IServiceProvider provider, Type[] services)
+        private void InitServices(IServiceProvider provider, Type[] services, BotLoggingService loggingService)
         {
             foreach(var service in services)
             {
                 provider.GetRequiredService(service);
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tService init: {service.Name}. DONE");
+                loggingService.WriteToLog($"Service {service.Name} initialized");
             }
         }
 
@@ -119,14 +123,20 @@ namespace Grillbot
                 var changeableTypes = Assembly.GetExecutingAssembly()
                     .GetTypes().Where(o => o.GetInterface(typeof(IConfigChangeable).FullName) != null);
 
+                var configurationInstance = Configuration.Get<Configuration>();
+                var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
+
                 foreach(var type in changeableTypes)
                 {
                     var service = (IConfigChangeable)ServiceProvider.GetService(type);
-                    service?.ConfigChanged(Configuration);
+                    service?.ConfigChanged(configurationInstance);
                 }
 
+                var oldHash = ActualConfigHash;
                 ActualConfigHash = newHash;
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tUpdated config.");
+
+                loggingService.WriteToLog($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
+                loggingService.SendConfigChangeInfo(Convert.ToBase64String(oldHash), Convert.ToBase64String(newHash));
             }
         }
 

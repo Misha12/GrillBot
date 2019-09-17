@@ -1,6 +1,6 @@
 ﻿using Grillbot.Repository.Entity;
+using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.Extensions.Configuration;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -9,7 +9,7 @@ namespace Grillbot.Repository
 {
     public class AutoReplyRepository : RepositoryBase
     {
-        public AutoReplyRepository(IConfiguration config) : base(config)
+        public AutoReplyRepository(Configuration config) : base(config)
         {
         }
 

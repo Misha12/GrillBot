@@ -17,8 +17,7 @@ namespace Grillbot.Modules
     [IgnorePM]
     [Group("hledam")]
     [Name("Hledání týmů")]
-    [DisabledCheck(RoleGroupName = "TeamSearch")]
-    [RequireRoleOrAdmin(RoleGroupName = "TeamSearch")]
+    [RequirePermissions("TeamSearch")]
     public class TeamSearchModule : BotModuleBase
     {
         private TeamSearchService Service { get; }

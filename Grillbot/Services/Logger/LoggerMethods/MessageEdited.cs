@@ -1,15 +1,15 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
-using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageEdited : LoggerMethodBase
     {
-        public MessageEdited(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache) : base(client, config, messageCache)
+        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache) : base(client, config, messageCache)
         {
         }
 

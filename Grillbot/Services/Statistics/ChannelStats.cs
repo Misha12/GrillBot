@@ -5,7 +5,9 @@ using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Repository;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,19 +22,21 @@ namespace Grillbot.Services.Statistics
         public const int TokenLength = 20;
 
         public Dictionary<ulong, long> Counter { get; private set; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private Timer DbSyncTimer { get; set; }
         private HashSet<ulong> Changes { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
         private List<ChannelboardWebToken> WebTokens { get; set; }
         private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
+        private BotLoggingService LoggingService { get; }
 
-        public ChannelStats(IConfiguration config)
+        public ChannelStats(Configuration config, BotLoggingService loggingService)
         {
             Counter = new Dictionary<ulong, long>();
             Changes = new HashSet<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
             LastMessagesAt = new Dictionary<ulong, DateTime>();
+            LoggingService = loggingService;
 
             Reload(config);
             Semaphore = new SemaphoreSlim(1, 1);
@@ -52,15 +56,15 @@ namespace Grillbot.Services.Statistics
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
 
             Reload(Config);
-            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics loaded from database. (Rows: {Counter.Count})");
+            LoggingService.WriteToLog($"Channel statistics loaded from database. (Rows: {Counter.Count})");
         }
 
-        private void Reload(IConfiguration config)
+        private void Reload(Configuration config)
         {
             Config = config;
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             Reload(newConfig);
         }
@@ -83,7 +87,7 @@ namespace Grillbot.Services.Statistics
                 }
 
                 Changes.Clear();
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tChannel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
+                LoggingService.WriteToLog($"Channel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
             }
             finally
             {
@@ -96,7 +100,7 @@ namespace Grillbot.Services.Statistics
             if (WebTokens.Count == 0) return;
 
             WebTokens.RemoveAll(o => !o.IsValid());
-            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCleared invalid web tokens.");
+            LoggingService.WriteToLog($"Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)
@@ -160,11 +164,9 @@ namespace Grillbot.Services.Statistics
 
         public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
         {
-            var config = Config.GetSection("MethodsConfig:Channelboard:Web");
-
-            var tokenValidFor = TimeSpan.FromMinutes(Convert.ToInt32(config["TokenValidMins"]));
+            var tokenValidFor = Config.MethodsConfig.Channelboard.GetTokenValidTime();
             var token = StringHelper.CreateRandomString(TokenLength);
-            var rawUrl = config["Url"];
+            var rawUrl = Config.MethodsConfig.Channelboard.WebUrl;
 
             var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
             WebTokens.Add(webToken);

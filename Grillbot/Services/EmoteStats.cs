@@ -10,6 +10,7 @@ using Grillbot.Extensions;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services
@@ -18,17 +19,20 @@ namespace Grillbot.Services
     {
         public Dictionary<string, EmoteStat> Counter { get; private set; }
         public HashSet<string> Changes { get; private set; }
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
         private SemaphoreSlim Semaphore { get; set; }
         private Timer DbSyncTimer { get; set; }
+        private BotLoggingService LoggingService { get; }
 
-        public EmoteStats(IConfiguration configuration)
+        public EmoteStats(Configuration configuration, BotLoggingService loggingService)
         {
             ConfigChanged(configuration);
 
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
             Semaphore = new SemaphoreSlim(1, 1);
+
+            LoggingService = loggingService;
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
@@ -41,7 +45,7 @@ namespace Grillbot.Services
                 Counter = repository.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
             }
 
-            Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tEmote statistics loaded from database. (Rows: {Counter.Count})");
+            LoggingService.WriteToLog($"Emote statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void SyncTimerCallback(object _)
@@ -59,7 +63,7 @@ namespace Grillbot.Services
                 }
 
                 Changes.Clear();
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tEmote statistics was synchronized with database. (Updated {changedData.Count} records)");
+                LoggingService.WriteToLog($"Emote statistics was synchronized with database. (Updated {changedData.Count} records)");
             }
             finally
             {
@@ -160,7 +164,7 @@ namespace Grillbot.Services
                 .ToList();
         }
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             Config = newConfig;
         }

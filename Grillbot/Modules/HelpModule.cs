@@ -8,30 +8,30 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
     [Group("grillhelp")]
     [Name("Nápověda")]
-    [DisabledCheck(RoleGroupName = "Help")]
-    [RequireRoleOrAdmin(RoleGroupName = "Help")]
+    [RequirePermissions("Help")]
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
         private IServiceProvider Services { get; }
 
-        public HelpModule(CommandService commandService, IConfiguration config, IServiceProvider services)
+        public HelpModule(CommandService commandService, IOptions<Configuration> config, IServiceProvider services)
         {
             CommandService = commandService;
-            Config = config;
+            Config = config.Value;
             Services = services;
         }
 
         [Command("")]
         public async Task HelpAsync()
         {
-            var commandPrefix = Config["CommandPrefix"];
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
             var embedFields = new List<EmbedFieldBuilder>();
@@ -46,7 +46,7 @@ namespace Grillbot.Modules
 
                     if (result.IsSuccess)
                     {
-                        descBuilder.Append(commandPrefix);
+                        descBuilder.Append(Config.CommandPrefix);
 
                         if (!string.IsNullOrEmpty(module.Group))
                             descBuilder.Append(module.Group).Append(' ');
@@ -160,12 +160,10 @@ namespace Grillbot.Modules
 
         private string GetBotBestPermissions(SocketUser user)
         {
-            var serverAdmins = Config.GetSection("Discord:Administrators").GetChildren().Select(o => Convert.ToUInt64(o.Value));
-
-            if (serverAdmins.Any(o => o == user.Id))
+            if (Config.IsUserBotAdmin(user.Id))
                 return "BotAdmin";
 
-            if(user is SocketGuildUser sgUser)
+            if (user is SocketGuildUser sgUser)
             {
                 return sgUser.Roles.FirstOrDefault(o => o.Position == sgUser.Roles.Max(x => x.Position)).Name;
             }

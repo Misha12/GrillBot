@@ -1,6 +1,7 @@
 using Discord.Commands;
 using Grillbot.Repository;
-using Microsoft.Extensions.Configuration;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;
 
@@ -8,12 +9,12 @@ namespace Grillbot.Services
 {
     public class TeamSearchService : IDisposable
     {
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
         public TeamSearchRepository Repository { get; }
 
-        public TeamSearchService(IConfiguration config)
+        public TeamSearchService(IOptions<Configuration> config)
         {
-            Config = config;
+            Config = config.Value;
             Repository = new TeamSearchRepository(Config);
         }
 
@@ -22,7 +23,7 @@ namespace Grillbot.Services
             await Repository.AddSearchAsync(context.User.Id, context.Channel.Id, context.Message.Id);
         }
 
-        public ulong GetGeneralChannelID() => Convert.ToUInt64(Config["MethodsConfig:TeamSearch:GeneralID"]);
+        public ulong GetGeneralChannelID() => Config.MethodsConfig.TeamSearch.GeneralCategoryID;
 
         public void Dispose()
         {

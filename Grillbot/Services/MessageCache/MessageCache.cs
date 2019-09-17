@@ -12,11 +12,13 @@ namespace Grillbot.Services.MessageCache
     {
         private Dictionary<ulong, IMessage> Data { get; set; }
         private DiscordSocketClient Client { get; }
+        private BotLoggingService LoggingService { get; }
 
-        public MessageCache(DiscordSocketClient client)
+        public MessageCache(DiscordSocketClient client, BotLoggingService loggingService)
         {
             Data = new Dictionary<ulong, IMessage>();
             Client = client;
+            LoggingService = loggingService;
         }
 
         public async Task InitAsync()
@@ -30,7 +32,7 @@ namespace Grillbot.Services.MessageCache
             foreach (var channel in textChannels)
             {
                 await InitChannel(channel, options);
-                Thread.Sleep(1000);
+                Thread.Sleep(900);
             }
         }
 
@@ -50,7 +52,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                Console.WriteLine($"{DateTime.Now.ToLongTimeString()} BOT\tCannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
+                LoggingService.WriteToLog($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
             }
         }
 

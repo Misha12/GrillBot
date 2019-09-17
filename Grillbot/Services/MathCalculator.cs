@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Models;
-using Microsoft.Extensions.Configuration;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Diagnostics;
@@ -9,11 +10,11 @@ namespace Grillbot.Services
 {
     public class MathCalculator
     {
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
 
-        public MathCalculator(IConfiguration config)
+        public MathCalculator(IOptions<Configuration> config)
         {
-            Config = config;
+            Config = config.Value;
         }
 
         public MathCalcResult Solve(string input, SocketUserMessage message)
@@ -24,8 +25,8 @@ namespace Grillbot.Services
             if (input.Contains("nan", StringComparison.InvariantCultureIgnoreCase))
                 return new MathCalcResult(message?.Author.Mention, "Toho bys asi chtěl moc.");
 
-            var appPath = Config["MethodsConfig:Math:ProcessPath"];
-            var calcTime = Convert.ToInt32(Config["MethodsConfig:Math:ComputingTime"]);
+            var appPath = Config.MethodsConfig.Math.ProcessPath;
+            var calcTime = Config.MethodsConfig.Math.ComputingTime;
 
             using (var process = new Process())
             {

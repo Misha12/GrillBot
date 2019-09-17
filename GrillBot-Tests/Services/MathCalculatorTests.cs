@@ -1,4 +1,6 @@
 ﻿using Grillbot.Services;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
 namespace GrillBot_Tests.Services
@@ -9,7 +11,8 @@ namespace GrillBot_Tests.Services
         [TestMethod]
         public void Solve_MissingExpressionData()
         {
-            var calculator = new MathCalculator(null);
+            var options = Options.Create(new Configuration());
+            var calculator = new MathCalculator(options);
 
             var result = calculator.Solve("", null);
 
@@ -19,7 +22,8 @@ namespace GrillBot_Tests.Services
         [TestMethod]
         public void Solve_NotANumber()
         {
-            var calculator = new MathCalculator(null);
+            var options = Options.Create(new Configuration());
+            var calculator = new MathCalculator(options);
 
             var result = calculator.Solve("nan", null);
 

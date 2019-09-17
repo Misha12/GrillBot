@@ -1,25 +1,24 @@
 ﻿using Discord.Commands;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.Config.Models;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Nudes a další zajímavé fotky")]
-    [DisabledCheck(RoleGroupName = "Images")]
-    [RequireRoleOrAdmin(RoleGroupName = "Images")]
+    [RequirePermissions("MemeImages")]
     public class ImageModule : BotModuleBase
     {
-        private IConfiguration Config { get; }
+        private Configuration Config { get; }
 
-        public ImageModule(IConfiguration configuration)
+        public ImageModule(IOptions<Configuration> configuration)
         {
-            Config = configuration;
+            Config = configuration.Value;
         }
 
         [Command("nudes")]
@@ -30,11 +29,20 @@ namespace Grillbot.Modules
 
         private async Task SendAsync(string category)
         {
-            var config = Config.GetSection("MethodsConfig:Images");
+            var config = Config.MethodsConfig.MemeImages;
 
-            var files = Directory.GetFiles(config[$"{category}DataPath"])
-                .Where(o => config.GetSection("AllowedImageTypes").GetChildren().Any(x => x.Value == Path.GetExtension(o)))
-                .ToList();
+            var path = "";
+            switch(category)
+            {
+                case "Nudes":
+                    path = config.NudesDataPath;
+                    break;
+                case "NotNudes":
+                    path = config.NotNudesDataPath;
+                    break;
+            }
+
+            var files = Directory.GetFiles(path).Where(o => config.AllowedImageTypes.Any(x => x == Path.GetExtension(o))).ToList();
 
             if (files.Any())
             {

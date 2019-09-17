@@ -11,8 +11,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Channel leaderboards")]
-    [DisabledCheck(RoleGroupName = "Channelboard")]
-    [RequireRoleOrAdmin(RoleGroupName = "Channelboard")]
+    [RequirePermissions("Channelboard")]
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }

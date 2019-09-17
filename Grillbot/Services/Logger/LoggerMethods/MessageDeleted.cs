@@ -1,12 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.IO;
 using System.Linq;
 using System.Net;
@@ -17,7 +16,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageDeleted : LoggerMethodBase
     {
-        public MessageDeleted(DiscordSocketClient client, IConfiguration config, IMessageCache messageCache) : base(client, config, messageCache)
+        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache) : base(client, config, messageCache)
         {
         }
 

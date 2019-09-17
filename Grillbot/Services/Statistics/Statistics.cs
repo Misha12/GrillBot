@@ -1,12 +1,11 @@
 ﻿using Grillbot.Models;
 using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Hosting;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
-using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
 {
@@ -17,14 +16,14 @@ namespace Grillbot.Services.Statistics
         public ChannelStats ChannelStats { get; }
         public EmoteStats EmoteStats { get; }
 
-        private IConfiguration Config { get; set; }
+        private Configuration Config { get; set; }
 
-        public Statistics(IConfiguration configuration)
+        public Statistics(IOptions<Configuration> configuration, BotLoggingService loggingService)
         {
             Data = new Dictionary<string, StatisticsData>();
-            ChannelStats = new ChannelStats(configuration);
-            EmoteStats = new EmoteStats(configuration);
-            Config = configuration;
+            ChannelStats = new ChannelStats(configuration.Value, loggingService);
+            EmoteStats = new EmoteStats(configuration.Value, loggingService);
+            Config = configuration.Value;
         }
 
         public void Init()
@@ -35,7 +34,7 @@ namespace Grillbot.Services.Statistics
 
         public void LogCall(string command, long elapsedTime)
         {
-            if (command.StartsWith(Config["CommandPrefix"]))
+            if (command.StartsWith(Config.CommandPrefix))
                 command = command.Substring(1);
 
             if (!Data.ContainsKey(command))
@@ -59,7 +58,7 @@ namespace Grillbot.Services.Statistics
 
         public TimeSpan GetAvgReactTime() => TimeSpan.FromMilliseconds(AvgReactTime);
 
-        public void ConfigChanged(IConfiguration newConfig)
+        public void ConfigChanged(Configuration newConfig)
         {
             ChannelStats.ConfigChanged(newConfig);
             Config = newConfig;

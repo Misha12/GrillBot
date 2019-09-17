@@ -8,8 +8,7 @@ namespace Grillbot.Modules
 {
     [Group("autoreply")]
     [Name("Ovládání automatických odpovědí")]
-    [DisabledCheck(RoleGroupName = "AutoReplyConfig")]
-    [RequireRoleOrAdmin(RoleGroupName = "AutoReplyConfig")]
+    [RequirePermissions("AutoReply")]
     public class AutoReplyModule : BotModuleBase
     {
         private AutoReplyService Service { get; }

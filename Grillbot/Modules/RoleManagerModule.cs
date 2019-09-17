@@ -11,8 +11,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Správa rolí")]
-    [DisabledCheck(RoleGroupName = "RoleManager")]
-    [RequireRoleOrAdmin(RoleGroupName = "RoleManager")]
+    [RequirePermissions("RoleManager")]
     public class RoleManagerModule : BotModuleBase
     {
         public async Task GetCompleteRoleListAsync()

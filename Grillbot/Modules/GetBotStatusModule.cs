@@ -13,8 +13,7 @@ using Grillbot.Services.Logger;
 namespace Grillbot.Modules
 {
     [Name("Stav bota")]
-    [DisabledCheck(RoleGroupName = "GrillStatus")]
-    [RequireRoleOrAdmin(RoleGroupName = "GrillStatus")]
+    [RequirePermissions("GrillStatus")]
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
