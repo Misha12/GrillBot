@@ -128,7 +128,7 @@ namespace Grillbot.Modules
             
             var appearence = new PaginatedAppearanceOptions();
             
-            var pages = stringBuilder.ToString().SplitByLength(maxPageSize);
+            var pages = stringBuilder.ToString().SplitInParts(maxPageSize);
             var pagedMessage = new PaginatedMessage()
                 {Pages = pages, Color = Color.Blue, Title = title};
             await PagedReplyAsync(pagedMessage);
