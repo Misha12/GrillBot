@@ -20,6 +20,7 @@ using System.IO;
 using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
+using Discord.Addons.Interactive;
 
 namespace Grillbot
 {
@@ -78,6 +79,7 @@ namespace Grillbot
                 .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
+                .AddSingleton<InteractiveService>()
                 .AddTransient<TeamSearchService>()
                 .AddTransient<MathCalculator>();
 

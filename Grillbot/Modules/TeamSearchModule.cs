@@ -2,23 +2,25 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Repository.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
-
+using Grillbot.Extensions;
 namespace Grillbot.Modules
 {
     [IgnorePM]
     [Group("hledam")]
     [Name("Hledání týmů")]
     [RequirePermissions("TeamSearch")]
-    public class TeamSearchModule : BotModuleBase
+    public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }
 
@@ -26,12 +28,13 @@ namespace Grillbot.Modules
         {
             Service = service;
         }
-
+        
         [Command("add")]
         [Summary("Přidá zprávu o hledání.")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
         {
+            
             try
             {
                 await Service.AddSearchAsync(Context);
@@ -50,7 +53,7 @@ namespace Grillbot.Modules
         {
             ulong channelId = Context.Channel.Id;
         
-            ulong generalCategoryId = Service.GetGeneralChannelID();
+            ulong generalCategoryId = Service.GetGeneralCategoryID();
             var category = (Context.Channel as SocketTextChannel)?.Category?.Id;
             
             // for now returning if the channel isn't categorized
@@ -59,15 +62,19 @@ namespace Grillbot.Modules
 
             var query = Service.Repository.GetAllSearches();
 
+            bool isMisc;
+            
             List<TeamSearch> searches;
             if (category == generalCategoryId)
             {
                 var queryData = await query.ToListAsync();
-                searches = queryData.Where(o => GetTextChannel(o.ChannelId)?.CategoryId == generalCategoryId).ToList();
+                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId).ToList();
+                isMisc = true;
             }
             else
             {
                 searches = query.Where(x => x.ChannelId == channelId.ToString()).ToList();
+                isMisc = false;
             }
                 
             if (searches.Count == 0)
@@ -111,16 +118,20 @@ namespace Grillbot.Modules
                 await ReplyAsync("Zatím nikdo nic nehledá.");
                 return;
             }
-
-            var botUser = Context.Client.CurrentUser;
-            var builder = new EmbedBuilder()
-                .WithColor(Color.Blue)
-                .WithTitle($"Hledání v {Context.Channel.Name}")
-                .WithDescription(description)
-                .WithCurrentTimestamp()
-                .WithFooter(botUser.Username, botUser.GetAvatarUrl());
-
-            await ReplyAsync(embed: builder.Build());
+            
+            // hardcoded var TODO
+            var maxPageSize = 2048;
+            
+            string title;
+            if (isMisc) title = "Hledání různě mimo předmětové roomky";
+            else title = $"Hledání v {Context.Channel.Name}";
+            
+            var appearence = new PaginatedAppearanceOptions();
+            
+            var pages = stringBuilder.ToString().SplitByLength(maxPageSize);
+            var pagedMessage = new PaginatedMessage()
+                {Pages = pages, Color = Color.Blue, Title = title};
+            await PagedReplyAsync(pagedMessage);
         }
 
         [Command("remove")]
