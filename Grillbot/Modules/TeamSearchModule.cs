@@ -103,7 +103,7 @@ namespace Grillbot.Modules
                 if (message == null)
                 {
                     // If message was deleted, remove it from Db
-                    await Service.Repository.RemoveSearch(search.Id);
+                    await Service.Repository.RemoveSearchAsync(search.Id);
                     continue;
                 }
 
@@ -175,7 +175,7 @@ namespace Grillbot.Modules
 
             if (userId == Context.User.Id)
             {
-                await Service.Repository.RemoveSearch(rowId);
+                await Service.Repository.RemoveSearchAsync(rowId);
                 await Context.Message.AddReactionAsync(new Emoji("✅"));
             }
             else

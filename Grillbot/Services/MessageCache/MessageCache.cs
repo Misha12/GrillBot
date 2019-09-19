@@ -86,6 +86,10 @@ namespace Grillbot.Services.MessageCache
                 return null;
 
             var message = await channel.GetMessageAsync(messageID);
+
+            if (message == null)
+                return null;
+
             Data.Add(message.Id, message);
 
             return message;
