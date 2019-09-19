@@ -24,8 +24,10 @@ namespace Grillbot.Modules
     public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }
-        private readonly uint MaxPageSize = 2048;
-        private readonly uint MaxSearchSize = 1900;
+
+        private const uint MaxPageSize = 2048;
+        private const uint MaxSearchSize = 1900;
+
         public TeamSearchModule(TeamSearchService service)
         {
             Service = service;
@@ -70,8 +72,6 @@ namespace Grillbot.Modules
             var query = Service.Repository.GetAllSearches();
             bool isMisc = category == generalCategoryId;
 
-            bool isMisc;
-            
             List<TeamSearch> searches;
             if (isMisc)
             {
@@ -139,10 +139,6 @@ namespace Grillbot.Modules
                 return;
             }
             
-            // hardcoded var TODO
-            var maxPageSize = 2048;
-
-            var pages = stringBuilder.ToString().SplitInParts(maxPageSize);
             var pagedMessage = new PaginatedMessage()
             {
                 Pages = pages,
