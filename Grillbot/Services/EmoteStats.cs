@@ -11,7 +11,6 @@ using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
-using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services
 {
@@ -156,12 +155,23 @@ namespace Grillbot.Services
             return !Counter.ContainsKey(emoteId) ? null : Counter[emoteId];
         }
 
-        public List<EmoteStat> GetAllValues()
+        public List<EmoteStat> GetAllValues(bool descOrder)
         {
-            return Counter.Values
-                .OrderByDescending(o => o.Count)
-                .ThenByDescending(o => o.LastOccuredAt)
-                .ToList();
+            IOrderedEnumerable<EmoteStat> ordered;
+            if(descOrder)
+            {
+                ordered = Counter.Values
+                    .OrderByDescending(o => o.Count)
+                    .ThenByDescending(o => o.LastOccuredAt);
+            }
+            else
+            {
+                ordered = Counter.Values
+                    .OrderBy(o => o.Count)
+                    .ThenBy(o => o.LastOccuredAt);
+            }
+
+            return ordered.ToList();
         }
 
         public void ConfigChanged(Configuration newConfig)
