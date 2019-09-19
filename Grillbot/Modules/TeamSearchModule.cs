@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -14,6 +13,7 @@ using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Extensions;
+
 namespace Grillbot.Modules
 {
     [IgnorePM]
@@ -61,18 +61,18 @@ namespace Grillbot.Modules
                 return;
 
             var query = Service.Repository.GetAllSearches();
-
             bool isMisc = category == generalCategoryId;
 
             List<TeamSearch> searches;
             if (isMisc)
             {
                 var queryData = await query.ToListAsync();
-                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId).ToList();
+                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
+                    .ToList();
             }
             else
             {
-                searches = query.Where(x => x.ChannelId == channelId.ToString()).ToList();
+                searches = await query.Where(x => x.ChannelId == channelId.ToString()).ToListAsync();
             }
 
             if (searches.Count == 0)
@@ -85,10 +85,10 @@ namespace Grillbot.Modules
             foreach (var search in searches)
             {
                 // Trying to get the message and checking if it was deleted
-                if (!(Context.Guild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
+                if (!(Context.Guild.GetChannel(Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
                     continue;
 
-                var message = await channel.GetMessageAsync(Convert.ToUInt64(search.MessageId));
+                var message = await Service.GetMessageAsync(channel.Id, Convert.ToUInt64(search.MessageId));
                 if (message == null)
                 {
                     // If message was deleted, remove it from Db
@@ -97,15 +97,12 @@ namespace Grillbot.Modules
                 }
 
                 var user = Context.Guild.Users.FirstOrDefault(o => o.Id == message.Author.Id);
-
                 if (user != null)
                 {
                     // removes the "!hledam add"
                     string messageContent = message.Content.Remove(0, 12);
 
-                    stringBuilder.AppendLine(
-                        $"ID: **{search.Id}** - **{Context.Guild.GetUser(Convert.ToUInt64(search.UserId)).Mention}** v" +
-                        $" **{channel.Name}** hledá : \"{messageContent}\"");
+                    stringBuilder.AppendLine($"ID: **{search.Id}** - **{user.Mention}** v **{channel.Name}** hledá : \"{messageContent}\"");
                 }
             }
 
@@ -120,12 +117,15 @@ namespace Grillbot.Modules
             // hardcoded var TODO
             var maxPageSize = 2048;
 
-            string title;
-            if (isMisc) title = "Hledání různě mimo předmětové roomky";
-            else title = $"Hledání v {Context.Channel.Name}";
-
             var pages = stringBuilder.ToString().SplitInParts(maxPageSize);
-            var pagedMessage = new PaginatedMessage() { Pages = pages, Color = Color.Blue, Title = title };
+            var pagedMessage = new PaginatedMessage()
+            {
+                Pages = pages,
+                Color = Color.Blue,
+                Title = isMisc ? "Hledání různě mimo předmětové roomky" : $"Hledání v {Context.Channel.Name}",
+                Options = new PaginatedAppearanceOptions() { DisplayInformationIcon = false }
+            };
+
             await PagedReplyAsync(pagedMessage);
         }
 

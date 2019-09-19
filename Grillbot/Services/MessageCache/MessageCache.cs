@@ -77,6 +77,20 @@ namespace Grillbot.Services.MessageCache
             return Data.TryGetValue(id, out IMessage message) ? message : null;
         }
 
+        public async Task<IMessage> GetAsync(ulong channelID, ulong messageID)
+        {
+            if (Exists(messageID))
+                return Get(messageID);
+
+            if (!(Client.GetChannel(channelID) is ISocketMessageChannel channel))
+                return null;
+
+            var message = await channel.GetMessageAsync(messageID);
+            Data.Add(message.Id, message);
+
+            return message;
+        }
+
         public void Update(IMessage message)
         {
             if (!Exists(message.Id)) return;
