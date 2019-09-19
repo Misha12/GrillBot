@@ -23,7 +23,7 @@ namespace Grillbot.Services
             await Repository.AddSearchAsync(context.User.Id, context.Channel.Id, context.Message.Id);
         }
 
-        public ulong GetGeneralChannelID() => Config.MethodsConfig.TeamSearch.GeneralCategoryID;
+        public ulong GetGeneralCategoryID() => Config.MethodsConfig.TeamSearch.GeneralCategoryID;
 
         public void Dispose()
         {
