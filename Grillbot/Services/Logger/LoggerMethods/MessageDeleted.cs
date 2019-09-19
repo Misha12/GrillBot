@@ -38,7 +38,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private async Task ProcessWithoutCacheRecordAsync(ulong messageId, ISocketMessageChannel channel)
         {
-            var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla odeslána.", LogEmbedType.MessageDeleted);
+            var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla smazána.", LogEmbedType.MessageDeleted);
 
             logEmbedBuilder
                 .SetTimestamp(true)
