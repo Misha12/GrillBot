@@ -14,12 +14,13 @@ using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Extensions;
+
 namespace Grillbot.Modules
 {
     [IgnorePM]
     [Group("hledam")]
     [Name("Hledání týmů")]
-//    [RequirePermissions("TeamSearch")]
+    [RequirePermissions("TeamSearch")]
     public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }
@@ -35,7 +36,6 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
         {
-
             if (messageToAdd.Length > MaxSearchSize)
             {
                 await ReplyAsync("Zpráva je příliš dlouhá.");
@@ -59,61 +59,59 @@ namespace Grillbot.Modules
         public async Task TeamSearchInfoAsync()
         {
             ulong channelId = Context.Channel.Id;
-        
+
             ulong generalCategoryId = Service.GetGeneralCategoryID();
             var category = (Context.Channel as SocketTextChannel)?.Category?.Id;
-            
+
             // for now returning if the channel isn't categorized
             if (category == null)
                 return;
 
             var query = Service.Repository.GetAllSearches();
+            bool isMisc = category == generalCategoryId;
 
             bool isMisc;
             
             List<TeamSearch> searches;
-            if (category == generalCategoryId)
+            if (isMisc)
             {
                 var queryData = await query.ToListAsync();
-                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId).ToList();
-                isMisc = true;
+                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
+                    .ToList();
             }
             else
             {
-                searches = query.Where(x => x.ChannelId == channelId.ToString()).ToList();
-                isMisc = false;
+                searches = await query.Where(x => x.ChannelId == channelId.ToString()).ToListAsync();
             }
-                
+
             if (searches.Count == 0)
             {
                 await ReplyAsync("Zatím nikdo nic nehledá.");
                 return;
             }
-            
+
             var pages = new List<string>();
             var stringBuilder = new StringBuilder();
             
             foreach (var search in searches)
             {
                 // Trying to get the message and checking if it was deleted
-                if (!(Context.Guild.Channels.FirstOrDefault(x => x.Id == Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
+                if (!(Context.Guild.GetChannel(Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
                     continue;
 
-                var message = await channel.GetMessageAsync(Convert.ToUInt64(search.MessageId));
+                var message = await Service.GetMessageAsync(channel.Id, Convert.ToUInt64(search.MessageId));
                 if (message == null)
-                { 
+                {
                     // If message was deleted, remove it from Db
                     await Service.Repository.RemoveSearch(search.Id);
                     continue;
                 }
 
                 var user = Context.Guild.Users.FirstOrDefault(o => o.Id == message.Author.Id);
-
                 if (user != null)
                 {
                     // removes the "!hledam add"
                     string messageContent = message.Content.Remove(0, 12);
-
 
                     string userName = user.Nickname ?? user.Username;
                     
@@ -127,6 +125,7 @@ namespace Grillbot.Modules
                         pages.Add(stringBuilder.ToString());
                         stringBuilder.Clear();
                     }
+                    
                     stringBuilder.AppendLine(mess);
                 }
             }
@@ -140,12 +139,18 @@ namespace Grillbot.Modules
                 return;
             }
             
-            string title;
-            if (isMisc) title = "Hledání různě mimo předmětové roomky";
-            else title = $"Hledání v {Context.Channel.Name}";
-            
+            // hardcoded var TODO
+            var maxPageSize = 2048;
+
+            var pages = stringBuilder.ToString().SplitInParts(maxPageSize);
             var pagedMessage = new PaginatedMessage()
-                {Pages = pages, Color = Color.Blue, Title = title};
+            {
+                Pages = pages,
+                Color = Color.Blue,
+                Title = isMisc ? "Hledání různě mimo předmětové roomky" : $"Hledání v {Context.Channel.Name}",
+                Options = new PaginatedAppearanceOptions() { DisplayInformationIcon = false }
+            };
+
             await PagedReplyAsync(pagedMessage);
         }
 
