@@ -19,11 +19,12 @@ namespace Grillbot.Modules
     [IgnorePM]
     [Group("hledam")]
     [Name("Hledání týmů")]
-    [RequirePermissions("TeamSearch")]
+//    [RequirePermissions("TeamSearch")]
     public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }
-
+        private readonly uint MaxPageSize = 2048;
+        private readonly uint MaxSearchSize = 1900;
         public TeamSearchModule(TeamSearchService service)
         {
             Service = service;
@@ -34,6 +35,12 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
         {
+
+            if (messageToAdd.Length > MaxSearchSize)
+            {
+                await ReplyAsync("Zpráva je příliš dlouhá.");
+                return;
+            }
             
             try
             {
@@ -82,8 +89,10 @@ namespace Grillbot.Modules
                 await ReplyAsync("Zatím nikdo nic nehledá.");
                 return;
             }
-    
+            
+            var pages = new List<string>();
             var stringBuilder = new StringBuilder();
+            
             foreach (var search in searches)
             {
                 // Trying to get the message and checking if it was deleted
@@ -104,31 +113,37 @@ namespace Grillbot.Modules
                 {
                     // removes the "!hledam add"
                     string messageContent = message.Content.Remove(0, 12);
+
+
+                    string userName = user.Nickname ?? user.Username;
                     
-                    stringBuilder.AppendLine(
-                        $"ID: **{search.Id}** - **{Context.Guild.GetUser(Convert.ToUInt64(search.UserId)).Mention}** v" +
-                        $" **{channel.Name}** hledá : \"{messageContent}\"");
+                    string mess =
+                        $"ID: **{search.Id}** - **{userName}** v" +
+                        $" **{channel.Name}** hledá : \"{messageContent}\" [Jump]({message.GetJumpUrl()})";
+                    
+                    // So the message doesnt overlap across several pages, that limits the message size, but that shouldn't be an issue
+                    if (stringBuilder.Length + mess.Length > MaxPageSize)
+                    {
+                        pages.Add(stringBuilder.ToString());
+                        stringBuilder.Clear();
+                    }
+                    stringBuilder.AppendLine(mess);
                 }
             }
 
+            if(stringBuilder.Length != 0) pages.Add(stringBuilder.ToString());
+            
             // if after filters there are no searches don't print empty embed
-            var description = stringBuilder.ToString();
-            if (string.IsNullOrEmpty(description))
+            if (pages.Count == 0)
             {
                 await ReplyAsync("Zatím nikdo nic nehledá.");
                 return;
             }
             
-            // hardcoded var TODO
-            var maxPageSize = 2048;
-            
             string title;
             if (isMisc) title = "Hledání různě mimo předmětové roomky";
             else title = $"Hledání v {Context.Channel.Name}";
             
-            var appearence = new PaginatedAppearanceOptions();
-            
-            var pages = stringBuilder.ToString().SplitInParts(maxPageSize);
             var pagedMessage = new PaginatedMessage()
                 {Pages = pages, Color = Color.Blue, Title = title};
             await PagedReplyAsync(pagedMessage);
