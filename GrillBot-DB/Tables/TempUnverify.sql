@@ -1,0 +1,8 @@
+﻿CREATE TABLE [dbo].[TempUnverify]
+(
+	[ID] INT NOT NULL PRIMARY KEY IDENTITY(1,1),
+	[UserID] VARCHAR(30) NOT NULL,
+	[TimeFor] BIGINT NOT NULL,
+	[StartAt] DATETIME NOT NULL,
+	[RolesToReturn] XML NOT NULL
+)
