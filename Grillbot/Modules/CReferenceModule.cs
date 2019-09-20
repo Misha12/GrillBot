@@ -10,7 +10,7 @@ namespace Grillbot.Modules
 {
     [IgnorePM]
     [Name("Hledani dokumentace")]
-//    [RequirePermissions("CReference")]
+    [RequirePermissions("CReference")]
     public class CReferenceModule : BotModuleBase
     {
         private CReferenceService Service { get; }
