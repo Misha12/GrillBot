@@ -28,5 +28,14 @@ namespace Grillbot.Extensions
 
             return str;
         }
+        
+        public static string GetMiddle(this string src, string start, string finish)
+        {
+            if (!src.Contains(start) || !src.Contains(finish)) return string.Empty;
+            
+            var beginning = src.IndexOf(start, 0, StringComparison.Ordinal) + start.Length;
+            var end = src.IndexOf(finish, beginning, StringComparison.Ordinal);
+            return src.Substring(beginning, end - beginning);
+        }
     }
 }
