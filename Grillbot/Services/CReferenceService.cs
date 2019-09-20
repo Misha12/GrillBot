@@ -15,12 +15,6 @@ namespace Grillbot.Services
 
         public CReferenceService()
         {
-            HttpClient.DefaultRequestHeaders.Add("accept", "text/html,application/xhtml+xml,application/xml;q=0.9,image/webp,image/apng,*/*;q=0.8,application/signed-exchange;v=b3");
-            HttpClient.DefaultRequestHeaders.Add("accept-encoding", "gzip");
-            HttpClient.DefaultRequestHeaders.Add("accept-language", "cs-CZ,cs;q=0.9,en;q=0.8");
-            HttpClient.DefaultRequestHeaders.Add("cache-control", "max-age=0");
-            HttpClient.DefaultRequestHeaders.Add("upgrade-insecure-requests", "1");
-            HttpClient.DefaultRequestHeaders.Add("user-agent", "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Ubuntu Chromium/75.0.3770.90 Chrome/75.0.3770.90 Safari/537.36");
         }
         
         public static async Task<string> GetReferenceUrl(string search)
