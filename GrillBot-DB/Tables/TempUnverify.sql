@@ -4,5 +4,5 @@
 	[UserID] VARCHAR(30) NOT NULL,
 	[TimeFor] BIGINT NOT NULL,
 	[StartAt] DATETIME NOT NULL,
-	[RolesToReturn] XML NOT NULL
+	[RolesToReturn] NVARCHAR(MAX) NOT NULL
 )

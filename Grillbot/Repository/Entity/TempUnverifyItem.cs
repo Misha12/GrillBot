@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using System.Threading;
 
 namespace Grillbot.Repository.Entity
 {
@@ -27,13 +29,30 @@ namespace Grillbot.Repository.Entity
         [Required]
         public DateTime StartAt { get; set; } = DateTime.Now;
 
-        public List<string> RolesToReturn { get; set; }
+        [Column]
+        [Required]
+        public string RolesToReturn { get; set; }
+
+        [NotMapped]
+        public List<string> DeserializedRolesToReturn
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(RolesToReturn)) return new List<string>();
+                return JsonConvert.DeserializeObject<List<string>>(RolesToReturn);
+            }
+            set => RolesToReturn = JsonConvert.SerializeObject(value);
+        }
 
         public DateTime GetEndDatetime() => StartAt.AddSeconds(TimeFor);
 
-        public TempUnverifyItem()
+        [NotMapped]
+        public Timer TimerToEnd { get; set; }
+
+        public void InitTimer(TimerCallback callback)
         {
-            RolesToReturn = new List<string>();
+            var time = Convert.ToInt32((GetEndDatetime() - DateTime.Now).TotalMilliseconds);
+            TimerToEnd = new Timer(callback, this, time, Timeout.Infinite);
         }
     }
 }
