@@ -18,6 +18,7 @@ namespace Grillbot.Services.Config.Models
         public EmoteManagerConfig EmoteManager { get; set; }
         public ModifyConfigConfig ModifyConfig { get; set; }
 
+        public CReferenceConfig CReference { get; set; }
         public PermissionsConfig GetPermissions(string section)
         {
             var property = GetType().GetProperty(section);
