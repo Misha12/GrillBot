@@ -137,7 +137,7 @@ namespace Grillbot.Modules
                         valueBuilder.AppendLine(cmd.Summary);
 
                     if (!string.IsNullOrEmpty(cmd.Remarks))
-                        valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks);
+                        valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks.Replace("{prefix}", Config.CommandPrefix));
 
                     string commandDesc = valueBuilder.ToString();
                     embedBuilder.AddField(x =>

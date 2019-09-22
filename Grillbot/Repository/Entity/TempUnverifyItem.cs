@@ -8,13 +8,18 @@ using System.Threading;
 namespace Grillbot.Repository.Entity
 {
     [Table("TempUnverify")]
-    public class TempUnverifyItem
+    public class TempUnverifyItem : IDisposable
     {
         [Key]
         [Column]
         [Required]
         [DatabaseGenerated(DatabaseGeneratedOption.Identity)]
         public int ID { get; set; }
+
+        [Column]
+        [Required]
+        [StringLength(30)]
+        public string GuildID { get; set; }
 
         [Column]
         [Required]
@@ -53,6 +58,17 @@ namespace Grillbot.Repository.Entity
         {
             var time = Convert.ToInt32((GetEndDatetime() - DateTime.Now).TotalMilliseconds);
             TimerToEnd = new Timer(callback, this, time, Timeout.Infinite);
+        }
+
+        public void ReInitTimer(TimerCallback callback)
+        {
+            TimerToEnd.Dispose();
+            InitTimer(callback);
+        }
+
+        public void Dispose()
+        {
+            TimerToEnd?.Dispose();
         }
     }
 }

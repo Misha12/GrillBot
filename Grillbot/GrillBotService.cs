@@ -12,6 +12,7 @@ using System.Threading;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services;
 
 namespace Grillbot
 {
@@ -24,21 +25,24 @@ namespace Grillbot
         private CommandService Commands { get; }
         private Configuration Config { get; set; }
         private IMessageCache Cache { get; set; }
+        private TempUnverifyService TempUnverify { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IMessageCache cache,
-            IOptions<Configuration> config)
+            IOptions<Configuration> config, TempUnverifyService tempUnverify)
         {
             Services = services;
             Client = client;
             Commands = commands;
             Config = config.Value;
             Cache = cache;
+            TempUnverify = tempUnverify;
 
             Client.Ready += OnClientReadyAsync;
         }
 
         private async Task OnClientReadyAsync()
         {
+            await TempUnverify.InitAsync();
             await Cache.InitAsync();
         }
 
