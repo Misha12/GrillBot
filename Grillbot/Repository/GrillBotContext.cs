@@ -22,5 +22,6 @@ namespace Grillbot.Repository
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
+        public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
     }
 }

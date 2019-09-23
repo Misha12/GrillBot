@@ -17,6 +17,7 @@ namespace Grillbot.Services.Config.Models
         public TeamSearchConfig TeamSearch { get; set; }
         public EmoteManagerConfig EmoteManager { get; set; }
         public ModifyConfigConfig ModifyConfig { get; set; }
+        public TempUnverifyConfig TempUnverify { get; set; }
 
         public PermissionsConfig GetPermissions(string section)
         {
@@ -65,7 +66,7 @@ namespace Grillbot.Services.Config.Models
         {
             return GetType()
                 .GetProperties()
-                .Select(o => $"- {o.Name} - {(GetPermissions(o.Name) != null ? "OK" : "Problem")}")
+                .Select(o => $"- {o.Name} - {GetPermissions(o.Name)?.ToString() ?? "**Missing**"}")
                 .ToList();
         }
     }

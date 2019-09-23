@@ -30,6 +30,8 @@ namespace Grillbot.Services.Config.Models
 
         public static Configuration GenerateDefault(string token, string connectionString, string mathDllPath)
         {
+            const string devRole = "dev";
+
             return new Configuration()
             {
                 Administrators = new List<string>(),
@@ -47,42 +49,43 @@ namespace Grillbot.Services.Config.Models
                 Log = new BotLogConfig() { LogRoomID = "" },
                 MethodsConfig = new MethodsConfig()
                 {
-                    AutoReply = new AutoReplyConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
+                    AutoReply = new AutoReplyConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
                     Channelboard = new ChannelboardConfig()
                     {
-                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } },
+                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } },
                         WebTokenValidMinutes = 60,
                         WebUrl = "http://localhost:4200/channelboard?token={0}"
                     },
-                    EmoteManager = new EmoteManagerConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
+                    EmoteManager = new EmoteManagerConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
                     Greeting = new GreetingConfig()
                     {
-                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } },
+                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } },
                         MessageTemplate = "Ahoj, {person}",
                         OutputMode = GreetingOutputModes.Text
                     },
-                    GrillStatus = new GrillStatusConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
-                    Help = new HelpConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
+                    GrillStatus = new GrillStatusConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
+                    Help = new HelpConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
                     Math = new MathConfig()
                     {
-                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } },
+                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } },
                         ComputingTime = 100000,
                         ProcessPath = mathDllPath
                     },
                     MemeImages = new MemeImagesConfig()
                     {
-                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } },
+                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } },
                         AllowedImageTypes = new List<string>() { ".jpg", ".png", ".gif" },
                         NotNudesDataPath = "",
                         NudesDataPath = ""
                     },
-                    ModifyConfig = new ModifyConfigConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
-                    RoleManager = new RoleManagerConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } } },
+                    ModifyConfig = new ModifyConfigConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
+                    RoleManager = new RoleManagerConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } },
                     TeamSearch = new TeamSearchConfig()
                     {
                         GeneralCategoryID = 0,
-                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { "dev" } }
-                    }
+                        Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } }
+                    },
+                    TempUnverify = new TempUnverifyConfig() { Permissions = new PermissionsConfig() { RequiredRoles = new List<string>() { devRole } } }
                 }
             };
         }
