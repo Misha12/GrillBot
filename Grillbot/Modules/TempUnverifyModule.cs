@@ -14,11 +14,11 @@ namespace Grillbot.Modules
     [RequirePermissions("TempUnverify")]
     public class TempUnverifyModule : BotModuleBase
     {
-        private TempUnverifyService Service { get; }
+        private TempUnverifyService UnverifyService { get; }
 
-        public TempUnverifyModule(TempUnverifyService service)
+        public TempUnverifyModule(TempUnverifyService unverifyService)
         {
-            Service = service;
+            UnverifyService = unverifyService;
         }
 
         [Command("")]
@@ -57,7 +57,7 @@ namespace Grillbot.Modules
 
                 if(usersToUnverify.Count > 0)
                 {
-                    var message = await Service.RemoveAccess(usersToUnverify, time, data);
+                    var message = await UnverifyService.RemoveAccess(usersToUnverify, time, data);
                     await ReplyAsync(message);
                 }
             });
@@ -69,7 +69,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await Service.ReturnAccess(id);
+                var message = await UnverifyService.ReturnAccess(id);
                 await ReplyAsync(message);
             });
         }
@@ -83,7 +83,7 @@ namespace Grillbot.Modules
 
             await DoAsync(async () =>
             {
-                var embed = await Service.ListPersons(callerUsername, callerAvatar);
+                var embed = await UnverifyService.ListPersons(callerUsername, callerAvatar);
                 await ReplyAsync(embed: embed.Build());
             });
         }
@@ -94,7 +94,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await Service.UpdateUnverify(id, time);
+                var message = await UnverifyService.UpdateUnverify(id, time);
                 await ReplyAsync(message);
             });
         }
