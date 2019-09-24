@@ -57,6 +57,7 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
+    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Channelstats.sql" />
@@ -67,5 +68,6 @@
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />
+    <None Include="Scripts\CopyDatabase.sql" />
   </ItemGroup>
 </Project>
