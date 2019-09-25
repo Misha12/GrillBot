@@ -49,7 +49,8 @@ CREATE TABLE [dbo].[AutoReply]
 	[ID] INT NOT NULL PRIMARY KEY IDENTITY (1,1),
 	[MustContains] NVARCHAR(MAX) NOT NULL,
 	[ReplyMessage] NVARCHAR(MAX) NOT NULL,
-	[IsDisabled] BIT NOT NULL
+	[IsDisabled] BIT NOT NULL,
+	[CompareType] INT NOT NULL CONSTRAINT [DF_AutoReply_CompareType] DEFAULT (0)
 );
 
 INSERT INTO AutoReply (MustContains, ReplyMessage, IsDisabled) VALUES 
