@@ -35,7 +35,7 @@ namespace Grillbot.Repository
             await Context.SaveChangesAsync();
         }
 
-        public async Task EditItemAsync(int id, string mustContains, string reply)
+        public async Task EditItemAsync(int id, string mustContains, string reply, string compareType)
         {
             var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id);
 
@@ -44,6 +44,7 @@ namespace Grillbot.Repository
 
             item.MustContains = mustContains;
             item.ReplyMessage = reply;
+            item.SetCompareType(compareType);
 
             await Context.SaveChangesAsync();
         }

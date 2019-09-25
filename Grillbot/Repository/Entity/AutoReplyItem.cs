@@ -1,4 +1,5 @@
 ﻿using Grillbot.Extensions;
+using Grillbot.Helpers;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -31,6 +32,23 @@ namespace Grillbot.Repository.Entity
 
         public bool CanReply() => !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled;
 
+        [Column]
+        public AutoReplyCompareTypes CompareType { get; set; }
+
+        public void SetCompareType(string type)
+        {
+            switch(type.ToLower())
+            {
+                case "absolute":
+                case "==":
+                    CompareType = AutoReplyCompareTypes.Absolute;
+                    break;
+                case "contains":
+                    CompareType = AutoReplyCompareTypes.Contains;
+                    break;
+            }
+        }
+
         public override string ToString()
         {
             var activeText = IsDisabled ? "Neaktivní" : "Aktivní";
@@ -38,7 +56,7 @@ namespace Grillbot.Repository.Entity
             var mustContains = MustContains.FormatDiscordUrl();
             var reply = ReplyMessage.FormatDiscordUrl();
 
-            return $"**{ID}** - {mustContains} => {reply} - {activeText}";
+            return $"**{ID}** - {mustContains} => {reply} - {activeText} - {CompareType} - {FormatHelper.FormatWithSpaces(CallsCount)}x";
         }
     }
 }

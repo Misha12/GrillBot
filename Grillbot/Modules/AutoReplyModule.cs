@@ -54,17 +54,17 @@ namespace Grillbot.Modules
 
         [Command("add")]
         [Summary("Přidá novou automatickou odpověď.")]
-        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\n[{IsDisabled}]")]
+        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n[{IsDisabled}]")]
         public async Task AddAsync([Remainder] string data)
         {
             await DoAsync(async () =>
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
-                if (fields.Length < 2)
-                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
+                if (fields.Length < 3)
+                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
 
-                await Service.AddReplyAsync(fields[0], fields[1], fields.Length > 2 && Convert.ToBoolean(fields[2]));
+                await Service.AddReplyAsync(fields[0], fields[1], fields[2], fields.Length > 3 && Convert.ToBoolean(fields[3]));
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.");
             });
         }
@@ -78,10 +78,10 @@ namespace Grillbot.Modules
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
-                if (fields.Length < 2)
+                if (fields.Length < 3)
                     throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
 
-                await Service.EditReplyAsync(id, fields[0], fields[1]);
+                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2]);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.");
             });
         }

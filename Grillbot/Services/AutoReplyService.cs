@@ -4,7 +4,6 @@ using Grillbot.Repository.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -43,13 +42,48 @@ namespace Grillbot.Modules
 
         public async Task TryReplyAsync(SocketUserMessage message)
         {
-            var replyMessage = Data.FirstOrDefault(o => message.Content.Contains(o.MustContains));
+            bool replied = false;
 
-            if (replyMessage?.CanReply() == true)
+            foreach(var item in Data)
             {
-                replyMessage.CallsCount++;
-                await message.Channel.SendMessageAsync(replyMessage.ReplyMessage);
+                if (item.CompareType == AutoReplyCompareTypes.Absolute)
+                    replied = await TryReplyWithAbsolute(message, item);
+                else if (item.CompareType == AutoReplyCompareTypes.Contains)
+                    replied = await TryReplyWithContains(message, item);
+
+                if (replied)
+                    break;
             }
+        }
+
+        private async Task<bool> TryReplyWithContains(SocketUserMessage message, AutoReplyItem item)
+        {
+            if (!message.Content.Contains(item.MustContains))
+                return false;
+
+            if(item.CanReply())
+            {
+                item.CallsCount++;
+                await message.Channel.SendMessageAsync(item.ReplyMessage);
+                return true;
+            }
+
+            return false;
+        }
+
+        private async Task<bool> TryReplyWithAbsolute(SocketUserMessage message, AutoReplyItem item)
+        {
+            if (message.Content != item.MustContains)
+                return false;
+
+            if(item.CanReply())
+            {
+                item.CallsCount++;
+                await message.Channel.SendMessageAsync(item.ReplyMessage);
+                return true;
+            }
+
+            return false;
         }
 
         public void ConfigChanged(Configuration newConfig)
@@ -85,7 +119,7 @@ namespace Grillbot.Modules
             item.IsDisabled = disabled;
         }
 
-        public async Task AddReplyAsync(string mustContains, string reply, bool disabled = false)
+        public async Task AddReplyAsync(string mustContains, string reply, string compareType, bool disabled = false)
         {
             if (Data.Any(o => o.MustContains == mustContains))
                 throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
@@ -97,6 +131,8 @@ namespace Grillbot.Modules
                 ReplyMessage = reply
             };
 
+            item.SetCompareType(compareType);
+
             using(var repository = new AutoReplyRepository(Config))
             {
                 await repository.AddItemAsync(item);
@@ -105,7 +141,7 @@ namespace Grillbot.Modules
             Data.Add(item);
         }
 
-        public async Task EditReplyAsync(int id, string mustContains, string reply)
+        public async Task EditReplyAsync(int id, string mustContains, string reply, string compareType)
         {
             var item = Data.FirstOrDefault(o => o.ID == id);
 
@@ -114,11 +150,12 @@ namespace Grillbot.Modules
 
             using(var repository = new AutoReplyRepository(Config))
             {
-                await repository.EditItemAsync(id, mustContains, reply);
+                await repository.EditItemAsync(id, mustContains, reply, compareType);
             }
 
             item.MustContains = mustContains;
             item.ReplyMessage = reply;
+            item.SetCompareType(compareType);
         }
 
         public async Task RemoveReplyAsync(int id)
