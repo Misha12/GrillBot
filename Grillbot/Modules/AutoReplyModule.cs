@@ -22,10 +22,10 @@ namespace Grillbot.Modules
         [Summary("Vypíše všechny možné odpovědi.")]
         public async Task ListItemsAsync()
         {
-            var data = Service.ListItems();
+            var data = Service.GetList(Context.Message);
 
-            if (data.Count > 0)
-                await ReplyAsync(string.Join(Environment.NewLine, data));
+            if (data != null)
+                await ReplyAsync(embed: data);
             else
                 await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
         }

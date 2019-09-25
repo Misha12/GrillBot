@@ -48,15 +48,5 @@ namespace Grillbot.Repository.Entity
                     break;
             }
         }
-
-        public override string ToString()
-        {
-            var activeText = IsDisabled ? "Neaktivní" : "Aktivní";
-
-            var mustContains = MustContains.FormatDiscordUrl();
-            var reply = ReplyMessage.FormatDiscordUrl();
-
-            return $"**{ID}** - {mustContains} => {reply} - {activeText} - {CompareType} - {FormatHelper.FormatWithSpaces(CallsCount)}x";
-        }
     }
 }

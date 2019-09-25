@@ -1,4 +1,6 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
+using Grillbot.Helpers;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services;
@@ -92,11 +94,34 @@ namespace Grillbot.Modules
             Init();
         }
 
-        public Dictionary<string, int> GetStatsData()
+        public Embed GetList(SocketUserMessage requestMessage)
         {
-            return Data
-                .OrderByDescending(o => o.CallsCount)
-                .ToDictionary(o => o.MustContains, o => o.CallsCount);
+            if (Data.Count == 0)
+                return null;
+
+            var embedBuilder = new EmbedBuilder();
+
+            embedBuilder
+                .WithColor(Color.Blue)
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro: {requestMessage.Author.Username}#{requestMessage.Author.Discriminator}",
+                    requestMessage.Author.GetAvatarUrl() ?? requestMessage.Author.GetDefaultAvatarUrl())
+                .WithTitle("Automatické odpovědi");
+
+            foreach(var item in Data)
+            {
+                embedBuilder.AddField(field =>
+                {
+                    var statusMessage = item.IsDisabled ? "Neaktivní" : "Aktivní";
+
+                    field
+                        .WithName($"**{item.ID}** - {item.MustContains}")
+                        .WithValue($"Odpověď: {item.ReplyMessage}\nStatus: {statusMessage}\nMetoda: {item.CompareType}" +
+                            $"\nPočet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}");
+                });
+            }
+
+            return embedBuilder.Build();
         }
 
         public List<string> ListItems() => Data.Select(o => o.ToString()).ToList();
