@@ -60,7 +60,7 @@ namespace Grillbot.Modules
 
         private async Task<bool> TryReplyWithContains(SocketUserMessage message, AutoReplyItem item)
         {
-            if (!message.Content.Contains(item.MustContains))
+            if(!message.Content.Contains(item.MustContains, GetStringComparison(item)))
                 return false;
 
             if(item.CanReply())
@@ -75,7 +75,7 @@ namespace Grillbot.Modules
 
         private async Task<bool> TryReplyWithAbsolute(SocketUserMessage message, AutoReplyItem item)
         {
-            if (message.Content != item.MustContains)
+            if(!message.Content.Equals(item.MustContains, GetStringComparison(item)))
                 return false;
 
             if(item.CanReply())
@@ -117,14 +117,13 @@ namespace Grillbot.Modules
                     field
                         .WithName($"**{item.ID}** - {item.MustContains}")
                         .WithValue($"Odpověď: {item.ReplyMessage}\nStatus: {statusMessage}\nMetoda: {item.CompareType}" +
-                            $"\nPočet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}");
+                            $"\nPočet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}\n" +
+                            $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}");
                 });
             }
 
             return embedBuilder.Build();
         }
-
-        public List<string> ListItems() => Data.Select(o => o.ToString()).ToList();
 
         public async Task SetActiveStatusAsync(int id, bool disabled)
         {
@@ -144,7 +143,7 @@ namespace Grillbot.Modules
             item.IsDisabled = disabled;
         }
 
-        public async Task AddReplyAsync(string mustContains, string reply, string compareType, bool disabled = false)
+        public async Task AddReplyAsync(string mustContains, string reply, string compareType, bool disabled = false, bool caseSensitive = false)
         {
             if (Data.Any(o => o.MustContains == mustContains))
                 throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
@@ -153,7 +152,8 @@ namespace Grillbot.Modules
             {
                 MustContains = mustContains,
                 IsDisabled = disabled,
-                ReplyMessage = reply
+                ReplyMessage = reply,
+                CaseSensitive = caseSensitive
             };
 
             item.SetCompareType(compareType);
@@ -166,7 +166,7 @@ namespace Grillbot.Modules
             Data.Add(item);
         }
 
-        public async Task EditReplyAsync(int id, string mustContains, string reply, string compareType)
+        public async Task EditReplyAsync(int id, string mustContains, string reply, string compareType, bool caseSensitive)
         {
             var item = Data.FirstOrDefault(o => o.ID == id);
 
@@ -175,11 +175,12 @@ namespace Grillbot.Modules
 
             using(var repository = new AutoReplyRepository(Config))
             {
-                await repository.EditItemAsync(id, mustContains, reply, compareType);
+                await repository.EditItemAsync(id, mustContains, reply, compareType, caseSensitive);
             }
 
             item.MustContains = mustContains;
             item.ReplyMessage = reply;
+            item.CaseSensitive = caseSensitive;
             item.SetCompareType(compareType);
         }
 
@@ -194,6 +195,11 @@ namespace Grillbot.Modules
             }
 
             Data.RemoveAll(o => o.ID == id);
+        }
+
+        private StringComparison GetStringComparison(AutoReplyItem item)
+        {
+            return !item.CaseSensitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
         }
     }
 }

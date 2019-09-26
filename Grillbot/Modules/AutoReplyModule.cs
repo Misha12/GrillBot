@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;
@@ -54,7 +55,8 @@ namespace Grillbot.Modules
 
         [Command("add")]
         [Summary("Přidá novou automatickou odpověď.")]
-        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n[{IsDisabled}]")]
+        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n[{Příznaky}]\n" +
+            "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat")]
         public async Task AddAsync([Remainder] string data)
         {
             await DoAsync(async () =>
@@ -64,7 +66,11 @@ namespace Grillbot.Modules
                 if (fields.Length < 3)
                     throw new ArgumentException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
 
-                await Service.AddReplyAsync(fields[0], fields[1], fields[2], fields.Length > 3 && Convert.ToBoolean(fields[3]));
+                var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
+                var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
+                var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
+
+                await Service.AddReplyAsync(fields[0], fields[1], fields[2], disabled, caseSensitive);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.");
             });
         }
@@ -81,7 +87,10 @@ namespace Grillbot.Modules
                 if (fields.Length < 3)
                     throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
 
-                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2]);
+                var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
+                var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
+
+                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2], caseSensitive);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.");
             });
         }

@@ -35,6 +35,9 @@ namespace Grillbot.Repository.Entity
         [Column]
         public AutoReplyCompareTypes CompareType { get; set; }
 
+        [Column]
+        public bool CaseSensitive { get; set; }
+
         public void SetCompareType(string type)
         {
             switch(type.ToLower())
