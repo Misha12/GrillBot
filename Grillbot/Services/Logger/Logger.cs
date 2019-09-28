@@ -4,13 +4,16 @@ using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
+using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Logger
 {
-    public class Logger
+    public class Logger : IDisposable
     {
+        private HttpClient HttpClient { get; }
         private DiscordSocketClient Client { get; }
         private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
@@ -24,6 +27,8 @@ namespace Grillbot.Services.Logger
             MessageCache = messageCache;
 
             Counters = new Dictionary<string, uint>();
+
+            HttpClient = new HttpClient();
         }
 
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
@@ -37,7 +42,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var method = new MessageDeleted(Client, Config, MessageCache);
+            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient);
             await method.ProcessAsync(message, channel);
 
             IncrementEventHandle("MessageDeleted");
@@ -74,6 +79,12 @@ namespace Grillbot.Services.Logger
                 Counters.Add(name, 1);
             else
                 Counters[name]++;
+        }
+
+        public void Dispose()
+        {
+            HttpClient.Dispose();
+            Counters.Clear();
         }
     }
 }
