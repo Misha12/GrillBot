@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Newtonsoft.Json;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 
@@ -27,9 +28,9 @@ namespace Grillbot.Services.Config.Models
             var builder = new StringBuilder();
 
             builder
-                .Append("RequiredRoles: [").Append(string.Join(", ", RequiredRoles)).Append("],")
-                .Append("AllowedUsers: [").Append(string.Join(", ", AllowedUsers)).Append("], ")
-                .Append("BannedUsers: [").Append(string.Join(", ", BannedUsers)).Append("], ")
+                .Append("RequiredRoles: [ ").Append(string.Join(", ", RequiredRoles)).Append(" ], ")
+                .Append("AllowedUsers: [ ").Append(string.Join(", ", AllowedUsers)).Append(" ], ")
+                .Append("BannedUsers: [ ").Append(string.Join(", ", BannedUsers)).Append(" ], ")
                 .Append("OnlyAdmins: ").Append(OnlyAdmins);
 
             return builder.ToString();
