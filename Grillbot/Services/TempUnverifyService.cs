@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
+using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
@@ -14,10 +15,10 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class TempUnverifyService
+    public class TempUnverifyService : IConfigChangeable
     {
         private List<TempUnverifyItem> Data { get; set; }
-        private Configuration Config { get; }
+        private Configuration Config { get; set; }
         private BotLoggingService LoggingService { get; }
         private DiscordSocketClient Client { get; }
 
@@ -99,8 +100,10 @@ namespace Grillbot.Services
             }
         }
 
-        public async Task<string> RemoveAccess(List<SocketGuildUser> users, string time, string data)
+        public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild)
         {
+            CheckIfCanStartUnverify(users, guild);
+
             var reason = ParseReason(data);
             var unverifyTime = ParseUnverifyTime(time);
             var unverifiedPersons = new List<TempUnverifyItem>();
@@ -109,7 +112,7 @@ namespace Grillbot.Services
             {
                 foreach (var user in users)
                 {
-                    var person = await RemoveAccess(repository, user, unverifyTime, reason);
+                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason);
                     unverifiedPersons.Add(person);
                 }
             }
@@ -120,7 +123,32 @@ namespace Grillbot.Services
             return FormatMessageToChannel(users, unverifiedPersons, reason);
         }
 
-        private async Task<TempUnverifyItem> RemoveAccess(TempUnverifyRepository repository, SocketGuildUser user, long unverifyTime, string reason)
+        public void CheckIfCanStartUnverify(List<SocketGuildUser> users, SocketGuild guild)
+        {
+            var owner = users.Find(o => o.Id == guild.OwnerId);
+
+            if (owner != null)
+                throw new ArgumentException("Nelze provést odebrání rolí, protože se mezi uživateli nachází vlastník serveru.");
+
+            var botMaxRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
+            foreach(var user in users)
+            {
+                var usersMaxRolePosition = user.Roles.Max(o => o.Position);
+
+                if (usersMaxRolePosition > botMaxRolePosition)
+                {
+                    var higherRoles = user.Roles.Where(o => o.Position > botMaxRolePosition).Select(o => o.Name);
+
+                    throw new ArgumentException($"Nelze provést odebírání rolí, protože uživatel **{user.Username}#{user.Discriminator}** má vyšší role " +
+                        $"**({string.Join(", ", higherRoles)})**.");
+                }
+
+                if (Config.IsUserBotAdmin(user.Id))
+                    throw new ArgumentException($"Nelze provést odebrání rolí, protože uživatel **{user.Username}#{user.Discriminator}** je administrátor bota.");
+            }
+        }
+
+        private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user, long unverifyTime, string reason)
         {
             var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
@@ -237,7 +265,7 @@ namespace Grillbot.Services
 
         private bool CanSendDM(SocketGuildUser user) => !user.IsBot && !user.IsWebhook;
 
-        public async Task<EmbedBuilder> ListPersons(string callerUsername, string callerAvatarUrl)
+        public async Task<EmbedBuilder> ListPersonsAsync(string callerUsername, string callerAvatarUrl)
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
@@ -274,7 +302,7 @@ namespace Grillbot.Services
             }
         }
 
-        public async Task<string> ReturnAccess(int id)
+        public async Task<string> ReturnAccessAsync(int id)
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
@@ -295,7 +323,7 @@ namespace Grillbot.Services
             }
         }
 
-        public async Task<string> UpdateUnverify(int id, string time)
+        public async Task<string> UpdateUnverifyAsync(int id, string time)
         {
             var unverifyTime = ParseUnverifyTime(time);
             var item = Data.FirstOrDefault(o => o.ID == id);
@@ -314,6 +342,11 @@ namespace Grillbot.Services
 
             return $"Reset času pro záznam o dočasném odebrání rolí s ID **{id}** byl úspěšně aktualizován. " +
                 $"Role budou navráceny **{item.GetEndDatetime().ToLocaleDatetime()}**.";
+        }
+
+        public void ConfigChanged(Configuration newConfig)
+        {
+            Config = newConfig;
         }
     }
 }

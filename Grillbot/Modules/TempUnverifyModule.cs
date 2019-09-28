@@ -27,17 +27,17 @@ namespace Grillbot.Modules
             "Dále lze uvést důvod, proč daná osoba přišla o role. A nakonec seznam (mentions) uživatelů.\n" +
             "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30s Přišel jsi o role @User1#1234 @User2#1354 ...\n" +
             "{prefix}unverify 30s @User1#1234 @User2#1354 ...")]
-        public async Task SetUnverify(string time, [Remainder] string data = null)
+        public async Task SetUnverifyAsync(string time, [Remainder] string data = null)
         {
             // Simply hack, because command routing cannot distinguish between a parameter and a function.
             switch (time)
             {
                 case "list":
-                    await ListUnverify();
+                    await ListUnverifyAsync();
                     return;
                 case "remove":
                     if (string.IsNullOrEmpty(data)) return;
-                    await RemoveUnverify(Convert.ToInt32(data.Split(' ')[0]));
+                    await RemoveUnverifyAsync(Convert.ToInt32(data.Split(' ')[0]));
                     return;
                 case "update":
                     if (string.IsNullOrEmpty(data)) return;
@@ -47,7 +47,7 @@ namespace Grillbot.Modules
                         await ReplyAsync("Chybí parametry.");
                         return;
                     }
-                    await UpdateUnverify(Convert.ToInt32(fields[0]), fields[1]);
+                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]);
                     return;
             }
 
@@ -57,7 +57,7 @@ namespace Grillbot.Modules
 
                 if(usersToUnverify.Count > 0)
                 {
-                    var message = await UnverifyService.RemoveAccess(usersToUnverify, time, data);
+                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild);
                     await ReplyAsync(message);
                 }
             });
@@ -65,36 +65,36 @@ namespace Grillbot.Modules
 
         [Command("remove")]
         [Summary("Předčasné vrácení rolí.")]
-        public async Task RemoveUnverify(int id)
+        public async Task RemoveUnverifyAsync(int id)
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.ReturnAccess(id);
+                var message = await UnverifyService.ReturnAccessAsync(id);
                 await ReplyAsync(message);
             });
         }
 
         [Command("list")]
         [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
-        public async Task ListUnverify()
+        public async Task ListUnverifyAsync()
         {
             var callerUsername = GetUsersShortName(Context.Message.Author);
             var callerAvatar = GetUserAvatarUrl(Context.Message.Author);
 
             await DoAsync(async () =>
             {
-                var embed = await UnverifyService.ListPersons(callerUsername, callerAvatar);
+                var embed = await UnverifyService.ListPersonsAsync(callerUsername, callerAvatar);
                 await ReplyAsync(embed: embed.Build());
             });
         }
 
         [Command("update")]
         [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
-        public async Task UpdateUnverify(int id, string time)
+        public async Task UpdateUnverifyAsync(int id, string time)
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.UpdateUnverify(id, time);
+                var message = await UnverifyService.UpdateUnverifyAsync(id, time);
                 await ReplyAsync(message);
             });
         }
