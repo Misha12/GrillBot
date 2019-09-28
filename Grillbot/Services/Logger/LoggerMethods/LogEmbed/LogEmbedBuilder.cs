@@ -55,9 +55,9 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             return this;
         }
 
-        public LogEmbedBuilder SetAuthor(IUser user)
+        public LogEmbedBuilder SetAuthor(IUser user, bool strictFormatAsAuthor = false)
         {
-            AddField("Uživatel", user?.ToString() ?? "Neznámý");
+            AddField(strictFormatAsAuthor ? "Autor" : "Uživatel", user?.ToString() ?? "Neznámý");
             AvatarUrl = user?.GetAvatarUrl() ?? user?.GetDefaultAvatarUrl();
 
             return this;

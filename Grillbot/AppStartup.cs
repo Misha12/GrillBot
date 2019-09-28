@@ -81,8 +81,9 @@ namespace Grillbot
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<CReferenceService>()
-                .AddTransient<TeamSearchService>()
-                .AddTransient<MathCalculator>();
+                .AddSingleton<TempUnverifyService>()
+                .AddTransient<MathCalculator>()
+                .AddTransient<TeamSearchService>();
 
             services
                 .AddSingleton<Logger>()

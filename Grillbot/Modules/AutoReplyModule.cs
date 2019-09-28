@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;
@@ -22,10 +23,10 @@ namespace Grillbot.Modules
         [Summary("Vypíše všechny možné odpovědi.")]
         public async Task ListItemsAsync()
         {
-            var data = Service.ListItems();
+            var data = Service.GetList(Context.Message);
 
-            if (data.Count > 0)
-                await ReplyAsync(string.Join(Environment.NewLine, data));
+            if (data != null)
+                await ReplyAsync(embed: data);
             else
                 await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
         }
@@ -54,17 +55,22 @@ namespace Grillbot.Modules
 
         [Command("add")]
         [Summary("Přidá novou automatickou odpověď.")]
-        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\n[{IsDisabled}]")]
+        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n[{Příznaky}]\n" +
+            "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat")]
         public async Task AddAsync([Remainder] string data)
         {
             await DoAsync(async () =>
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
-                if (fields.Length < 2)
-                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
+                if (fields.Length < 3)
+                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
 
-                await Service.AddReplyAsync(fields[0], fields[1], fields.Length > 2 && Convert.ToBoolean(fields[2]));
+                var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
+                var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
+                var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
+
+                await Service.AddReplyAsync(fields[0], fields[1], fields[2], disabled, caseSensitive);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.");
             });
         }
@@ -78,10 +84,13 @@ namespace Grillbot.Modules
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
-                if (fields.Length < 2)
+                if (fields.Length < 3)
                     throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
 
-                await Service.EditReplyAsync(id, fields[0], fields[1]);
+                var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
+                var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
+
+                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2], caseSensitive);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.");
             });
         }

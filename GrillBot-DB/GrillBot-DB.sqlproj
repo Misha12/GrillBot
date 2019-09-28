@@ -57,14 +57,17 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
+    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Channelstats.sql" />
     <Build Include="Tables\EmoteStatistics.sql" />
     <Build Include="Tables\AutoReply.sql" />
     <Build Include="Tables\TeamSearch.sql" />
+    <Build Include="Tables\TempUnverify.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />
+    <None Include="Scripts\CopyDatabase.sql" />
   </ItemGroup>
 </Project>

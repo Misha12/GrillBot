@@ -63,7 +63,6 @@ namespace Grillbot.Modules
 
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStatsAsync(orderType == "time");
-            await PrintAutoReplyStatsAsync();
             await PrintLoggerStatistics();
         }
 
@@ -92,29 +91,6 @@ namespace Grillbot.Modules
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedData.Build());
-        }
-
-        private async Task PrintAutoReplyStatsAsync()
-        {
-            var data = AutoReply.GetStatsData();
-
-            if (data.Count == 0)
-                return;
-
-            var embedBuilder = new EmbedBuilder()
-            {
-                Color = Color.DarkBlue,
-                Title = "Statistiky automatických odpovědí"
-            };
-
-            AddInlineEmbedField(embedBuilder, "Hledaný řetězec", string.Join(Environment.NewLine, data.Select(o => o.Key)));
-            AddInlineEmbedField(embedBuilder, "Počet reakcí", string.Join(Environment.NewLine, data.Select(o => o.Value)));
-
-            embedBuilder
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
-
-            await ReplyAsync(embed: embedBuilder.Build());
         }
 
         private async Task PrintLoggerStatistics()

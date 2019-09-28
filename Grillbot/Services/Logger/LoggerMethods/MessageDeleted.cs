@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Services.Config.Models;
@@ -28,7 +29,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 deletedMessage = MessageCache.TryRemove(message.Id);
 
             if (deletedMessage != null)
-                await ProcessWithCacheRecordAsync(deletedMessage);
+                await ProcessWithCacheRecordAsync(deletedMessage, channel);
             else
                 await ProcessWithoutCacheRecordAsync(message.Id, channel);
 
@@ -50,8 +51,26 @@ namespace Grillbot.Services.Logger.LoggerMethods
             await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
         }
 
-        private async Task ProcessWithCacheRecordAsync(IMessage message)
+        private async Task<IAuditLogEntry> GetAuditLogRecord(ISocketMessageChannel channel, ulong authorID)
         {
+            if(channel is SocketGuildChannel socketGuildChannel)
+            {
+                var guild = socketGuildChannel.Guild;
+                var logs = (await guild.GetAuditLogsAsync(5).FlattenAsync()).ToList();
+                var messageDeletedRecords = logs.Where(o => o.Action == ActionType.MessageDeleted).ToList();
+
+                return messageDeletedRecords.FirstOrDefault(o => {
+                    var data = (MessageDeleteAuditLogData)o.Data;
+                    return data.AuthorId == authorID && data.ChannelId == channel.Id;
+                });
+            }
+
+            return null;
+        }
+
+        private async Task ProcessWithCacheRecordAsync(IMessage message, ISocketMessageChannel channel)
+        {
+            var auditLogRecord = await GetAuditLogRecord(channel, message.Author.Id);
             var streams = new List<Tuple<string, Stream>>();
 
             try
@@ -59,11 +78,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla odebrána", LogEmbedType.MessageDeleted);
 
                 logEmbedBuilder
-                    .SetAuthor(message.Author)
+                    .SetAuthor(message.Author, true)
                     .SetTimestamp(true)
                     .SetFooter($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}")
                     .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToLocaleDatetime())
                     .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})");
+
+
+                if (auditLogRecord != null)
+                    logEmbedBuilder.AddField("Smazal", $"{auditLogRecord.User.Username}#{auditLogRecord.User.Discriminator}");
+                else
+                    logEmbedBuilder.AddField("Smazal", $"{message.Author.Username}#{message.Author.Discriminator}");
 
                 if (string.IsNullOrEmpty(message.Content))
                     logEmbedBuilder.AddField("Obsah", "-");

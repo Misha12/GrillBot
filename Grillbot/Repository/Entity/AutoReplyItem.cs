@@ -1,4 +1,5 @@
 ﻿using Grillbot.Extensions;
+using Grillbot.Helpers;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -31,14 +32,24 @@ namespace Grillbot.Repository.Entity
 
         public bool CanReply() => !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled;
 
-        public override string ToString()
+        [Column]
+        public AutoReplyCompareTypes CompareType { get; set; }
+
+        [Column]
+        public bool CaseSensitive { get; set; }
+
+        public void SetCompareType(string type)
         {
-            var activeText = IsDisabled ? "Neaktivní" : "Aktivní";
-
-            var mustContains = MustContains.FormatDiscordUrl();
-            var reply = ReplyMessage.FormatDiscordUrl();
-
-            return $"**{ID}** - {mustContains} => {reply} - {activeText}";
+            switch(type.ToLower())
+            {
+                case "absolute":
+                case "==":
+                    CompareType = AutoReplyCompareTypes.Absolute;
+                    break;
+                case "contains":
+                    CompareType = AutoReplyCompareTypes.Contains;
+                    break;
+            }
         }
     }
 }

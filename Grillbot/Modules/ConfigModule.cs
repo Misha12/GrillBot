@@ -40,10 +40,8 @@ namespace Grillbot.Modules
             if(data.Count > 0)
             {
                 data.Insert(0, "Seznam všech oprávnění:");
-                data.Insert(1, "");
-
-                data.Add("");
-                data.Add("Ke každému oprávnění lze zavolat AddUser, RemoveUser, AddRole, RemoveRole, BanUser, UnbanUser a OnlyAdmins (true/false).");
+                data.Insert(1, "```");
+                data.Add("```");
 
                 await ReplyAsync(string.Join("\n", data));
             }
