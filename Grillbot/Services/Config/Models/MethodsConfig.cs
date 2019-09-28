@@ -20,6 +20,7 @@ namespace Grillbot.Services.Config.Models
         public TempUnverifyConfig TempUnverify { get; set; }
         public AdminConfig Admin { get; set; }
 
+        public CReferenceConfig CReference { get; set; }
         public PermissionsConfig GetPermissions(string section)
         {
             var property = GetType().GetProperty(section);
