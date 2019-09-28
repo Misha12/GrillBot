@@ -1,10 +1,8 @@
-using System;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
-
 
 namespace Grillbot.Modules
 {
@@ -27,13 +25,13 @@ namespace Grillbot.Modules
         {
             try
             {
-                await ReplyAsync(await CReferenceService.GetReferenceUrl(topic));
+                var message = await Service.GetReferenceUrlAsync(topic);
+                await ReplyAsync(message);
             }
             catch (NotFoundException e)
             {
                 await ReplyAsync(e.Message);
             }
         }
-
     }
 }
