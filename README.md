@@ -66,4 +66,4 @@
 To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into appsettings.json (MethodsConfig.Math.ProcessPath)
 
 # GrillBot-Web
-Readme for GrillBot-Web is [Here](/GrillBot/GrillBot-Web)
+Readme for GrillBot-Web is [Here](GrillBot-Web)
