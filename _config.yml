@@ -1,1 +1,4 @@
 theme: jekyll-theme-slate
+title: GrillBot
+description: Discord bot
+locale: "en-US"
