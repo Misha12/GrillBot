@@ -1,3 +1,5 @@
+# GrillBot
+
 # Requirements
 - MSSQL server.
 - Microsoft Visual Studio (2017 and later) (or another IDE)
