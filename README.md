@@ -1,27 +1,27 @@
 # GrillBot
 
-# Requirements
+## Requirements
 - MSSQL server.
 - Microsoft Visual Studio (2017 and later) (or another IDE)
 - .NET Core 2.2 (with ASP.NET Core 2.2)
 
-# Continuous integration
+## Continuous integration
 [![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/GrillBot-CI?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=4&branchName=master)
 
-# Used NuGet packages
+## Used NuGet packages
 
-## GrillBot
+### GrillBot
 - Discord .NET
 - Microsoft.AspNetCore.App
 - Microsoft.AspNetCore.Razor.Design
 - Microsoft.EntityFrameworkCore.SqlServer
 - Microsoft.VisualStudio.CodeGeneration.Design
 
-## GrillBotMath
+### GrillBotMath
 - Newtonsoft.JSON
 - MathParser.org-mXParser
 
-# Config (appsettings.json)
+## Config (appsettings.json)
 **Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
 - Config parts
@@ -64,8 +64,8 @@
   - EmoteChain:
     - CheckLastN (int): Count of same emotes before bot send emote.
     
-# GrillBotMath
+## GrillBotMath
 To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into appsettings.json (MethodsConfig.Math.ProcessPath)
 
-# GrillBot-Web
+## GrillBot-Web
 Readme for GrillBot-Web is [Here](GrillBot-Web)
