@@ -11,23 +11,23 @@
 ## Used NuGet packages
 
 ### GrillBot
-- Discord .NET (v2.1.1)
-- Microsoft.AspNetCore.App (v2.2.0)
-- Microsoft.AspNetCore.Razor.Design (v2.2.0)
-- Microsoft.EntityFrameworkCore.SqlServer (v2.2.6)
+- Discord .NET
+- Microsoft.AspNetCore.App
+- Microsoft.AspNetCore.Razor.Design
+- Microsoft.EntityFrameworkCore.SqlServer
 - Microsoft.VisualStudio.CodeGeneration.Design
 
 ### GrillBotMath
 - Newtonsoft.JSON
 - MathParser.org-mXParser
 
-## GrillBot config
+## Config (appsettings.json)
 **Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
 - Config parts
   - AllowedHosts (string): Semicollon delimited list of allowed hostnames without port numbers.
   - CommandPrefix (string): Message content, that must contain to invoke command.
-  - **Database** (string): Connection string to database. **If you don't want to setup Db locally ask Misha for remote connection string**
+  - **Database** (string): Connection string to MSSQL database. **If you don't want to setup Db locally ask Misha for remote connection string**
   - Discord: Bot configuration
     - Activity (string): Activity message
     - **Token** (string): Bot login token **You will need to create your own Discord Application to get a Token for local development**
@@ -63,3 +63,9 @@
     - AutoReply
   - EmoteChain:
     - CheckLastN (int): Count of same emotes before bot send emote.
+    
+## GrillBotMath
+To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into appsettings.json (MethodsConfig.Math.ProcessPath)
+
+## GrillBot-Web
+Readme for GrillBot-Web is [Here](GrillBot-Web)

@@ -17,7 +17,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageDeleted : LoggerMethodBase
     {
-        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache) : base(client, config, messageCache)
+        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient)
+            : base(client, config, messageCache, httpClient)
         {
         }
 
@@ -53,13 +54,14 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private async Task<IAuditLogEntry> GetAuditLogRecord(ISocketMessageChannel channel, ulong authorID)
         {
-            if(channel is SocketGuildChannel socketGuildChannel)
+            if (channel is SocketGuildChannel socketGuildChannel)
             {
                 var guild = socketGuildChannel.Guild;
                 var logs = (await guild.GetAuditLogsAsync(5).FlattenAsync()).ToList();
                 var messageDeletedRecords = logs.Where(o => o.Action == ActionType.MessageDeleted).ToList();
 
-                return messageDeletedRecords.FirstOrDefault(o => {
+                return messageDeletedRecords.FirstOrDefault(o =>
+                {
                     var data = (MessageDeleteAuditLogData)o.Data;
                     return data.AuthorId == authorID && data.ChannelId == channel.Id;
                 });
@@ -155,23 +157,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             try
             {
-                using (var client = new HttpClient())
-                {
-                    var filename = CreateAttachmentFilename(attachment.Id, attachment.Url);
-                    stream = await client.GetStreamAsync(attachment.Url);
-                    return new Tuple<string, Stream>(filename, stream);
-                }
+                var filename = CreateAttachmentFilename(attachment.Id, attachment.Url);
+                stream = await HttpClient.GetStreamAsync(attachment.Url);
+                return new Tuple<string, Stream>(filename, stream);
             }
             catch (HttpRequestException)
             {
                 try
                 {
-                    using (var client = new HttpClient())
-                    {
-                        var filename = CreateAttachmentFilename(attachment.Id, attachment.ProxyUrl);
-                        stream = await client.GetStreamAsync(attachment.ProxyUrl);
-                        return new Tuple<string, Stream>(filename, stream);
-                    }
+                    var filename = CreateAttachmentFilename(attachment.Id, attachment.ProxyUrl);
+                    stream = await HttpClient.GetStreamAsync(attachment.ProxyUrl);
+                    return new Tuple<string, Stream>(filename, stream);
                 }
                 catch (HttpRequestException)
                 {

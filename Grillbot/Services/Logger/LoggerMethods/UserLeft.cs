@@ -7,7 +7,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class UserLeft : LoggerMethodBase
     {
-        public UserLeft(DiscordSocketClient client, Configuration config) : base(client, config, null)
+        public UserLeft(DiscordSocketClient client, Configuration config) : base(client, config, null, null)
         {
         }
 
