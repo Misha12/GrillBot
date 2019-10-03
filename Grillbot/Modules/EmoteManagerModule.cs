@@ -60,7 +60,7 @@ namespace Grillbot.Modules
         private async Task GetTopEmoteUsage(bool descOrder)
         {
             var emoteInfos = EmoteStats.GetAllValues(descOrder)
-                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
+                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && x.Animated == false))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
@@ -90,7 +90,7 @@ namespace Grillbot.Modules
                     return;
             }
 
-            if (!Context.Guild.Emotes.Any(o => o.ToString() == emote))
+            if (Context.Guild.Emotes.All(o => o.ToString() != emote))
             {
                 await ReplyAsync("Neznámý emote");
                 return;
