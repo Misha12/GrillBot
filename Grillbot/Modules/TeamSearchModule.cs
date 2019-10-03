@@ -25,7 +25,7 @@ namespace Grillbot.Modules
     {
         private TeamSearchService Service { get; }
 
-        private const uint MaxPageSize = 2048;
+        private const uint MaxPageSize = 1980;
         private const uint MaxSearchSize = 1900;
 
         public TeamSearchModule(TeamSearchService service)
