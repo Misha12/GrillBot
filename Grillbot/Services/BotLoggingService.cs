@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,6 +17,8 @@ namespace Grillbot.Services
 {
     public class BotLoggingService : IConfigChangeable, IDisposable
     {
+        public const int MessageSizeForException = 1980;
+
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
 
@@ -61,7 +62,7 @@ namespace Grillbot.Services
             if (!CanSendToDiscord(message)) return;
 
             var exceptionMessage = message.Exception.ToString();
-            var parts = exceptionMessage.SplitInParts(1980).ToArray();
+            var parts = exceptionMessage.SplitInParts(MessageSizeForException).ToArray();
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {
