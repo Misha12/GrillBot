@@ -22,6 +22,8 @@ namespace Grillbot.Modules
             EmoteStats = statistics.EmoteStats;
         }
 
+        [Command("all")]
+        [Summary("Vypíše kompletní statistiku emotů. Seřazeno vzestupně.")]
         public async Task GetCompleteEmoteInfoListAsync()
         {
             var emoteInfos = EmoteStats.GetAllValues(true)
@@ -50,7 +52,7 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("")]
+        [Command("asc")]
         [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
         public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true);
 
@@ -80,7 +82,7 @@ namespace Grillbot.Modules
         [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.")]
         public async Task GetEmoteInfoAsync(string emote)
         {
-            switch(emote)
+            switch (emote)
             {
                 case "all":
                     await GetCompleteEmoteInfoListAsync();
@@ -88,18 +90,22 @@ namespace Grillbot.Modules
                 case "asc":
                     await GetTopUsedEmotesAscending();
                     return;
+                case "unicode":
+                    await GetEmoteInfoOnlyUnicode();
+                    return;
             }
 
-            if (Context.Guild.Emotes.All(o => o.ToString() != emote))
-            {
-                await ReplyAsync("Neznámý emote");
-                return;
-            }
-
+            var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
             var emoteInfo = EmoteStats.GetValue(emote);
 
-            if (emoteInfo == null)
+            if(emoteInfo == null)
             {
+                if(!existsInGuild)
+                {
+                    await ReplyAsync("Tento emote neexistuje.");
+                    return;
+                }
+
                 await ReplyAsync("Tento emote ještě nebyl použit.");
                 return;
             }
@@ -111,6 +117,26 @@ namespace Grillbot.Modules
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author));
 
             await ReplyAsync(embed: emoteInfoEmbed.Build());
+        }
+
+        [Command("unicode")]
+        [Summary("Vypíše TOP25 statistika unicode emojis.")]
+        private async Task GetEmoteInfoOnlyUnicode()
+        {
+            var emoteInfos = EmoteStats.GetAllValues(true)
+                .Where(o => o.IsUnicode)
+                .Take(EmbedBuilder.MaxFieldCount)
+                .ToList();
+
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+
+            var embedBuilder = new EmbedBuilder()
+                .WithColor(Color.Blue)
+                .WithFields(emoteFields)
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author))
+                .WithCurrentTimestamp();
+
+            await ReplyAsync(embed: embedBuilder.Build());
         }
     }
 }

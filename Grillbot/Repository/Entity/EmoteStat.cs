@@ -21,11 +21,16 @@ namespace Grillbot.Repository.Entity
         [Column]
         public DateTime LastOccuredAt { get; set; } = DateTime.MinValue;
 
+        [Column]
+        [Required]
+        public bool IsUnicode { get; set; }
+
         public EmoteStat() { }
 
-        public EmoteStat(string emoteId)
+        public EmoteStat(string emoteId, bool isUnicode)
         {
             EmoteID = emoteId;
+            IsUnicode = isUnicode;
             IncrementAndUpdate();
         }
 

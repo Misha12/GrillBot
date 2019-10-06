@@ -78,15 +78,25 @@ namespace Grillbot.Services
             try
             {
                 var serverEmotes = context.Guild.Emotes;
+
                 var mentionedEmotes = context.Message.Tags
-                    .Where(o => o.Type == TagType.Emoji && serverEmotes.Any(x => x.Id == o.Key))
+                    .Where(o => o.Type == TagType.Emoji)
                     .DistinctBy(o => o.ToString())
-                    .Select(o => o.Value.ToString())
                     .ToList();
 
-                foreach(var emoteId in mentionedEmotes)
+                foreach(var emote in mentionedEmotes)
                 {
-                    IncrementCounter(emoteId);
+                    if(emote is Emoji emoji)
+                    {
+                        IncrementCounter(emoji.Name, true);
+                    }
+                    else
+                    {
+                        var emoteId = emote.ToString();
+
+                        if (serverEmotes.Any(o => o.ToString() == emoteId))
+                            IncrementCounter(emoteId, false);
+                    }
                 }
             }
             finally
@@ -104,8 +114,17 @@ namespace Grillbot.Services
             {
                 var serverEmotes = channel.Guild.Emotes;
 
-                if (serverEmotes.Contains(reaction.Emote))
-                    IncrementCounter(reaction.Emote.ToString());
+                if (reaction.Emote is Emoji emoji)
+                {
+                    IncrementCounter(emoji.Name, true);
+                }
+                else
+                {
+                    var emoteId = reaction.Emote.ToString();
+
+                    if(serverEmotes.Any(o => o.ToString() == emoteId))
+                        IncrementCounter(reaction.Emote.ToString(), false);
+                }
             }
             finally
             {
@@ -122,8 +141,17 @@ namespace Grillbot.Services
             {
                 var serverEmotes = channel.Guild.Emotes;
 
-                if (serverEmotes.Contains(reaction.Emote))
-                    DecrementCounter(reaction.Emote.ToString());
+                if(reaction.Emote is Emoji emoji)
+                {
+                    DecrementCounter(reaction.Emote.Name);
+                }
+                else
+                {
+                    var emoteId = reaction.Emote.ToString();
+
+                    if (serverEmotes.Any(o => o.ToString() == emoteId))
+                        DecrementCounter(emoteId);
+                }
             }
             finally
             {
@@ -131,10 +159,10 @@ namespace Grillbot.Services
             }
         }
 
-        private void IncrementCounter(string emoteId)
+        private void IncrementCounter(string emoteId, bool isUnicode)
         {
             if (!Counter.ContainsKey(emoteId))
-                Counter.Add(emoteId, new EmoteStat(emoteId));
+                Counter.Add(emoteId, new EmoteStat(emoteId, isUnicode));
             else
                 GetValue(emoteId).IncrementAndUpdate();
 
