@@ -12,7 +12,7 @@ namespace Grillbot.Modules
         protected void AddInlineEmbedField(EmbedBuilder embed, string name, object value) =>
             embed.AddField(o => o.WithIsInline(true).WithName(name).WithValue(value));
 
-        protected string GetUsersFullName(SocketUser user)
+        protected string GetUsersFullName(IUser user)
         {
             var builder = new StringBuilder();
 
