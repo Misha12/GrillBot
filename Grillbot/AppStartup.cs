@@ -21,6 +21,7 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using Discord.Addons.Interactive;
+using Grillbot.Services.Auth;
 
 namespace Grillbot
 {
@@ -49,6 +50,7 @@ namespace Grillbot
 
             services.Configure<Configuration>(Configuration);
             services.AddTransient<OptionsWriter>();
+            services.AddSingleton<AuthService>();
         }
 
         private void ConfigureDiscord(IServiceCollection services)
