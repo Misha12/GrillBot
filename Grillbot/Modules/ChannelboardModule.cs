@@ -6,6 +6,8 @@ using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
+using Discord.WebSocket;
+using Grillbot.Exceptions;
 
 namespace Grillbot.Modules
 {
@@ -41,7 +43,7 @@ namespace Grillbot.Modules
                 .AppendLine("|\tCHANNEL LEADERBOARD\t|")
                 .AppendLine("=======================");
 
-            for(int i = 0; i < channelBoardData.Count; i++)
+            for (int i = 0; i < channelBoardData.Count; i++)
             {
                 var channelBoardItem = channelBoardData[i];
                 var channel = Context.Client.GetChannel(channelBoardItem.Key) as IMessageChannel;
@@ -77,7 +79,14 @@ namespace Grillbot.Modules
         [Summary("Počet zpráv v místnosti.")]
         public async Task ChannelboardForRoomAsync(string roomMention)
         {
-            var channel = Context.Guild.Channels.FirstOrDefault(o => $"<#{o.Id}>" == roomMention);
+            if (Context.Message.Tags.Count == 0)
+            {
+                await ReplyAsync("Netagnul jsi žádný kanál.");
+                return;
+            }
+
+            if (!(Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention).Value is ISocketMessageChannel channel))
+                throw new BotException("Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls.")
 
             if (!CanAuthorToChannel(channel.Id))
                 await Context.Message.Author.SendMessageAsync("Do této místnosti nemáš dostatečná práva.");
