@@ -9,10 +9,9 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Group("emoteinfo")]
     [Name("Správa emotů")]
-    [RequirePermissions("EmoteManager")]
+    [RequirePermissions("EmoteManager", DisabledForPM = true)]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }
@@ -52,17 +51,18 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("asc")]
+        [Command("desc")]
         [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
         public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true);
 
+        [Command("asc")]
         [Summary("TOP 25 statistika emotů. Seřazeno vzestupně.")]
         public async Task GetTopUsedEmotesAscending() => await GetTopEmoteUsage(false);
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
             var emoteInfos = EmoteStats.GetAllValues(descOrder)
-                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && x.Animated == false))
+                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
@@ -79,8 +79,8 @@ namespace Grillbot.Modules
 
         [Command("")]
         [Summary("Statistika emotu")]
-        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.")]
-        public async Task GetEmoteInfoAsync(string emote)
+        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]
+        public async Task GetEmoteInfoAsync([Remainder] string emote)
         {
             switch (emote)
             {
@@ -89,6 +89,9 @@ namespace Grillbot.Modules
                     return;
                 case "asc":
                     await GetTopUsedEmotesAscending();
+                    return;
+                case "desc":
+                    await GetTopUsedEmotes();
                     return;
                 case "unicode":
                     await GetEmoteInfoOnlyUnicode();

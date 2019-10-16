@@ -6,13 +6,11 @@ using Grillbot.Services.Preconditions;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Name("Hledani dokumentace")]
     [RequirePermissions("CReference")]
     public class CReferenceModule : BotModuleBase
     {
         private CReferenceService Service { get; }
-
 
         public CReferenceModule(CReferenceService service)
         {

@@ -11,9 +11,8 @@ using Grillbot.Exceptions;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Name("Channel leaderboards")]
-    [RequirePermissions("Channelboard")]
+    [RequirePermissions("Channelboard", DisabledForPM = true)]
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }
@@ -96,7 +95,7 @@ namespace Grillbot.Modules
             var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
 
             await Context.Message.Author.SendMessageAsync(message);
-            await Context.Message.DeleteAsync();
+            await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" });
         }
     }
 }

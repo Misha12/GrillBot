@@ -10,9 +10,8 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Name("Administrační funkce")]
-    [RequirePermissions("Admin")]
+    [RequirePermissions("Admin", DisabledForPM = true)]
     public class AdminModule : BotModuleBase
     {
         private TeamSearchService TeamSearchService { get; }
@@ -47,6 +46,7 @@ namespace Grillbot.Modules
 
                     foreach(var pin in pinsToRemove)
                     {
+                        await pin.RemoveAllReactionsAsync();
                         await pin.UnpinAsync();
                     }
 
@@ -54,7 +54,7 @@ namespace Grillbot.Modules
                 }
                 else
                 {
-                    throw new ArgumentException($"Odkazovaný kanál **{channel}** nebyl nalezen.");
+                    throw new ArgumentException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
                 }
             });
         }

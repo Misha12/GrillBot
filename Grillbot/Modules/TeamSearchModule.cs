@@ -17,10 +17,9 @@ using Grillbot.Extensions;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Group("hledam")]
     [Name("Hledání týmů")]
-    [RequirePermissions("TeamSearch")]
+    [RequirePermissions("TeamSearch", DisabledForPM = true)]
     public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }

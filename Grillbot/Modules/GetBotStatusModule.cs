@@ -17,15 +17,12 @@ namespace Grillbot.Modules
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
-        private AutoReplyService AutoReply { get; }
         private IHostingEnvironment HostingEnvironment { get; }
         private Logger Logger { get; }
 
-        public GetBotStatusModule(Statistics statistics, AutoReplyService autoReply, IHostingEnvironment hostingEnvironment,
-            Logger logger)
+        public GetBotStatusModule(Statistics statistics, IHostingEnvironment hostingEnvironment, Logger logger)
         {
             Statistics = statistics;
-            AutoReply = autoReply;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
         }
