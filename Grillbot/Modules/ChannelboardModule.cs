@@ -86,7 +86,7 @@ namespace Grillbot.Modules
             }
 
             if (!(Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention).Value is ISocketMessageChannel channel))
-                throw new BotException("Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls.")
+                throw new BotException("Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls.");
 
             if (!CanAuthorToChannel(channel.Id))
                 await Context.Message.Author.SendMessageAsync("Do této místnosti nemáš dostatečná práva.");
