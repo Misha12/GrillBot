@@ -49,7 +49,7 @@ namespace Grillbot.Handlers
 
             try
             {
-                if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
+                if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
 
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
@@ -97,6 +97,22 @@ namespace Grillbot.Handlers
                 messageStopwatch.Stop();
                 Statistics.ComputeAvgReact(messageStopwatch.ElapsedMilliseconds);
             }
+        }
+
+        private bool TryParseMessage(SocketMessage message, out SocketUserMessage socketUserMessage)
+        {
+            socketUserMessage = null;
+
+            if(!(message is SocketUserMessage userMessage))
+            {
+                return false;
+            }
+
+            if (message.Author.IsBot || message.Author.IsWebhook)
+                return false;
+
+            socketUserMessage = userMessage;
+            return true;
         }
 
         public void ConfigChanged(Configuration newConfig)

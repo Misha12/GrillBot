@@ -81,6 +81,7 @@ namespace Grillbot.Services
 
                 var mentionedEmotes = context.Message.Tags
                     .Where(o => o.Type == TagType.Emoji)
+                    .Select(o => o.Value)
                     .DistinctBy(o => o.ToString())
                     .ToList();
 
