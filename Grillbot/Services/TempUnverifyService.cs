@@ -7,6 +7,7 @@ using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -72,31 +73,42 @@ namespace Grillbot.Services
         {
             if (item is TempUnverifyItem unverify)
             {
-                try
+                var guild = Client.GetGuild(Convert.ToUInt64(unverify.GuildID));
+                if (guild == null) return;
+
+                var user = guild.GetUser(Convert.ToUInt64(unverify.UserID));
+                if (user == null)
                 {
-                    var guild = Client.GetGuild(Convert.ToUInt64(unverify.GuildID));
-                    if (guild == null) return;
+                    var admin = Client.GetUser(Config.MethodsConfig.TempUnverify.MainAdminSnowflake);
+                    var pmChannel = admin.GetOrCreateDMChannelAsync().GetAwaiter().GetResult();
 
-                    var user = guild.GetUser(Convert.ToUInt64(unverify.UserID));
-                    if (user == null) return;
-
-                    var rolesToReturn = unverify.DeserializedRolesToReturn;
-                    var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
-                    user.AddRolesAsync(roles).GetAwaiter().GetResult();
-
-                    LoggingService.WriteToLog($"ReturnAccess User: {user.Username}#{user.Discriminator} ({user.Id}) " +
-                        $"Roles: {string.Join(", ", rolesToReturn)}");
-                }
-                finally
-                {
-                    using (var repository = new TempUnverifyRepository(Config))
+                    var dataToPM = new
                     {
-                        repository.RemoveItemAsync(unverify.ID).GetAwaiter().GetResult();
-                    }
+                        unverify,
+                        guildName = guild.Name
+                    };
 
-                    unverify.Dispose();
-                    Data.RemoveAll(o => o.ID == unverify.ID);
+                    var content = $"```json\n{JsonConvert.SerializeObject(dataToPM, Formatting.Indented)}```";
+                    pmChannel.SendMessageAsync(content).GetAwaiter().GetResult();
+
+                    return;
                 }
+
+                var rolesToReturn = unverify.DeserializedRolesToReturn;
+                var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
+
+                LoggingService.WriteToLog($"ReturnAccess User: {user.Username}#{user.Discriminator} ({user.Id}) " +
+                    $"Roles: {string.Join(", ", rolesToReturn)}");
+
+                user.AddRolesAsync(roles).GetAwaiter().GetResult();
+
+                using (var repository = new TempUnverifyRepository(Config))
+                {
+                    repository.RemoveItem(unverify.ID);
+                }
+
+                unverify.Dispose();
+                Data.RemoveAll(o => o.ID == unverify.ID);
             }
         }
 
@@ -131,7 +143,7 @@ namespace Grillbot.Services
                 throw new ArgumentException("Nelze provést odebrání rolí, protože se mezi uživateli nachází vlastník serveru.");
 
             var botMaxRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 var usersMaxRolePosition = user.Roles.Max(o => o.Position);
 
@@ -274,32 +286,49 @@ namespace Grillbot.Services
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                var embedBuilder = new EmbedBuilder()
+                return CreateListPersons(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+            }
+        }
+
+        public async Task<EmbedBuilder> GetPersonUnverifyStatus(string callerUsername, string callerAvatarUrl, ulong searchedUserID)
+        {
+            using (var repository = new TempUnverifyRepository(Config))
+            {
+                var person = await repository.FindUnverifyByUserID(searchedUserID);
+
+                if (person == null)
+                    throw new ArgumentException($"Uživatel s ID {searchedUserID} zatím nemá žádné unverify.");
+
+                return CreateListPersons(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+            }
+        }
+
+        private EmbedBuilder CreateListPersons(List<TempUnverifyItem> items, Tuple<string, string> caller)
+        {
+            var embedBuilder = new EmbedBuilder()
                     .WithColor(Color.Blue)
                     .WithCurrentTimestamp()
                     .WithTitle("Seznam osob s odebraným přístupem.")
                     .WithThumbnailUrl(Client.CurrentUser.GetAvatarUrl())
-                    .WithFooter($"Odpověď pro uživatele: {callerUsername}", callerAvatarUrl);
+                    .WithFooter($"Odpověď pro uživatele: {caller.Item1}", caller.Item2);
 
-                foreach (var person in persons)
-                {
-                    var guild = Client.GetGuild(Convert.ToUInt64(person.GuildID));
-                    var user = guild.GetUser(Convert.ToUInt64(person.UserID));
+            foreach (var person in items)
+            {
+                var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\nRole: {string.Join(", ", person.DeserializedRolesToReturn)}";
 
-                    if (user == null)
-                    {
-                        person.Dispose();
-                        await repository.RemoveItemAsync(person.ID);
-                        Data.RemoveAll(o => o.ID == person.ID);
-                        continue;
-                    }
+                var guild = Client.GetGuild(Convert.ToUInt64(person.GuildID));
+                var user = guild.GetUser(Convert.ToUInt64(person.UserID));
 
-                    var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\nRole: {string.Join(", ", person.DeserializedRolesToReturn)}";
-                    embedBuilder.AddField(o => o.WithName($"{user.Username}#{user.Discriminator}").WithValue(desc));
-                }
+                string username;
+                if (user != null)
+                    username = $"{user.Username}#{user.Discriminator}";
+                else
+                    username = $"Neznámý uživatel {person.UserID}";
 
-                return embedBuilder;
+                embedBuilder.AddField(o => o.WithName(username).WithValue(desc));
             }
+
+            return embedBuilder;
         }
 
         public async Task<string> ReturnAccessAsync(int id)
@@ -331,7 +360,7 @@ namespace Grillbot.Services
             if (item == null)
                 throw new ArgumentException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
-            using(var repository = new TempUnverifyRepository(Config))
+            using (var repository = new TempUnverifyRepository(Config))
             {
                 await repository.UpdateTimeAsync(id, unverifyTime);
             }

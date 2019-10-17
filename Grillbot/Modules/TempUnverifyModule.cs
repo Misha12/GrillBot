@@ -87,6 +87,21 @@ namespace Grillbot.Modules
             });
         }
 
+        [Command("UserStatus")]
+        [Summary("Informace o odebrání rolí pro určitého uživatele.")]
+        [Remarks("Zadává se ID uživatele.")]
+        public async Task UserStatusAsync(ulong userId)
+        {
+            var callerUsername = GetUsersShortName(Context.Message.Author);
+            var callerAvatar = GetUserAvatarUrl(Context.Message.Author);
+
+            await DoAsync(async () =>
+            {
+                var embed = await UnverifyService.GetPersonUnverifyStatus(callerUsername, callerAvatar, userId);
+                await ReplyAsync(embed: embed.Build());
+            });
+        }
+
         [Command("update")]
         [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
         public async Task UpdateUnverifyAsync(int id, string time)

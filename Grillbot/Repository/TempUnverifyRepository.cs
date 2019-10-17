@@ -41,6 +41,24 @@ namespace Grillbot.Repository
             return await GetAllItems().FirstOrDefaultAsync(o => o.ID == id);
         }
 
+        public async Task<TempUnverifyItem> FindUnverifyByUserID(ulong userId)
+        {
+            string user = userId.ToString();
+
+            return await GetAllItems().FirstOrDefaultAsync(o => o.UserID == user);
+        }
+
+        public void RemoveItem(int id)
+        {
+            var item = Context.TempUnverify.FirstOrDefault(o => o.ID == id);
+
+            if (item == null)
+                return;
+
+            Context.TempUnverify.Remove(item);
+            Context.SaveChanges();
+        }
+
         public async Task RemoveItemAsync(int id)
         {
             var item = await FindItemByIDAsync(id);
