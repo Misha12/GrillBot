@@ -17,8 +17,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageDeleted : LoggerMethodBase
     {
-        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient)
-            : base(client, config, messageCache, httpClient)
+        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
+            BotLoggingService loggingService) : base(client, config, messageCache, httpClient, loggingService)
         {
         }
 
@@ -56,8 +56,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
             if (channel is SocketGuildChannel socketGuildChannel)
             {
-                var guild = socketGuildChannel.Guild;
-                var logs = (await guild.GetAuditLogsAsync(5).FlattenAsync()).ToList();
+                var logs = await GetAuditLogDataAsync(socketGuildChannel.Guild);
                 var messageDeletedRecords = logs.Where(o => o.Action == ActionType.MessageDeleted).ToList();
 
                 return messageDeletedRecords.FirstOrDefault(o =>
@@ -68,6 +67,19 @@ namespace Grillbot.Services.Logger.LoggerMethods
             }
 
             return null;
+        }
+
+        private async Task<List<RestAuditLogEntry>> GetAuditLogDataAsync(SocketGuild guild)
+        {
+            try
+            {
+                return (await guild.GetAuditLogsAsync(5).FlattenAsync()).ToList();
+            }
+            catch (Exception ex)
+            {
+                await LoggingService.WriteToLogAsync(ex.ToString());
+                return new List<RestAuditLogEntry>();
+            }
         }
 
         private async Task ProcessWithCacheRecordAsync(IMessage message, ISocketMessageChannel channel)
@@ -99,25 +111,11 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
                 if (message.Attachments.Any())
                 {
-                    var attachment = message.Attachments.First();
-
-                    if (await IsSiteAvailableAsync(attachment.ProxyUrl))
+                    foreach (var messageAttachment in message.Attachments)
                     {
-                        logEmbedBuilder.SetImage(attachment.ProxyUrl);
-                    }
-                    else if (await IsSiteAvailableAsync(attachment.Url))
-                    {
-                        logEmbedBuilder.SetImage(attachment.Url);
-                    }
-
-                    if (message.Attachments.Count > 1)
-                    {
-                        foreach (var messageAttachment in message.Attachments.Skip(1))
-                        {
-                            var attachmentStream = await GetAttachmentStreamAsync(attachment);
-                            if (!string.IsNullOrEmpty(attachmentStream.Item1) && attachmentStream.Item2 != null)
-                                streams.Add(attachmentStream);
-                        }
+                        var attachmentStream = await GetAttachmentStreamAsync(messageAttachment);
+                        if (!string.IsNullOrEmpty(attachmentStream.Item1) && attachmentStream.Item2 != null)
+                            streams.Add(attachmentStream);
                     }
                 }
 
@@ -131,23 +129,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
             finally
             {
                 streams.ForEach(o => o.Item2.Dispose());
-            }
-        }
-
-        private async Task<bool> IsSiteAvailableAsync(string url)
-        {
-            var request = WebRequest.CreateHttp(url);
-
-            try
-            {
-                using (var response = (HttpWebResponse)await request.GetResponseAsync())
-                {
-                    return response.StatusCode == HttpStatusCode.OK;
-                }
-            }
-            catch (WebException)
-            {
-                return false;
             }
         }
 

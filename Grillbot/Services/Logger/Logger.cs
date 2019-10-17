@@ -17,14 +17,16 @@ namespace Grillbot.Services.Logger
         private DiscordSocketClient Client { get; }
         private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
+        private BotLoggingService LoggingService { get; }
 
         public Dictionary<string, uint> Counters { get; }
 
-        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache)
+        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, BotLoggingService loggingService)
         {
             Client = client;
             Config = config.Value;
             MessageCache = messageCache;
+            LoggingService = loggingService;
 
             Counters = new Dictionary<string, uint>();
 
@@ -42,7 +44,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient);
+            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, LoggingService);
             await method.ProcessAsync(message, channel);
 
             IncrementEventHandle("MessageDeleted");
