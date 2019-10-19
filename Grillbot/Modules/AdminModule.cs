@@ -6,6 +6,7 @@ using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -105,6 +106,58 @@ namespace Grillbot.Modules
             }
 
             await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.");
+        }
+
+        [Command("guild_status")]
+        [Summary("Stav serveru")]
+        public async Task GuildStatusAsync()
+        {
+            var guild = Context.Guild;
+
+            var builder = new StringBuilder()
+                .Append("Name: **").Append(guild.Name).AppendLine("**")
+                .Append("CategoryChannelsCount: **").Append(guild.CategoryChannels?.Count.ToString() ?? "0").AppendLine("**")
+                .Append("ChannelsCount: **").Append(guild.Channels.Count.ToString()).AppendLine("**")
+                .Append("CreatedAt: **").Append(guild.CreatedAt.ToString()).AppendLine("**")
+                .Append("HasAllMembers: **").Append(guild.HasAllMembers.ToString()).AppendLine("**")
+                .Append("IsConnected: **").Append(guild.IsConnected.ToString()).AppendLine("**")
+                .Append("IsEmbeddable: **").Append(guild.IsEmbeddable.ToString()).AppendLine("**")
+                .Append("IsSynced: **").Append(guild.IsSynced.ToString()).AppendLine("**")
+                .Append("IconID: **").Append(guild.IconId).AppendLine("**")
+                .Append("MemberCount: **").Append(guild.MemberCount.ToString()).AppendLine("**")
+                .Append("OwnerID: **").Append(guild.OwnerId.ToString()).AppendLine("**")
+                .Append("RolesCount: **").Append(guild.Roles.Count.ToString()).AppendLine("**")
+                .Append("SplashID: **").Append(guild.SplashId?.ToString() ?? "null").AppendLine("**")
+                .Append("CachedUsersCount: **").Append(guild.Users.Count.ToString()).AppendLine("**")
+                .Append("VerificationLevel: **").Append(guild.VerificationLevel.ToString()).AppendLine("**")
+                .Append("VoiceRegionID: **").Append(guild.VoiceRegionId ?? "null").AppendLine("**");
+
+            await ReplyAsync(builder.ToString());
+        }
+
+        [Command("sync_guild")]
+        [Summary("Synchronizace serveru s botem.")]
+        public async Task SyncGuild()
+        {
+            var guild = Context.Guild;
+
+            try
+            {
+                await guild.DownloadUsersAsync();
+
+                if(guild.SyncPromise != null)
+                    await guild.SyncPromise;
+
+                if(guild.DownloaderPromise != null)
+                    await guild.DownloaderPromise;
+
+                await ReplyAsync("Synchronizace dokončena");
+            }
+            catch (Exception ex)
+            {
+                await ReplyAsync($"Synchronizace se nezdařila {ex.Message}");
+                throw;
+            }
         }
     }
 }

@@ -3,8 +3,10 @@ using Discord.Commands;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -33,7 +35,7 @@ namespace Grillbot.Modules
             foreach (var emote in emoteInfos)
             {
                 var field = new EmbedFieldBuilder()
-                    .WithName(emote.EmoteID)
+                    .WithName(emote.GetRealId())
                     .WithValue(emote.GetFormatedInfo());
 
                 embedFields.Add(field);
@@ -66,7 +68,7 @@ namespace Grillbot.Modules
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)
@@ -103,6 +105,12 @@ namespace Grillbot.Modules
 
             if(emoteInfo == null)
             {
+                var bytes = Encoding.Unicode.GetBytes(emote);
+                emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
+            }
+
+            if(emoteInfo == null)
+            {
                 if(!existsInGuild)
                 {
                     await ReplyAsync("Tento emote neexistuje.");
@@ -115,7 +123,7 @@ namespace Grillbot.Modules
 
             var emoteInfoEmbed = new EmbedBuilder()
                 .WithColor(Color.Blue)
-                .AddField(o => o.WithName(emoteInfo.EmoteID).WithValue(emoteInfo.GetFormatedInfo()))
+                .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()))
                 .WithCurrentTimestamp()
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author));
 
@@ -131,7 +139,7 @@ namespace Grillbot.Modules
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)

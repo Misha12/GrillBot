@@ -52,5 +52,7 @@ namespace Grillbot.Repository.Entity
                 .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime())
                 .ToString();
         }
+
+        public string GetRealId() => IsUnicode ? Encoding.Unicode.GetString(Convert.FromBase64String(EmoteID)) : EmoteID;
     }
 }

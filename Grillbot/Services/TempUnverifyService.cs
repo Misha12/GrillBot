@@ -76,7 +76,7 @@ namespace Grillbot.Services
                 var guild = Client.GetGuild(Convert.ToUInt64(unverify.GuildID));
                 if (guild == null) return;
 
-                var user = guild.GetUser(Convert.ToUInt64(unverify.UserID));
+                var user = GetUserFromGuildAsync(guild, unverify.UserID).Result;
                 if (user == null)
                 {
                     var admin = Client.GetUser(Config.MethodsConfig.TempUnverify.MainAdminSnowflake);
@@ -110,6 +110,20 @@ namespace Grillbot.Services
                 unverify.Dispose();
                 Data.RemoveAll(o => o.ID == unverify.ID);
             }
+        }
+
+        private async Task<SocketGuildUser> GetUserFromGuildAsync(SocketGuild guild, string userId)
+        {
+            var idOfUser = Convert.ToUInt64(userId);
+            var user = guild.GetUser(idOfUser);
+
+            if (user == null)
+            {
+                await guild.DownloadUsersAsync();
+                user = guild.GetUser(idOfUser);
+            }
+
+            return user;
         }
 
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild)
@@ -286,7 +300,7 @@ namespace Grillbot.Services
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                return CreateListPersons(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+                return await CreateListPersonsAsync(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl));
             }
         }
 
@@ -299,11 +313,11 @@ namespace Grillbot.Services
                 if (person == null)
                     throw new ArgumentException($"Uživatel s ID {searchedUserID} zatím nemá žádné unverify.");
 
-                return CreateListPersons(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+                return await CreateListPersonsAsync(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl));
             }
         }
 
-        private EmbedBuilder CreateListPersons(List<TempUnverifyItem> items, Tuple<string, string> caller)
+        private async Task<EmbedBuilder> CreateListPersonsAsync(List<TempUnverifyItem> items, Tuple<string, string> caller)
         {
             var embedBuilder = new EmbedBuilder()
                     .WithColor(Color.Blue)
@@ -317,7 +331,7 @@ namespace Grillbot.Services
                 var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\nRole: {string.Join(", ", person.DeserializedRolesToReturn)}";
 
                 var guild = Client.GetGuild(Convert.ToUInt64(person.GuildID));
-                var user = guild.GetUser(Convert.ToUInt64(person.UserID));
+                var user = await GetUserFromGuildAsync(guild, person.UserID);
 
                 string username;
                 if (user != null)
@@ -343,12 +357,12 @@ namespace Grillbot.Services
                 ReturnAccess(item);
 
                 var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
-                var user = guild.GetUser(Convert.ToUInt64(item.UserID));
+                var user = await GetUserFromGuildAsync(guild, item.UserID);
 
                 if (user == null)
                     throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-                return $"Předčasné odebrání rolí pro uživatele **{user.Username}#{user.Discriminator}** bylo dokončeno.";
+                return $"Předčasné vrácení rolí pro uživatele **{user.Username}#{user.Discriminator}** bylo dokončeno.";
             }
         }
 

@@ -1,6 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 using Discord;
@@ -144,14 +145,14 @@ namespace Grillbot.Services
 
                 if(reaction.Emote is Emoji emoji)
                 {
-                    DecrementCounter(reaction.Emote.Name);
+                    DecrementCounter(reaction.Emote.Name, true);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        DecrementCounter(emoteId);
+                        DecrementCounter(emoteId, false);
                 }
             }
             finally
@@ -162,6 +163,12 @@ namespace Grillbot.Services
 
         private void IncrementCounter(string emoteId, bool isUnicode)
         {
+            if(isUnicode)
+            {
+                var bytes = Encoding.Unicode.GetBytes(emoteId);
+                emoteId = Convert.ToBase64String(bytes);
+            }
+
             if (!Counter.ContainsKey(emoteId))
                 Counter.Add(emoteId, new EmoteStat(emoteId, isUnicode));
             else
@@ -170,8 +177,14 @@ namespace Grillbot.Services
             Changes.Add(emoteId);
         }
 
-        private void DecrementCounter(string emoteId)
+        private void DecrementCounter(string emoteId, bool isUnicode)
         {
+            if(isUnicode)
+            {
+                var bytes = Encoding.Unicode.GetBytes(emoteId);
+                emoteId = Convert.ToBase64String(bytes);
+            }
+
             var value = GetValue(emoteId);
             if (value == null || value.Count == 0) return;
 
@@ -186,21 +199,21 @@ namespace Grillbot.Services
 
         public List<EmoteStat> GetAllValues(bool descOrder)
         {
-            IOrderedEnumerable<EmoteStat> ordered;
+            List<EmoteStat> ordered;
             if(descOrder)
             {
                 ordered = Counter.Values
                     .OrderByDescending(o => o.Count)
-                    .ThenByDescending(o => o.LastOccuredAt);
+                    .ThenByDescending(o => o.LastOccuredAt).ToList();
             }
             else
             {
                 ordered = Counter.Values
                     .OrderBy(o => o.Count)
-                    .ThenBy(o => o.LastOccuredAt);
+                    .ThenBy(o => o.LastOccuredAt).ToList();
             }
 
-            return ordered.ToList();
+            return ordered;
         }
 
         public void ConfigChanged(Configuration newConfig)
