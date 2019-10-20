@@ -10,17 +10,20 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private EmoteStats EmoteStats { get; }
+        private CalledEventStats CalledEventStats { get; }
 
-        public ReactionAddedHandler(DiscordSocketClient client, Statistics statistics)
+        public ReactionAddedHandler(DiscordSocketClient client, Statistics statistics, CalledEventStats calledEventStats)
         {
             Client = client;
             EmoteStats = statistics.EmoteStats;
+            CalledEventStats = calledEventStats;
 
             Client.ReactionAdded += OnReactionAddedAsync;
         }
 
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            CalledEventStats.Increment("ReactionAdded");
             await EmoteStats.IncrementFromReaction(reaction);
         }
 

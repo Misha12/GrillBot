@@ -87,7 +87,8 @@ namespace Grillbot
 
             services
                 .AddSingleton<Logger>()
-                .AddSingleton<IMessageCache, MessageCache>();
+                .AddSingleton<IMessageCache, MessageCache>()
+                .AddSingleton<CalledEventStats>();
 
             services.AddHostedService<GrillBotService>();
         }

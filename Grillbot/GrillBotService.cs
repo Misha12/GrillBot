@@ -13,6 +13,8 @@ using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services;
+using System.Collections.Generic;
+using Grillbot.Services.Statistics;
 
 namespace Grillbot
 {
@@ -26,9 +28,10 @@ namespace Grillbot
         private Configuration Config { get; set; }
         private IMessageCache Cache { get; set; }
         private TempUnverifyService TempUnverify { get; }
+        private CalledEventStats CalledEventStats { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IMessageCache cache,
-            IOptions<Configuration> config, TempUnverifyService tempUnverify)
+            IOptions<Configuration> config, TempUnverifyService tempUnverify, CalledEventStats calledEventStats)
         {
             Services = services;
             Client = client;
@@ -36,12 +39,15 @@ namespace Grillbot
             Config = config.Value;
             Cache = cache;
             TempUnverify = tempUnverify;
+            CalledEventStats = calledEventStats;
 
             Client.Ready += OnClientReadyAsync;
         }
 
         private async Task OnClientReadyAsync()
         {
+            CalledEventStats.Increment("Ready");
+
             await TempUnverify.InitAsync();
             await Cache.InitAsync();
         }
