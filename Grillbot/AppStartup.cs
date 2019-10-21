@@ -85,7 +85,8 @@ namespace Grillbot
                 .AddSingleton<CReferenceService>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<MathCalculator>()
-                .AddTransient<TeamSearchService>();
+                .AddTransient<TeamSearchService>()
+                .AddTransient<BotStatusService>();
 
             services
                 .AddSingleton<Logger>()

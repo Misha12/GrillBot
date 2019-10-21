@@ -20,5 +20,11 @@ namespace Grillbot.Services.Auth
             var authToken = new AuthToken(token, expiresAfter);
             Tokens.Add(authToken);
         }
+
+        public bool IsTokenValid(string token)
+        {
+            var tokenItem = Tokens.Find(o => o.Token == token);
+            return tokenItem?.IsValid() == true;
+        }
     }
 }

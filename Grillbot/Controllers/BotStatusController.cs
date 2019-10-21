@@ -1,4 +1,6 @@
-﻿using Microsoft.AspNetCore.Mvc;
+﻿using Grillbot.Services;
+using Grillbot.Services.Auth;
+using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers
 {
@@ -6,24 +8,40 @@ namespace Grillbot.Controllers
     [ApiController]
     public class BotStatusController : ControllerBase
     {
-        private void CheckAuth()
+        private AuthService AuthService { get; }
+        private BotStatusService BotStatusService { get; }
+
+        public BotStatusController(AuthService authService, BotStatusService botStatusService)
         {
-            //TODO
+            AuthService = authService;
+            BotStatusService = botStatusService;
+        }
+
+        private bool CheckAuth()
+        {
+            var authHeader = Request.Headers["Authorization"].ToString();
+
+            if (string.IsNullOrEmpty(authHeader))
+                return false;
+
+            return AuthService.IsTokenValid(authHeader);
         }
 
         [HttpGet("[action]")]
         public IActionResult GetSimpleStatus()
         {
-            CheckAuth();
+            if (!CheckAuth())
+                return Unauthorized();
 
-            //TODO
-            return Ok();
+            var data = BotStatusService.GetSimpleStatus();
+            return Ok(data);
         }
 
         [HttpGet("[action]")]
         public IActionResult GetCallStats()
         {
-            CheckAuth();
+            if (!CheckAuth())
+                return Unauthorized();
 
             // TODO
             return Ok();
@@ -32,7 +50,8 @@ namespace Grillbot.Controllers
         [HttpGet("[action]")]
         public IActionResult GetLoggerStats()
         {
-            CheckAuth();
+            if (!CheckAuth())
+                return Unauthorized();
 
             // TODO
             return Ok();
@@ -41,7 +60,8 @@ namespace Grillbot.Controllers
         [HttpGet("[action]")]
         public IActionResult GetTempUnverifyLog()
         {
-            CheckAuth();
+            if (!CheckAuth())
+                return Unauthorized();
 
             //TODO
             return Ok();
@@ -50,9 +70,19 @@ namespace Grillbot.Controllers
         [HttpGet("[action]")]
         public IActionResult GetSimpleAutoReplyStats()
         {
-            CheckAuth();
+            if (!CheckAuth())
+                return Unauthorized();
 
             // TODO
+            return Ok();
+        }
+
+        public IActionResult GetEventStatistics()
+        {
+            if (!CheckAuth())
+                return Unauthorized();
+
+            //TODO
             return Ok();
         }
     }
