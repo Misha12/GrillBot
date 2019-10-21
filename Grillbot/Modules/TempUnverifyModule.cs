@@ -8,10 +8,9 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Group("unverify")]
     [Name("Odebrání přístupu.")]
-    [RequirePermissions("TempUnverify")]
+    [RequirePermissions("TempUnverify", DisabledForPM = true)]
     public class TempUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }
@@ -84,6 +83,21 @@ namespace Grillbot.Modules
             await DoAsync(async () =>
             {
                 var embed = await UnverifyService.ListPersonsAsync(callerUsername, callerAvatar);
+                await ReplyAsync(embed: embed.Build());
+            });
+        }
+
+        [Command("UserStatus")]
+        [Summary("Informace o odebrání rolí pro určitého uživatele.")]
+        [Remarks("Zadává se ID uživatele.")]
+        public async Task UserStatusAsync(ulong userId)
+        {
+            var callerUsername = GetUsersShortName(Context.Message.Author);
+            var callerAvatar = GetUserAvatarUrl(Context.Message.Author);
+
+            await DoAsync(async () =>
+            {
+                var embed = await UnverifyService.GetPersonUnverifyStatus(callerUsername, callerAvatar, userId);
                 await ReplyAsync(embed: embed.Build());
             });
         }

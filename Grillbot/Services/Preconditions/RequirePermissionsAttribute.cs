@@ -10,6 +10,7 @@ namespace Grillbot.Services.Preconditions
     public class RequirePermissionsAttribute : PreconditionAttribute
     {
         public string PermsGroupName { get; set; }
+        public bool DisabledForPM { get; set; }
 
         public RequirePermissionsAttribute(string permsGroupName)
         {
@@ -18,6 +19,9 @@ namespace Grillbot.Services.Preconditions
 
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
+            if (context.Guild == null && DisabledForPM)
+                return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelpe provést v soukromé konverzaci."));
+
             var config = (IOptions<Configuration>)services.GetService(typeof(IOptions<Configuration>));
             var permissions = config.Value.MethodsConfig.GetPermissions(PermsGroupName);
 

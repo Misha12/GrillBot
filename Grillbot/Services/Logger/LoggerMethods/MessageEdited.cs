@@ -9,7 +9,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageEdited : LoggerMethodBase
     {
-        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache) : base(client, config, messageCache, null)
+        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache)
+            : base(client, config, messageCache, null, null)
         {
         }
 

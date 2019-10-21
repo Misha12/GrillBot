@@ -24,11 +24,12 @@ namespace Grillbot.Handlers
         private Statistics Statistics { get; }
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
+        private CalledEventStats CalledEventStats { get; }
 
         private Configuration Config { get; set; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain)
+            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats)
         {
             Client = client;
             Commands = commands;
@@ -36,6 +37,7 @@ namespace Grillbot.Handlers
             Statistics = statistics;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
+            CalledEventStats = calledEventStats;
 
             ConfigChanged(config.Value);
 
@@ -44,12 +46,14 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
+            CalledEventStats.Increment("MessageReceived");
+
             var messageStopwatch = new Stopwatch();
             messageStopwatch.Start();
 
             try
             {
-                if (!(message is SocketUserMessage userMessage) || userMessage.Author.IsBot) return;
+                if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
 
                 var commandStopwatch = new Stopwatch();
                 var context = new SocketCommandContext(Client, userMessage);
@@ -97,6 +101,22 @@ namespace Grillbot.Handlers
                 messageStopwatch.Stop();
                 Statistics.ComputeAvgReact(messageStopwatch.ElapsedMilliseconds);
             }
+        }
+
+        private bool TryParseMessage(SocketMessage message, out SocketUserMessage socketUserMessage)
+        {
+            socketUserMessage = null;
+
+            if(!(message is SocketUserMessage userMessage))
+            {
+                return false;
+            }
+
+            if (message.Author.IsBot || message.Author.IsWebhook)
+                return false;
+
+            socketUserMessage = userMessage;
+            return true;
         }
 
         public void ConfigChanged(Configuration newConfig)

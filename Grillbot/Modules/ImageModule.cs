@@ -9,7 +9,6 @@ using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Name("Nudes a další zajímavé fotky")]
     [RequirePermissions("MemeImages")]
     public class ImageModule : BotModuleBase

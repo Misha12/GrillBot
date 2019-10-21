@@ -13,13 +13,16 @@ namespace Grillbot.Services.Logger.LoggerMethods
         protected Configuration Config { get; }
         protected IMessageCache MessageCache { get; }
         protected HttpClient HttpClient { get; }
+        protected BotLoggingService LoggingService { get; }
 
-        protected LoggerMethodBase(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient)
+        protected LoggerMethodBase(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
+            BotLoggingService loggingService)
         {
             Client = client;
             Config = config;
             MessageCache = messageCache;
             HttpClient = httpClient;
+            LoggingService = loggingService;
         }
 
         protected ISocketMessageChannel GetLoggerRoom()

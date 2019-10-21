@@ -8,7 +8,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class UserJoined : LoggerMethodBase
     {
-        public UserJoined(DiscordSocketClient client, Configuration config) : base(client, config, null, null)
+        public UserJoined(DiscordSocketClient client, Configuration config) : base(client, config, null, null, null)
         {
         }
 

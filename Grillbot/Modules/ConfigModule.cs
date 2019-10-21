@@ -31,7 +31,7 @@ namespace Grillbot.Modules
                 await ReplyAsync($"{section}```{value}```");
         }
 
-        [Command("GetPermissionNames")]
+        [Command("GetPermissions")]
         [Summary("Vypíše seznam všech sekcí, kterým lze nastavit oprávnění.")]
         public async Task GetPermissionSections()
         {

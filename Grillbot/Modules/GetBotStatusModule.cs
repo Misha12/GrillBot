@@ -17,25 +17,21 @@ namespace Grillbot.Modules
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
-        private AutoReplyService AutoReply { get; }
         private IHostingEnvironment HostingEnvironment { get; }
         private Logger Logger { get; }
+        private CalledEventStats CalledEventStats { get; }
 
-        public GetBotStatusModule(Statistics statistics, AutoReplyService autoReply, IHostingEnvironment hostingEnvironment,
-            Logger logger)
+        public GetBotStatusModule(Statistics statistics, IHostingEnvironment hostingEnvironment, Logger logger, CalledEventStats calledEventStats)
         {
             Statistics = statistics;
-            AutoReply = autoReply;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
+            CalledEventStats = calledEventStats;
         }
 
         [Command("grillstatus")]
         [Summary("Vypíše diagnostické informace o botovi.")]
-        public async Task StatusAsync()
-        {
-            await StatusAsync("count");
-        }
+        public async Task StatusAsync() => await StatusAsync("count");
 
         [Command("grillstatus")]
         [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
@@ -64,6 +60,7 @@ namespace Grillbot.Modules
             await ReplyAsync("", embed: embed.Build());
             await PrintCallStatsAsync(orderType == "time");
             await PrintLoggerStatistics();
+            await PrintEventStatistics();
         }
 
         private async Task PrintCallStatsAsync(bool orderByTime)
@@ -105,8 +102,31 @@ namespace Grillbot.Modules
                 Title = "Statistiky logování"
             };
 
-            AddInlineEmbedField(embedBuilder, "Vyvolaná událost", string.Join(Environment.NewLine, data.Select(o => o.Key)));
-            AddInlineEmbedField(embedBuilder, "Počet provedené", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+            AddInlineEmbedField(embedBuilder, "Název události", string.Join(Environment.NewLine, data.Select(o => o.Key)));
+            AddInlineEmbedField(embedBuilder, "Počet provedení", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+
+            embedBuilder
+                .WithCurrentTimestamp()
+                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+
+            await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        private async Task PrintEventStatistics()
+        {
+            var data = CalledEventStats.GetValues();
+            
+            if (data.Count == 0)
+                return;
+
+            var embedBuilder = new EmbedBuilder()
+            {
+                Color = Color.Blue,
+                Title = "Statistika zavolaných událostí"
+            };
+
+            AddInlineEmbedField(embedBuilder, "Název události", string.Join(Environment.NewLine, data.Select(o => o.Key)));
+            AddInlineEmbedField(embedBuilder, "Počet provedení", string.Join(Environment.NewLine, data.Select(o => o.Value)));
 
             embedBuilder
                 .WithCurrentTimestamp()

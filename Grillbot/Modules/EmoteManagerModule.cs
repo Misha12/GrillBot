@@ -3,16 +3,17 @@ using Discord.Commands;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [IgnorePM]
     [Group("emoteinfo")]
     [Name("Správa emotů")]
-    [RequirePermissions("EmoteManager")]
+    [RequirePermissions("EmoteManager", DisabledForPM = true)]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }
@@ -34,7 +35,7 @@ namespace Grillbot.Modules
             foreach (var emote in emoteInfos)
             {
                 var field = new EmbedFieldBuilder()
-                    .WithName(emote.EmoteID)
+                    .WithName(emote.GetRealId())
                     .WithValue(emote.GetFormatedInfo());
 
                 embedFields.Add(field);
@@ -52,21 +53,22 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("asc")]
+        [Command("desc")]
         [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
         public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true);
 
+        [Command("asc")]
         [Summary("TOP 25 statistika emotů. Seřazeno vzestupně.")]
         public async Task GetTopUsedEmotesAscending() => await GetTopEmoteUsage(false);
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
             var emoteInfos = EmoteStats.GetAllValues(descOrder)
-                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && x.Animated == false))
+                .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)
@@ -79,8 +81,8 @@ namespace Grillbot.Modules
 
         [Command("")]
         [Summary("Statistika emotu")]
-        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.")]
-        public async Task GetEmoteInfoAsync(string emote)
+        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]
+        public async Task GetEmoteInfoAsync([Remainder] string emote)
         {
             switch (emote)
             {
@@ -90,6 +92,9 @@ namespace Grillbot.Modules
                 case "asc":
                     await GetTopUsedEmotesAscending();
                     return;
+                case "desc":
+                    await GetTopUsedEmotes();
+                    return;
                 case "unicode":
                     await GetEmoteInfoOnlyUnicode();
                     return;
@@ -97,6 +102,12 @@ namespace Grillbot.Modules
 
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
             var emoteInfo = EmoteStats.GetValue(emote);
+
+            if(emoteInfo == null)
+            {
+                var bytes = Encoding.Unicode.GetBytes(emote);
+                emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
+            }
 
             if(emoteInfo == null)
             {
@@ -112,7 +123,7 @@ namespace Grillbot.Modules
 
             var emoteInfoEmbed = new EmbedBuilder()
                 .WithColor(Color.Blue)
-                .AddField(o => o.WithName(emoteInfo.EmoteID).WithValue(emoteInfo.GetFormatedInfo()))
+                .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()))
                 .WithCurrentTimestamp()
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author));
 
@@ -128,7 +139,7 @@ namespace Grillbot.Modules
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.EmoteID).WithValue(o.GetFormatedInfo())).ToList();
+            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
 
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)

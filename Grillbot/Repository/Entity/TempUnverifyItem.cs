@@ -36,6 +36,7 @@ namespace Grillbot.Repository.Entity
 
         [Column]
         [Required]
+        [JsonIgnore]
         public string RolesToReturn { get; set; }
 
         [NotMapped]
@@ -52,6 +53,7 @@ namespace Grillbot.Repository.Entity
         public DateTime GetEndDatetime() => StartAt.AddSeconds(TimeFor);
 
         [NotMapped]
+        [JsonIgnore]
         public Timer TimerToEnd { get; set; }
 
         public void InitTimer(TimerCallback callback)

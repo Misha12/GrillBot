@@ -18,12 +18,15 @@ namespace Grillbot.Handlers
         private Configuration Config { get; set; }
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
+        private CalledEventStats CalledEventStats { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IOptions<Configuration> config, Logger logger)
+        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, IOptions<Configuration> config, Logger logger,
+            CalledEventStats calledEventStats)
         {
             Client = client;
             Statistics = statistics;
             Logger = logger;
+            CalledEventStats = calledEventStats;
 
             ConfigChanged(config.Value);
 
@@ -41,6 +44,8 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
+            CalledEventStats.Increment("MessageDeleted");
+            
             if (message.HasValue && (message.Value.Author.IsBot || message.Value.Author.IsWebhook)) return;
 
             if (message.Value is SocketUserMessage)

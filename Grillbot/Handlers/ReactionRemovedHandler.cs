@@ -10,17 +10,20 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private EmoteStats EmoteStats { get; }
+        private CalledEventStats CalledEventStats { get; }
 
-        public ReactionRemovedHandler(DiscordSocketClient client, Statistics statistics)
+        public ReactionRemovedHandler(DiscordSocketClient client, Statistics statistics, CalledEventStats calledEventStats)
         {
             Client = client;
             EmoteStats = statistics.EmoteStats;
+            CalledEventStats = calledEventStats;
 
             Client.ReactionRemoved += OnReactionRemovedAsync;
         }
 
         private async Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            CalledEventStats.Increment("ReactionRemoved");
             await EmoteStats.DecrementFromReaction(reaction);
         }
 
