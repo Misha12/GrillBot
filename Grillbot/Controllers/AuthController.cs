@@ -1,7 +1,7 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Models;
 using Grillbot.Services.Auth;
 using Grillbot.Services.Config.Models;
-using Grillbot.Services.Preconditions;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -74,25 +74,28 @@ namespace Grillbot.Controllers
                 {
                     using (var reader = new StreamReader(response.GetResponseStream()))
                     {
-                        var data = JObject.Load(new JsonTextReader(reader));
-                        var token = data["access_token"].ToString();
-
-                        var isValid = await GetUserAndValidate(token);
-
-                        if(!isValid)
+                        using (var jsonReader = new JsonTextReader(reader))
                         {
-                            throw new WebException(JsonConvert.SerializeObject(new
-                            {
-                                error = "invalid_rights"
-                            }));
-                        }
+                            var data = JObject.Load(jsonReader);
+                            var token = data["access_token"].ToString();
 
-                        AuthService.AddToken(token, Convert.ToInt32(data["expires_in"]));
-                        return Ok(new { token });
+                            var validationResult = await GetUserAndValidate(token);
+
+                            if (validationResult != UserRightsValidationResult.OK)
+                            {
+                                throw new WebException(JsonConvert.SerializeObject(new
+                                {
+                                    error = validationResult
+                                }));
+                            }
+
+                            AuthService.AddToken(token, Convert.ToInt32(data["expires_in"]));
+                            return Ok(new { token });
+                        }
                     }
                 }
             }
-            catch(ArgumentException ex)
+            catch (ArgumentException ex)
             {
                 return StatusCode(500, new { error = ex.Message });
             }
@@ -108,7 +111,7 @@ namespace Grillbot.Controllers
             }
         }
 
-        private async Task<bool> GetUserAndValidate(string token)
+        private async Task<UserRightsValidationResult> GetUserAndValidate(string token)
         {
             var request = WebRequest.CreateHttp("https://discordapp.com/api/users/@me");
             request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {token}");
@@ -123,27 +126,31 @@ namespace Grillbot.Controllers
 
                     if (user == null)
                     {
-                        throw new WebException(JsonConvert.SerializeObject(new
-                        {
-                            error = "not_in_guild"
-                        }));
+                        return UserRightsValidationResult.NotInGuild;
                     }
-
-                    if (Config.IsUserBotAdmin(user.Id))
-                        return true;
 
                     var permissions = Config.MethodsConfig.GetPermissions("GrillStatus");
 
+                    if (Config.IsUserBotAdmin(user.Id))
+                    {
+                        return UserRightsValidationResult.OK;
+                    }
+                    else
+                    {
+                        if (permissions.OnlyAdmins)
+                            return UserRightsValidationResult.OnlyAdmins;
+                    }
+
                     if (permissions.IsUserBanned(user.Id))
-                        return false;
+                        return UserRightsValidationResult.BannedCommand;
 
                     if (permissions.IsUserAllowed(user.Id))
-                        return true;
+                        return UserRightsValidationResult.OK;
 
                     if (user.Roles.Any(o => permissions.IsRoleAllowed(o.Name)))
-                        return true;
-                        
-                    return false;
+                        return UserRightsValidationResult.OK;
+
+                    return UserRightsValidationResult.InvalidRights;
                 }
             }
         }
