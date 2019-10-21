@@ -64,7 +64,7 @@ namespace Grillbot.Modules
 
         private async Task PrintCallStatsAsync(bool orderByTime)
         {
-            var data = Statistics.GetOrderedData(orderByTime);
+            var data = BotStatusService.GetCallStats(orderByTime);
 
             if (data.Count == 0)
                 return;
@@ -91,8 +91,7 @@ namespace Grillbot.Modules
 
         private async Task PrintLoggerStatistics()
         {
-            var data = Logger.Counters.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
-
+            var data = BotStatusService.GetLoggerStats();
             if (data.Count == 0) return;
 
             var embedBuilder = new EmbedBuilder()

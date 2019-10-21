@@ -1,4 +1,5 @@
 ﻿using Grillbot.Helpers;
+using Grillbot.Models;
 using Grillbot.Models.BotStatus;
 using Microsoft.AspNetCore.Hosting;
 using System;
@@ -13,11 +14,13 @@ namespace Grillbot.Services
     {
         private Statistics.Statistics Statistics { get; }
         private IHostingEnvironment HostingEnvironment { get; }
+        private Logger.Logger Logger { get; }
 
-        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment)
+        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
+            Logger = logger;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -33,6 +36,13 @@ namespace Grillbot.Services
                 ThreadStatus = GetThreadStatus(process),
                 AvgReactTime = Statistics.GetAvgReactTime()
             };
+        }
+
+        public List<StatisticsData> GetCallStats(bool byTime = false) => Statistics.GetOrderedData(byTime);
+
+        public Dictionary<string, uint> GetLoggerStats()
+        {
+            return Logger.Counters.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
         }
 
         private string GetInstanceType()
