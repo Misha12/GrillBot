@@ -22,6 +22,7 @@ using System.Reflection;
 using System.Security.Cryptography;
 using Discord.Addons.Interactive;
 using Grillbot.Services.Auth;
+using Grillbot.Middleware;
 
 namespace Grillbot
 {
@@ -102,6 +103,7 @@ namespace Grillbot
             ServiceProvider = serviceProvider;
 
             app
+                .UseMiddleware<LogMiddleware>()
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseMvc()
                 .UseWelcomePage();
