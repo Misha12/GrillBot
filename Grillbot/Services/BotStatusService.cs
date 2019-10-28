@@ -4,6 +4,7 @@ using Grillbot.Models.BotStatus;
 using Grillbot.Modules;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
 using System.Collections.Generic;
@@ -19,15 +20,17 @@ namespace Grillbot.Services
         private Logger.Logger Logger { get; }
         private AutoReplyService AutoReplyService { get; }
         private Configuration Config { get; }
+        private CalledEventStats CalledEventStats { get; }
 
         public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger, 
-            AutoReplyService autoReplyService, IOptions<Configuration> config)
+            AutoReplyService autoReplyService, IOptions<Configuration> config, CalledEventStats calledEventStats)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
             AutoReplyService = autoReplyService;
             Config = config.Value;
+            CalledEventStats = calledEventStats;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -72,5 +75,7 @@ namespace Grillbot.Services
         }
 
         public List<AutoReplyItem> GetAutoReplyItems() => AutoReplyService.GetItems();
+
+        public Dictionary<string, string> GetCalledEventStats() => CalledEventStats.GetValues();
     }
 }

@@ -75,13 +75,15 @@ namespace Grillbot.Controllers
             return Ok(data);
         }
 
+        [HttpGet("[action]")]
         public IActionResult GetEventStatistics()
         {
             if (!CheckAuth())
                 return Unauthorized();
 
             //TODO
-            return Ok();
+            var data = BotStatusService.GetCalledEventStats();
+            return Ok(data);
         }
     }
 }
