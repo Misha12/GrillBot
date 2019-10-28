@@ -66,13 +66,13 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("[action]")]
-        public IActionResult GetSimpleAutoReplyStats()
+        public IActionResult GetAutoReplyStats()
         {
             if (!CheckAuth())
                 return Unauthorized();
 
-            // TODO
-            return Ok();
+            var data = BotStatusService.GetAutoReplyItems();
+            return Ok(data);
         }
 
         public IActionResult GetEventStatistics()

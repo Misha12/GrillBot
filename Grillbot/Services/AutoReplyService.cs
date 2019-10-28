@@ -201,5 +201,13 @@ namespace Grillbot.Modules
         {
             return !item.CaseSensitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
         }
+
+        public List<AutoReplyItem> GetItems()
+        {
+            return Data
+                .OrderByDescending(o => o.CallsCount)
+                .ThenBy(o => o.ID)
+                .ToList();
+        }
     }
 }

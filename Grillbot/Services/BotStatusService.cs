@@ -1,12 +1,14 @@
 ﻿using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
+using Grillbot.Modules;
+using Grillbot.Repository.Entity;
+using Grillbot.Services.Config.Models;
 using Microsoft.AspNetCore.Hosting;
-using System;
+using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
@@ -15,12 +17,17 @@ namespace Grillbot.Services
         private Statistics.Statistics Statistics { get; }
         private IHostingEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
+        private AutoReplyService AutoReplyService { get; }
+        private Configuration Config { get; }
 
-        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger)
+        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger, 
+            AutoReplyService autoReplyService, IOptions<Configuration> config)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
+            AutoReplyService = autoReplyService;
+            Config = config.Value;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -63,5 +70,7 @@ namespace Grillbot.Services
 
             return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
         }
+
+        public List<AutoReplyItem> GetAutoReplyItems() => AutoReplyService.GetItems();
     }
 }
