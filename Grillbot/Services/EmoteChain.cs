@@ -101,11 +101,15 @@ namespace Grillbot.Services
                .Where(o => o.Type == TagType.Emoji && context.Guild.Emotes.Any(x => x.Id == o.Key))
                .ToList();
 
-            if (emotes.Count == 0) return false;
+			var isUTFEmoji = NeoSmart.Unicode.Emoji.IsEmoji(context.Message.Content);
+
+            if (emotes.Count == 0 && !isUTFEmoji) return false;
+
+			if (!IsValidWithWithFirstInChannel(context)) return false;
 
             var emoteTemplate = string.Join(" ", emotes.Select(o => o.Value.ToString()));
-            return emoteTemplate == context.Message.Content && IsValidWithWithFirstInChannel(context);
-        }
+			return emoteTemplate == context.Message.Content || isUTFEmoji;
+		}
 
         public void ConfigChanged(Configuration newConfig)
         {
