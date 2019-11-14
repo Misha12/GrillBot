@@ -40,7 +40,7 @@ namespace Grillbot.Services
 
         public void Init()
         {
-            using(var repository = new EmoteStatsRepository(Config))
+            using (var repository = new EmoteStatsRepository(Config))
             {
                 Counter = repository.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
             }
@@ -57,7 +57,7 @@ namespace Grillbot.Services
                 if (Changes.Count == 0) return;
 
                 var changedData = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
-                using(var repository = new EmoteStatsRepository(Config))
+                using (var repository = new EmoteStatsRepository(Config))
                 {
                     repository.UpdateEmoteStatistics(changedData).Wait();
                 }
@@ -76,6 +76,7 @@ namespace Grillbot.Services
             if (context.Guild == null) return;
 
             await Semaphore.WaitAsync();
+
             try
             {
                 var serverEmotes = context.Guild.Emotes;
@@ -86,9 +87,15 @@ namespace Grillbot.Services
                     .DistinctBy(o => o.ToString())
                     .ToList();
 
-                foreach(var emote in mentionedEmotes)
+                if (mentionedEmotes.Count == 0)
                 {
-                    if(emote is Emoji emoji)
+                    TryIncrementUnicodeFromMessage(context.Message.Content);
+                    return;
+                }
+
+                foreach (var emote in mentionedEmotes)
+                {
+                    if (emote is Emoji emoji)
                     {
                         IncrementCounter(emoji.Name, true);
                     }
@@ -124,7 +131,7 @@ namespace Grillbot.Services
                 {
                     var emoteId = reaction.Emote.ToString();
 
-                    if(serverEmotes.Any(o => o.ToString() == emoteId))
+                    if (serverEmotes.Any(o => o.ToString() == emoteId))
                         IncrementCounter(reaction.Emote.ToString(), false);
                 }
             }
@@ -143,7 +150,7 @@ namespace Grillbot.Services
             {
                 var serverEmotes = channel.Guild.Emotes;
 
-                if(reaction.Emote is Emoji emoji)
+                if (reaction.Emote is Emoji emoji)
                 {
                     DecrementCounter(reaction.Emote.Name, true);
                 }
@@ -161,9 +168,22 @@ namespace Grillbot.Services
             }
         }
 
+        private void TryIncrementUnicodeFromMessage(string content)
+        {
+            var emojis = content
+                .Split(' ')
+                .Where(o => NeoSmart.Unicode.Emoji.IsEmoji(o))
+                .Select(o => o.Trim());
+
+            foreach (var emoji in emojis)
+            {
+                IncrementCounter(emoji, true);
+            }
+        }
+
         private void IncrementCounter(string emoteId, bool isUnicode)
         {
-            if(isUnicode)
+            if (isUnicode)
             {
                 var bytes = Encoding.Unicode.GetBytes(emoteId);
                 emoteId = Convert.ToBase64String(bytes);
@@ -179,7 +199,7 @@ namespace Grillbot.Services
 
         private void DecrementCounter(string emoteId, bool isUnicode)
         {
-            if(isUnicode)
+            if (isUnicode)
             {
                 var bytes = Encoding.Unicode.GetBytes(emoteId);
                 emoteId = Convert.ToBase64String(bytes);
@@ -199,21 +219,18 @@ namespace Grillbot.Services
 
         public List<EmoteStat> GetAllValues(bool descOrder)
         {
-            List<EmoteStat> ordered;
-            if(descOrder)
+            if (descOrder)
             {
-                ordered = Counter.Values
+                return Counter.Values
                     .OrderByDescending(o => o.Count)
                     .ThenByDescending(o => o.LastOccuredAt).ToList();
             }
             else
             {
-                ordered = Counter.Values
+                return Counter.Values
                     .OrderBy(o => o.Count)
                     .ThenBy(o => o.LastOccuredAt).ToList();
             }
-
-            return ordered;
         }
 
         public void ConfigChanged(Configuration newConfig)
