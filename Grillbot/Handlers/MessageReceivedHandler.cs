@@ -61,7 +61,7 @@ namespace Grillbot.Handlers
                 if (message.Channel is IPrivateChannel && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
 
                 int argPos = 0;
-                if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos))
+                if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
                 {
                     commandStopwatch.Start();
                     var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services);
