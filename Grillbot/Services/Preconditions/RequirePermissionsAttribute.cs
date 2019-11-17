@@ -11,6 +11,7 @@ namespace Grillbot.Services.Preconditions
     {
         public string PermsGroupName { get; set; }
         public bool DisabledForPM { get; set; }
+        public bool BoosterAllowed { get; set; }
 
         public RequirePermissionsAttribute(string permsGroupName)
         {
@@ -26,9 +27,12 @@ namespace Grillbot.Services.Preconditions
             var permissions = config.Value.MethodsConfig.GetPermissions(PermsGroupName);
 
             if (permissions == null)
-                return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat."));
+                return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění."));
 
-            if(config.Value.IsUserBotAdmin(context.Message.Author.Id))
+            if (permissions.OnlyAdmins)
+                return Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."));
+
+            if (config.Value.IsUserBotAdmin(context.Message.Author.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
             if(context.Message.Author is SocketGuildUser user)
@@ -39,15 +43,15 @@ namespace Grillbot.Services.Preconditions
                 if (permissions.IsUserBanned(user.Id))
                     return Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít."));
 
+                if (config.Value.Discord.IsBooster(user.Roles) && BoosterAllowed)
+                    return Task.FromResult(PreconditionResult.FromSuccess());
+
                 foreach (var role in user.Roles)
                 {
                     if (permissions.IsRoleAllowed(role.Name))
                         return Task.FromResult(PreconditionResult.FromSuccess());
                 }
             }
-
-            if (permissions.OnlyAdmins)
-                return Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."));
 
             return Task.FromResult(PreconditionResult.FromError("Na tento příkaz nemáš dostatečnou roli."));
         }

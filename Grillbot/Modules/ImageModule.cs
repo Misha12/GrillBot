@@ -10,7 +10,7 @@ using Microsoft.Extensions.Options;
 namespace Grillbot.Modules
 {
     [Name("Nudes a další zajímavé fotky")]
-    [RequirePermissions("MemeImages")]
+    [RequirePermissions("MemeImages", BoosterAllowed = true)]
     public class ImageModule : BotModuleBase
     {
         private Configuration Config { get; }

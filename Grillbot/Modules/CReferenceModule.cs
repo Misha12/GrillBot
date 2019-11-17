@@ -7,7 +7,7 @@ using Grillbot.Services.Preconditions;
 namespace Grillbot.Modules
 {
     [Name("Hledani dokumentace")]
-    [RequirePermissions("CReference")]
+    [RequirePermissions("CReference", BoosterAllowed = true)]
     public class CReferenceModule : BotModuleBase
     {
         private CReferenceService Service { get; }

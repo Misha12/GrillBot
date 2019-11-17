@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Text;
@@ -15,7 +14,7 @@ namespace Grillbot.Modules
 {
     [Group("grillhelp")]
     [Name("Nápověda")]
-    [RequirePermissions("Help")]
+    [RequirePermissions("Help", BoosterAllowed = true)]
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }

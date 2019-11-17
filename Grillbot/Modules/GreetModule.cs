@@ -1,6 +1,4 @@
 ﻿using Discord.Commands;
-using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -11,7 +9,7 @@ using Microsoft.Extensions.Options;
 namespace Grillbot.Modules
 {
     [Name("Pozdrav bota")]
-    [RequirePermissions("Greeting")]
+    [RequirePermissions("Greeting", BoosterAllowed = true)]
     public class GreetModule : BotModuleBase
     {
         private Configuration Config { get; }
