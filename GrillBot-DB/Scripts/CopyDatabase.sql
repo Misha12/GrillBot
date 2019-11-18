@@ -42,8 +42,8 @@ CREATE TABLE [dbo].[TempUnverify]
 	[Reason] NVARCHAR(MAX) NOT NULL
 );
 
-INSERT INTO TempUnverify (GuildID, UserID, TimeFor, StartAt, RolesToReturn, ChannelOverrideIds)
-	SELECT GuildID, UserID, TimeFor, StartAt, RolesToReturn, Channelstats FROM Grillbot.dbo.TempUnverify;
+INSERT INTO TempUnverify (GuildID, UserID, TimeFor, StartAt, RolesToReturn, ChannelOverrideIds, Reason)
+	SELECT GuildID, UserID, TimeFor, StartAt, RolesToReturn, Channelstats, Reason FROM Grillbot.dbo.TempUnverify;
 
 DROP TABLE IF EXISTS dbo.AutoReply;
 CREATE TABLE [dbo].[AutoReply]
