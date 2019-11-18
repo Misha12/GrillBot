@@ -20,7 +20,7 @@ namespace Grillbot.Repository
         }
 
         public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor, 
-            List<ChannelOverride> overrides)
+            List<ChannelOverride> overrides, string reason)
         {
             var entity = new TempUnverifyItem()
             {
@@ -28,7 +28,8 @@ namespace Grillbot.Repository
                 TimeFor = timeFor,
                 UserID = userID.ToString(),
                 GuildID = guildID.ToString(),
-                DeserializedChannelOverrides = overrides
+                DeserializedChannelOverrides = overrides,
+                Reason = reason
             };
 
             await Context.TempUnverify.AddAsync(entity);

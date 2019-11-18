@@ -44,6 +44,10 @@ namespace Grillbot.Repository.Entity
         [JsonIgnore]
         public string ChannelOverrides { get; set; }
 
+        [Column]
+        [Required]
+        public string Reason { get; set; }
+
         [NotMapped]
         public List<string> DeserializedRolesToReturn
         {

@@ -192,8 +192,9 @@ namespace Grillbot.Services
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
             var overrides = GetChannelOverrides(user);
 
-            await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}), " +
-                    $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}");
+            await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
+                $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
+                $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}");
 
             await user.RemoveRolesAsync(rolesToRemove);
 
@@ -203,7 +204,7 @@ namespace Grillbot.Services
                 await channel?.RemovePermissionOverwriteAsync(user);
             }
 
-            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides);
+            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason);
 
             await SendPrivateMessage(user, unverify, reason);
             return unverify;
@@ -280,8 +281,17 @@ namespace Grillbot.Services
 
         private string ParseReason(string data)
         {
-            if (data.StartsWith("<@")) return null;
-            return data.Split("<@", StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+            const string errorMessage = "Nemůžu bezdůvodně odebrat přístup. Uveď důvod (`unverify {time} {reason} [{tags}]`)";
+
+            if (data.StartsWith("<@"))
+                throw new ArgumentException(errorMessage);
+
+            var reason = data.Split("<@", StringSplitOptions.RemoveEmptyEntries)[0].Trim();
+
+            if (string.IsNullOrEmpty(reason))
+                throw new ArgumentException(errorMessage);
+
+            return reason;
         }
 
         private string GetFormatedPrivateMessage(SocketGuildUser user, TempUnverifyItem item, string reason)
@@ -379,7 +389,8 @@ namespace Grillbot.Services
 
                 var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\n" +
                     $"Role: {string.Join(", ", person.DeserializedRolesToReturn)}\n" +
-                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}";
+                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}\n" +
+                    $"Důvod: {person.Reason}";
 
                 var user = await GetUserFromGuildAsync(guild, person.UserID);
 
@@ -397,6 +408,9 @@ namespace Grillbot.Services
 
         private string BuildChannelOverrideList(List<ChannelOverride> overrides, SocketGuild guild)
         {
+            if (overrides.Count == 0)
+                return "-";
+
             var builder = new List<string>();
 
             foreach (var channelOverride in overrides)

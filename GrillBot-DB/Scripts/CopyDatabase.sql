@@ -38,7 +38,8 @@ CREATE TABLE [dbo].[TempUnverify]
 	[TimeFor] BIGINT NOT NULL,
 	[StartAt] DATETIME NOT NULL,
 	[RolesToReturn] NVARCHAR(MAX) NOT NULL,
-	[ChannelOverrides] NVARCHAR(MAX) NOT NULL
+	[ChannelOverrides] NVARCHAR(MAX) NOT NULL,
+	[Reason] NVARCHAR(MAX) NOT NULL
 );
 
 INSERT INTO TempUnverify (GuildID, UserID, TimeFor, StartAt, RolesToReturn, ChannelOverrideIds)
