@@ -1,14 +1,13 @@
 ﻿using Discord;
 using Discord.Commands;
 using System;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
-using Microsoft.AspNetCore.Hosting;
 using Grillbot.Services.Logger;
+using Grillbot.Services;
 
 namespace Grillbot.Modules
 {
@@ -17,16 +16,16 @@ namespace Grillbot.Modules
     public class GetBotStatusModule : BotModuleBase
     {
         private Statistics Statistics { get; }
-        private IHostingEnvironment HostingEnvironment { get; }
         private Logger Logger { get; }
         private CalledEventStats CalledEventStats { get; }
+        private BotStatusService BotStatusService { get; }
 
-        public GetBotStatusModule(Statistics statistics, IHostingEnvironment hostingEnvironment, Logger logger, CalledEventStats calledEventStats)
+        public GetBotStatusModule(Statistics statistics, Logger logger, CalledEventStats calledEventStats, BotStatusService botStatusService)
         {
             Statistics = statistics;
-            HostingEnvironment = hostingEnvironment;
             Logger = logger;
             CalledEventStats = calledEventStats;
+            BotStatusService = botStatusService;
         }
 
         [Command("grillstatus")]
@@ -38,7 +37,7 @@ namespace Grillbot.Modules
         [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
         public async Task StatusAsync(string orderType)
         {
-            var processStatus = Process.GetCurrentProcess();
+            var data = BotStatusService.GetSimpleStatus();
 
             var embed = new EmbedBuilder()
             {
@@ -46,12 +45,12 @@ namespace Grillbot.Modules
                 Title = "Stav bota",
             };
 
-            AddInlineEmbedField(embed, "Využití RAM", FormatHelper.FormatAsSize(processStatus.WorkingSet64));
-            AddInlineEmbedField(embed, "Běží od", processStatus.StartTime.ToString("dd. MM. yyyy HH:mm:ss"));
-            AddInlineEmbedField(embed, "Počet vláken", GetThreadStatus(processStatus));
-            AddInlineEmbedField(embed, "Průměrná doba reakce", Statistics.GetAvgReactTime());
-            AddInlineEmbedField(embed, "Instance", GetInstanceType());
-            AddInlineEmbedField(embed, "Počet aktivních tokenů", Statistics.ChannelStats.GetActiveWebTokensCount());
+            AddInlineEmbedField(embed, "Využití RAM", data.RamUsage);
+            AddInlineEmbedField(embed, "Běží od", data.StartTime.ToString("dd. MM. yyyy HH:mm:ss"));
+            AddInlineEmbedField(embed, "Počet vláken", data.ThreadStatus);
+            AddInlineEmbedField(embed, "Průměrná doba reakce", data.AvgReactTime);
+            AddInlineEmbedField(embed, "Instance", data.InstanceType);
+            AddInlineEmbedField(embed, "Počet aktivních tokenů", data.ActiveWebTokensCount);
 
             embed
                 .WithCurrentTimestamp()
@@ -65,7 +64,7 @@ namespace Grillbot.Modules
 
         private async Task PrintCallStatsAsync(bool orderByTime)
         {
-            var data = Statistics.GetOrderedData(orderByTime);
+            var data = BotStatusService.GetCallStats(orderByTime);
 
             if (data.Count == 0)
                 return;
@@ -92,8 +91,7 @@ namespace Grillbot.Modules
 
         private async Task PrintLoggerStatistics()
         {
-            var data = Logger.Counters.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
-
+            var data = BotStatusService.GetLoggerStats();
             if (data.Count == 0) return;
 
             var embedBuilder = new EmbedBuilder()
@@ -133,25 +131,6 @@ namespace Grillbot.Modules
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedBuilder.Build());
-        }
-
-        private string GetThreadStatus(Process process)
-        {
-            int sleepCount = 0;
-            var sleepCounter = process.Threads.GetEnumerator();
-            while (sleepCounter.MoveNext())
-                if ((sleepCounter.Current as ProcessThread)?.ThreadState == ThreadState.Wait)
-                    sleepCount++;
-
-            return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
-        }
-
-        public string GetInstanceType()
-        {
-            if (HostingEnvironment.IsProduction()) return "Release";
-            if (HostingEnvironment.IsStaging()) return "Staging";
-
-            return "Development";
         }
     }
 }

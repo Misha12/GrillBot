@@ -12,6 +12,12 @@ namespace Grillbot.Services.Config.Models
         [StrictPrivate]
         public string Token { get; set; }
 
+        [StrictPrivate]
+        public ulong ClientId { get; set; }
+
+        [StrictPrivate]
+        public string ClientSecret { get; set; }
+
         public string UserJoinedMessage { get; set; }
         public string LoggerRoomID { get; set; }
         public string ServerBoosterRoleId { get; set; }

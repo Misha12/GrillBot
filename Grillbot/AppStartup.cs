@@ -21,6 +21,8 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using Discord.Addons.Interactive;
+using Grillbot.Services.Auth;
+using Grillbot.Middleware;
 
 namespace Grillbot
 {
@@ -49,6 +51,7 @@ namespace Grillbot
 
             services.Configure<Configuration>(Configuration);
             services.AddTransient<OptionsWriter>();
+            services.AddSingleton<AuthService>();
         }
 
         private void ConfigureDiscord(IServiceCollection services)
@@ -83,7 +86,8 @@ namespace Grillbot
                 .AddSingleton<CReferenceService>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<MathCalculator>()
-                .AddTransient<TeamSearchService>();
+                .AddTransient<TeamSearchService>()
+                .AddTransient<BotStatusService>();
 
             services
                 .AddSingleton<Logger>()
@@ -99,6 +103,7 @@ namespace Grillbot
             ServiceProvider = serviceProvider;
 
             app
+                .UseMiddleware<LogMiddleware>()
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseMvc()
                 .UseWelcomePage();
