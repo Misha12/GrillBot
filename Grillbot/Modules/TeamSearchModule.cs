@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Net.Sockets;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -13,13 +12,12 @@ using Grillbot.Repository.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
-using Grillbot.Extensions;
 
 namespace Grillbot.Modules
 {
     [Group("hledam")]
     [Name("Hledání týmů")]
-    [RequirePermissions("TeamSearch", DisabledForPM = true)]
+    [RequirePermissions("TeamSearch", DisabledForPM = true, BoosterAllowed = true)]
     public class TeamSearchModule : InteractiveBase
     {
         private TeamSearchService Service { get; }

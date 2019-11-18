@@ -1,6 +1,7 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 
@@ -8,7 +9,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class GuildMemberUpdated : LoggerMethodBase
     {
-        public GuildMemberUpdated(DiscordSocketClient client, Configuration config) : base(client, config, null, null, null)
+        public GuildMemberUpdated(DiscordSocketClient client, Configuration config, TopStack stack) : base(client, config, null, null, null, stack)
         {
         }
 
@@ -35,7 +36,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
             }
 
             var loggerRoom = GetLoggerRoom();
-            await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+
+            TopStack.Add(result);
             return true;
         }
 

@@ -13,7 +13,7 @@ namespace Grillbot.Modules
 {
     [Group("emoteinfo")]
     [Name("Správa emotů")]
-    [RequirePermissions("EmoteManager", DisabledForPM = true)]
+    [RequirePermissions("EmoteManager", DisabledForPM = true, BoosterAllowed = true)]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }

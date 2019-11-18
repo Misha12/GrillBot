@@ -28,6 +28,9 @@ namespace Grillbot.Services
             var appPath = Config.MethodsConfig.Math.ProcessPath;
             var calcTime = Config.MethodsConfig.Math.ComputingTime;
 
+            if (message.Author is SocketGuildUser user && Config.Discord.IsBooster(user.Roles))
+                calcTime *= 2; // Double time for server boosters. Because boosters are great.
+
             using (var process = new Process())
             {
                 process.StartInfo.FileName = "dotnet";

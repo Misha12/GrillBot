@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
@@ -9,8 +10,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageEdited : LoggerMethodBase
     {
-        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache)
-            : base(client, config, messageCache, null, null)
+        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache, TopStack stack)
+            : base(client, config, messageCache, null, null, stack)
         {
         }
 
@@ -31,8 +32,10 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetFooter($"MessageID: {messageAfter.Id} | AuthorID: {messageAfter.Author.Id}");
 
             var loggerRoom = GetLoggerRoom();
-            await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+            var info = $"{messageAfter.Author.Username}#{messageAfter.Author.Discriminator}";
 
+            TopStack.Add(result, info);
             MessageCache.Update(messageAfter);
             return true;
         }

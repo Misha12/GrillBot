@@ -12,7 +12,7 @@ using Grillbot.Exceptions;
 namespace Grillbot.Modules
 {
     [Name("Channel leaderboards")]
-    [RequirePermissions("Channelboard", DisabledForPM = true)]
+    [RequirePermissions("Channelboard", DisabledForPM = true, BoosterAllowed = true)]
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }

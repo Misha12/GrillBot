@@ -2,6 +2,7 @@
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
@@ -18,7 +19,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
     public class MessageDeleted : LoggerMethodBase
     {
         public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
-            BotLoggingService loggingService) : base(client, config, messageCache, httpClient, loggingService)
+            BotLoggingService loggingService, TopStack stack) : base(client, config, messageCache, httpClient, loggingService, stack)
         {
         }
 
@@ -49,7 +50,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
 
             var loggerRoom = GetLoggerRoom();
-            await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
+
+            TopStack.Add(result);
         }
 
         private async Task<IAuditLogEntry> GetAuditLogRecord(ISocketMessageChannel channel, ulong authorID)
@@ -120,11 +123,14 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 }
 
                 var loggerChannel = GetLoggerRoom();
-                await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build());
+                var result = await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build());
                 foreach (var stream in streams)
                 {
                     await loggerChannel.SendFileAsync(stream.Item2, stream.Item1);
                 }
+
+                var info = $"{message.Author.Username}#{message.Author.Discriminator}";
+                TopStack.Add(result, info);
             }
             finally
             {

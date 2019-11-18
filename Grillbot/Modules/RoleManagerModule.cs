@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Name("Správa rolí")]
-    [RequirePermissions("RoleManager", DisabledForPM = true)]
+    [RequirePermissions("RoleManager", DisabledForPM = true, BoosterAllowed = true)]
     public class RoleManagerModule : BotModuleBase
     {
         public async Task GetCompleteRoleListAsync()

@@ -1,7 +1,10 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using Grillbot.Services;
+using Grillbot.Services.Logger;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -16,10 +19,12 @@ namespace Grillbot.Modules
     public class AdminModule : BotModuleBase
     {
         private TeamSearchService TeamSearchService { get; }
+        private Logger Logger { get; }
 
-        public AdminModule(TeamSearchService teamSearchService)
+        public AdminModule(TeamSearchService teamSearchService, Logger logger)
         {
             TeamSearchService = teamSearchService;
+            Logger = logger;
         }
 
         [Command("pinpurge")]
@@ -33,7 +38,7 @@ namespace Grillbot.Modules
                     .OfType<SocketTextChannel>()
                     .FirstOrDefault(o => $"<#{o.Id}>" == channel);
 
-                if(mentionedChannel != null)
+                if (mentionedChannel != null)
                 {
                     var pins = await mentionedChannel.GetPinnedMessagesAsync();
 
@@ -45,7 +50,7 @@ namespace Grillbot.Modules
                         .Skip(skipCount).Take(takeCount)
                         .OfType<RestUserMessage>();
 
-                    foreach(var pin in pinsToRemove)
+                    foreach (var pin in pinsToRemove)
                     {
                         await pin.RemoveAllReactionsAsync();
                         await pin.UnpinAsync();
@@ -67,13 +72,13 @@ namespace Grillbot.Modules
             var mentionedChannelId = Context.Message.MentionedChannels.First().Id.ToString();
             var searches = await TeamSearchService.Repository.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync();
 
-            if(searches.Count == 0)
+            if (searches.Count == 0)
             {
                 await ReplyAsync($"V kanálu {channel} nikdo nic nehledá.");
                 return;
             }
 
-            foreach(var search in searches)
+            foreach (var search in searches)
             {
                 var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId));
 
@@ -88,15 +93,15 @@ namespace Grillbot.Modules
         [Summary("Hromadné smazání hledání.")]
         public async Task TeamSearchMassRemove(params int[] searchIds)
         {
-            foreach(var id in searchIds)
+            foreach (var id in searchIds)
             {
                 var search = await TeamSearchService.Repository.FindSearchByID(id);
 
-                if(search != null)
+                if (search != null)
                 {
                     var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId));
 
-                    if(message == null)
+                    if (message == null)
                         await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.");
                     else
                         await ReplyAsync($"Úklid hledání s ID **{id}** od **{GetUsersFullName(message.Author)}**.");
@@ -145,10 +150,10 @@ namespace Grillbot.Modules
             {
                 await guild.DownloadUsersAsync();
 
-                if(guild.SyncPromise != null)
+                if (guild.SyncPromise != null)
                     await guild.SyncPromise;
 
-                if(guild.DownloaderPromise != null)
+                if (guild.DownloaderPromise != null)
                     await guild.DownloaderPromise;
 
                 await ReplyAsync("Synchronizace dokončena");
@@ -158,6 +163,40 @@ namespace Grillbot.Modules
                 await ReplyAsync($"Synchronizace se nezdařila {ex.Message}");
                 throw;
             }
+        }
+
+        [Command("getTopStackInfo")]
+        [Summary("Posledních pet událostí v dané kategorii zapsané do loggeru.")]
+        public async Task GetTopStackInfo(string stackKey)
+        {
+            await DoAsync(async () =>
+            {
+                var stackInfo = Logger.GetTopStack(stackKey, false);
+
+                if (stackInfo == null)
+                    throw new ArgumentException($"Sekce `{stackKey}` neexistuje.");
+
+                var builder = new EmbedBuilder()
+                    .WithFooter(GetUsersShortName(Context.Message.Author), GetUserAvatarUrl(Context.Message.Author))
+                    .WithCurrentTimestamp()
+                    .WithColor(Color.Blue)
+                    .WithTitle("Posledních 5 záznamů v logování");
+
+                foreach (var item in stackInfo.Data)
+                {
+                    builder.AddField(o =>
+                    {
+                        o.WithName(item.Item1.ToLocaleDatetime());
+
+                        if (!string.IsNullOrEmpty(item.Item2))
+                            o.WithValue($"{item.Item2} - {item.Item3}");
+                        else
+                            o.WithValue(item.Item3);
+                    });
+                }
+
+                await ReplyAsync(embed: builder.Build());
+            });
         }
     }
 }
