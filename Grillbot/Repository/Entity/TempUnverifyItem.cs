@@ -55,6 +55,7 @@ namespace Grillbot.Repository.Entity
             set => RolesToReturn = JsonConvert.SerializeObject(value);
         }
 
+        [NotMapped]
         public List<ChannelOverride> DeserializedChannelOverrides
         {
             get

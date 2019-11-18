@@ -103,6 +103,14 @@ namespace Grillbot.Services
 
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
+                foreach (var channelOverride in unverify.DeserializedChannelOverrides)
+                {
+                    var channel = guild.GetChannel(channelOverride.ChannelIdSnowflake);
+
+                    if (channel != null)
+                        channel.AddPermissionOverwriteAsync(user, channelOverride.GetPermissions()).GetAwaiter().GetResult();
+                }
+
                 using (var repository = new TempUnverifyRepository(Config))
                 {
                     repository.RemoveItem(unverify.ID);
@@ -155,23 +163,26 @@ namespace Grillbot.Services
             var owner = users.Find(o => o.Id == guild.OwnerId);
 
             if (owner != null)
-                throw new ArgumentException("Nelze provést odebrání rolí, protože se mezi uživateli nachází vlastník serveru.");
+                throw new ArgumentException("Nelze provést odebrání přístupu, protože se mezi uživateli nachází vlastník serveru.");
 
             var botMaxRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
             foreach (var user in users)
             {
+                if (user.Id == guild.CurrentUser.Id)
+                    throw new ArgumentException("Nelze provést odebrání přístupu, protože tagnutý uživatel jsem já.");
+
                 var usersMaxRolePosition = user.Roles.Max(o => o.Position);
 
                 if (usersMaxRolePosition > botMaxRolePosition)
                 {
                     var higherRoles = user.Roles.Where(o => o.Position > botMaxRolePosition).Select(o => o.Name);
 
-                    throw new ArgumentException($"Nelze provést odebírání rolí, protože uživatel **{user.Username}#{user.Discriminator}** má vyšší role " +
+                    throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.Username}#{user.Discriminator}** má vyšší role " +
                         $"**({string.Join(", ", higherRoles)})**.");
                 }
 
                 if (Config.IsUserBotAdmin(user.Id))
-                    throw new ArgumentException($"Nelze provést odebrání rolí, protože uživatel **{user.Username}#{user.Discriminator}** je administrátor bota.");
+                    throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.Username}#{user.Discriminator}** je administrátor bota.");
             }
         }
 
@@ -186,9 +197,10 @@ namespace Grillbot.Services
 
             await user.RemoveRolesAsync(rolesToRemove);
 
-            foreach(var channel in user.Guild.Channels.Where(c => overrides.Any(o => o.ChannelIdSnowflake == c.Id)))
+            foreach (var channelOverride in overrides)
             {
-                await channel.RemovePermissionOverwriteAsync(user);
+                var channel = user.Guild.GetChannel(channelOverride.ChannelIdSnowflake);
+                await channel?.RemovePermissionOverwriteAsync(user);
             }
 
             var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides);
@@ -294,7 +306,7 @@ namespace Grillbot.Services
             var builder = new StringBuilder();
 
             builder
-                .Append("Dočasné odebrání rolí pro uživatele **")
+                .Append("Dočasné odebrání přístupu pro uživatele **")
                 .Append(string.Join(", ", users.Select(o => $"{o.Username}#{o.Discriminator}")))
                 .Append("** bylo dokončeno. Role budou navráceny **")
                 .Append(unverifyItems[0].GetEndDatetime().ToLocaleDatetime())
@@ -363,9 +375,12 @@ namespace Grillbot.Services
 
             foreach (var person in items)
             {
-                var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\nRole: {string.Join(", ", person.DeserializedRolesToReturn)}";
-
                 var guild = Client.GetGuild(Convert.ToUInt64(person.GuildID));
+
+                var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\n" +
+                    $"Role: {string.Join(", ", person.DeserializedRolesToReturn)}\n" +
+                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}";
+
                 var user = await GetUserFromGuildAsync(guild, person.UserID);
 
                 string username;
@@ -380,6 +395,21 @@ namespace Grillbot.Services
             return embedBuilder;
         }
 
+        private string BuildChannelOverrideList(List<ChannelOverride> overrides, SocketGuild guild)
+        {
+            var builder = new List<string>();
+
+            foreach (var channelOverride in overrides)
+            {
+                var channel = guild.GetChannel(channelOverride.ChannelIdSnowflake);
+
+                if (channel != null)
+                    builder.Add(channel.Name);
+            }
+
+            return string.Join(", ", builder);
+        }
+
         public async Task<string> ReturnAccessAsync(int id)
         {
             using (var repository = new TempUnverifyRepository(Config))
@@ -387,7 +417,7 @@ namespace Grillbot.Services
                 var item = await repository.FindItemByIDAsync(id);
 
                 if (item == null)
-                    throw new ArgumentException($"Odebrání rolí s ID {id} nebylo v databázi nalezeno.");
+                    throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
 
                 ReturnAccess(item);
 
@@ -397,7 +427,7 @@ namespace Grillbot.Services
                 if (user == null)
                     throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-                return $"Předčasné vrácení rolí pro uživatele **{user.Username}#{user.Discriminator}** bylo dokončeno.";
+                return $"Předčasné vrácení přístupu pro uživatele **{user.Username}#{user.Discriminator}** bylo dokončeno.";
             }
         }
 
@@ -418,7 +448,7 @@ namespace Grillbot.Services
             item.StartAt = DateTime.Now;
             item.ReInitTimer(ReturnAccess);
 
-            return $"Reset času pro záznam o dočasném odebrání rolí s ID **{id}** byl úspěšně aktualizován. " +
+            return $"Reset času pro záznam o dočasném odebrání přístupu s ID **{id}** byl úspěšně aktualizován. " +
                 $"Role budou navráceny **{item.GetEndDatetime().ToLocaleDatetime()}**.";
         }
 
