@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Repository;
@@ -178,21 +179,37 @@ namespace Grillbot.Services
         {
             var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
+            var overrides = GetChannelOverrides(user);
 
             await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}), " +
                     $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}");
 
             await user.RemoveRolesAsync(rolesToRemove);
 
-            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime);
-
-            if (CanSendDM(user))
+            foreach(var channel in user.Guild.Channels.Where(c => overrides.Any(o => o.ChannelIdSnowflake == c.Id)))
             {
-                var dmChannel = await user.GetOrCreateDMChannelAsync();
-                await dmChannel.SendMessageAsync(GetFormatedPrivateMessage(user, unverify, reason));
+                await channel.RemovePermissionOverwriteAsync(user);
             }
 
+            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides);
+
+            await SendPrivateMessage(user, unverify, reason);
             return unverify;
+        }
+
+        private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)
+        {
+            var overrides = new List<ChannelOverride>();
+
+            foreach (var channel in user.Guild.Channels)
+            {
+                var permissions = channel.GetPermissionOverwrite(user);
+
+                if (permissions != null)
+                    overrides.Add(new ChannelOverride(channel.Id, permissions.Value));
+            }
+
+            return overrides;
         }
 
         /// <summary>
@@ -290,6 +307,24 @@ namespace Grillbot.Services
         }
 
         private bool CanSendDM(SocketGuildUser user) => !user.IsBot && !user.IsWebhook;
+
+        private async Task SendPrivateMessage(SocketGuildUser user, TempUnverifyItem unverify, string reason)
+        {
+            if (!CanSendDM(user)) return;
+
+            try
+            {
+                var dmChannel = await user.GetOrCreateDMChannelAsync();
+                await dmChannel.SendMessageAsync(GetFormatedPrivateMessage(user, unverify, reason));
+            }
+            catch (HttpException ex)
+            {
+                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == 50007)
+                    return; // User have disabled PM.
+
+                throw;
+            }
+        }
 
         public async Task<EmbedBuilder> ListPersonsAsync(string callerUsername, string callerAvatarUrl)
         {

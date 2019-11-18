@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using Grillbot.Repository.Entity;
+﻿using Grillbot.Repository.Entity;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -20,14 +19,16 @@ namespace Grillbot.Repository
             return Context.TempUnverify.AsQueryable();
         }
 
-        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor)
+        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor, 
+            List<ChannelOverride> overrides)
         {
             var entity = new TempUnverifyItem()
             {
                 DeserializedRolesToReturn = roles,
                 TimeFor = timeFor,
                 UserID = userID.ToString(),
-                GuildID = guildID.ToString()
+                GuildID = guildID.ToString(),
+                DeserializedChannelOverrides = overrides
             };
 
             await Context.TempUnverify.AddAsync(entity);
