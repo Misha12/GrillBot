@@ -39,6 +39,11 @@ namespace Grillbot.Repository.Entity
         [JsonIgnore]
         public string RolesToReturn { get; set; }
 
+        [Column]
+        [Required]
+        [JsonIgnore]
+        public string ChannelOverrideIds { get; set; }
+
         [NotMapped]
         public List<string> DeserializedRolesToReturn
         {
@@ -48,6 +53,16 @@ namespace Grillbot.Repository.Entity
                 return JsonConvert.DeserializeObject<List<string>>(RolesToReturn);
             }
             set => RolesToReturn = JsonConvert.SerializeObject(value);
+        }
+
+        public List<string> DeserializedChannelOverrideIds
+        {
+            get
+            {
+                if (string.IsNullOrEmpty(ChannelOverrideIds)) return new List<string>();
+                return JsonConvert.DeserializeObject<List<string>>(ChannelOverrideIds);
+            }
+            set => ChannelOverrideIds = JsonConvert.SerializeObject(value);
         }
 
         public DateTime GetEndDatetime() => StartAt.AddSeconds(TimeFor);

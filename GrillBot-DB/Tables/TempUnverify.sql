@@ -5,5 +5,6 @@
 	[UserID] VARCHAR(30) NOT NULL,
 	[TimeFor] BIGINT NOT NULL,
 	[StartAt] DATETIME NOT NULL,
-	[RolesToReturn] NVARCHAR(MAX) NOT NULL
+	[RolesToReturn] NVARCHAR(MAX) NOT NULL,
+	[ChannelOverrideIds] NVARCHAR(MAX) NOT NULL
 )
