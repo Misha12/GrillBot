@@ -43,7 +43,8 @@ namespace Grillbot.Controllers
             if (!CheckAuth())
                 return Unauthorized();
 
-            return Ok(BotStatusService.GetCallStats());
+            var data = BotStatusService.GetCallStats();
+            return Ok(data);
         }
 
         [HttpGet("[action]")]
@@ -81,7 +82,6 @@ namespace Grillbot.Controllers
             if (!CheckAuth())
                 return Unauthorized();
 
-            //TODO
             var data = BotStatusService.GetCalledEventStats();
             return Ok(data);
         }
