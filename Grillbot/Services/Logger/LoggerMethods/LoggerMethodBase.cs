@@ -1,10 +1,13 @@
-﻿using Discord.WebSocket;
+﻿using Discord.Rest;
+using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Grillbot.Models;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 using System;
 using System.Net.Http;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.Logger.LoggerMethods
 {
@@ -37,6 +40,15 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 throw new BotException($"Cannot find logger room with ID {id}");
 
             return (ISocketMessageChannel)channel;
+        }
+
+        protected async Task<RestUserMessage> SendEmbedAsync(LogEmbedBuilder embedBuilder)
+        {
+            var loggerRoom = GetLoggerRoom();
+            var result = await loggerRoom.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+
+            TopStack?.Add(result);
+            return result;
         }
     }
 }
