@@ -17,6 +17,7 @@ steps:
   inputs:
     versionSpec: '10.x'
   displayName: 'Install Node.js'
+
 - script: |
     cd GrillBot-Web/
     npm install -g @angular/cli
@@ -24,7 +25,9 @@ steps:
     ng build --prod
   displayName: 'GrillBot-Web build'
 
-- script: dotnet build --configuration $(buildConfiguration)
+- script: |
+    dotnet sln GrillBot.sln remove GrillBot-DB/GrillBot-DB.sqlproj
+    dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
 
 - task: VSTest@2
