@@ -78,19 +78,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private async Task BoostRemoved(SocketGuildUser user)
         {
-            var logEmbedBuilder = new LogEmbedBuilder("Uživatel na serveru již není ServerBooster.", LogEmbedType.BoostUpdated);
-
-            logEmbedBuilder
-                .SetAuthor(user)
-                .SetFooter($"UserID: {user.Id}")
-                .SetTimestamp(true);
-
-            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
+            await SendBoostChange(user, "Uživatel na serveru již není ServerBooster.").ConfigureAwait(false);
         }
 
         private async Task BoostAdded(SocketGuildUser user)
         {
-            var logEmbedBuilder = new LogEmbedBuilder("Uživatel na serveru je nyní ServerBooster.", LogEmbedType.BoostUpdated);
+            await SendBoostChange(user, "Uživatel na serveru je nyní ServerBooster.").ConfigureAwait(false);
+        }
+
+        private async Task SendBoostChange(SocketGuildUser user, string embedMessage)
+        {
+            var logEmbedBuilder = new LogEmbedBuilder(embedMessage, LogEmbedType.BoostUpdated);
 
             logEmbedBuilder
                 .SetAuthor(user)
