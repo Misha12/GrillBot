@@ -6,6 +6,7 @@ using Grillbot.Extensions;
 using Grillbot.Services;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.Statistics;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -20,11 +21,13 @@ namespace Grillbot.Modules
     {
         private TeamSearchService TeamSearchService { get; }
         private Logger Logger { get; }
+        private EmoteStats EmoteStats { get; }
 
-        public AdminModule(TeamSearchService teamSearchService, Logger logger)
+        public AdminModule(TeamSearchService teamSearchService, Logger logger, Statistics statistics)
         {
             TeamSearchService = teamSearchService;
             Logger = logger;
+            EmoteStats = statistics.EmoteStats;
         }
 
         [Command("pinpurge")]
@@ -198,5 +201,46 @@ namespace Grillbot.Modules
                 await ReplyAsync(embed: builder.Build());
             });
         }
+
+        #region EmoteManager
+
+        [Command("EmoteMergeList")]
+        [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
+        public async Task GetMergeList()
+        {
+            await DoAsync(async () =>
+            {
+                var list = EmoteStats.GetMergeList(Context.Guild);
+
+                if (list.Count == 0)
+                    throw new ArgumentException("Aktuálně není nic ke sloučení.");
+
+                var embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithCurrentTimestamp()
+                    .WithTitle("Seznam potenciálních sloučení emotů");
+
+                embed.WithFields(list.Select(o => new EmbedFieldBuilder()
+                {
+                    Name = $"Target: \\{o.MergeTo}",
+                    Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
+                }));
+
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
+        [Command("ProcessEmoteMerge")]
+        [Summary("Provede sloučení stejných emotů ve statistikách.")]
+        public async Task ProcessEmoteMerge()
+        {
+            await DoAsync(async () =>
+            {
+                await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
+                await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
+        #endregion
     }
 }

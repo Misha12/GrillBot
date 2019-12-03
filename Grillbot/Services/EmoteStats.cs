@@ -8,6 +8,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Models;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
@@ -246,6 +247,54 @@ namespace Grillbot.Services
             Changes.Clear();
             Semaphore.Dispose();
             DbSyncTimer.Dispose();
+        }
+
+        public List<EmoteMergeListItem> GetMergeList(SocketGuild guild)
+        {
+            var emotes = GetAllValues(true).FindAll(o => !o.IsUnicode);
+            var data = guild.Emotes.Select(o => new EmoteMergeListItem() { Emote = o }).ToList();
+
+            foreach (var emote in emotes)
+            {
+                var emoteData = Emote.Parse(emote.GetRealId());
+                var serverEmote = data.Find(o => o.Emote.Id == emoteData.Id);
+
+                if (serverEmote != null && emoteData.Name != serverEmote.Emote.Name)
+                {
+                    serverEmote.Emotes.Add(emoteData.ToString(), emote.Count);
+                }
+            }
+
+            return data.FindAll(o => o.Emotes.Count > 0);
+        }
+
+        public async Task MergeEmotesAsync(SocketGuild guild)
+        {
+            await Semaphore.WaitAsync().ConfigureAwait(false);
+
+            try
+            {
+                using (var repository = new EmoteStatsRepository(Config))
+                {
+                    foreach (var item in GetMergeList(guild))
+                    {
+                        var emote = Counter[item.MergeTo];
+
+                        foreach (var source in item.Emotes)
+                        {
+                            emote.Count += source.Value;
+                            await repository.RemoveEmoteAsync(source.Key).ConfigureAwait(false);
+                            Counter.Remove(source.Key);
+                        }
+
+                        Changes.Add(emote.EmoteID);
+                    }
+                }
+            }
+            finally
+            {
+                Semaphore.Release();
+            }
         }
     }
 }
