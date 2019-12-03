@@ -278,6 +278,9 @@ namespace Grillbot.Services
                 {
                     foreach (var item in GetMergeList(guild))
                     {
+                        if (!Counter.ContainsKey(item.MergeTo))
+                            Counter.Add(item.MergeTo, new EmoteStat() { EmoteID = item.MergeTo, LastOccuredAt = DateTime.Now });
+
                         var emote = Counter[item.MergeTo];
 
                         foreach (var source in item.Emotes)
