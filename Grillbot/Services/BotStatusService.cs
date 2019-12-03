@@ -2,6 +2,7 @@
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
 using Grillbot.Modules;
+using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
@@ -10,6 +11,7 @@ using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
@@ -77,5 +79,13 @@ namespace Grillbot.Services
         public List<AutoReplyItem> GetAutoReplyItems() => AutoReplyService.GetItems();
 
         public Dictionary<string, string> GetCalledEventStats() => CalledEventStats.GetValues();
+
+        public async Task<Dictionary<string, int>> GetDbReport()
+        {
+            using(var repository = new BotDbRepository(Config))
+            {
+                return await repository.GetTableRowsCount().ConfigureAwait(false);
+            }
+        }
     }
 }

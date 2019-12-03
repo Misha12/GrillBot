@@ -77,9 +77,9 @@ namespace Grillbot.Modules
 
 
             AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
-            AddInlineEmbedField(embedData, "Počet volání", 
+            AddInlineEmbedField(embedData, "Počet volání",
                 string.Join(Environment.NewLine, data.Select(x => FormatHelper.FormatWithSpaces(x.CallsCount))));
-            AddInlineEmbedField(embedData, "Průměrná doba", 
+            AddInlineEmbedField(embedData, "Průměrná doba",
                 string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
 
             embedData
@@ -113,7 +113,7 @@ namespace Grillbot.Modules
         private async Task PrintEventStatistics()
         {
             var data = CalledEventStats.GetValues();
-            
+
             if (data.Count == 0)
                 return;
 
@@ -131,6 +131,19 @@ namespace Grillbot.Modules
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        [Command("dbstatus")]
+        [Summary("Počty záznamů v databázi")]
+        public async Task DbStatus()
+        {
+            await DoAsync(async () =>
+            {
+                var data = await BotStatusService.GetDbReport().ConfigureAwait(false);
+                var message = $"```{string.Join(Environment.NewLine, data.Select(x => $"{x.Key} - {x.Value}"))}```";
+
+                await ReplyAsync(message).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }
