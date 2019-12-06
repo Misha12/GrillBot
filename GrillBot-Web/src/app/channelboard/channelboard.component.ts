@@ -1,8 +1,8 @@
-import { Component, OnInit, Inject } from '@angular/core';
+import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute } from '@angular/router';
-import { HttpClient, HttpErrorResponse } from '@angular/common/http';
+import { HttpErrorResponse } from '@angular/common/http';
 import { Channelboard, ErrorCodes } from '../models/channelboard.models';
-import { GetCommandPrefix, SettingsApi } from '../core';
+import { SettingsApi, ChannelboardService } from '../core';
 
 @Component({
   selector: 'app-channelboard',
@@ -10,10 +10,10 @@ import { GetCommandPrefix, SettingsApi } from '../core';
   styleUrls: ['./channelboard.component.sass']
 })
 export class ChannelboardComponent implements OnInit {
-  constructor(private httpClient: HttpClient,
-              private route: ActivatedRoute,
-              @Inject('BaseUrl') private baseUrl: string,
-              private settings: SettingsApi) { }
+  constructor(
+    private route: ActivatedRoute,
+    private settings: SettingsApi,
+    private channelboardService: ChannelboardService) { }
 
   private unspecifiedError = 'Došlo k nespecifikované chybě';
   private missingToken = 'Nebyl zadán uživatelský token.';
@@ -41,18 +41,17 @@ export class ChannelboardComponent implements OnInit {
       return;
     }
 
-    this.httpClient.get<any>(this.baseUrl + 'api/Channelboard/GetChannelboardData?token=' + this.token).subscribe(result => {
-      this.channelboard = Channelboard.fromAny(result);
-    }, (error: HttpErrorResponse) => {
-      if (!error.error) {
-        this.errorMessage = this.unspecifiedError;
-      } else {
-        switch (error.error.code) {
-          case ErrorCodes.InvalidToken: this.errorMessage = this.invalidToken + this.botRequestMessage; break;
-          case ErrorCodes.MissingToken: this.errorMessage = this.missingToken + this.botRequestMessage; break;
-          default: this.errorMessage = this.unspecifiedError; break;
+    this.channelboardService.getChannelboard(this.token)
+      .subscribe(result => this.channelboard = result, (error: HttpErrorResponse) => {
+        if (!error.error) {
+          this.errorMessage = this.unspecifiedError;
+        } else {
+          switch (error.error.code) {
+            case ErrorCodes.InvalidToken: this.errorMessage = this.invalidToken + this.botRequestMessage; break;
+            case ErrorCodes.MissingToken: this.errorMessage = this.missingToken + this.botRequestMessage; break;
+            default: this.errorMessage = this.unspecifiedError; break;
+          }
         }
-      }
-    });
+      });
   }
 }
