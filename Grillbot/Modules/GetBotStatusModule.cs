@@ -51,6 +51,7 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Průměrná doba reakce", data.AvgReactTime);
             AddInlineEmbedField(embed, "Instance", data.InstanceType);
             AddInlineEmbedField(embed, "Počet aktivních tokenů", data.ActiveWebTokensCount);
+            AddInlineEmbedField(embed, "Aktivní CPU čas", data.ActiveCpuTime);
 
             embed
                 .WithCurrentTimestamp()

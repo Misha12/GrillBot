@@ -46,7 +46,8 @@ namespace Grillbot.Services
                 InstanceType = GetInstanceType(),
                 StartTime = process.StartTime,
                 ThreadStatus = GetThreadStatus(process),
-                AvgReactTime = Statistics.GetAvgReactTime()
+                AvgReactTime = Statistics.GetAvgReactTime(),
+                ActiveCpuTime = process.TotalProcessorTime
             };
         }
 
