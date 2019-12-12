@@ -45,7 +45,7 @@ namespace Grillbot.Modules
 
         protected string GetUsersShortName(SocketUser user)
         {
-            return $"{user.Username}#{user.Discriminator}";
+            return user == null ? "Unknown user" : $"{user.Username}#{user.Discriminator}";
         }
 
         protected async Task DoAsync(Func<Task> method)
@@ -64,6 +64,21 @@ namespace Grillbot.Modules
 
         protected SocketTextChannel GetTextChannel(ulong id) => Context.Guild.GetChannel(id) as SocketTextChannel;
 
+        [Obsolete("Use UserExtension")]
         protected string GetUserAvatarUrl(SocketUser user) => user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl();
+
+        protected async Task<SocketGuildUser> GetUserFromGuildAsync(SocketGuild guild, string userId)
+        {
+            var idOfUser = Convert.ToUInt64(userId);
+            var user = guild.GetUser(idOfUser);
+
+            if (user == null)
+            {
+                await guild.DownloadUsersAsync();
+                user = guild.GetUser(idOfUser);
+            }
+
+            return user;
+        }
     }
 }

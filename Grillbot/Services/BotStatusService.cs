@@ -1,4 +1,7 @@
-﻿using Grillbot.Helpers;
+﻿using Discord;
+using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
 using Grillbot.Modules;
@@ -8,6 +11,7 @@ using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Options;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -15,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class BotStatusService
+    public class BotStatusService : ServicesBase
     {
         private Statistics.Statistics Statistics { get; }
         private IHostingEnvironment HostingEnvironment { get; }
@@ -23,9 +27,11 @@ namespace Grillbot.Services
         private AutoReplyService AutoReplyService { get; }
         private Configuration Config { get; }
         private CalledEventStats CalledEventStats { get; }
+        private DiscordSocketClient Client { get; }
 
-        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger, 
-            AutoReplyService autoReplyService, IOptions<Configuration> config, CalledEventStats calledEventStats)
+        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger,
+            AutoReplyService autoReplyService, IOptions<Configuration> config, CalledEventStats calledEventStats,
+            DiscordSocketClient client)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
@@ -33,6 +39,7 @@ namespace Grillbot.Services
             AutoReplyService = autoReplyService;
             Config = config.Value;
             CalledEventStats = calledEventStats;
+            Client = client;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -51,7 +58,7 @@ namespace Grillbot.Services
             };
         }
 
-        public List<StatisticsData> GetCallStats(bool byTime = false) => Statistics.GetOrderedData(byTime);
+        public List<StatisticsData> GetCallStats() => Statistics.GetOrderedData();
 
         public Dictionary<string, uint> GetLoggerStats()
         {
@@ -83,9 +90,97 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, int>> GetDbReport()
         {
-            using(var repository = new BotDbRepository(Config))
+            using (var repository = new BotDbRepository(Config))
             {
                 return await repository.GetTableRowsCount().ConfigureAwait(false);
+            }
+        }
+
+        public async Task<List<Models.BotStatus.CommandLog>> GetCommandLogsAsync()
+        {
+            using (var repository = new LogRepository(Config))
+            {
+                var data = await repository.GetCommandLogsAsync(5);
+                var result = new List<Models.BotStatus.CommandLog>();
+
+                foreach (var dbData in data)
+                {
+                    var item = new Models.BotStatus.CommandLog()
+                    {
+                        ID = dbData.ID,
+                        CalledAt = dbData.CalledAt,
+                        Command = dbData.Command,
+                        FullCommand = dbData.FullCommand,
+                        Group = dbData.Group
+                    };
+
+                    await SetCommandLogData(item, dbData);
+                    result.Add(item);
+                }
+
+                return result;
+            }
+        }
+
+        public async Task<Models.BotStatus.CommandLog> GetCommandDetailAsync(string id)
+        {
+            using (var repository = new LogRepository(Config))
+            {
+                var data = await repository.GetCommandLogDetailAsync(Convert.ToInt64(id));
+
+                if (data == null)
+                    return null;
+
+                var result = new Models.BotStatus.CommandLog()
+                {
+                    ID = data.ID,
+                    CalledAt = data.CalledAt,
+                    Command = data.Command,
+                    FullCommand = data.FullCommand,
+                    Group = data.Group
+                };
+
+                await SetCommandLogData(result, data);
+                return result;
+            }
+        }
+
+        private async Task SetCommandLogData(Models.BotStatus.CommandLog item, Repository.Entity.CommandLog dbData)
+        {
+            if (dbData.GuildIDSnowflake != null)
+            {
+                var guild = Client.GetGuild(dbData.GuildIDSnowflake.Value);
+                var user = await GetUserFromGuildAsync(guild, dbData.UserID);
+                var channel = guild.GetTextChannel(dbData.ChannelIDSnowflake);
+
+                item.Username = GetUsersShortName(user);
+                item.GuildName = guild.Name;
+                item.ChannelName = channel.Name;
+            }
+            else
+            {
+                var user = Client.GetUser(dbData.UserIDSnowflake);
+
+                string channelName;
+                var dcChannel = Client.GetChannel(dbData.ChannelIDSnowflake);
+
+                if (dcChannel == null)
+                {
+                    var dm = await Client.GetDMChannelAsync(dbData.ChannelIDSnowflake);
+                    channelName = dm == null ? $"{dbData.ChannelID} (Unknown type)" : $"@{dm.Recipient}";
+                }
+                else
+                {
+                    if (dcChannel is SocketDMChannel dm)
+                        channelName = $"@{dm.Recipient}";
+                    else if (dcChannel is SocketGroupChannel groupChannel)
+                        channelName = groupChannel.Name;
+                    else
+                        channelName = $"{dcChannel.Id} ({dcChannel.GetType().Name})";
+                }
+
+                item.ChannelName = channelName;
+                item.Username = GetUsersShortName(user);
             }
         }
     }

@@ -1,6 +1,7 @@
 ﻿using Grillbot.Services;
 using Grillbot.Services.Auth;
 using Microsoft.AspNetCore.Mvc;
+using System.Threading.Tasks;
 
 namespace Grillbot.Controllers
 {
@@ -83,6 +84,16 @@ namespace Grillbot.Controllers
                 return Unauthorized();
 
             var data = BotStatusService.GetCalledEventStats();
+            return Ok(data);
+        }
+
+        [HttpGet("[action]")]
+        public async Task<IActionResult> GetCommandLogAsync()
+        {
+            if (!CheckAuth())
+                return Unauthorized();
+
+            var data = await BotStatusService.GetCommandLogsAsync();
             return Ok(data);
         }
     }

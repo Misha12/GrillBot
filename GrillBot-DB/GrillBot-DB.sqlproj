@@ -65,6 +65,7 @@
     <Build Include="Tables\AutoReply.sql" />
     <Build Include="Tables\TeamSearch.sql" />
     <Build Include="Tables\TempUnverify.sql" />
+    <Build Include="Tables\CommandLog.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />

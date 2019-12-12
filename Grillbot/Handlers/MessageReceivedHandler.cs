@@ -13,6 +13,8 @@ using System.Linq;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
+using Grillbot.Repository;
+using System.Collections.Generic;
 
 namespace Grillbot.Handlers
 {
@@ -63,6 +65,8 @@ namespace Grillbot.Handlers
                 int argPos = 0;
                 if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
                 {
+                    await LogCommandAsync(userMessage, context, argPos);
+
                     commandStopwatch.Start();
                     var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services);
                     commandStopwatch.Stop();
@@ -103,11 +107,38 @@ namespace Grillbot.Handlers
             }
         }
 
+        private async Task LogCommandAsync(SocketUserMessage message, SocketCommandContext context, int argPos)
+        {
+            var substringed = message.Content.Substring(argPos);
+            var searchResult = Commands.Search(context, substringed);
+
+            if (searchResult.IsSuccess)
+            {
+                var commandInfo = searchResult.Commands.First();
+
+                if (string.IsNullOrEmpty(commandInfo.Command.Name))
+                {
+                    var substringedSpecifyCommandSplited = substringed.Split(' ');
+                    var substringedSpecifyCommand = substringedSpecifyCommandSplited.Length > 1 ? substringedSpecifyCommandSplited[1] : substringedSpecifyCommandSplited[0];
+                    var validCommandInfo = searchResult.Commands.FirstOrDefault(o => o.Command.Name == substringedSpecifyCommand);
+
+                    if (validCommandInfo.Alias != null && validCommandInfo.Command != null)
+                        commandInfo = validCommandInfo;
+                }
+
+                using (var repository = new LogRepository(Config))
+                {
+                    await repository.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
+                        DateTime.Now, context.Message.Content, context.Guild, context.Channel);
+                }
+            }
+        }
+
         private bool TryParseMessage(SocketMessage message, out SocketUserMessage socketUserMessage)
         {
             socketUserMessage = null;
 
-            if(!(message is SocketUserMessage userMessage))
+            if (!(message is SocketUserMessage userMessage))
             {
                 return false;
             }

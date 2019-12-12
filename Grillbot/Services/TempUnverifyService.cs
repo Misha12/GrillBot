@@ -16,7 +16,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class TempUnverifyService : IConfigChangeable
+    public class TempUnverifyService : ServicesBase, IConfigChangeable
     {
         private List<TempUnverifyItem> Data { get; set; }
         private Configuration Config { get; set; }
@@ -110,20 +110,6 @@ namespace Grillbot.Services
                 unverify.Dispose();
                 Data.RemoveAll(o => o.ID == unverify.ID);
             }
-        }
-
-        private async Task<SocketGuildUser> GetUserFromGuildAsync(SocketGuild guild, string userId)
-        {
-            var idOfUser = Convert.ToUInt64(userId);
-            var user = guild.GetUser(idOfUser);
-
-            if (user == null)
-            {
-                await guild.DownloadUsersAsync();
-                user = guild.GetUser(idOfUser);
-            }
-
-            return user;
         }
 
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild)
