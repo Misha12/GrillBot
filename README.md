@@ -34,20 +34,20 @@
 |Key|Type|Description|
 |---|---|---|
 |AllowedHosts|string|Semicollon delimited list of allowed hostnames without port numbers.|
-|CommandPrefix|string|Message content, that must contain to invoke command.|
-|Database|string|Connection string to MSSQL database. **If you don't want to setup DB locally ask [owner](http://github.com/Misha12) for remote connection string or create publish script and apply to created databse.**|
-|Administrators|string[]|List of bot administrators. Can use bot independently of roles. Values is user ID.|
+|CommandPrefix|string|Message content, that must starts to invoke command.|
+|Database|string|Connection string to MSSQL database. **If you don't want to setup DB locally ask [owner](http://github.com/Misha12) for remote connection string.**|
+|Administrators|string[]|List of bot administrators. Can use bot independently of roles. Value is user ID.|
 |EmoteChain_CheckLastCount|int|Count of same emotes before bot send emote.|
 |Discord|[Config.Discord](#Config.Discord)|Service configuration|
 |Log|[Config.Log](#Config.Log)|Logging configuration|
 |MethodsConfig|[Config.MethodsConfig](#Config.MethodsConfig)|Features configuration|
 
 #### Config.Discord
-For properties Token, ClientId, ClientSecret you will need to create your own Discord Application to get a Token for local development.
+For properties **Token**, **ClientId**, **ClientSecret** you will need to create your own Discord Application to get a Token for local development.
 
 |Key|Type|Description|
 |---|---|---|
-|Activity|string|Now playing message.|
+|Activity|string|Now playing game info.|
 |Token|string|Login token|
 |UserJoinedMessage|string|Message, that will be sent, when user joined to guild.|
 |LoggerRoomID|string|ID of channel to send logging data (MessageEdited, MessageDeleted, ...).|
@@ -84,8 +84,8 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |Key|Type|Description|
 |---|---|---|
 |RequireRoles|string[]|List of required roles. User must have at least one of these rolese. Value is role name.|
-|AllowedUsers|string[]|List of users with allowed access to feature.|
-|BannedUsers|string[]|List of users with disabled access to feature.|
+|AllowedUsers|string[]|List of users with allowed access to feature. Value is user ID.|
+|BannedUsers|string[]|List of users with disabled access to feature. Value is user ID.|
 |OnlyAdmins|bool|Feature is allowed only for users with Administration permission.|
 
 #### Config.MethodsConfig.Greeting
