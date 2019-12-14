@@ -30,6 +30,7 @@
 
 ### Models
 #### Config
+
 |Key|Type|Description|
 |---|---|---|
 |AllowedHosts|string|Semicollon delimited list of allowed hostnames without port numbers.|
@@ -55,11 +56,13 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |ServerBoosterRoleId|string|ID of role with Nitro Server Booster role.|
 
 #### Config.Log
+
 |Key|Type|Description|
 |---|---|---|
 |LogRoomID|string|ID of channel to send logging data such as errors.
 
 #### Config.MethodsConfig
+
 |Key|Type
 |---|---|
 |Greeting|[Config.MethodsConfig.Greeting](#Config.MethodsConfig.Greeting)|
@@ -77,6 +80,7 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |CReference|[Config.MethodsConfig.CReference](#Config.MethodsConfig.CReference)|
 
 #### Config.MethodsConfig.Permissions
+
 |Key|Type|Description|
 |---|---|---|
 |RequireRoles|string[]|List of required roles. User must have at least one of these rolese. Value is role name.|
@@ -85,6 +89,7 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |OnlyAdmins|bool|Feature is allowed only for users with Administration permission.|
 
 #### Config.MethodsConfig.Greeting
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
@@ -92,16 +97,19 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |OutputMode|string|Default output mode. Supported is 'bin', 'text', 'hexa'.|
 
 #### Config.MethodsConfig.GrillStatus
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.Help
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.Channelboard
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
@@ -109,6 +117,7 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |WebUrl|string|URL to channelboard site.
 
 #### Config.MethodsConfig.MemeImages
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
@@ -117,11 +126,13 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |AllowedImageTypes|string[]|List of supported image types.
 
 #### Config.MethodsConfig.RoleManager
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.Math
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
@@ -129,33 +140,39 @@ For properties Token, ClientId, ClientSecret you will need to create your own Di
 |ProcessPath|string|Path to executable dll to computing engine.|
 
 #### Config.MethodsConfig.AutoReply
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.TeamSearch
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 |GeneralCategoryID|ulong|ID of category with grouped searches.
 
 #### Config.MethodsConfig.EmoteManager
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.TempUnverify
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 |MainAdminID|string|ID of main administrator. This user will receive all problems with temp unverify.|
 
 #### Config.MethodsConfig.Admin
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.CReference
+
 |Key|Type|Description|
 |---|---|---|
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
