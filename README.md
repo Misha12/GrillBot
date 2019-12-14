@@ -43,6 +43,7 @@
 
 #### Config.Discord
 For properties Token, ClientId, ClientSecret you will need to create your own Discord Application to get a Token for local development.
+
 |Key|Type|Description|
 |---|---|---|
 |Activity|string|Now playing message.|
