@@ -19,7 +19,7 @@ namespace Grillbot.Services
 {
     public class TempUnverifyService : IConfigChangeable
     {
-        private List<TempUnverifyItem> Data { get; set; }
+        private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
         private BotLoggingService LoggingService { get; }
         private DiscordSocketClient Client { get; }
@@ -49,7 +49,7 @@ namespace Grillbot.Services
 
             using (var repository = new TempUnverifyRepository(Config))
             {
-                var items = await repository.GetAllItems().ToListAsync();
+                var items = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
 
                 foreach (var item in items)
                 {
@@ -67,7 +67,7 @@ namespace Grillbot.Services
                 }
             }
 
-            await LoggingService.WriteToLogAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}");
+            await LoggingService.WriteToLogAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}").ConfigureAwait(false);
         }
 
         private void ReturnAccess(object item)
@@ -128,7 +128,7 @@ namespace Grillbot.Services
 
             if (user == null)
             {
-                await guild.DownloadUsersAsync();
+                await guild.DownloadUsersAsync().ConfigureAwait(false);
                 user = guild.GetUser(idOfUser);
             }
 
@@ -147,7 +147,7 @@ namespace Grillbot.Services
             {
                 foreach (var user in users)
                 {
-                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason);
+                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason).ConfigureAwait(false);
                     unverifiedPersons.Add(person);
                 }
             }
@@ -194,9 +194,9 @@ namespace Grillbot.Services
 
             await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
-                $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}");
+                $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
 
-            await user.RemoveRolesAsync(rolesToRemove);
+            await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false);
 
             foreach (var channelOverride in overrides)
             {
@@ -204,9 +204,9 @@ namespace Grillbot.Services
                 await channel?.RemovePermissionOverwriteAsync(user);
             }
 
-            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason);
+            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason).ConfigureAwait(false);
 
-            await SendPrivateMessage(user, unverify, reason);
+            await SendPrivateMessage(user, unverify, reason).ConfigureAwait(false);
             return unverify;
         }
 
@@ -336,8 +336,8 @@ namespace Grillbot.Services
 
             try
             {
-                var dmChannel = await user.GetOrCreateDMChannelAsync();
-                await dmChannel.SendMessageAsync(GetFormatedPrivateMessage(user, unverify, reason));
+                var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+                await dmChannel.SendMessageAsync(GetFormatedPrivateMessage(user, unverify, reason)).ConfigureAwait(false);
             }
             catch (HttpException ex)
             {
@@ -352,12 +352,12 @@ namespace Grillbot.Services
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
-                var persons = await repository.GetAllItems().ToListAsync();
+                var persons = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
 
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                return await CreateListPersonsAsync(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+                return await CreateListPersonsAsync(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl)).ConfigureAwait(false);
             }
         }
 
@@ -365,12 +365,12 @@ namespace Grillbot.Services
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
-                var person = await repository.FindUnverifyByUserID(searchedUserID);
+                var person = await repository.FindUnverifyByUserID(searchedUserID).ConfigureAwait(false);
 
                 if (person == null)
                     throw new ArgumentException($"Uživatel s ID {searchedUserID} zatím nemá žádné unverify.");
 
-                return await CreateListPersonsAsync(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl));
+                return await CreateListPersonsAsync(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl)).ConfigureAwait(false);
             }
         }
 
@@ -392,7 +392,7 @@ namespace Grillbot.Services
                     $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}\n" +
                     $"Důvod: {person.Reason}";
 
-                var user = await GetUserFromGuildAsync(guild, person.UserID);
+                var user = await GetUserFromGuildAsync(guild, person.UserID).ConfigureAwait(false);
 
                 string username;
                 if (user != null)
@@ -428,7 +428,7 @@ namespace Grillbot.Services
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
-                var item = await repository.FindItemByIDAsync(id);
+                var item = await repository.FindItemByIDAsync(id).ConfigureAwait(false);
 
                 if (item == null)
                     throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
@@ -436,7 +436,7 @@ namespace Grillbot.Services
                 ReturnAccess(item);
 
                 var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
-                var user = await GetUserFromGuildAsync(guild, item.UserID);
+                var user = await GetUserFromGuildAsync(guild, item.UserID).ConfigureAwait(false);
 
                 if (user == null)
                     throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
@@ -448,14 +448,14 @@ namespace Grillbot.Services
         public async Task<string> UpdateUnverifyAsync(int id, string time)
         {
             var unverifyTime = ParseUnverifyTime(time);
-            var item = Data.FirstOrDefault(o => o.ID == id);
+            var item = Data.Find(o => o.ID == id);
 
             if (item == null)
                 throw new ArgumentException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
             using (var repository = new TempUnverifyRepository(Config))
             {
-                await repository.UpdateTimeAsync(id, unverifyTime);
+                await repository.UpdateTimeAsync(id, unverifyTime).ConfigureAwait(false);
             }
 
             item.TimeFor = unverifyTime;
