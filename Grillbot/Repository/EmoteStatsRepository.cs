@@ -36,5 +36,16 @@ namespace Grillbot.Repository
 
             await Context.SaveChangesAsync();
         }
+
+        public async Task RemoveEmoteAsync(string emoteId)
+        {
+            var entity = await Context.EmoteStats.FirstOrDefaultAsync(o => o.EmoteID == emoteId).ConfigureAwait(false);
+
+            if (entity == null)
+                return;
+
+            Context.Remove(entity);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+        }
     }
 }

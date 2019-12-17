@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class TempUnverifyService : IConfigChangeable
+    public class TempUnverifyService : ServicesBase, IConfigChangeable
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }

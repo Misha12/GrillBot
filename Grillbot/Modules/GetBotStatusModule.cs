@@ -6,36 +6,30 @@ using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
-using Grillbot.Services.Logger;
 using Grillbot.Services;
+using System.Collections.Generic;
+using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Modules
 {
     [Name("Stav bota")]
+    [Group("status")]
     [RequirePermissions("GrillStatus")]
     public class GetBotStatusModule : BotModuleBase
     {
-        private Statistics Statistics { get; }
-        private Logger Logger { get; }
         private CalledEventStats CalledEventStats { get; }
         private BotStatusService BotStatusService { get; }
 
-        public GetBotStatusModule(Statistics statistics, Logger logger, CalledEventStats calledEventStats, BotStatusService botStatusService)
+        public GetBotStatusModule(CalledEventStats calledEventStats, BotStatusService botStatusService)
         {
-            Statistics = statistics;
-            Logger = logger;
             CalledEventStats = calledEventStats;
             BotStatusService = botStatusService;
         }
 
-        [Command("grillstatus")]
-        [Summary("Vypíše diagnostické informace o botovi.")]
-        public async Task StatusAsync() => await StatusAsync("count");
-
-        [Command("grillstatus")]
-        [Summary("Vytiskne diagnostické informace o botovi s možností vybrat si řazení statistik metod (orderType).")]
-        [Remarks("Možné typy řazení jsou 'time', nebo 'count'.")]
-        public async Task StatusAsync(string orderType)
+        [Command("")]
+        [Summary("Vytiskne diagnostické informace o botovi.")]
+        public async Task StatusAsync()
         {
             var data = BotStatusService.GetSimpleStatus();
 
@@ -51,20 +45,21 @@ namespace Grillbot.Modules
             AddInlineEmbedField(embed, "Průměrná doba reakce", data.AvgReactTime);
             AddInlineEmbedField(embed, "Instance", data.InstanceType);
             AddInlineEmbedField(embed, "Počet aktivních tokenů", data.ActiveWebTokensCount);
+            AddInlineEmbedField(embed, "Aktivní CPU čas", data.ActiveCpuTime);
 
             embed
                 .WithCurrentTimestamp()
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync("", embed: embed.Build());
-            await PrintCallStatsAsync(orderType == "time");
+            await PrintCallStatsAsync();
             await PrintLoggerStatistics();
             await PrintEventStatistics();
         }
 
-        private async Task PrintCallStatsAsync(bool orderByTime)
+        private async Task PrintCallStatsAsync()
         {
-            var data = BotStatusService.GetCallStats(orderByTime);
+            var data = BotStatusService.GetCallStats();
 
             if (data.Count == 0)
                 return;
@@ -77,9 +72,9 @@ namespace Grillbot.Modules
 
 
             AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
-            AddInlineEmbedField(embedData, "Počet volání", 
+            AddInlineEmbedField(embedData, "Počet volání",
                 string.Join(Environment.NewLine, data.Select(x => FormatHelper.FormatWithSpaces(x.CallsCount))));
-            AddInlineEmbedField(embedData, "Průměrná doba", 
+            AddInlineEmbedField(embedData, "Průměrná doba",
                 string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
 
             embedData
@@ -113,7 +108,7 @@ namespace Grillbot.Modules
         private async Task PrintEventStatistics()
         {
             var data = CalledEventStats.GetValues();
-            
+
             if (data.Count == 0)
                 return;
 
@@ -131,6 +126,91 @@ namespace Grillbot.Modules
                 .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
 
             await ReplyAsync(embed: embedBuilder.Build());
+        }
+
+        [Command("db")]
+        [Summary("Počty záznamů v databázi")]
+        public async Task GetDbStatus()
+        {
+            await DoAsync(async () =>
+            {
+                var data = await BotStatusService.GetDbReport().ConfigureAwait(false);
+                var message = $"```{string.Join(Environment.NewLine, data.Select(x => $"{x.Key} - {x.Value}"))}```";
+
+                await ReplyAsync(message).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
+        [Command("commandLog")]
+        [Summary("Log posledních N příkazů.")]
+        public async Task GetCommandLog()
+        {
+            await DoAsync(async () =>
+            {
+                var data = await BotStatusService.GetCommandLogsAsync();
+                var fields = new List<EmbedFieldBuilder>();
+
+                foreach (var o in data)
+                {
+                    var name = $"{o.ID}: {(!string.IsNullOrEmpty(o.Group) ? $"{o.Group}/{o.Command}" : o.Command)}";
+
+                    var infoFields = new List<string>()
+                    {
+                        $"Uživatel: **{o.Username}**",
+                        $"Kde: **{o.GuildName}/{o.ChannelName}**",
+                        $"Kdy: **{o.CalledAt.ToLocaleDatetime()}**"
+                    };
+
+                    fields.Add(new EmbedFieldBuilder()
+                    {
+                        Name = name,
+                        Value = string.Join(Environment.NewLine, infoFields)
+                    });
+                }
+
+                var embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithCurrentTimestamp()
+                    .WithFields(fields)
+                    .WithThumbnailUrl(Context.Client.CurrentUser.GetUserAvatarUrl())
+                    .WithTitle("Log operací")
+                    .Build();
+
+                await ReplyAsync(embed: embed);
+            });
+        }
+
+        [Command("commandLog")]
+        [Summary("Log konkrétního záznamu.")]
+        public async Task GetCommandLogDetail(string id)
+        {
+            await DoAsync(async () =>
+            {
+                var item = await BotStatusService.GetCommandDetailAsync(id);
+
+                if (item == null)
+                    throw new ArgumentException($"Záznam s ID **{id}** nebyl nalezen.");
+
+                var name = $"{item.ID}: {(!string.IsNullOrEmpty(item.Group) ? $"{item.Group}/{item.Command}" : item.Command)}";
+
+                var infoFields = new List<string>()
+                {
+                    $"Uživatel: **{item.Username}**",
+                    $"Kde: **{item.GuildName}/{item.ChannelName}**",
+                    $"Kdy: **{item.CalledAt.ToLocaleDatetime()}**",
+                    $"Příkaz: **{item.FullCommand}**"
+                };
+
+                var embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithCurrentTimestamp()
+                    .AddField(o => o.WithName(name).WithValue(string.Join(Environment.NewLine, infoFields)))
+                    .WithThumbnailUrl(Context.Client.CurrentUser.GetUserAvatarUrl())
+                    .WithTitle($"Log operace s ID {id}")
+                    .Build();
+
+                await ReplyAsync(embed: embed);
+            });
         }
     }
 }

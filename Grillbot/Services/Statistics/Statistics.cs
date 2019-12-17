@@ -43,11 +43,8 @@ namespace Grillbot.Services.Statistics
                 Data[command].Increment(elapsedTime);
         }
 
-        public List<StatisticsData> GetOrderedData(bool byTime)
+        public List<StatisticsData> GetOrderedData()
         {
-            if (byTime)
-                return Data.Values.OrderByDescending(o => o.AverageTime).ToList();
-
             return Data.Values.OrderByDescending(o => o.CallsCount).ToList();
         }
 

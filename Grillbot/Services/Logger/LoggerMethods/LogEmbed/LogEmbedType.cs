@@ -7,6 +7,7 @@
         UserJoined,
         UserLeft,
         UserUpdated,
-        GuildMemberUpdated
+        GuildMemberUpdated,
+        BoostUpdated
     }
 }

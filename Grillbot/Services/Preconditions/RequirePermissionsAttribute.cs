@@ -29,13 +29,13 @@ namespace Grillbot.Services.Preconditions
             if (permissions == null)
                 return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění."));
 
-            if (permissions.OnlyAdmins)
-                return Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."));
-
             if (config.Value.IsUserBotAdmin(context.Message.Author.Id))
                 return Task.FromResult(PreconditionResult.FromSuccess());
 
-            if(context.Message.Author is SocketGuildUser user)
+            if (permissions.OnlyAdmins)
+                return Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."));
+
+            if (context.Message.Author is SocketGuildUser user)
             {
                 if (permissions.IsUserAllowed(user.Id))
                     return Task.FromResult(PreconditionResult.FromSuccess());

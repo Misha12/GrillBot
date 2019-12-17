@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -8,6 +9,7 @@ using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
+using Newtonsoft.Json;
 
 namespace Grillbot.Modules
 {
@@ -78,24 +80,28 @@ namespace Grillbot.Modules
         [Summary("Počet zpráv v místnosti.")]
         public async Task ChannelboardForRoomAsync(string roomMention)
         {
-            if (Context.Message.Tags.Count == 0)
+            await DoAsync(async () =>
             {
-                await ReplyAsync("Netagnul jsi žádný kanál.");
-                return;
-            }
+                if (Context.Message.Tags.Count == 0)
+                    throw new ArgumentException("Nic jsi netagnul.");
 
-            if (!(Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention).Value is ISocketMessageChannel channel))
-                throw new BotException("Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls.");
+                var channelMention = Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention); 
+                if(channelMention == null)
+                    throw new ArgumentException("Netagnul jsi žádný kanál"); 
 
-            if (!CanAuthorToChannel(channel.Id))
-                await Context.Message.Author.SendMessageAsync("Do této místnosti nemáš dostatečná práva.");
+                if (!(channelMention.Value is ISocketMessageChannel channel))
+                    throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
 
-            var value = Stats.GetValue(channel.Id);
-            var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
-            var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
+                if (!CanAuthorToChannel(channel.Id))
+                    throw new ArgumentException("Do této místnosti nemáš dostatečná práva.");
 
-            await Context.Message.Author.SendMessageAsync(message);
-            await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" });
+                var value = Stats.GetValue(channel.Id);
+                var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
+                var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
+
+                await Context.Message.Author.SendMessageAsync(message);
+                await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" });
+            });
         }
     }
 }

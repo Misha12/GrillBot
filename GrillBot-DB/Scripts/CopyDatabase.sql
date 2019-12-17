@@ -62,3 +62,18 @@ INSERT INTO AutoReply (MustContains, ReplyMessage, IsDisabled) VALUES
 	('Je čerstvá!', 'Není čerstvá', 0),
 	('BIA', 'BIA a BIB je čistě doporučené rozdělení, abyste se vlezli do prednáškovky. S klidným svědomím to můžeme ignorovat a třeba chodit na jeden předmět do BIA a na druhý do BIB skupiny', 1),
 	('BIB', 'BIA a BIB je čistě doporučené rozdělení, abyste se vlezli do prednáškovky. S klidným svědomím to můžeme ignorovat a třeba chodit na jeden předmět do BIA a na druhý do BIB skupiny', 1);
+
+CREATE TABLE [dbo].[CommandLog]
+(
+    [ID] BIGINT NOT NULL PRIMARY KEY IDENTITY (1, 1),
+    [Group] VARCHAR(100) NULL,
+    [Command] VARCHAR(100) NOT NULL,
+    [UserID] VARCHAR(255) NOT NULL,
+    [CalledAt] DATETIME NOT NULL CONSTRAINT [DF_CommandLog_CalledAt] DEFAULT (getdate()),
+    [FullCommand] VARCHAR(MAX) NOT NULL,
+    [GuildID] VARCHAR(255) NULL,
+    [ChannelID] VARCHAR(255) NOT NULL
+);
+
+INSERT INTO CommandLog ([Group], Command, UserID, CalledAt, [FullCommand], GuildID, ChannelID)
+SELECT [Group], Command, UserID, CalledAt, [FullCommand], GuildID, ChannelID FROM GrillBot.dbo.CommandLog;

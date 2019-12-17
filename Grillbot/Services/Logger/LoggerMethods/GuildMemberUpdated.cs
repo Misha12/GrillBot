@@ -15,6 +15,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         public async Task<bool> ProcessAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
+            if (IsBoostAdded(guildUserBefore, guildUserAfter))
+            {
+                await BoostAdded(guildUserAfter).ConfigureAwait(false);
+                return true;
+            }
+            else if (IsBoostRemoved(guildUserBefore, guildUserAfter))
+            {
+                await BoostRemoved(guildUserAfter).ConfigureAwait(false);
+                return true;
+            }
+
             if (!IsChangeDetected(guildUserBefore, guildUserAfter)) return false;
 
             var logEmbedBuilder = new LogEmbedBuilder("Uživatel na serveru byl aktualizován.", LogEmbedType.GuildMemberUpdated);
@@ -25,20 +36,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetTimestamp(true)
                 .AddField("Změny", "---------------------------------------------");
 
-            if(guildUserBefore.Nickname != guildUserAfter.Nickname)
+            if (guildUserBefore.Nickname != guildUserAfter.Nickname)
             {
                 if (string.IsNullOrEmpty(guildUserBefore.Nickname) && !string.IsNullOrEmpty(guildUserAfter.Nickname))
                     logEmbedBuilder.AddField("Server alias", $"(None) -> {guildUserAfter.Nickname}");
-                else if(!string.IsNullOrEmpty(guildUserBefore.Nickname) && string.IsNullOrEmpty(guildUserAfter.Nickname))
+                else if (!string.IsNullOrEmpty(guildUserBefore.Nickname) && string.IsNullOrEmpty(guildUserAfter.Nickname))
                     logEmbedBuilder.AddField("Server alias", $"{guildUserBefore.Nickname} -> (None)");
                 else
                     logEmbedBuilder.AddField("Server alias", $"{guildUserBefore.Nickname} -> {guildUserAfter.Nickname}");
             }
 
-            var loggerRoom = GetLoggerRoom();
-            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
-
-            TopStack.Add(result);
+            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
             return true;
         }
 
@@ -50,6 +58,44 @@ namespace Grillbot.Services.Logger.LoggerMethods
             };
 
             return changes.Any(o => o);
+        }
+
+        private bool IsBoostAdded(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
+        {
+            bool hasBefore = Config.Discord.IsBooster(guildUserBefore.Roles);
+            bool hasAfter = Config.Discord.IsBooster(guildUserAfter.Roles);
+
+            return !hasBefore && hasAfter;
+        }
+
+        private bool IsBoostRemoved(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
+        {
+            bool hasBefore = Config.Discord.IsBooster(guildUserBefore.Roles);
+            bool hasAfter = Config.Discord.IsBooster(guildUserAfter.Roles);
+
+            return hasBefore && !hasAfter;
+        }
+
+        private async Task BoostRemoved(SocketGuildUser user)
+        {
+            await SendBoostChange(user, "Uživatel na serveru již není ServerBooster.").ConfigureAwait(false);
+        }
+
+        private async Task BoostAdded(SocketGuildUser user)
+        {
+            await SendBoostChange(user, "Uživatel na serveru je nyní ServerBooster.").ConfigureAwait(false);
+        }
+
+        private async Task SendBoostChange(SocketGuildUser user, string embedMessage)
+        {
+            var logEmbedBuilder = new LogEmbedBuilder(embedMessage, LogEmbedType.BoostUpdated);
+
+            logEmbedBuilder
+                .SetAuthor(user)
+                .SetFooter($"UserID: {user.Id}")
+                .SetTimestamp(true);
+
+            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
         }
     }
 }
