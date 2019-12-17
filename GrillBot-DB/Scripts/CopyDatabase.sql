@@ -37,11 +37,13 @@ CREATE TABLE [dbo].[TempUnverify]
 	[UserID] NVARCHAR(30) NOT NULL,
 	[TimeFor] BIGINT NOT NULL,
 	[StartAt] DATETIME NOT NULL,
-	[RolesToReturn] NVARCHAR(MAX) NOT NULL
+	[RolesToReturn] NVARCHAR(MAX) NOT NULL,
+	[ChannelOverrides] NVARCHAR(MAX) NOT NULL,
+	[Reason] NVARCHAR(MAX) NOT NULL
 );
 
-INSERT INTO TempUnverify (GuildID, UserID, TimeFor, StartAt, RolesToReturn)
-	SELECT GuildID, UserID, TimeFor, StartAt, RolesToReturn FROM Grillbot.dbo.TempUnverify;
+INSERT INTO TempUnverify (GuildID, UserID, TimeFor, StartAt, RolesToReturn, ChannelOverrideIds, Reason)
+	SELECT GuildID, UserID, TimeFor, StartAt, RolesToReturn, Channelstats, Reason FROM Grillbot.dbo.TempUnverify;
 
 DROP TABLE IF EXISTS dbo.AutoReply;
 CREATE TABLE [dbo].[AutoReply]
