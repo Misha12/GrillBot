@@ -1,5 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
+using System;
 using System.Linq;
 
 namespace Grillbot.Models
@@ -16,13 +18,13 @@ namespace Grillbot.Models
         {
             var guildUser = new GuildUser()
             {
-                AvatarUrl = user.GetAvatarUrl(ImageFormat.Png) ?? user.GetDefaultAvatarUrl(),
+                AvatarUrl = user.GetUserAvatarUrl(),
                 Discriminator = user.Discriminator,
                 Name = user.Username,
                 Nickname = user.Nickname
             };
 
-            if (user.Activity != null && user.Activity.Type == ActivityType.Listening && user.Activity.Name.ToLower() == "spotify")
+            if (user.Activity?.Type == ActivityType.Listening && string.Equals(user.Activity.Name, "spotify", StringComparison.InvariantCultureIgnoreCase))
                 guildUser.Status = GuildUserStatus.Spotify;
             else if ((new[] { UserStatus.AFK, UserStatus.Idle }).Contains(user.Status))
                 guildUser.Status = GuildUserStatus.Idle;

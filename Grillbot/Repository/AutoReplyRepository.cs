@@ -20,24 +20,24 @@ namespace Grillbot.Repository
 
         public async Task SetActiveStatus(int id, bool disabled)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id);
+            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
 
             if (item == null)
                 return;
 
             item.IsDisabled = disabled;
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task AddItemAsync(AutoReplyItem item)
         {
-            await Context.AutoReply.AddAsync(item);
-            await Context.SaveChangesAsync();
+            await Context.AutoReply.AddAsync(item).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task EditItemAsync(int id, string mustContains, string reply, string compareType, bool caseSensitive)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id);
+            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
 
             if (item == null)
                 return;
@@ -47,18 +47,18 @@ namespace Grillbot.Repository
             item.CaseSensitive = caseSensitive;
             item.SetCompareType(compareType);
 
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task RemoveItemAsync(int id)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id);
+            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
 
             if (item == null)
                 return;
 
             Context.AutoReply.Remove(item);
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

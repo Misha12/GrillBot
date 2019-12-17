@@ -31,11 +31,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetTimestamp(true)
                 .SetFooter($"MessageID: {messageAfter.Id} | AuthorID: {messageAfter.Author.Id}");
 
-            var loggerRoom = GetLoggerRoom();
-            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
-            var info = $"{messageAfter.Author.Username}#{messageAfter.Author.Discriminator}";
+            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
 
-            TopStack.Add(result, info);
             MessageCache.Update(messageAfter);
             return true;
         }

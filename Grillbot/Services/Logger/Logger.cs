@@ -40,7 +40,7 @@ namespace Grillbot.Services.Logger
         {
             var stack = GetTopStack("GuildMemberUpdated");
             var method = new GuildMemberUpdated(Client, Config, stack);
-            var result = await method.ProcessAsync(guildUserBefore, guildUserAfter);
+            var result = await method.ProcessAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
 
             if (result)
                 IncrementEventHandle("GuildMemberUpdated");
@@ -50,7 +50,7 @@ namespace Grillbot.Services.Logger
         {
             var stack = GetTopStack("MessageDeleted");
             var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, LoggingService, stack);
-            await method.ProcessAsync(message, channel);
+            await method.ProcessAsync(message, channel).ConfigureAwait(false);
 
             IncrementEventHandle("MessageDeleted");
         }
@@ -59,7 +59,7 @@ namespace Grillbot.Services.Logger
         {
             var stack = GetTopStack("MessageEdited");
             var method = new MessageEdited(Client, Config, MessageCache, stack);
-            var result = await method.ProcessAsync(messageBefore, messageAfter, channel);
+            var result = await method.ProcessAsync(messageBefore, messageAfter, channel).ConfigureAwait(false);
 
             if (result)
                 IncrementEventHandle("MessageEdited");
@@ -69,7 +69,7 @@ namespace Grillbot.Services.Logger
         {
             var stack = GetTopStack("UserJoined");
             var method = new UserJoined(Client, Config, stack);
-            await method.ProcessAsync(user);
+            await method.ProcessAsync(user).ConfigureAwait(false);
 
             IncrementEventHandle("UserJoined");
         }
@@ -78,7 +78,7 @@ namespace Grillbot.Services.Logger
         {
             var stack = GetTopStack("UserLeft");
             var method = new UserLeft(Client, Config, stack);
-            await method.ProcessAsync(user);
+            await method.ProcessAsync(user).ConfigureAwait(false);
 
             IncrementEventHandle("UserLeft");
         }

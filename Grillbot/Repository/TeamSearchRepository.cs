@@ -25,25 +25,25 @@ namespace Grillbot.Repository
                 MessageId = messageID.ToString(),
                 ChannelId = channelID.ToString()
             };
-            
-            await Context.TeamSearch.AddAsync(entity);
-            await Context.SaveChangesAsync();
+
+            await Context.TeamSearch.AddAsync(entity).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task RemoveSearchAsync(int id)
         {
-            var row = await FindSearchByID(id);
+            var row = await FindSearchByID(id).ConfigureAwait(false);
 
             if (row == null)
                 return;
 
             Context.TeamSearch.Remove(row);
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task<TeamSearch> FindSearchByID(int id)
         {
-            return await Context.TeamSearch.FirstOrDefaultAsync(o => o.Id == id);
+            return await Context.TeamSearch.FirstOrDefaultAsync(o => o.Id == id).ConfigureAwait(false);
         }
     }
 }

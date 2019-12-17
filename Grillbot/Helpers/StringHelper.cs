@@ -1,7 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
-using System;
-using System.Collections.Generic;
+﻿using System;
 using System.Text;
 
 namespace Grillbot.Helpers

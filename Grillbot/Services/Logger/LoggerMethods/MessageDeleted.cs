@@ -2,6 +2,7 @@
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
@@ -10,7 +11,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Net;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -31,9 +31,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 deletedMessage = MessageCache.TryRemove(message.Id);
 
             if (deletedMessage != null)
-                await ProcessWithCacheRecordAsync(deletedMessage, channel);
+                await ProcessWithCacheRecordAsync(deletedMessage, channel).ConfigureAwait(false);
             else
-                await ProcessWithoutCacheRecordAsync(message.Id, channel);
+                await ProcessWithoutCacheRecordAsync(message.Id, channel).ConfigureAwait(false);
 
             if (MessageCache.Exists(message.Id))
                 MessageCache.TryRemove(message.Id);
@@ -49,20 +49,17 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetTitle("Zpráva nebyla nalezena v cache.")
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
 
-            var loggerRoom = GetLoggerRoom();
-            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
-
-            TopStack.Add(result);
+            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
         }
 
         private async Task<IAuditLogEntry> GetAuditLogRecord(ISocketMessageChannel channel, ulong authorID)
         {
             if (channel is SocketGuildChannel socketGuildChannel)
             {
-                var logs = await GetAuditLogDataAsync(socketGuildChannel.Guild);
+                var logs = await GetAuditLogDataAsync(socketGuildChannel.Guild).ConfigureAwait(false);
                 var messageDeletedRecords = logs.Where(o => o.Action == ActionType.MessageDeleted).ToList();
 
-                return messageDeletedRecords.FirstOrDefault(o =>
+                return messageDeletedRecords.Find(o =>
                 {
                     var data = (MessageDeleteAuditLogData)o.Data;
                     return data.AuthorId == authorID && data.ChannelId == channel.Id;
@@ -76,18 +73,18 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
             try
             {
-                return (await guild.GetAuditLogsAsync(5).FlattenAsync()).ToList();
+                return await guild.GetAuditLogDataAsync().ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await LoggingService.WriteToLogAsync(ex.ToString());
+                await LoggingService.WriteToLogAsync(ex.ToString()).ConfigureAwait(false);
                 return new List<RestAuditLogEntry>();
             }
         }
 
         private async Task ProcessWithCacheRecordAsync(IMessage message, ISocketMessageChannel channel)
         {
-            var auditLogRecord = await GetAuditLogRecord(channel, message.Author.Id);
+            var auditLogRecord = await GetAuditLogRecord(channel, message.Author.Id).ConfigureAwait(false);
             var streams = new List<Tuple<string, Stream>>();
 
             try
@@ -101,36 +98,34 @@ namespace Grillbot.Services.Logger.LoggerMethods
                     .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToLocaleDatetime())
                     .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})");
 
-
                 if (auditLogRecord != null)
-                    logEmbedBuilder.AddField("Smazal", $"{auditLogRecord.User.Username}#{auditLogRecord.User.Discriminator}");
+                    logEmbedBuilder.AddField("Smazal", auditLogRecord.User.GetShortName());
                 else
-                    logEmbedBuilder.AddField("Smazal", $"{message.Author.Username}#{message.Author.Discriminator}");
+                    logEmbedBuilder.AddField("Smazal", message.Author.GetShortName());
 
                 if (string.IsNullOrEmpty(message.Content))
                     logEmbedBuilder.AddField("Obsah", "-");
                 else
                     logEmbedBuilder.AddCodeBlockField("Obsah", message.Content);
 
-                if (message.Attachments.Any())
+                if (message.Attachments.Count > 0)
                 {
                     foreach (var messageAttachment in message.Attachments)
                     {
-                        var attachmentStream = await GetAttachmentStreamAsync(messageAttachment);
+                        var attachmentStream = await GetAttachmentStreamAsync(messageAttachment).ConfigureAwait(false);
                         if (!string.IsNullOrEmpty(attachmentStream.Item1) && attachmentStream.Item2 != null)
                             streams.Add(attachmentStream);
                     }
                 }
 
                 var loggerChannel = GetLoggerRoom();
-                var result = await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build());
+                var result = await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build()).ConfigureAwait(false);
                 foreach (var stream in streams)
                 {
-                    await loggerChannel.SendFileAsync(stream.Item2, stream.Item1);
+                    await loggerChannel.SendFileAsync(stream.Item2, stream.Item1).ConfigureAwait(false);
                 }
 
-                var info = $"{message.Author.Username}#{message.Author.Discriminator}";
-                TopStack.Add(result, info);
+                TopStack.Add(result, message.Author.GetShortName());
             }
             finally
             {
@@ -145,7 +140,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
             try
             {
                 var filename = CreateAttachmentFilename(attachment.Id, attachment.Url);
-                stream = await HttpClient.GetStreamAsync(attachment.Url);
+                stream = await HttpClient.GetStreamAsync(attachment.Url).ConfigureAwait(false);
                 return new Tuple<string, Stream>(filename, stream);
             }
             catch (HttpRequestException)
@@ -153,7 +148,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 try
                 {
                     var filename = CreateAttachmentFilename(attachment.Id, attachment.ProxyUrl);
-                    stream = await HttpClient.GetStreamAsync(attachment.ProxyUrl);
+                    stream = await HttpClient.GetStreamAsync(attachment.ProxyUrl).ConfigureAwait(false);
                     return new Tuple<string, Stream>(filename, stream);
                 }
                 catch (HttpRequestException)

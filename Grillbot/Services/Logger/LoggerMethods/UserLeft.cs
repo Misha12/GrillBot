@@ -22,11 +22,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetFooter($"MemberID: {user.Id}")
                 .SetTimestamp(true);
 
-            var loggerRoom = GetLoggerRoom();
-            var result = await loggerRoom.SendMessageAsync(embed: logEmbedBuilder.Build());
-            var info = $"{user.Username}#{user.Discriminator}";
-
-            TopStack.Add(result, info);
+            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
         }
     }
 }

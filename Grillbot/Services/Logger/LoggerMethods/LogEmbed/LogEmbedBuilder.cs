@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Grillbot.Extensions.Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             var builder = new EmbedBuilder()
             {
-                Color = GetColor(Type),
+                Color = Type.GetColor(),
                 Author = new EmbedAuthorBuilder().WithName(Header),
                 ThumbnailUrl = AvatarUrl,
                 Title = Title
@@ -58,7 +59,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         public LogEmbedBuilder SetAuthor(IUser user, bool strictFormatAsAuthor = false)
         {
             AddField(strictFormatAsAuthor ? "Autor" : "Uživatel", user?.ToString() ?? "Neznámý");
-            AvatarUrl = user?.GetAvatarUrl() ?? user?.GetDefaultAvatarUrl();
+            AvatarUrl = user?.GetUserAvatarUrl();
 
             return this;
         }
@@ -133,22 +134,6 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             ImageUrl = url;
             return this;
-        }
-
-        private Color GetColor(LogEmbedType type)
-        {
-            switch(type)
-            {
-                case LogEmbedType.MessageDeleted: return Color.Red;
-                case LogEmbedType.MessageEdited: return new Color(255, 255, 0);
-                case LogEmbedType.UserJoined:
-                case LogEmbedType.UserLeft:
-                case LogEmbedType.UserUpdated:
-                    return Color.Green;
-                case LogEmbedType.GuildMemberUpdated: return Color.DarkBlue;
-                case LogEmbedType.BoostUpdated: return new Color(255, 0, 207);
-                default: return Color.Blue;
-            }
         }
     }
 }

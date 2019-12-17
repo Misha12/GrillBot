@@ -14,18 +14,18 @@ namespace Grillbot.Repository
 
         public async Task<List<EmoteStat>> GetEmoteStatistics()
         {
-            return await Context.EmoteStats.ToListAsync();
+            return await Context.EmoteStats.ToListAsync().ConfigureAwait(false);
         }
 
         public async Task UpdateEmoteStatistics(Dictionary<string, EmoteStat> changedData)
         {
             foreach(var changedItem in changedData.Values)
             {
-                var entity = await Context.EmoteStats.FirstOrDefaultAsync(o => o.EmoteID == changedItem.EmoteID);
+                var entity = await Context.EmoteStats.FirstOrDefaultAsync(o => o.EmoteID == changedItem.EmoteID).ConfigureAwait(false);
 
                 if(entity == null)
                 {
-                    await Context.EmoteStats.AddAsync(changedItem);
+                    await Context.EmoteStats.AddAsync(changedItem).ConfigureAwait(false);
                 }
                 else
                 {
@@ -34,7 +34,7 @@ namespace Grillbot.Repository
                 }
             }
 
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task RemoveEmoteAsync(string emoteId)

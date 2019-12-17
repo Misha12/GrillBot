@@ -15,14 +15,14 @@ namespace Grillbot.Repository
 
         public async Task<List<ChannelStat>> GetChannelStatistics()
         {
-            return await Context.ChannelStats.ToListAsync();
+            return await Context.ChannelStats.ToListAsync().ConfigureAwait(false);
         }
 
         public async Task UpdateChannelboardStatisticsAsync(Dictionary<ulong, long> dataForUpdate, Dictionary<ulong, DateTime> lastMessageData)
         {
             foreach(var itemForUpdate in dataForUpdate)
             {
-                var entity = await Context.ChannelStats.FirstOrDefaultAsync(o => o.ID == itemForUpdate.Key.ToString());
+                var entity = await Context.ChannelStats.FirstOrDefaultAsync(o => o.ID == itemForUpdate.Key.ToString()).ConfigureAwait(false);
                 if (entity == null)
                 {
                     entity = new ChannelStat()
@@ -32,7 +32,7 @@ namespace Grillbot.Repository
                         LastMessageAt = lastMessageData[itemForUpdate.Key]
                     };
 
-                    await Context.AddAsync(entity);
+                    await Context.AddAsync(entity).ConfigureAwait(false);
                 }
                 else
                 {
@@ -41,7 +41,7 @@ namespace Grillbot.Repository
                 }
             }
 
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

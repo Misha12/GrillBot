@@ -19,7 +19,7 @@ namespace Grillbot.Repository
             return Context.TempUnverify.AsQueryable();
         }
 
-        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor, 
+        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor,
             List<ChannelOverride> overrides, string reason)
         {
             var entity = new TempUnverifyItem()
@@ -32,22 +32,22 @@ namespace Grillbot.Repository
                 Reason = reason
             };
 
-            await Context.TempUnverify.AddAsync(entity);
-            await Context.SaveChangesAsync();
+            await Context.TempUnverify.AddAsync(entity).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
 
             return entity;
         }
 
         public async Task<TempUnverifyItem> FindItemByIDAsync(int id)
         {
-            return await GetAllItems().FirstOrDefaultAsync(o => o.ID == id);
+            return await GetAllItems().FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
         }
 
         public async Task<TempUnverifyItem> FindUnverifyByUserID(ulong userId)
         {
             string user = userId.ToString();
 
-            return await GetAllItems().FirstOrDefaultAsync(o => o.UserID == user);
+            return await GetAllItems().FirstOrDefaultAsync(o => o.UserID == user).ConfigureAwait(false);
         }
 
         public void RemoveItem(int id)
@@ -63,18 +63,18 @@ namespace Grillbot.Repository
 
         public async Task RemoveItemAsync(int id)
         {
-            var item = await FindItemByIDAsync(id);
+            var item = await FindItemByIDAsync(id).ConfigureAwait(false);
 
             if (item == null)
                 return;
 
             Context.TempUnverify.Remove(item);
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task UpdateTimeAsync(int id, long time)
         {
-            var item = await FindItemByIDAsync(id);
+            var item = await FindItemByIDAsync(id).ConfigureAwait(false);
 
             if (item == null)
                 return;
@@ -82,7 +82,7 @@ namespace Grillbot.Repository
             item.StartAt = DateTime.Now;
             item.TimeFor = time;
 
-            await Context.SaveChangesAsync();
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }

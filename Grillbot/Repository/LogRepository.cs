@@ -3,7 +3,6 @@ using System;
 using Grillbot.Repository.Entity;
 using Discord;
 using System.Threading.Tasks;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
@@ -16,8 +15,7 @@ namespace Grillbot.Repository
         {
         }
 
-        public async Task InsertItem(string group, string command, IUser user, DateTime calledAt,
-            string fullCommand, IGuild guild, IChannel channel)
+        public async Task InsertItem(string group, string command, IUser user, DateTime calledAt, string fullCommand, IGuild guild, IChannel channel)
         {
             var item = new CommandLog()
             {
@@ -30,8 +28,8 @@ namespace Grillbot.Repository
                 FullCommand = fullCommand
             };
 
-            await Context.CommandLog.AddAsync(item);
-            await Context.SaveChangesAsync();
+            await Context.CommandLog.AddAsync(item).ConfigureAwait(false);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task<List<CommandLog>> GetCommandLogsAsync(int topCount)
@@ -39,12 +37,12 @@ namespace Grillbot.Repository
             return await Context.CommandLog
                 .OrderByDescending(o => o.ID)
                 .Take(topCount)
-                .ToListAsync();
+                .ToListAsync().ConfigureAwait(false);
         }
 
         public async Task<CommandLog> GetCommandLogDetailAsync(long id)
         {
-            return await Context.CommandLog.FirstOrDefaultAsync(o => o.ID == id);
+            return await Context.CommandLog.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
         }
     }
 }
