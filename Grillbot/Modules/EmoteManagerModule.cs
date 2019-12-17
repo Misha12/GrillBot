@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
@@ -46,20 +47,20 @@ namespace Grillbot.Modules
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
                     .WithFields(embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount))
-                    .WithFooter($"Strana {i + 1} | Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author))
+                    .WithFooter($"Strana {i + 1} | Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
                     .WithCurrentTimestamp();
 
-                await ReplyAsync(embed: embed.Build());
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }
         }
 
         [Command("desc")]
         [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
-        public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true);
+        public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true).ConfigureAwait(false);
 
         [Command("asc")]
         [Summary("TOP 25 statistika emotů. Seřazeno vzestupně.")]
-        public async Task GetTopUsedEmotesAscending() => await GetTopEmoteUsage(false);
+        public async Task GetTopUsedEmotesAscending() => await GetTopEmoteUsage(false).ConfigureAwait(false);
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
@@ -73,10 +74,10 @@ namespace Grillbot.Modules
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)
                 .WithFields(emoteFields)
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author))
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
                 .WithCurrentTimestamp();
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         [Command("")]
@@ -87,16 +88,16 @@ namespace Grillbot.Modules
             switch (emote)
             {
                 case "all":
-                    await GetCompleteEmoteInfoListAsync();
+                    await GetCompleteEmoteInfoListAsync().ConfigureAwait(false);
                     return;
                 case "asc":
-                    await GetTopUsedEmotesAscending();
+                    await GetTopUsedEmotesAscending().ConfigureAwait(false);
                     return;
                 case "desc":
-                    await GetTopUsedEmotes();
+                    await GetTopUsedEmotes().ConfigureAwait(false);
                     return;
                 case "unicode":
-                    await GetEmoteInfoOnlyUnicode();
+                    await GetEmoteInfoOnlyUnicode().ConfigureAwait(false);
                     return;
             }
 
@@ -113,11 +114,11 @@ namespace Grillbot.Modules
             {
                 if(!existsInGuild)
                 {
-                    await ReplyAsync("Tento emote neexistuje.");
+                    await ReplyAsync("Tento emote neexistuje.").ConfigureAwait(false);
                     return;
                 }
 
-                await ReplyAsync("Tento emote ještě nebyl použit.");
+                await ReplyAsync("Tento emote ještě nebyl použit.").ConfigureAwait(false);
                 return;
             }
 
@@ -125,9 +126,9 @@ namespace Grillbot.Modules
                 .WithColor(Color.Blue)
                 .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()))
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author));
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl());
 
-            await ReplyAsync(embed: emoteInfoEmbed.Build());
+            await ReplyAsync(embed: emoteInfoEmbed.Build()).ConfigureAwait(false);
         }
 
         [Command("unicode")]
@@ -144,10 +145,10 @@ namespace Grillbot.Modules
             var embedBuilder = new EmbedBuilder()
                 .WithColor(Color.Blue)
                 .WithFields(emoteFields)
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}", GetUserAvatarUrl(Context.Message.Author))
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
                 .WithCurrentTimestamp();
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
     }
 }

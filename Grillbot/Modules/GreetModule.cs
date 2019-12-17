@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
+using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Modules
 {
@@ -20,7 +21,7 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhi"), Alias("hojkashi", "hi")]
-        public async Task GreetAsync() => await GreetAsync(Config.MethodsConfig.Greeting.OutputMode.ToString().ToLower());
+        public async Task GreetAsync() => await GreetAsync(Config.MethodsConfig.Greeting.OutputMode.ToString().ToLower()).ConfigureAwait(false);
 
         [Command("grillhi"), Alias("hojkashi", "hi")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
@@ -32,10 +33,9 @@ namespace Grillbot.Modules
             if (!availableModes.Contains(mode)) return;
             var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
 
-            var message = messageTemplate.Replace("{person}", GetUsersFullName(Context.User));
-            var outputMode = Enum.Parse<GreetingOutputModes>(mode);
+            var message = messageTemplate.Replace("{person}", Context.User.GetShortName());
 
-            switch (outputMode)
+            switch (Enum.Parse<GreetingOutputModes>(mode))
             {
                 case GreetingOutputModes.Bin:
                     message = ConvertToBinOrHexa(message, 2);
@@ -48,7 +48,7 @@ namespace Grillbot.Modules
                     break;
             }
 
-            await ReplyAsync(message);
+            await ReplyAsync(message).ConfigureAwait(false);
         }
 
         [Command("grillhi"), Alias("hojkashi", "hi")]
@@ -60,10 +60,10 @@ namespace Grillbot.Modules
             if (!supportedBases.Contains(@base)) return;
 
             var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
-            var message = messageTemplate.Replace("{person}", GetUsersFullName(Context.User));
+            var message = messageTemplate.Replace("{person}", Context.User.GetFullName());
             var converted = ConvertToBinOrHexa(message, @base);
 
-            await ReplyAsync(converted);
+            await ReplyAsync(converted).ConfigureAwait(false);
         }
 
         private string ConvertToBinOrHexa(string message, int @base)

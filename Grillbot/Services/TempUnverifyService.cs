@@ -121,20 +121,6 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task<SocketGuildUser> GetUserFromGuildAsync(SocketGuild guild, string userId)
-        {
-            var idOfUser = Convert.ToUInt64(userId);
-            var user = guild.GetUser(idOfUser);
-
-            if (user == null)
-            {
-                await guild.DownloadUsersAsync().ConfigureAwait(false);
-                user = guild.GetUser(idOfUser);
-            }
-
-            return user;
-        }
-
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild)
         {
             CheckIfCanStartUnverify(users, guild);

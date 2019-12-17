@@ -49,12 +49,12 @@ namespace Grillbot.Modules
 
             embed
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync("", embed: embed.Build());
-            await PrintCallStatsAsync();
-            await PrintLoggerStatistics();
-            await PrintEventStatistics();
+            await ReplyAsync("", embed: embed.Build()).ConfigureAwait(false);
+            await PrintCallStatsAsync().ConfigureAwait(false);
+            await PrintLoggerStatistics().ConfigureAwait(false);
+            await PrintEventStatistics().ConfigureAwait(false);
         }
 
         private async Task PrintCallStatsAsync()
@@ -70,7 +70,6 @@ namespace Grillbot.Modules
                 Title = "Statistiky příkazů"
             };
 
-
             AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
             AddInlineEmbedField(embedData, "Počet volání",
                 string.Join(Environment.NewLine, data.Select(x => FormatHelper.FormatWithSpaces(x.CallsCount))));
@@ -79,9 +78,9 @@ namespace Grillbot.Modules
 
             embedData
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embedData.Build());
+            await ReplyAsync(embed: embedData.Build()).ConfigureAwait(false);
         }
 
         private async Task PrintLoggerStatistics()
@@ -100,9 +99,9 @@ namespace Grillbot.Modules
 
             embedBuilder
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         private async Task PrintEventStatistics()
@@ -123,9 +122,9 @@ namespace Grillbot.Modules
 
             embedBuilder
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         [Command("db")]
@@ -147,7 +146,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var data = await BotStatusService.GetCommandLogsAsync();
+                var data = await BotStatusService.GetCommandLogsAsync().ConfigureAwait(false);
                 var fields = new List<EmbedFieldBuilder>();
 
                 foreach (var o in data)
@@ -176,8 +175,8 @@ namespace Grillbot.Modules
                     .WithTitle("Log operací")
                     .Build();
 
-                await ReplyAsync(embed: embed);
-            });
+                await ReplyAsync(embed: embed).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("commandLog")]
@@ -186,7 +185,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var item = await BotStatusService.GetCommandDetailAsync(id);
+                var item = await BotStatusService.GetCommandDetailAsync(id).ConfigureAwait(false);
 
                 if (item == null)
                     throw new ArgumentException($"Záznam s ID **{id}** nebyl nalezen.");
@@ -209,8 +208,8 @@ namespace Grillbot.Modules
                     .WithTitle($"Log operace s ID {id}")
                     .Build();
 
-                await ReplyAsync(embed: embed);
-            });
+                await ReplyAsync(embed: embed).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

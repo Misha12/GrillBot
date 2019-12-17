@@ -9,6 +9,7 @@ using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
+using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Modules
 {
@@ -35,13 +36,13 @@ namespace Grillbot.Modules
 
             var embedFields = new List<EmbedFieldBuilder>();
 
-            foreach(var module in CommandService.Modules)
+            foreach (var module in CommandService.Modules)
             {
                 var descBuilder = new StringBuilder();
 
                 foreach (var cmd in module.Commands)
                 {
-                    var result = await cmd.CheckPreconditionsAsync(Context, Services);
+                    var result = await cmd.CheckPreconditionsAsync(Context, Services).ConfigureAwait(false);
 
                     if (result.IsSuccess)
                     {
@@ -49,12 +50,12 @@ namespace Grillbot.Modules
 
                         if (!string.IsNullOrEmpty(module.Group))
                             descBuilder.Append(module.Group).Append(' ');
-                        
+
                         descBuilder
                             .Append(cmd.Name).Append(' ')
                             .Append(string.Join(" ", cmd.Parameters.Select(o => "{" + o.Name + "}")));
 
-                        if(!string.IsNullOrEmpty(cmd.Summary))
+                        if (!string.IsNullOrEmpty(cmd.Summary))
                             descBuilder.Append(" - ").AppendLine(cmd.Summary);
                         else
                             descBuilder.AppendLine();
@@ -65,12 +66,12 @@ namespace Grillbot.Modules
                     embedFields.Add(new EmbedFieldBuilder().WithName(module.Name).WithValue(descBuilder.ToString()));
             }
 
-            for(var i = 0; i < Math.Ceiling(embedFields.Count / (double)EmbedBuilder.MaxFieldCount); i++)
+            for (var i = 0; i < Math.Ceiling(embedFields.Count / (double)EmbedBuilder.MaxFieldCount); i++)
             {
                 var fields = embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount).ToList();
                 var embed = CreateEmbed(fields, user, i + 1);
 
-                await ReplyAsync(embed: embed);
+                await ReplyAsync(embed: embed).ConfigureAwait(false);
             }
         }
 
@@ -79,13 +80,13 @@ namespace Grillbot.Modules
             var builder = new EmbedBuilder()
             {
                 Color = Color.Blue,
-                Title = $"Nápověda pro uživatele {GetUsersFullName(user)} ({GetBotBestPermissions(user)})",
+                Title = $"Nápověda pro uživatele {user.GetFullName()} ({GetBotBestPermissions(user)})",
                 Fields = fields,
-                ThumbnailUrl = GetUserAvatarUrl(Context.Client.CurrentUser)
+                ThumbnailUrl = Context.Client.CurrentUser.GetUserAvatarUrl()
             };
 
             builder
-                .WithFooter($"Odpověď pro {GetUsersShortName(user)} | Strana {pageNumber}", GetUserAvatarUrl(user))
+                .WithFooter($"Odpověď pro {user.GetShortName()} | Strana {pageNumber}", user.GetUserAvatarUrl())
                 .WithCurrentTimestamp();
 
             return builder.Build();
@@ -98,13 +99,13 @@ namespace Grillbot.Modules
 
             if (!result.IsSuccess)
             {
-                switch(result.Error)
+                switch (result.Error)
                 {
                     case CommandError.UnknownCommand:
-                        await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.");
+                        await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.").ConfigureAwait(false);
                         break;
                     case CommandError.UnmetPrecondition:
-                        await ReplyAsync(result.ErrorReason);
+                        await ReplyAsync(result.ErrorReason).ConfigureAwait(false);
                         break;
                 }
 
@@ -119,7 +120,7 @@ namespace Grillbot.Modules
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
             {
-                var haveAccess = await cmd.CheckPreconditionsAsync(Context, Services);
+                var haveAccess = await cmd.CheckPreconditionsAsync(Context, Services).ConfigureAwait(false);
 
                 if (haveAccess.IsSuccess)
                 {
@@ -132,7 +133,7 @@ namespace Grillbot.Modules
                             .AppendLine(string.Join(", ", cmd.Parameters.Select(p => p.Name)));
                     }
 
-                    if(!string.IsNullOrEmpty(cmd.Summary))
+                    if (!string.IsNullOrEmpty(cmd.Summary))
                         valueBuilder.AppendLine(cmd.Summary);
 
                     if (!string.IsNullOrEmpty(cmd.Remarks))
@@ -147,14 +148,14 @@ namespace Grillbot.Modules
                 }
             }
 
-            if(embedBuilder.Fields.Count == 0)
+            if (embedBuilder.Fields.Count == 0)
                 embedBuilder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
 
             embedBuilder
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpoveď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpoveď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         private string GetBotBestPermissions(SocketUser user)
@@ -164,7 +165,7 @@ namespace Grillbot.Modules
 
             if (user is SocketGuildUser sgUser)
             {
-                return sgUser.Roles.FirstOrDefault(o => o.Position == sgUser.Roles.Max(x => x.Position)).Name;
+                return sgUser.Roles.FirstOrDefault(o => o.Position == sgUser.Roles.Max(x => x.Position))?.Name;
             }
 
             return "-";

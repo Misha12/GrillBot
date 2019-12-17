@@ -12,6 +12,7 @@ namespace Grillbot.Modules
         protected void AddInlineEmbedField(EmbedBuilder embed, string name, object value) =>
             embed.AddField(o => o.WithIsInline(true).WithName(name).WithValue(value));
 
+        [Obsolete("Use UserExtension GetFullName")]
         protected string GetUsersFullName(IUser user)
         {
             var builder = new StringBuilder();
@@ -43,6 +44,7 @@ namespace Grillbot.Modules
             return builder.ToString();
         }
 
+        [Obsolete("Use UserExtension GetShortName")]
         protected string GetUsersShortName(SocketUser user)
         {
             return user == null ? "Unknown user" : $"{user.Username}#{user.Discriminator}";
@@ -52,20 +54,17 @@ namespace Grillbot.Modules
         {
             try
             {
-                await method();
+                await method().ConfigureAwait(false);
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyAsync(ex.Message).ConfigureAwait(false);
             }
         }
 
         protected SocketTextChannel GetTextChannel(string id) => GetTextChannel(Convert.ToUInt64(id));
 
         protected SocketTextChannel GetTextChannel(ulong id) => Context.Guild.GetChannel(id) as SocketTextChannel;
-
-        [Obsolete("Use UserExtension")]
-        protected string GetUserAvatarUrl(SocketUser user) => user.GetAvatarUrl() ?? user.GetDefaultAvatarUrl();
 
         protected async Task<SocketGuildUser> GetUserFromGuildAsync(SocketGuild guild, string userId)
         {
@@ -74,7 +73,7 @@ namespace Grillbot.Modules
 
             if (user == null)
             {
-                await guild.DownloadUsersAsync();
+                await guild.DownloadUsersAsync().ConfigureAwait(false);
                 user = guild.GetUser(idOfUser);
             }
 

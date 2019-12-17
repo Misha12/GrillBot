@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using System;
@@ -32,21 +33,21 @@ namespace Grillbot.Modules
             switch (time)
             {
                 case "list":
-                    await ListUnverifyAsync();
+                    await ListUnverifyAsync().ConfigureAwait(false);
                     return;
                 case "remove":
                     if (string.IsNullOrEmpty(data)) return;
-                    await RemoveUnverifyAsync(Convert.ToInt32(data.Split(' ')[0]));
+                    await RemoveUnverifyAsync(Convert.ToInt32(data.Split(' ')[0])).ConfigureAwait(false);
                     return;
                 case "update":
                     if (string.IsNullOrEmpty(data)) return;
                     var fields = data.Split(' ');
                     if (fields.Length < 2)
                     {
-                        await ReplyAsync("Chybí parametry.");
+                        await ReplyAsync("Chybí parametry.").ConfigureAwait(false);
                         return;
                     }
-                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]);
+                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
                     return;
             }
 
@@ -56,10 +57,10 @@ namespace Grillbot.Modules
 
                 if(usersToUnverify.Count > 0)
                 {
-                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild);
-                    await ReplyAsync(message);
+                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild).ConfigureAwait(false);
+                    await ReplyAsync(message).ConfigureAwait(false);
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         [Command("remove")]
@@ -68,23 +69,23 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.ReturnAccessAsync(id);
-                await ReplyAsync(message);
-            });
+                var message = await UnverifyService.ReturnAccessAsync(id).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("list")]
         [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
         public async Task ListUnverifyAsync()
         {
-            var callerUsername = GetUsersShortName(Context.Message.Author);
-            var callerAvatar = GetUserAvatarUrl(Context.Message.Author);
+            var callerUsername = Context.Message.Author.GetShortName();
+            var callerAvatar = Context.Message.Author.GetUserAvatarUrl();
 
             await DoAsync(async () =>
             {
-                var embed = await UnverifyService.ListPersonsAsync(callerUsername, callerAvatar);
-                await ReplyAsync(embed: embed.Build());
-            });
+                var embed = await UnverifyService.ListPersonsAsync(callerUsername, callerAvatar).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("UserStatus")]
@@ -92,14 +93,14 @@ namespace Grillbot.Modules
         [Remarks("Zadává se ID uživatele.")]
         public async Task UserStatusAsync(ulong userId)
         {
-            var callerUsername = GetUsersShortName(Context.Message.Author);
-            var callerAvatar = GetUserAvatarUrl(Context.Message.Author);
+            var callerUsername = Context.Message.Author.GetShortName();
+            var callerAvatar = Context.Message.Author.GetUserAvatarUrl();
 
             await DoAsync(async () =>
             {
-                var embed = await UnverifyService.GetPersonUnverifyStatus(callerUsername, callerAvatar, userId);
-                await ReplyAsync(embed: embed.Build());
-            });
+                var embed = await UnverifyService.GetPersonUnverifyStatus(callerUsername, callerAvatar, userId).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("update")]
@@ -108,9 +109,9 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.UpdateUnverifyAsync(id, time);
-                await ReplyAsync(message);
-            });
+                var message = await UnverifyService.UpdateUnverifyAsync(id, time).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

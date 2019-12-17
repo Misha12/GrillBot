@@ -3,6 +3,7 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Preconditions;
@@ -43,7 +44,7 @@ namespace Grillbot.Modules
 
                 if (mentionedChannel != null)
                 {
-                    var pins = await mentionedChannel.GetPinnedMessagesAsync();
+                    var pins = await mentionedChannel.GetPinnedMessagesAsync().ConfigureAwait(false);
 
                     if (pins.Count == 0)
                         throw new ArgumentException($"V kanálu **{mentionedChannel.Mention}** ještě nebylo nic připnuto.");
@@ -55,17 +56,17 @@ namespace Grillbot.Modules
 
                     foreach (var pin in pinsToRemove)
                     {
-                        await pin.RemoveAllReactionsAsync();
-                        await pin.UnpinAsync();
+                        await pin.RemoveAllReactionsAsync().ConfigureAwait(false);
+                        await pin.UnpinAsync().ConfigureAwait(false);
                     }
 
-                    await ReplyAsync($"Úpěšně dokončeno. Počet odepnutých zpráv: **{pinsToRemove.Count()}**");
+                    await ReplyAsync($"Úpěšně dokončeno. Počet odepnutých zpráv: **{pinsToRemove.Count()}**").ConfigureAwait(false);
                 }
                 else
                 {
                     throw new ArgumentException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
                 }
-            });
+            }).ConfigureAwait(false);
         }
 
         [Command("hledam_clean_channel")]
@@ -73,23 +74,23 @@ namespace Grillbot.Modules
         public async Task TeamSearchCleanChannel(string channel)
         {
             var mentionedChannelId = Context.Message.MentionedChannels.First().Id.ToString();
-            var searches = await TeamSearchService.Repository.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync();
+            var searches = await TeamSearchService.Repository.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync().ConfigureAwait(false);
 
             if (searches.Count == 0)
             {
-                await ReplyAsync($"V kanálu {channel} nikdo nic nehledá.");
+                await ReplyAsync($"V kanálu {channel} nikdo nic nehledá.").ConfigureAwait(false);
                 return;
             }
 
             foreach (var search in searches)
             {
-                var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId));
+                var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
 
-                await TeamSearchService.Repository.RemoveSearchAsync(search.Id);
-                await ReplyAsync($"Hledání s ID **{search.Id}** od **{GetUsersFullName(message.Author)}** smazáno.");
+                await TeamSearchService.Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetShortName()}** smazáno.").ConfigureAwait(false);
             }
 
-            await ReplyAsync($"Čištění kanálu {channel} dokončeno.");
+            await ReplyAsync($"Čištění kanálu {channel} dokončeno.").ConfigureAwait(false);
         }
 
         [Command("hledam_mass_remove")]
@@ -98,22 +99,22 @@ namespace Grillbot.Modules
         {
             foreach (var id in searchIds)
             {
-                var search = await TeamSearchService.Repository.FindSearchByID(id);
+                var search = await TeamSearchService.Repository.FindSearchByID(id).ConfigureAwait(false);
 
                 if (search != null)
                 {
-                    var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId));
+                    var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
 
                     if (message == null)
-                        await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.");
+                        await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
                     else
-                        await ReplyAsync($"Úklid hledání s ID **{id}** od **{GetUsersFullName(message.Author)}**.");
+                        await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
 
-                    await TeamSearchService.Repository.RemoveSearchAsync(id);
+                    await TeamSearchService.Repository.RemoveSearchAsync(id).ConfigureAwait(false);
                 }
             }
 
-            await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.");
+            await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.").ConfigureAwait(false);
         }
 
         [Command("guild_status")]
@@ -140,7 +141,7 @@ namespace Grillbot.Modules
                 .Append("VerificationLevel: **").Append(guild.VerificationLevel.ToString()).AppendLine("**")
                 .Append("VoiceRegionID: **").Append(guild.VoiceRegionId ?? "null").AppendLine("**");
 
-            await ReplyAsync(builder.ToString());
+            await ReplyAsync(builder.ToString()).ConfigureAwait(false);
         }
 
         [Command("sync_guild")]
@@ -151,19 +152,19 @@ namespace Grillbot.Modules
 
             try
             {
-                await guild.DownloadUsersAsync();
+                await guild.DownloadUsersAsync().ConfigureAwait(false);
 
                 if (guild.SyncPromise != null)
-                    await guild.SyncPromise;
+                    await guild.SyncPromise.ConfigureAwait(false);
 
                 if (guild.DownloaderPromise != null)
-                    await guild.DownloaderPromise;
+                    await guild.DownloaderPromise.ConfigureAwait(false);
 
-                await ReplyAsync("Synchronizace dokončena");
+                await ReplyAsync("Synchronizace dokončena").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"Synchronizace se nezdařila {ex.Message}");
+                await ReplyAsync($"Synchronizace se nezdařila {ex.Message}").ConfigureAwait(false);
                 throw;
             }
         }
@@ -180,7 +181,7 @@ namespace Grillbot.Modules
                     throw new ArgumentException($"Sekce `{stackKey}` neexistuje.");
 
                 var builder = new EmbedBuilder()
-                    .WithFooter(GetUsersShortName(Context.Message.Author), GetUserAvatarUrl(Context.Message.Author))
+                    .WithFooter(Context.Message.Author.GetShortName(), Context.Message.Author.GetUserAvatarUrl())
                     .WithCurrentTimestamp()
                     .WithColor(Color.Blue)
                     .WithTitle("Posledních 5 záznamů v logování");
@@ -198,8 +199,8 @@ namespace Grillbot.Modules
                     });
                 }
 
-                await ReplyAsync(embed: builder.Build());
-            });
+                await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         #region EmoteManager

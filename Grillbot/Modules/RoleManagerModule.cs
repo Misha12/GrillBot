@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,7 +25,7 @@ namespace Grillbot.Modules
                 roleInfoFields.Add(new EmbedFieldBuilder()
                 {
                     Name = role.Name,
-                    Value = roleInfo.ToString()
+                    Value = roleInfo
                 });
             }
 
@@ -34,10 +35,10 @@ namespace Grillbot.Modules
                 var embed = new EmbedBuilder()
                     .WithColor(Color.Blue)
                     .WithFields(roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount))
-                    .WithFooter($"Strana {i} | Odpověď pro {GetUsersShortName(Context.Message.Author)}")
+                    .WithFooter($"Strana {i} | Odpověď pro {Context.Message.Author.GetShortName()}")
                     .WithCurrentTimestamp();
 
-                await ReplyAsync(embed: embed.Build());
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }
         }
 
@@ -59,9 +60,9 @@ namespace Grillbot.Modules
 
             embedBuilder
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embedBuilder.Build());
+            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         [Command("roleinfo")]
@@ -69,7 +70,7 @@ namespace Grillbot.Modules
         {
             if(roleName == "all")
             {
-                await GetCompleteRoleListAsync();
+                await GetCompleteRoleListAsync().ConfigureAwait(false);
                 return;
             }
 
@@ -78,7 +79,7 @@ namespace Grillbot.Modules
 
             if (role == null)
             {
-                await ReplyAsync("Takovou roli neznám.");
+                await ReplyAsync("Takovou roli neznám.").ConfigureAwait(false);
                 return;
             }
 
@@ -87,9 +88,9 @@ namespace Grillbot.Modules
 
             embed
                 .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {GetUsersShortName(Context.Message.Author)}");
+                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
 
-            await ReplyAsync(embed: embed.Build());
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         public List<string> GetPermissionNames(GuildPermissions permissions)
