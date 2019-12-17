@@ -19,7 +19,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class BotStatusService : ServicesBase
+    public class BotStatusService
     {
         private Statistics.Statistics Statistics { get; }
         private IHostingEnvironment HostingEnvironment { get; }
@@ -78,8 +78,10 @@ namespace Grillbot.Services
             int sleepCount = 0;
             var sleepCounter = process.Threads.GetEnumerator();
             while (sleepCounter.MoveNext())
+            {
                 if ((sleepCounter.Current as ProcessThread)?.ThreadState == ThreadState.Wait)
                     sleepCount++;
+            }
 
             return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
         }
@@ -100,7 +102,7 @@ namespace Grillbot.Services
         {
             using (var repository = new LogRepository(Config))
             {
-                var data = await repository.GetCommandLogsAsync(5);
+                var data = await repository.GetCommandLogsAsync(5).ConfigureAwait(false);
                 var result = new List<Models.BotStatus.CommandLog>();
 
                 foreach (var dbData in data)
@@ -114,7 +116,7 @@ namespace Grillbot.Services
                         Group = dbData.Group
                     };
 
-                    await SetCommandLogData(item, dbData);
+                    await SetCommandLogData(item, dbData).ConfigureAwait(false);
                     result.Add(item);
                 }
 
@@ -126,7 +128,7 @@ namespace Grillbot.Services
         {
             using (var repository = new LogRepository(Config))
             {
-                var data = await repository.GetCommandLogDetailAsync(Convert.ToInt64(id));
+                var data = await repository.GetCommandLogDetailAsync(Convert.ToInt64(id)).ConfigureAwait(false);
 
                 if (data == null)
                     return null;
@@ -140,7 +142,7 @@ namespace Grillbot.Services
                     Group = data.Group
                 };
 
-                await SetCommandLogData(result, data);
+                await SetCommandLogData(result, data).ConfigureAwait(false);
                 return result;
             }
         }
@@ -150,10 +152,10 @@ namespace Grillbot.Services
             if (dbData.GuildIDSnowflake != null)
             {
                 var guild = Client.GetGuild(dbData.GuildIDSnowflake.Value);
-                var user = await GetUserFromGuildAsync(guild, dbData.UserID);
+                var user = await guild.GetUserFromGuildAsync(dbData.UserID).ConfigureAwait(false);
                 var channel = guild.GetTextChannel(dbData.ChannelIDSnowflake);
 
-                item.Username = GetUsersShortName(user);
+                item.Username = user.GetShortName();
                 item.GuildName = guild.Name;
                 item.ChannelName = channel.Name;
             }
@@ -166,7 +168,7 @@ namespace Grillbot.Services
 
                 if (dcChannel == null)
                 {
-                    var dm = await Client.GetDMChannelAsync(dbData.ChannelIDSnowflake);
+                    var dm = await Client.GetDMChannelAsync(dbData.ChannelIDSnowflake).ConfigureAwait(false);
                     channelName = dm == null ? $"{dbData.ChannelID} (Unknown type)" : $"@{dm.Recipient}";
                 }
                 else
@@ -180,7 +182,7 @@ namespace Grillbot.Services
                 }
 
                 item.ChannelName = channelName;
-                item.Username = GetUsersShortName(user);
+                item.Username = user.GetShortName();
             }
         }
     }

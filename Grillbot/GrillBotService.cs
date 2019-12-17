@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -13,7 +12,6 @@ using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services;
-using System.Collections.Generic;
 using Grillbot.Services.Statistics;
 
 namespace Grillbot
@@ -26,7 +24,7 @@ namespace Grillbot
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private Configuration Config { get; set; }
-        private IMessageCache Cache { get; set; }
+        private IMessageCache Cache { get; }
         private TempUnverifyService TempUnverify { get; }
         private CalledEventStats CalledEventStats { get; }
 
@@ -48,8 +46,8 @@ namespace Grillbot
         {
             CalledEventStats.Increment("Ready");
 
-            await TempUnverify.InitAsync();
-            await Cache.InitAsync();
+            await TempUnverify.InitAsync().ConfigureAwait(false);
+            await Cache.InitAsync().ConfigureAwait(false);
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -57,17 +55,17 @@ namespace Grillbot
             if (string.IsNullOrEmpty(Config.Discord.Token))
                 throw new ConfigException("Missing bot token in config.");
 
-            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
-            await Client.StartAsync();
-            await SetActivity(Config.Discord.Activity);
+            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token).ConfigureAwait(false);
+            await Client.StartAsync().ConfigureAwait(false);
+            await SetActivity(Config.Discord.Activity).ConfigureAwait(false);
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services).ConfigureAwait(false);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
         {
-            await Client.StopAsync();
-            await Client.LogoutAsync();
+            await Client.StopAsync().ConfigureAwait(false);
+            await Client.LogoutAsync().ConfigureAwait(false);
             Client.Dispose();
         }
 
@@ -86,9 +84,9 @@ namespace Grillbot
         private async Task SetActivity(string activityMessage)
         {
             if (!string.IsNullOrEmpty(activityMessage))
-                await Client.SetGameAsync(FormatActivity(activityMessage));
+                await Client.SetGameAsync(FormatActivity(activityMessage)).ConfigureAwait(false);
             else
-                await Client.SetGameAsync(null);
+                await Client.SetGameAsync(null).ConfigureAwait(false);
         }
 
         public void ConfigChanged(Configuration newConfig)

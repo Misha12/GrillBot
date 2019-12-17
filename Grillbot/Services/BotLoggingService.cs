@@ -45,8 +45,8 @@ namespace Grillbot.Services
 
         private async Task OnLogAsync(LogMessage message)
         {
-            await PostException(message);
-            await WriteToLogAsync($"{message.Severity}\t{message.Message}", message.Source);
+            await PostException(message).ConfigureAwait(false);
+            await WriteToLogAsync($"{message.Severity}\t{message.Message}", message.Source).ConfigureAwait(false);
         }
 
         private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
@@ -59,14 +59,14 @@ namespace Grillbot.Services
 
         private async Task PostException(LogMessage message)
         {
-            if (!CanSendToDiscord(message)) return;
+            if (!IsValidException(message)) return;
 
             var exceptionMessage = message.Exception.ToString();
             var parts = exceptionMessage.SplitInParts(MessageSizeForException).ToArray();
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {
-                await SendLogMessageAsync(parts, channel);
+                await SendLogMessageAsync(parts, channel).ConfigureAwait(false);
             }
         }
 
@@ -80,7 +80,7 @@ namespace Grillbot.Services
             return ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
         }
 
-        private bool CanSendToDiscord(LogMessage message)
+        private bool IsValidException(LogMessage message)
         {
             var haveException = message.Exception != null;
             var haveLogRoom = LogRoom != null;
@@ -102,7 +102,7 @@ namespace Grillbot.Services
 
         public async Task WriteToLogAsync(string message, string source = "BOT")
         {
-            await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}");
+            await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}").ConfigureAwait(false);
         }
 
         public void SendConfigChangeInfo(string oldHash, string newHash)

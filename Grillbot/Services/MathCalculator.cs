@@ -40,8 +40,8 @@ namespace Grillbot.Services
                 process.StartInfo.RedirectStandardOutput = true;
 
                 process.Start();
-                
-                if(!process.WaitForExit(calcTime))
+
+                if (!process.WaitForExit(calcTime))
                 {
                     process.Kill();
                     return new MathCalcResult(message?.Author?.Mention, "Vypršel mi časový limit na výpočet příkladu.");

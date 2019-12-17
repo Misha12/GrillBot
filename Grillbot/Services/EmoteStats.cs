@@ -19,10 +19,10 @@ namespace Grillbot.Services
     public class EmoteStats : IConfigChangeable, IDisposable
     {
         public Dictionary<string, EmoteStat> Counter { get; private set; }
-        public HashSet<string> Changes { get; private set; }
+        public HashSet<string> Changes { get; }
         private Configuration Config { get; set; }
-        private SemaphoreSlim Semaphore { get; set; }
-        private Timer DbSyncTimer { get; set; }
+        private SemaphoreSlim Semaphore { get; }
+        private Timer DbSyncTimer { get; }
         private BotLoggingService LoggingService { get; }
 
         public EmoteStats(Configuration configuration, BotLoggingService loggingService)
@@ -76,7 +76,7 @@ namespace Grillbot.Services
         {
             if (context.Guild == null) return;
 
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -119,7 +119,7 @@ namespace Grillbot.Services
         {
             if (!(reaction.Channel is SocketGuildChannel channel)) return;
 
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
                 var serverEmotes = channel.Guild.Emotes;
@@ -146,7 +146,7 @@ namespace Grillbot.Services
         {
             if (!(reaction.Channel is SocketGuildChannel channel)) return;
 
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
                 var serverEmotes = channel.Guild.Emotes;

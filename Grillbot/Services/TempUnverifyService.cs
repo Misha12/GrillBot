@@ -1,7 +1,7 @@
 ﻿using Discord;
-using Discord.Net;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config;
@@ -17,7 +17,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class TempUnverifyService : ServicesBase, IConfigChangeable
+    public class TempUnverifyService : IConfigChangeable
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
@@ -77,18 +77,13 @@ namespace Grillbot.Services
                 var guild = Client.GetGuild(Convert.ToUInt64(unverify.GuildID));
                 if (guild == null) return;
 
-                var user = GetUserFromGuildAsync(guild, unverify.UserID).Result;
+                var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
                 if (user == null)
                 {
                     var admin = Client.GetUser(Config.MethodsConfig.TempUnverify.MainAdminSnowflake);
                     var pmChannel = admin.GetOrCreateDMChannelAsync().GetAwaiter().GetResult();
 
-                    var dataToPM = new
-                    {
-                        unverify,
-                        guildName = guild.Name
-                    };
-
+                    var dataToPM = new { unverify, guildName = guild.Name };
                     var content = $"```json\n{JsonConvert.SerializeObject(dataToPM, Formatting.Indented)}```";
                     pmChannel.SendMessageAsync(content).GetAwaiter().GetResult();
 
@@ -98,9 +93,7 @@ namespace Grillbot.Services
                 var rolesToReturn = unverify.DeserializedRolesToReturn;
                 var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
 
-                LoggingService.WriteToLog($"ReturnAccess User: {user.Username}#{user.Discriminator} ({user.Id}) " +
-                    $"Roles: {string.Join(", ", rolesToReturn)}");
-
+                LoggingService.WriteToLog($"ReturnAccess User: {user.GetShortName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)}");
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach (var channelOverride in unverify.DeserializedChannelOverrides)
@@ -163,12 +156,12 @@ namespace Grillbot.Services
                 {
                     var higherRoles = user.Roles.Where(o => o.Position > botMaxRolePosition).Select(o => o.Name);
 
-                    throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.Username}#{user.Discriminator}** má vyšší role " +
+                    throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetShortName()}** má vyšší role " +
                         $"**({string.Join(", ", higherRoles)})**.");
                 }
 
                 if (Config.IsUserBotAdmin(user.Id))
-                    throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.Username}#{user.Discriminator}** je administrátor bota.");
+                    throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetShortName()}** je administrátor bota.");
             }
         }
 
@@ -180,7 +173,7 @@ namespace Grillbot.Services
 
             await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
-                $"{user.Username}#{user.Discriminator} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
+                $"{user.GetShortName()} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
 
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false);
 
@@ -192,7 +185,8 @@ namespace Grillbot.Services
 
             var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason).ConfigureAwait(false);
 
-            await SendPrivateMessage(user, unverify, reason).ConfigureAwait(false);
+            var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason);
+            await user.SendPrivateMessageAsync(formatedPrivateMessage).ConfigureAwait(false);
             return unverify;
         }
 
@@ -303,7 +297,7 @@ namespace Grillbot.Services
 
             builder
                 .Append("Dočasné odebrání přístupu pro uživatele **")
-                .Append(string.Join(", ", users.Select(o => $"{o.Username}#{o.Discriminator}")))
+                .Append(string.Join(", ", users.Select(o => o.GetShortName())))
                 .Append("** bylo dokončeno. Role budou navráceny **")
                 .Append(unverifyItems[0].GetEndDatetime().ToLocaleDatetime())
                 .Append("**");
@@ -312,26 +306,6 @@ namespace Grillbot.Services
                 builder.AppendLine().Append("Důvod: ").Append(reason);
 
             return builder.ToString();
-        }
-
-        private bool CanSendDM(SocketGuildUser user) => !user.IsBot && !user.IsWebhook;
-
-        private async Task SendPrivateMessage(SocketGuildUser user, TempUnverifyItem unverify, string reason)
-        {
-            if (!CanSendDM(user)) return;
-
-            try
-            {
-                var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-                await dmChannel.SendMessageAsync(GetFormatedPrivateMessage(user, unverify, reason)).ConfigureAwait(false);
-            }
-            catch (HttpException ex)
-            {
-                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == 50007)
-                    return; // User have disabled PM.
-
-                throw;
-            }
         }
 
         public async Task<EmbedBuilder> ListPersonsAsync(string callerUsername, string callerAvatarUrl)
@@ -366,7 +340,7 @@ namespace Grillbot.Services
                     .WithColor(Color.Blue)
                     .WithCurrentTimestamp()
                     .WithTitle("Seznam osob s odebraným přístupem.")
-                    .WithThumbnailUrl(Client.CurrentUser.GetAvatarUrl())
+                    .WithThumbnailUrl(Client.CurrentUser.GetUserAvatarUrl())
                     .WithFooter($"Odpověď pro uživatele: {caller.Item1}", caller.Item2);
 
             foreach (var person in items)
@@ -378,14 +352,9 @@ namespace Grillbot.Services
                     $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}\n" +
                     $"Důvod: {person.Reason}";
 
-                var user = await GetUserFromGuildAsync(guild, person.UserID).ConfigureAwait(false);
+                var user = await guild.GetUserFromGuildAsync(person.UserID).ConfigureAwait(false);
 
-                string username;
-                if (user != null)
-                    username = $"{user.Username}#{user.Discriminator}";
-                else
-                    username = $"Neznámý uživatel {person.UserID}";
-
+                string username = user != null ? user.GetShortName() : $"Neznámý uživatel {person.UserID}";
                 embedBuilder.AddField(o => o.WithName(username).WithValue(desc));
             }
 
@@ -422,12 +391,12 @@ namespace Grillbot.Services
                 ReturnAccess(item);
 
                 var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
-                var user = await GetUserFromGuildAsync(guild, item.UserID).ConfigureAwait(false);
+                var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
                 if (user == null)
                     throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-                return $"Předčasné vrácení přístupu pro uživatele **{user.Username}#{user.Discriminator}** bylo dokončeno.";
+                return $"Předčasné vrácení přístupu pro uživatele **{user.GetShortName()}** bylo dokončeno.";
             }
         }
 

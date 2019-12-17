@@ -6,8 +6,6 @@ using Grillbot.Models;
 using Grillbot.Repository;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
-using Microsoft.Extensions.Configuration;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -24,9 +22,9 @@ namespace Grillbot.Services.Statistics
         public Dictionary<ulong, long> Counter { get; private set; }
         private Configuration Config { get; set; }
         private Timer DbSyncTimer { get; set; }
-        private HashSet<ulong> Changes { get; set; }
-        private SemaphoreSlim Semaphore { get; set; }
-        private List<ChannelboardWebToken> WebTokens { get; set; }
+        private HashSet<ulong> Changes { get; }
+        private SemaphoreSlim Semaphore { get; }
+        private List<ChannelboardWebToken> WebTokens { get; }
         private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
         private BotLoggingService LoggingService { get; }
 
@@ -100,14 +98,14 @@ namespace Grillbot.Services.Statistics
             if (WebTokens.Count == 0) return;
 
             WebTokens.RemoveAll(o => !o.IsValid());
-            LoggingService.WriteToLog($"Cleared invalid web tokens.");
+            LoggingService.WriteToLog("Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)
         {
             if (channel is IPrivateChannel) return;
 
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
             try
             {
                 if (!Counter.ContainsKey(channel.Id))
@@ -118,9 +116,9 @@ namespace Grillbot.Services.Statistics
                 Changes.Add(channel.Id);
 
                 if (!LastMessagesAt.ContainsKey(channel.Id))
-                    LastMessagesAt.Add(channel.Id, DateTime.Now);
-                else
-                    LastMessagesAt[channel.Id] = DateTime.Now;
+                    LastMessagesAt.Add(channel.Id, DateTime.MinValue);
+
+                LastMessagesAt[channel.Id] = DateTime.Now;
             }
             finally
             {
@@ -132,7 +130,7 @@ namespace Grillbot.Services.Statistics
         {
             if (channel is IPrivateChannel) return;
 
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {

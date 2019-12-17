@@ -24,12 +24,12 @@ namespace Grillbot.Services
 
         public async Task AddSearchAsync(SocketCommandContext context)
         {
-            await Repository.AddSearchAsync(context.User.Id, context.Channel.Id, context.Message.Id);
+            await Repository.AddSearchAsync(context.User.Id, context.Channel.Id, context.Message.Id).ConfigureAwait(false);
         }
 
         public ulong GetGeneralCategoryID() => Config.MethodsConfig.TeamSearch.GeneralCategoryID;
 
-        public async Task<IMessage> GetMessageAsync(ulong channelID, ulong messageID) => await Cache.GetAsync(channelID, messageID);
+        public async Task<IMessage> GetMessageAsync(ulong channelID, ulong messageID) => await Cache.GetAsync(channelID, messageID).ConfigureAwait(false);
 
         public void Dispose()
         {

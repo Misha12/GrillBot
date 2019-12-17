@@ -28,7 +28,7 @@ namespace Grillbot.Services
             {
                 if (!response.IsSuccessStatusCode)
                 {
-                    var responseContent = await response.Content.ReadAsStringAsync();
+                    var responseContent = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                     var errorMessage = $"StatusCode: {response.StatusCode}, {responseContent}";
                     throw new WebException($"Request on {getUrl} failed. {errorMessage}");
                 }
@@ -36,7 +36,7 @@ namespace Grillbot.Services
                 string data = await response.Content.ReadAsStringAsync().ConfigureAwait(false);
                 string topicUrl = data.GetMiddle("<a href=\"/w/c/", "</a>");
 
-                if (topicUrl == string.Empty)
+                if (string.IsNullOrEmpty(topicUrl))
                     throw new NotFoundException("Topic not found");
 
                 topicUrl = topicUrl.Substring(0, topicUrl.IndexOf('"'));

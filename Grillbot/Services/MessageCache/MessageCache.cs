@@ -31,8 +31,8 @@ namespace Grillbot.Services.MessageCache
 
             foreach (var channel in textChannels)
             {
-                await InitChannel(channel, options);
-                Thread.Sleep(900);
+                await InitChannel(channel, options).ConfigureAwait(false);
+                Thread.Sleep(800);
             }
         }
 
@@ -40,7 +40,7 @@ namespace Grillbot.Services.MessageCache
         {
             try
             {
-                var messages = (await channel.GetMessagesAsync(50, options).FlattenAsync()).ToList();
+                var messages = (await channel.GetMessagesAsync(50, options).FlattenAsync().ConfigureAwait(false)).ToList();
 
                 foreach (var message in messages)
                 {
@@ -85,7 +85,7 @@ namespace Grillbot.Services.MessageCache
             if (!(Client.GetChannel(channelID) is ISocketMessageChannel channel))
                 return null;
 
-            var message = await channel.GetMessageAsync(messageID);
+            var message = await channel.GetMessageAsync(messageID).ConfigureAwait(false);
 
             if (message == null)
                 return null;

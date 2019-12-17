@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
-using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -30,7 +29,7 @@ namespace Grillbot.Services
         public async Task CleanupAsync(ISocketMessageChannel channel, bool @lock = false)
         {
             if (@lock)
-                await Semaphore.WaitAsync();
+                await Semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -46,7 +45,7 @@ namespace Grillbot.Services
 
         public async Task ProcessChainAsync(SocketCommandContext context)
         {
-            await Semaphore.WaitAsync();
+            await Semaphore.WaitAsync().ConfigureAwait(false);
 
             try
             {
@@ -59,7 +58,7 @@ namespace Grillbot.Services
 
                 if (!IsValidMessage(context))
                 {
-                    await CleanupAsync(channel);
+                    await CleanupAsync(channel).ConfigureAwait(false);
                     return;
                 }
 
@@ -68,7 +67,7 @@ namespace Grillbot.Services
                     LastMessages[channel.Id].Add(new Tuple<ulong, string>(author.Id, content));
                 }
 
-                await TryReactAsync(channel);
+                await TryReactAsync(channel).ConfigureAwait(false);
             }
             finally
             {
@@ -80,8 +79,8 @@ namespace Grillbot.Services
         {
             if(LastMessages[channel.Id].Count == ReactLimit)
             {
-                await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2);
-                await CleanupAsync(channel);
+                await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2).ConfigureAwait(false);
+                await CleanupAsync(channel).ConfigureAwait(false);
             }
         }
 
