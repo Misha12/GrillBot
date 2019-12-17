@@ -1,5 +1,7 @@
 ﻿using Discord;
+using Discord.Net;
 using Discord.WebSocket;
+using System.Threading.Tasks;
 
 namespace Grillbot.Extensions.Discord
 {
@@ -29,6 +31,38 @@ namespace Grillbot.Extensions.Discord
             else
             {
                 return user.GetShortName();
+            }
+        }
+
+        public static bool IsUser(this IUser user)
+        {
+            return !user.IsBot && !user.IsWebhook;
+        }
+
+        public static async Task SendPrivateMessageAsync(this IUser user, string message = null, EmbedBuilder embedBuilder = null)
+        {
+            if (!user.IsUser()) return;
+
+            try
+            {
+                var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
+
+                if (message != null)
+                {
+                    await dmChannel.SendMessageAsync(message).ConfigureAwait(false);
+                }
+
+                if (embedBuilder != null)
+                {
+                    await dmChannel.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+                }
+            }
+            catch (HttpException ex)
+            {
+                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == 50007)
+                    return; // User have disabled PM.
+
+                throw;
             }
         }
     }

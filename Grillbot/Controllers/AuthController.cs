@@ -70,7 +70,7 @@ namespace Grillbot.Controllers
 
             try
             {
-                using (var response = (HttpWebResponse)await request.GetResponseAsync())
+                using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
                 {
                     using (var reader = new StreamReader(response.GetResponseStream()))
                     {
@@ -79,7 +79,7 @@ namespace Grillbot.Controllers
                             var data = JObject.Load(jsonReader);
                             var token = data["access_token"].ToString();
 
-                            var validationResult = await GetUserAndValidate(token);
+                            var validationResult = await GetUserAndValidate(token).ConfigureAwait(false);
 
                             if (validationResult != UserRightsValidationResult.OK)
                             {
@@ -116,7 +116,7 @@ namespace Grillbot.Controllers
             var request = WebRequest.CreateHttp("https://discordapp.com/api/users/@me");
             request.Headers.Add(HttpRequestHeader.Authorization, $"Bearer {token}");
 
-            using (var response = (HttpWebResponse)await request.GetResponseAsync())
+            using (var response = (HttpWebResponse)await request.GetResponseAsync().ConfigureAwait(false))
             {
                 using (var reader = new StreamReader(response.GetResponseStream()))
                 {

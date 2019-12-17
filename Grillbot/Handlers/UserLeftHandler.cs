@@ -23,7 +23,7 @@ namespace Grillbot.Handlers
         private async Task OnUserLeftAsync(SocketGuildUser user)
         {
             CalledEventStats.Increment("UserLeft");
-            await Logger.OnUserLeft(user);
+            await Logger.OnUserLeft(user).ConfigureAwait(false);
         }
 
         public void Dispose()

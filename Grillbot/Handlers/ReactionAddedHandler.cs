@@ -24,7 +24,7 @@ namespace Grillbot.Handlers
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             CalledEventStats.Increment("ReactionAdded");
-            await EmoteStats.IncrementFromReaction(reaction);
+            await EmoteStats.IncrementFromReaction(reaction).ConfigureAwait(false);
         }
 
         public void Dispose()

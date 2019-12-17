@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using System.Threading.Tasks;
@@ -25,9 +26,9 @@ namespace Grillbot.Handlers
         {
             CalledEventStats.Increment("MessageUpdated");
 
-            if (messageAfter.Author.IsBot || messageAfter.Author.IsWebhook) return;
+            if (!messageAfter.Author.IsUser()) return;
 
-            await Logger.OnMessageEdited(messageBefore, messageAfter, channel);
+            await Logger.OnMessageEdited(messageBefore, messageAfter, channel).ConfigureAwait(false);
         }
 
         public void Dispose()

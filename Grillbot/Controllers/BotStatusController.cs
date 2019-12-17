@@ -93,7 +93,7 @@ namespace Grillbot.Controllers
             if (!CheckAuth())
                 return Unauthorized();
 
-            var data = await BotStatusService.GetCommandLogsAsync();
+            var data = await BotStatusService.GetCommandLogsAsync().ConfigureAwait(false);
             return Ok(data);
         }
     }

@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Microsoft.Extensions.Configuration;
 using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
@@ -14,7 +13,7 @@ using Grillbot.Services.Config;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Repository;
-using System.Collections.Generic;
+using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Handlers
 {
@@ -65,10 +64,10 @@ namespace Grillbot.Handlers
                 int argPos = 0;
                 if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
                 {
-                    await LogCommandAsync(userMessage, context, argPos);
+                    await LogCommandAsync(userMessage, context, argPos).ConfigureAwait(false);
 
                     commandStopwatch.Start();
-                    var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services);
+                    var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
                     commandStopwatch.Stop();
 
                     if (!result.IsSuccess && result.Error != null)
@@ -78,10 +77,10 @@ namespace Grillbot.Handlers
                             case CommandError.UnknownCommand: return;
                             case CommandError.UnmetPrecondition:
                             case CommandError.ParseFailed:
-                                await context.Channel.SendMessageAsync(result.ErrorReason);
+                                await context.Channel.SendMessageAsync(result.ErrorReason).ConfigureAwait(false);
                                 break;
                             case CommandError.BadArgCount:
-                                await context.Channel.SendMessageAsync($"Nedostatečný počet parametrů.");
+                                await context.Channel.SendMessageAsync("Nedostatečný počet parametrů.").ConfigureAwait(false);
                                 break;
                             default:
                                 throw new BotException(result);
@@ -90,14 +89,14 @@ namespace Grillbot.Handlers
 
                     var command = message.Content.Split(' ')[0];
                     Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
-                    await EmoteChain.CleanupAsync(context.Channel, true);
+                    await EmoteChain.CleanupAsync(context.Channel, true).ConfigureAwait(false);
                 }
                 else
                 {
-                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel);
-                    await AutoReply.TryReplyAsync(userMessage);
-                    await EmoteChain.ProcessChainAsync(context);
-                    await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context);
+                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
+                    await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
+                    await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
+                    await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
                 }
             }
             finally
@@ -114,7 +113,7 @@ namespace Grillbot.Handlers
 
             if (searchResult.IsSuccess)
             {
-                var commandInfo = searchResult.Commands.First();
+                var commandInfo = searchResult.Commands[0];
 
                 if (string.IsNullOrEmpty(commandInfo.Command.Name))
                 {
@@ -129,7 +128,7 @@ namespace Grillbot.Handlers
                 using (var repository = new LogRepository(Config))
                 {
                     await repository.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
-                        DateTime.Now, context.Message.Content, context.Guild, context.Channel);
+                        DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);
                 }
             }
         }
@@ -143,7 +142,7 @@ namespace Grillbot.Handlers
                 return false;
             }
 
-            if (message.Author.IsBot || message.Author.IsWebhook)
+            if (!message.Author.IsUser())
                 return false;
 
             socketUserMessage = userMessage;

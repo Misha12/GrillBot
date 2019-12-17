@@ -24,7 +24,7 @@ namespace Grillbot.Handlers
         {
             CalledEventStats.Increment("GuildMemberUpdated");
 
-            await Logger.OnGuildMemberUpdatedAsync(guildUserBefore, guildUserAfter);
+            await Logger.OnGuildMemberUpdatedAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
         }
 
         public void Dispose()

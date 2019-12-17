@@ -10,8 +10,8 @@ namespace Grillbot.Controllers
     [ApiController]
     public class ChannelboardController : ControllerBase
     {
-        private ChannelStats ChannelStats { get; set; }
-        private DiscordSocketClient DiscordClient { get; set; }
+        private ChannelStats ChannelStats { get; }
+        private DiscordSocketClient DiscordClient { get; }
 
         public ChannelboardController(Statistics statistics, DiscordSocketClient discordClient)
         {

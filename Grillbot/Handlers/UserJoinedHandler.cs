@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
-using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
@@ -21,7 +21,7 @@ namespace Grillbot.Handlers
             Client = client;
             Logger = logger;
             CalledEventStats = calledEventStats;
-            
+
             ConfigChanged(config.Value);
 
             Client.UserJoined += OnUserJoinedOnServerAsync;
@@ -30,14 +30,12 @@ namespace Grillbot.Handlers
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
         {
             CalledEventStats.Increment("UserJoined");
-
-            if (user.IsBot || user.IsWebhook) return;
             var message = Config.Discord.UserJoinedMessage;
 
             if (!string.IsNullOrEmpty(message))
-                await user.SendMessageAsync(message);
+                await user.SendPrivateMessageAsync(message).ConfigureAwait(false);
 
-            await Logger.OnUserJoined(user);
+            await Logger.OnUserJoined(user).ConfigureAwait(false);
         }
 
         #region IDisposable Support
