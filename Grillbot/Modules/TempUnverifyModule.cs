@@ -23,7 +23,7 @@ namespace Grillbot.Modules
 
         [Command("")]
         [Summary("Dočasné odebrání rolí.")]
-        [Remarks("Parmetr time je ve formátu {cas}{s/m/h/d}. Např.: 30s.\nPopis: s: sekundy, m: minuty, h: hodiny, d: dny.\n" +
+        [Remarks("Parametr time je ve formátu {cas}{s/m/h/d}. Např.: 30s.\nPopis: s: sekundy, m: minuty, h: hodiny, d: dny.\n" +
             "Dále je důvod, proč daná osoba přišla o role. A nakonec seznam (mentions) uživatelů.\n" +
             "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30s Přišel jsi o role @User1#1234 @User2#1354 ...")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)

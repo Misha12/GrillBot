@@ -19,7 +19,7 @@ namespace Grillbot.Services.Config.Models
         public ModifyConfigConfig ModifyConfig { get; set; }
         public TempUnverifyConfig TempUnverify { get; set; }
         public AdminConfig Admin { get; set; }
-
+        public SelfUnverifyConfig SelfUnverify { get; set; }
         public CReferenceConfig CReference { get; set; }
         public PermissionsConfig GetPermissions(string section)
         {

@@ -92,7 +92,7 @@ namespace Grillbot.Services
 
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
 
-                if(isAutoRemove)
+                if (isAutoRemove)
                 {
                     using (var repository = new TempUnverifyRepository(Config))
                     {
@@ -135,7 +135,7 @@ namespace Grillbot.Services
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser)
         {
-            CheckIfCanStartUnverify(users, guild);
+            CheckIfCanStartUnverify(users, guild, false);
 
             var reason = ParseReason(data);
             var unverifyTime = ParseUnverifyTime(time);
@@ -145,7 +145,8 @@ namespace Grillbot.Services
             {
                 foreach (var user in users)
                 {
-                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild).ConfigureAwait(false);
+                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild, false)
+                        .ConfigureAwait(false);
                     unverifiedPersons.Add(person);
                 }
             }
@@ -156,7 +157,7 @@ namespace Grillbot.Services
             return FormatMessageToChannel(users, unverifiedPersons, reason);
         }
 
-        public void CheckIfCanStartUnverify(List<SocketGuildUser> users, SocketGuild guild)
+        public void CheckIfCanStartUnverify(List<SocketGuildUser> users, SocketGuild guild, bool self)
         {
             var owner = users.Find(o => o.Id == guild.OwnerId);
 
@@ -174,7 +175,7 @@ namespace Grillbot.Services
 
                 var usersMaxRolePosition = user.Roles.Max(o => o.Position);
 
-                if (usersMaxRolePosition > botMaxRolePosition)
+                if (usersMaxRolePosition > botMaxRolePosition && !self)
                 {
                     var higherRoles = user.Roles.Where(o => o.Position > botMaxRolePosition).Select(o => o.Name);
 
@@ -182,15 +183,25 @@ namespace Grillbot.Services
                         $"**({string.Join(", ", higherRoles)})**.");
                 }
 
-                if (Config.IsUserBotAdmin(user.Id))
+                if (Config.IsUserBotAdmin(user.Id) && !self)
                     throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetShortName()}** je administrátor bota.");
             }
         }
 
         private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user,
-            long unverifyTime, string reason, SocketUser fromUser, SocketGuild guild)
+            long unverifyTime, string reason, SocketUser fromUser, SocketGuild guild, bool selfUnverify)
         {
+            if (selfUnverify)
+                reason = "Self unverify";
+
             var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
+
+            if (selfUnverify)
+            {
+                var userMaxPosition = user.Roles.Max(o => o.Position);
+                rolesToRemove = rolesToRemove.Where(o => o.Position < userMaxPosition).ToList();
+            }
+
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
             var overrides = GetChannelOverrides(user);
 
@@ -332,7 +343,7 @@ namespace Grillbot.Services
 
             builder
                 .Append("Dočasné odebrání přístupu pro uživatele **")
-                .Append(string.Join(", ", users.Select(o => o.GetShortName())))
+                .Append(string.Join(", ", users.Select(o => o.GetFullName())))
                 .Append("** bylo dokončeno. Role budou navráceny **")
                 .Append(unverifyItems[0].GetEndDatetime().ToLocaleDatetime())
                 .Append("**");
@@ -474,6 +485,64 @@ namespace Grillbot.Services
         public void ConfigChanged(Configuration newConfig)
         {
             Config = newConfig;
+        }
+
+        public async Task<string> SetSelfUnverify(SocketGuildUser user, SocketGuild guild, string time)
+        {
+            CheckIfCanStartUnverify(new List<SocketGuildUser>() { user }, guild, true);
+
+            var unverifyTime = ParseUnverifyTime(time);
+            TempUnverifyItem unverify;
+            using (var repository = new TempUnverifyRepository(Config))
+            {
+                unverify = await RemoveAccessAsync(repository, user, unverifyTime, null, user, guild, true)
+                    .ConfigureAwait(false);
+            }
+
+            unverify.InitTimer(ReturnAccess);
+            Data.Add(unverify);
+
+            return FormatMessageToChannel(
+                new List<SocketGuildUser> { user },
+                new List<TempUnverifyItem>() { unverify },
+                null
+            );
+        }
+
+        public async Task<string> UpdateSelfUnverify(SocketGuildUser user, string time)
+        {
+            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
+
+            if (unverify == null)
+                throw new ArgumentException($"Reset pro uživatele {user.GetFullName()} nelze provést. Záznam nebyl nalezen");
+
+            var message = await UpdateUnverifyAsync(unverify.ID, time, user);
+            return message;
+        }
+
+        public string SelfUnverifyStatus(SocketGuildUser user)
+        {
+            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
+
+            if (unverify == null)
+                throw new ArgumentException("Nelze zjistit stav unverify. Záznam nebyl nalezen.");
+
+            var unverifyTimeLeft = (unverify.GetEndDatetime() - DateTime.Now).ToString(@"hh\:mm\:ss");
+            return string.Join(Environment.NewLine, new[]
+            {
+                $"Přístup odebrán **{unverify.StartAt.ToLocaleDatetime()}**",
+                $"Přístup bude vrácen **{unverify.GetEndDatetime().ToLocaleDatetime()}** (za **{unverifyTimeLeft}**)"
+            });
+        }
+
+        public async Task<string> ReturnSelfUnverifyAccess(SocketGuildUser user)
+        {
+            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
+
+            if (unverify == null)
+                throw new ArgumentException($"Nelze provést vrácení přístupu. Záznam nebyl v databázi nalezen.");
+
+            return await ReturnAccessAsync(unverify.ID, user).ConfigureAwait(false);
         }
     }
 }
