@@ -24,10 +24,9 @@ namespace Grillbot.Modules
         [Command("")]
         [Summary("Dočasné odebrání rolí.")]
         [Remarks("Parmetr time je ve formátu {cas}{s/m/h/d}. Např.: 30s.\nPopis: s: sekundy, m: minuty, h: hodiny, d: dny.\n" +
-            "Dále lze uvést důvod, proč daná osoba přišla o role. A nakonec seznam (mentions) uživatelů.\n" +
-            "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30s Přišel jsi o role @User1#1234 @User2#1354 ...\n" +
-            "{prefix}unverify 30s @User1#1234 @User2#1354 ...")]
-        public async Task SetUnverifyAsync(string time, [Remainder] string data = null)
+            "Dále je důvod, proč daná osoba přišla o role. A nakonec seznam (mentions) uživatelů.\n" +
+            "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30s Přišel jsi o role @User1#1234 @User2#1354 ...")]
+        public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
             // Simply hack, because command routing cannot distinguish between a parameter and a function.
             switch (time)
@@ -36,12 +35,12 @@ namespace Grillbot.Modules
                     await ListUnverifyAsync().ConfigureAwait(false);
                     return;
                 case "remove":
-                    if (string.IsNullOrEmpty(data)) return;
-                    await RemoveUnverifyAsync(Convert.ToInt32(data.Split(' ')[0])).ConfigureAwait(false);
+                    if (string.IsNullOrEmpty(reasonAndUserMentions)) return;
+                    await RemoveUnverifyAsync(Convert.ToInt32(reasonAndUserMentions.Split(' ')[0])).ConfigureAwait(false);
                     return;
                 case "update":
-                    if (string.IsNullOrEmpty(data)) return;
-                    var fields = data.Split(' ');
+                    if (string.IsNullOrEmpty(reasonAndUserMentions)) return;
+                    var fields = reasonAndUserMentions.Split(' ');
                     if (fields.Length < 2)
                     {
                         await ReplyAsync("Chybí parametry.").ConfigureAwait(false);
@@ -57,8 +56,8 @@ namespace Grillbot.Modules
 
                 if(usersToUnverify.Count > 0)
                 {
-                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild,
-                        Context.User).ConfigureAwait(false);
+                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
+                        reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
                     await ReplyAsync(message).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);

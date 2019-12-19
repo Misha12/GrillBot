@@ -166,6 +166,9 @@ namespace Grillbot.Services
             var botMaxRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
             foreach (var user in users)
             {
+                if (Data.Exists(o => o.UserID == user.Id.ToString()))
+                    throw new ArgumentException($"Nelze provést odebrání rolí, protože uživatel **{user.GetFullName()}** již má unverify.");
+
                 if (user.Id == guild.CurrentUser.Id)
                     throw new ArgumentException("Nelze provést odebrání přístupu, protože tagnutý uživatel jsem já.");
 
