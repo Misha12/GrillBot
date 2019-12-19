@@ -80,7 +80,7 @@ namespace Grillbot.Handlers
                                 await context.Channel.SendMessageAsync(result.ErrorReason).ConfigureAwait(false);
                                 break;
                             case CommandError.BadArgCount:
-                                await context.Channel.SendMessageAsync("Nedostatečný počet parametrů.").ConfigureAwait(false);
+                                await SendCommandHelp(context, argPos).ConfigureAwait(false);
                                 break;
                             default:
                                 throw new BotException(result);
@@ -104,6 +104,14 @@ namespace Grillbot.Handlers
                 messageStopwatch.Stop();
                 Statistics.ComputeAvgReact(messageStopwatch.ElapsedMilliseconds);
             }
+        }
+
+        private async Task SendCommandHelp(SocketCommandContext context, int argPos)
+        {
+            var commandWord = context.Message.Content.Split(' ')[0].Substring(argPos);
+            var helpCommand = $"grillhelp {commandWord}";
+
+            await Commands.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
         }
 
         private async Task LogCommandAsync(SocketUserMessage message, SocketCommandContext context, int argPos)
