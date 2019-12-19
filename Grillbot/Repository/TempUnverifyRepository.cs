@@ -1,6 +1,9 @@
-﻿using Grillbot.Repository.Entity;
+﻿using Discord;
+using Grillbot.Repository.Entity;
+using Grillbot.Repository.Entity.UnverifyLog;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -82,6 +85,21 @@ namespace Grillbot.Repository
             item.StartAt = DateTime.Now;
             item.TimeFor = time;
 
+            await Context.SaveChangesAsync().ConfigureAwait(false);
+        }
+
+        public async Task LogOperationAsync(UnverifyLogOperation operation, IUser fromUser, IGuild guild, UnverifyLogDataBase data)
+        {
+            var entity = new UnverifyLog()
+            {
+                Data = JsonConvert.SerializeObject(data),
+                DateTime = DateTime.Now,
+                GuildID = guild.Id.ToString(),
+                Operation = operation,
+                FromUserID = fromUser.Id.ToString()
+            };
+
+            await Context.UnverifyLog.AddAsync(entity).ConfigureAwait(false);
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }

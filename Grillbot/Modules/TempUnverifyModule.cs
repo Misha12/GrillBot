@@ -57,7 +57,8 @@ namespace Grillbot.Modules
 
                 if(usersToUnverify.Count > 0)
                 {
-                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild).ConfigureAwait(false);
+                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time, data, Context.Guild,
+                        Context.User).ConfigureAwait(false);
                     await ReplyAsync(message).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
@@ -69,7 +70,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.ReturnAccessAsync(id).ConfigureAwait(false);
+                var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
                 await ReplyAsync(message).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -109,7 +110,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var message = await UnverifyService.UpdateUnverifyAsync(id, time).ConfigureAwait(false);
+                var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
                 await ReplyAsync(message).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }

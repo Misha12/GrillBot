@@ -1,5 +1,6 @@
 ﻿using System.Data.Common;
 using Grillbot.Repository.Entity;
+using Grillbot.Repository.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Repository
@@ -25,5 +26,6 @@ namespace Grillbot.Repository
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<CommandLog> CommandLog { get; set; }
+        public virtual DbSet<UnverifyLog> UnverifyLog { get; set; } 
     }
 }

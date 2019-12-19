@@ -4,6 +4,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
+using Grillbot.Repository.Entity.UnverifyLog;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
@@ -36,11 +37,7 @@ namespace Grillbot.Services
         {
             if (Data.Count > 0)
             {
-                foreach (var item in Data)
-                {
-                    item.Dispose();
-                }
-
+                Data.ForEach(o => o.Dispose());
                 Data.Clear();
             }
 
@@ -93,6 +90,27 @@ namespace Grillbot.Services
                 var rolesToReturn = unverify.DeserializedRolesToReturn;
                 var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
 
+                var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
+
+                if(isAutoRemove)
+                {
+                    using (var repository = new TempUnverifyRepository(Config))
+                    {
+                        var data = new UnverifyLogRemove()
+                        {
+                            Overrides = unverify.DeserializedChannelOverrides,
+                            Roles = unverify.DeserializedRolesToReturn
+                        };
+
+                        data.SetUser(user);
+
+                        repository
+                            .LogOperationAsync(UnverifyLogOperation.AutoRemove, Client.CurrentUser, guild, data)
+                            .GetAwaiter()
+                            .GetResult();
+                    }
+                }
+
                 LoggingService.WriteToLog($"ReturnAccess User: {user.GetShortName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)}");
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
@@ -114,7 +132,8 @@ namespace Grillbot.Services
             }
         }
 
-        public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild)
+        public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
+            SocketUser fromUser)
         {
             CheckIfCanStartUnverify(users, guild);
 
@@ -126,7 +145,7 @@ namespace Grillbot.Services
             {
                 foreach (var user in users)
                 {
-                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason).ConfigureAwait(false);
+                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild).ConfigureAwait(false);
                     unverifiedPersons.Add(person);
                 }
             }
@@ -165,11 +184,24 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user, long unverifyTime, string reason)
+        private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user,
+            long unverifyTime, string reason, SocketUser fromUser, SocketGuild guild)
         {
             var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
             var overrides = GetChannelOverrides(user);
+
+            var data = new UnverifyLogSet()
+            {
+                Overrides = overrides,
+                Roles = rolesToRemoveNames,
+                StartAt = DateTime.Now,
+                TimeFor = unverifyTime.ToString(),
+                Reason = reason
+            };
+
+            data.SetUser(user);
+            await repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
 
             await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
@@ -379,7 +411,7 @@ namespace Grillbot.Services
             return string.Join(", ", builder);
         }
 
-        public async Task<string> ReturnAccessAsync(int id)
+        public async Task<string> ReturnAccessAsync(int id, SocketUser fromUser)
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
@@ -388,19 +420,27 @@ namespace Grillbot.Services
                 if (item == null)
                     throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
 
-                ReturnAccess(item);
-
                 var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
                 var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
                 if (user == null)
                     throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
+                var data = new UnverifyLogRemove()
+                {
+                    Overrides = item.DeserializedChannelOverrides,
+                    Roles = item.DeserializedRolesToReturn
+                };
+                data.SetUser(user);
+
+                await repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
+
+                ReturnAccess(item);
                 return $"Předčasné vrácení přístupu pro uživatele **{user.GetShortName()}** bylo dokončeno.";
             }
         }
 
-        public async Task<string> UpdateUnverifyAsync(int id, string time)
+        public async Task<string> UpdateUnverifyAsync(int id, string time, SocketUser fromUser)
         {
             var unverifyTime = ParseUnverifyTime(time);
             var item = Data.Find(o => o.ID == id);
@@ -408,8 +448,15 @@ namespace Grillbot.Services
             if (item == null)
                 throw new ArgumentException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
+            var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
+            var user = await guild.GetUserFromGuildAsync(item.UserID);
+
+            var logData = new UnverifyLogUpdate() { TimeFor = $"{time} ({unverifyTime})" };
+            logData.SetUser(user);
+
             using (var repository = new TempUnverifyRepository(Config))
             {
+                await repository.LogOperationAsync(UnverifyLogOperation.Update, fromUser, guild, logData).ConfigureAwait(false);
                 await repository.UpdateTimeAsync(id, unverifyTime).ConfigureAwait(false);
             }
 
