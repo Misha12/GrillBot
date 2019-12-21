@@ -198,8 +198,8 @@ namespace Grillbot.Services
 
             if (selfUnverify)
             {
-                var userMaxPosition = user.Roles.Max(o => o.Position);
-                rolesToRemove = rolesToRemove.Where(o => o.Position < userMaxPosition).ToList();
+                var botMaxRolePosition = guild.GetUser(Client.CurrentUser.Id).Roles.Max(o => o.Position);
+                rolesToRemove = rolesToRemove.Where(o => o.Position < botMaxRolePosition).ToList();
             }
 
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
@@ -516,7 +516,7 @@ namespace Grillbot.Services
             if (unverify == null)
                 throw new ArgumentException($"Reset pro uživatele {user.GetFullName()} nelze provést. Záznam nebyl nalezen");
 
-            var message = await UpdateUnverifyAsync(unverify.ID, time, user);
+            var message = await UpdateUnverifyAsync(unverify.ID, time, user).ConfigureAwait(false);
             return message;
         }
 
