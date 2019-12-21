@@ -87,6 +87,8 @@ namespace Grillbot.Services
                     return;
                 }
 
+                ReturnAccessToPublicChannels(user, guild).GetAwaiter().GetResult();
+
                 var rolesToReturn = unverify.DeserializedRolesToReturn;
                 var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
 
@@ -229,11 +231,40 @@ namespace Grillbot.Services
                 await channel?.RemovePermissionOverwriteAsync(user);
             }
 
+            await RemoveAccessToPublicChannels(user, guild).ConfigureAwait(false);
+
             var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason).ConfigureAwait(false);
 
             var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason);
             await user.SendPrivateMessageAsync(formatedPrivateMessage).ConfigureAwait(false);
             return unverify;
+        }
+
+        private async Task RemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
+        {
+            foreach(var channel in guild.Channels)
+            {
+                var channelUser = channel.GetUser(user.Id);
+
+                if(channelUser != null)
+                {
+                    var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                    await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
+                }
+            }
+        }
+
+        private async Task ReturnAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
+        {
+            foreach(var channel in guild.Channels)
+            {
+                var overwrite = channel.GetPermissionOverwrite(user);
+
+                if(overwrite != null)
+                {
+                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
+                }
+            }
         }
 
         private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)
