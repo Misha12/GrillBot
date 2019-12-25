@@ -20,6 +20,12 @@ namespace Grillbot.Models.Embed
                 WithTitle(title);
         }
 
+        public BotEmbed SetColor(Color color)
+        {
+            Builder = Builder.WithColor(color);
+            return this;
+        }
+
         public BotEmbed WithFields(params EmbedFieldBuilder[] fields)
         {
             Builder = Builder.WithFields(fields);

@@ -37,7 +37,7 @@ namespace GrillBotMath
             }
             catch (Exception ex)
             {
-                if(ex is FormatException)
+                if (ex is FormatException)
                     errorMessages.Add("Cannot correctly format input data");
             }
 
@@ -55,25 +55,19 @@ namespace GrillBotMath
                 return;
             }
 
-            if(expression != null)
+            result = new MathCalcResult()
             {
-                result = new MathCalcResult()
-                {
-                    IsValid = true,
-                    Result = expression.calculate(),
-                    ComputingTime = expression.getComputingTime(),
-                };
+                IsValid = true,
+                Result = expression.calculate(),
+                ComputingTime = expression.getComputingTime() * 1000.0,
+            };
 
-                Console.WriteLine(JsonConvert.SerializeObject(result));
-            }
+            Console.WriteLine(JsonConvert.SerializeObject(result));
         }
 
         public static List<string> ValidateAndGetErrors(Expression expression)
         {
             var errorMessages = new List<string>();
-
-            if (!expression.checkLexSyntax())
-                errorMessages.Add("Lexical error");
 
             if (!expression.checkSyntax())
             {
@@ -81,12 +75,13 @@ namespace GrillBotMath
                 {
                     if (!CheckMissingParameters(expression, out string errorMessage))
                         errorMessages.Add(errorMessage);
-                    else if (!CheckMissingFunctions(expression, out errorMessage))
+
+                    if (!CheckMissingFunctions(expression, out errorMessage))
                         errorMessages.Add(errorMessage);
-                    else
-                        errorMessages.Add("Syntax error");
+
+                    errorMessages.Add("Syntax error");
                 }
-                catch(Exception ex)
+                catch (Exception ex)
                 {
                     errorMessages.Add(ex.Message);
                 }

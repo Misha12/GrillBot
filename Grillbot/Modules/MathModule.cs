@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Services.Math;
 using Grillbot.Services.Preconditions;
 using System.Threading.Tasks;
@@ -23,36 +23,45 @@ namespace Grillbot.Modules
         {
             var result = Calculator.Solve(expression, Context.Message);
 
-            var embed = new EmbedBuilder()
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetFullName()}", Context.Message.Author.GetUserAvatarUrl());
+            var embed = new BotEmbed(Context.Message.Author, Color.Green)
+                .WithFields(new EmbedFieldBuilder().WithName("Výraz").WithValue($"`{expression}`"));
 
-            if(!result.IsValid)
+            if (result == null)
             {
                 embed
-                    .WithColor(Color.Red)
-                    .WithTitle("Výpočet nebyl úspěšně proveden.")
-                    .WithFields(
-                        new EmbedFieldBuilder().WithName("Výraz").WithValue($"`{expression}`"),
-                        new EmbedFieldBuilder().WithName("Maximální doba zpracování").WithValue(result.GetAssignedComputingTime()),
-                        new EmbedFieldBuilder().WithName("Chybové hlášení").WithValue(result.ErrorMessage.Trim())
-                    );
+                    .SetColor(Color.Red)
+                    .WithTitle("Při zpracování výrazu došlo k neznámé chybě.");
 
-                await ReplyAsync(result.GetMention(), embed: embed.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                return;
+            }
+
+            if (!result.IsValid)
+            {
+                embed.SetColor(Color.Red);
+
+                if (result.IsTimeout)
+                {
+                    embed
+                        .WithTitle("Vypršel časový limit pro výpočet výrazu.")
+                        .AddField(o => o.WithName("Maximální doba zpracování").WithValue(result.GetAssignedComputingTime()));
+                }
+                else
+                {
+                    embed
+                        .WithTitle("Výpočet nebyl úspěšně proveden.")
+                        .AddField(o => o.WithName("Chybové hlášení").WithValue(result.ErrorMessage.Trim()));
+                }
+
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
                 return;
             }
 
             embed
-                .WithColor(Color.Green)
-                .WithTitle("Výpočet byl úspěšně dokončen.")
-                .WithFields(
-                    new EmbedFieldBuilder().WithName("Výraz").WithValue($"`{expression}`"),
-                    new EmbedFieldBuilder().WithName("Výsledek").WithValue(result.Result.ToString()),
-                    new EmbedFieldBuilder().WithName("Doba zpracování").WithValue(result.GetComputingTime()).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Maximální doba zpracování").WithValue(result.GetAssignedComputingTime()).WithIsInline(true)
-                );
+                .AddField(o => o.WithName("Výsledek").WithValue(result.Result.ToString()).WithIsInline(true))
+                .AddField(o => o.WithName("Doba zpracování").WithValue(result.GetComputingTime()).WithIsInline(true));
 
-            await ReplyAsync(result.GetMention(), embed: embed.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
     }
 }

@@ -75,10 +75,20 @@ namespace Grillbot.Services.Math
                 input = ("" + input).Trim(); // treatment against null values.
 
                 if (string.IsNullOrEmpty(input))
-                    return new MathCalcResult(message?.Author.Mention, "Nelze spočítat prázdný výraz.", session.ComputingTime);
+                {
+                    return new MathCalcResult()
+                    {
+                        ErrorMessage = "Nelze spočítat prázdný výraz.",
+                    };
+                }
 
                 if (input.Contains("nan", StringComparison.InvariantCultureIgnoreCase))
-                    return new MathCalcResult(message?.Author.Mention, "NaN není platný vstup.", session.ComputingTime);
+                {
+                    return new MathCalcResult()
+                    {
+                        ErrorMessage = "NaN není platný vstup."
+                    };
+                }
 
                 var appPath = Config.MethodsConfig.Math.ProcessPath;
                 using (var process = new Process())
@@ -94,15 +104,15 @@ namespace Grillbot.Services.Math
                     if (!process.WaitForExit(session.ComputingTime))
                     {
                         process.Kill();
-                        return new MathCalcResult(message?.Author?.Mention, $"Vypršel mi časový limit na výpočet příkladu.", session.ComputingTime);
+                        return new MathCalcResult()
+                        {
+                            IsTimeout = true,
+                            AssingedComputingTime = session.ComputingTime
+                        };
                     }
 
                     var output = process.StandardOutput.ReadToEnd();
-                    var data = JsonConvert.DeserializeObject<MathCalcResult>(output);
-
-                    data.Mention = message.Author.Mention;
-                    data.AssingedComputingTime = session.ComputingTime;
-                    return data;
+                    return JsonConvert.DeserializeObject<MathCalcResult>(output);
                 }
             }
             finally
