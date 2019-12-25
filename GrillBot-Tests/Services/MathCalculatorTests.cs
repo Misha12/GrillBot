@@ -1,5 +1,6 @@
 ﻿using Grillbot.Services;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Math;
 using Microsoft.Extensions.Options;
 using Microsoft.VisualStudio.TestTools.UnitTesting;
 
