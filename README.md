@@ -78,6 +78,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |TempUnverify|[Config.MethodsConfig.TempUnverify](#Config.MethodsConfig.TempUnverify)|
 |Admin|[Config.MethodsConfig.Admin](#Config.MethodsConfig.Admin)|
 |CReference|[Config.MethodsConfig.CReference](#Config.MethodsConfig.CReference)|
+|SelfUnverify|[Config.MethodsConfig.SelfUnverify](#Config.MethodsConfig.SelfUnverify)|
 
 #### Config.MethodsConfig.Permissions
 
@@ -172,6 +173,12 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
 
 #### Config.MethodsConfig.CReference
+
+|Key|Type|Description|
+|---|---|---|
+|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
+
+#### Config.MethodsConfig.SelfUnverify
 
 |Key|Type|Description|
 |---|---|---|
