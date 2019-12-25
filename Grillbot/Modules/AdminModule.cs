@@ -4,6 +4,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Services;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Preconditions;
@@ -180,15 +181,11 @@ namespace Grillbot.Modules
                 if (stackInfo == null)
                     throw new ArgumentException($"Sekce `{stackKey}` neexistuje.");
 
-                var builder = new EmbedBuilder()
-                    .WithFooter(Context.Message.Author.GetShortName(), Context.Message.Author.GetUserAvatarUrl())
-                    .WithCurrentTimestamp()
-                    .WithColor(Color.Blue)
-                    .WithTitle("Posledních 5 záznamů v logování");
+                var embed = new BotEmbed(Context.Message.Author);
 
                 foreach (var item in stackInfo.Data)
                 {
-                    builder.AddField(o =>
+                    embed.AddField(o =>
                     {
                         o.WithName(item.Item1.ToLocaleDatetime());
 
@@ -199,7 +196,7 @@ namespace Grillbot.Modules
                     });
                 }
 
-                await ReplyAsync(embed: builder.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
@@ -216,10 +213,7 @@ namespace Grillbot.Modules
                 if (list.Count == 0)
                     throw new ArgumentException("Aktuálně není nic ke sloučení.");
 
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithCurrentTimestamp()
-                    .WithTitle("Seznam potenciálních sloučení emotů");
+                var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
 
                 embed.WithFields(list.Select(o => new EmbedFieldBuilder()
                 {
