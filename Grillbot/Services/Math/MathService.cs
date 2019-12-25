@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Models;
+using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -10,22 +11,32 @@ using System.Linq;
 
 namespace Grillbot.Services.Math
 {
-    public class MathService
+    public class MathService : IConfigChangeable
     {
         private List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
 
-        private Configuration Config { get; }
+        private Configuration Config { get; set; }
 
         public MathService(IOptions<Configuration> config)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
 
-            const int sessionCount = 10; // 10 computing units (processes) for every group.
-            var calcTime = Config.MethodsConfig.Math.ComputingTime;
-            Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
-            Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.
+            InitSessions();
+        }
+
+        private void InitSessions()
+        {
+            lock (Locker)
+            {
+                Sessions.Clear();
+
+                const int sessionCount = 10; // 10 computing units (processes) for every group.
+                var calcTime = Config.MethodsConfig.Math.ComputingTime;
+                Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
+                Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.
+            }
         }
 
         private MathSession LockAndGetSession(string expression, bool booster)
@@ -46,7 +57,7 @@ namespace Grillbot.Services.Math
         {
             if (session == null) return;
 
-            lock(Locker)
+            lock (Locker)
             {
                 session.Release();
             }
@@ -98,6 +109,12 @@ namespace Grillbot.Services.Math
             {
                 ReleaseSession(session);
             }
+        }
+
+        public void ConfigChanged(Configuration newConfig)
+        {
+            Config = newConfig;
+            InitSessions();
         }
     }
 }
