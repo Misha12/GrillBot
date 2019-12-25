@@ -12,7 +12,7 @@ namespace GrillBot_Tests.Services
         public void Solve_MissingExpressionData()
         {
             var options = Options.Create(new Configuration());
-            var calculator = new MathCalculator(options);
+            var calculator = new MathService(options);
 
             var result = calculator.Solve("", null);
 
@@ -23,7 +23,7 @@ namespace GrillBot_Tests.Services
         public void Solve_NotANumber()
         {
             var options = Options.Create(new Configuration());
-            var calculator = new MathCalculator(options);
+            var calculator = new MathService(options);
 
             var result = calculator.Solve("nan", null);
 

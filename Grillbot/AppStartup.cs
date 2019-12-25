@@ -23,6 +23,7 @@ using System.Security.Cryptography;
 using Discord.Addons.Interactive;
 using Grillbot.Services.Auth;
 using Grillbot.Middleware;
+using Grillbot.Services.Math;
 
 namespace Grillbot
 {
@@ -85,7 +86,7 @@ namespace Grillbot
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<CReferenceService>()
                 .AddSingleton<TempUnverifyService>()
-                .AddTransient<MathCalculator>()
+                .AddSingleton<MathService>()
                 .AddTransient<TeamSearchService>()
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()

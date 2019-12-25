@@ -334,7 +334,7 @@ namespace Grillbot.Services
             }
         }
 
-        private long ConvertTimeSpanToSeconds(TimeSpan timeSpan) => Convert.ToInt64(Math.Round(timeSpan.TotalSeconds));
+        private long ConvertTimeSpanToSeconds(TimeSpan timeSpan) => Convert.ToInt64(System.Math.Round(timeSpan.TotalSeconds));
 
         private string ParseReason(string data)
         {
