@@ -134,9 +134,14 @@ namespace Grillbot.Modules
             await DoAsync(async () =>
             {
                 var data = await BotStatusService.GetDbReport().ConfigureAwait(false);
-                var message = $"```{string.Join(Environment.NewLine, data.Select(x => $"{x.Key} - {x.Value}"))}```";
 
-                await ReplyAsync(message).ConfigureAwait(false);
+                var embed = new EmbedBuilder()
+                    .WithColor(Color.Blue)
+                    .WithCurrentTimestamp()
+                    .WithFooter($"Odpověď pro {Context.Message.Author.GetFullName()}", Context.Message.Author.GetUserAvatarUrl())
+                    .WithFields(data.Select(o => new EmbedFieldBuilder().WithName(o.Key).WithValue(FormatHelper.FormatWithSpaces(o.Value))));
+
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 

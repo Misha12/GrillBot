@@ -18,6 +18,8 @@ namespace Grillbot.Repository
             var channelStatsCount = await Context.ChannelStats.CountAsync().ConfigureAwait(false);
             var teamSearchCount = await Context.TeamSearch.CountAsync().ConfigureAwait(false);
             var tempUnverifyCount = await Context.TempUnverify.CountAsync().ConfigureAwait(false);
+            var unverifyLogCount = await Context.UnverifyLog.CountAsync().ConfigureAwait(false);
+            var commandLogCount = await Context.CommandLog.CountAsync().ConfigureAwait(false);
 
             return new Dictionary<string, int>()
             {
@@ -25,7 +27,9 @@ namespace Grillbot.Repository
                 { "EmoteStats", emoteStatsCount },
                 { "ChannelStats", channelStatsCount },
                 { "TeamSearch", teamSearchCount },
-                { "TempUnverify", tempUnverifyCount }
+                { "TempUnverify", tempUnverifyCount },
+                { "UnverifyLog", unverifyLogCount },
+                { "CommandLog", commandLogCount }
             };
         }
     }
