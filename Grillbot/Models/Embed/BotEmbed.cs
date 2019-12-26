@@ -60,5 +60,11 @@ namespace Grillbot.Models.Embed
         }
 
         public Discord.Embed Build() => Builder.Build();
+
+        public BotEmbed PrependFooter(string footer)
+        {
+            Builder.WithFooter(string.Join(" | ", new[] { footer, Builder.Footer.Text }), Builder.Footer.IconUrl);
+            return this;
+        }
     }
 }

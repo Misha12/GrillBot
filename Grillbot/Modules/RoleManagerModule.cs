@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
@@ -11,38 +12,36 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Name("Správa rolí")]
+    [Group("roleinfo")]
     [RequirePermissions("RoleManager", DisabledForPM = true, BoosterAllowed = true)]
     public class RoleManagerModule : BotModuleBase
     {
+        [Command("all")]
         public async Task GetCompleteRoleListAsync()
         {
-            var roleInfoFields = new List<EmbedFieldBuilder>();
-
-            foreach (var role in Context.Guild.Roles.Where(o => !o.IsEveryone && !o.IsManaged).OrderByDescending(o => o.Position))
-            {
-                var roleInfo = CreateRoleInfo(role, false);
-
-                roleInfoFields.Add(new EmbedFieldBuilder()
-                {
-                    Name = role.Name,
-                    Value = roleInfo
-                });
-            }
+            var fields = Context.Guild.Roles
+                    .Where(o => !o.IsEveryone && !o.IsManaged)
+                    .OrderByDescending(o => o.Position)
+                    .Select(o => new { field = new EmbedFieldBuilder().WithName(o.Name).WithValue(CreateRoleInfo(o, false)), color = o.Color })
+                    .ToList();
 
             const int roleMaxCount = EmbedBuilder.MaxFieldCount;
-            for(int i = 0; i < (float)roleInfoFields.Count / roleMaxCount; i++)
+            var pagesCount = Math.Ceiling((float)fields.Count / roleMaxCount);
+
+            for (int i = 0; i < pagesCount; i++)
             {
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithFields(roleInfoFields.Skip(i * roleMaxCount).Take(roleMaxCount))
-                    .WithFooter($"Strana {i} | Odpověď pro {Context.Message.Author.GetShortName()}")
-                    .WithCurrentTimestamp();
+                var fieldList = fields.Skip(i * roleMaxCount).Take(roleMaxCount);
+
+                var embed = new BotEmbed(Context.Message.Author)
+                    .SetColor(fieldList.FirstOrDefault(o => o.color.RawValue != 0)?.color ?? Color.Blue)
+                    .PrependFooter($"Strana {i + 1} z {pagesCount}")
+                    .WithFields(fieldList.Select(o => o.field));
 
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }
         }
 
-        [Command("roleinfo")]
+        [Command("")]
         public async Task GetTopRoleList()
         {
             var topRoles = Context.Guild.Roles.Where(o => !o.IsEveryone && !o.IsManaged)
@@ -51,46 +50,33 @@ namespace Grillbot.Modules
                 .Take(EmbedBuilder.MaxFieldCount)
                 .ToList();
 
-            var embedBuilder = new EmbedBuilder() { Color = topRoles[0].Color };
+            var embed = new BotEmbed(Context.Message.Author, topRoles.Find(o => o.Color.RawValue != 0)?.Color)
+                .WithFields(topRoles.Select(o => new EmbedFieldBuilder().WithName(o.Name).WithValue(CreateRoleInfo(o, false))));
 
-            foreach(var role in topRoles)
-            {
-                embedBuilder.AddField(o => o.WithName(role.Name).WithValue(CreateRoleInfo(role, false)));
-            }
-
-            embedBuilder
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
-
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
-        [Command("roleinfo")]
+        [Command("")]
         public async Task GetRoleReportAsync([Remainder] string roleName)
         {
-            if(roleName == "all")
+            if (roleName == "all")
             {
                 await GetCompleteRoleListAsync().ConfigureAwait(false);
                 return;
             }
 
-            var embed = new EmbedBuilder();
-            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
-
-            if (role == null)
+            await DoAsync(async () =>
             {
-                await ReplyAsync("Takovou roli neznám.").ConfigureAwait(false);
-                return;
-            }
+                var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
 
-            embed.Color = role.Color;
-            embed.AddField(o => o.WithName(role.Name).WithValue(CreateRoleInfo(role, true)));
+                if (role == null)
+                    throw new ArgumentException($"Roli `{roleName}` neznám.");
 
-            embed
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
+                var embed = new BotEmbed(Context.Message.Author, role.Color)
+                    .WithFields(new EmbedFieldBuilder().WithName(role.Name).WithValue(CreateRoleInfo(role, true)));
 
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         public List<string> GetPermissionNames(GuildPermissions permissions)
@@ -112,10 +98,8 @@ namespace Grillbot.Modules
                 .Append("Počet uživatelů: ").AppendLine(role.Members.Count().ToString())
                 .Append("Tagovatelná role: ").AppendLine(role.IsMentionable ? "Ano" : "Ne");
 
-            if(includePermissions)
-            {
+            if (includePermissions)
                 roleInfo.Append("Oprávnění: ").AppendLine(string.Join(", ", GetPermissionNames(role.Permissions)));
-            }
 
             return roleInfo.ToString();
         }
