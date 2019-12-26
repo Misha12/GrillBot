@@ -10,28 +10,28 @@ using Microsoft.Extensions.Options;
 namespace Grillbot.Modules
 {
     [Name("Nudes a další zajímavé fotky")]
-    [RequirePermissions("MemeImages", BoosterAllowed = true)]
-    public class ImageModule : BotModuleBase
+    [RequirePermissions("MemeImages", BoosterAllowed = true, DisabledForPM = false)]
+    public class MemeImageModule : BotModuleBase
     {
         private Configuration Config { get; }
 
-        public ImageModule(IOptions<Configuration> configuration)
+        public MemeImageModule(IOptions<Configuration> configuration)
         {
             Config = configuration.Value;
         }
 
         [Command("nudes")]
-        public async Task SendNudeAsync() => await SendAsync("Nudes");
+        public async Task SendNudeAsync() => await SendAsync("Nudes").ConfigureAwait(false);
 
         [Command("notnudes")]
-        public async Task SendNotNudesAsync() => await SendAsync("NotNudes");
+        public async Task SendNotNudesAsync() => await SendAsync("NotNudes").ConfigureAwait(false);
 
         private async Task SendAsync(string category)
         {
             var config = Config.MethodsConfig.MemeImages;
 
             var path = "";
-            switch(category)
+            switch (category)
             {
                 case "Nudes":
                     path = config.NudesDataPath;
@@ -41,19 +41,20 @@ namespace Grillbot.Modules
                     break;
             }
 
-            var files = Directory.GetFiles(path).Where(o => config.AllowedImageTypes.Any(x => x == Path.GetExtension(o))).ToList();
-
-            if (files.Any())
+            await DoAsync(async () =>
             {
+                var files = Directory.GetFiles(path)
+                    .Where(o => config.AllowedImageTypes.Any(x => x == Path.GetExtension(o)))
+                    .ToList();
+
+                if(files.Count == 0)
+                    throw new ArgumentException("Nemám žádný obrázek.");
+
                 var random = new Random();
                 var randomValue = random.Next(files.Count);
 
-                await Context.Channel.SendFileAsync(files[randomValue]);
-            }
-            else
-            {
-                await ReplyAsync("Nemám žádný obrázek");
-            }
+                await Context.Channel.SendFileAsync(files[randomValue]).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }
