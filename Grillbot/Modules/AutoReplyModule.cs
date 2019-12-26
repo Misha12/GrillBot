@@ -26,9 +26,9 @@ namespace Grillbot.Modules
             var data = Service.GetList(Context.Message);
 
             if (data != null)
-                await ReplyAsync(embed: data);
+                await ReplyAsync(embed: data).ConfigureAwait(false);
             else
-                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
+                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.").ConfigureAwait(false);
         }
 
         [Command("disable")]
@@ -37,9 +37,9 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                await Service.SetActiveStatusAsync(id, true);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.");
-            });
+                await Service.SetActiveStatusAsync(id, true).ConfigureAwait(false);
+                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("enable")]
@@ -48,9 +48,9 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                await Service.SetActiveStatusAsync(id, false);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.");
-            });
+                await Service.SetActiveStatusAsync(id, false).ConfigureAwait(false);
+                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("add")]
@@ -70,9 +70,9 @@ namespace Grillbot.Modules
                 var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.AddReplyAsync(fields[0], fields[1], fields[2], disabled, caseSensitive);
-                await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.");
-            });
+                await Service.AddReplyAsync(fields[0], fields[1], fields[2], disabled, caseSensitive).ConfigureAwait(false);
+                await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("edit")]
@@ -90,9 +90,9 @@ namespace Grillbot.Modules
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2], caseSensitive);
-                await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.");
-            });
+                await Service.EditReplyAsync(id, fields[0], fields[1], fields[2], caseSensitive).ConfigureAwait(false);
+                await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("remove")]
@@ -101,9 +101,9 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                await Service.RemoveReplyAsync(id);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.");
-            });
+                await Service.RemoveReplyAsync(id).ConfigureAwait(false);
+                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

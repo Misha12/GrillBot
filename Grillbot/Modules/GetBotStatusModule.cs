@@ -7,9 +7,8 @@ using Grillbot.Helpers;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services;
-using System.Collections.Generic;
 using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 
 namespace Grillbot.Modules
 {
@@ -33,98 +32,81 @@ namespace Grillbot.Modules
         {
             var data = BotStatusService.GetSimpleStatus();
 
-            var embed = new EmbedBuilder()
-            {
-                Color = Color.Blue,
-                Title = "Stav bota",
-            };
-
-            AddInlineEmbedField(embed, "Využití RAM", data.RamUsage);
-            AddInlineEmbedField(embed, "Běží od", data.StartTime.ToString("dd. MM. yyyy HH:mm:ss"));
-            AddInlineEmbedField(embed, "Počet vláken", data.ThreadStatus);
-            AddInlineEmbedField(embed, "Průměrná doba reakce", data.AvgReactTime);
-            AddInlineEmbedField(embed, "Instance", data.InstanceType);
-            AddInlineEmbedField(embed, "Počet aktivních tokenů", data.ActiveWebTokensCount);
-            AddInlineEmbedField(embed, "Aktivní CPU čas", data.ActiveCpuTime);
-
-            embed
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
+            var embed = new BotEmbed(Context.Message.Author, title: "Stav bota")
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("Využití RAM").WithValue(data.RamUsage).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Běží od").WithValue(data.StartTime.ToLocaleDatetime()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet vláken").WithValue(data.ThreadStatus).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Průměrná doba reakce").WithValue(data.AvgReactTime).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Aktivní CPU čas").WithValue(data.ActiveCpuTime).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Instance").WithValue(data.InstanceType).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet akt. tokenů").WithValue(data.ActiveWebTokensCount).WithIsInline(true)
+                );
 
             await ReplyAsync("", embed: embed.Build()).ConfigureAwait(false);
-            await PrintCallStatsAsync().ConfigureAwait(false);
-            await PrintLoggerStatistics().ConfigureAwait(false);
-            await PrintEventStatistics().ConfigureAwait(false);
         }
 
-        private async Task PrintCallStatsAsync()
+        [Command("call")]
+        public async Task PrintCallStatsAsync()
         {
             var data = BotStatusService.GetCallStats();
 
             if (data.Count == 0)
                 return;
 
-            var embedData = new EmbedBuilder()
-            {
-                Color = Color.DarkBlue,
-                Title = "Statistiky příkazů"
-            };
+            var embed = new BotEmbed(Context.Message.Author, title: "Statistika příkazů")
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("Příkaz").WithValue(string.Join("\n", data.Select(o => o.Command))).WithIsInline(true),
 
-            AddInlineEmbedField(embedData, "Příkaz", string.Join(Environment.NewLine, data.Select(x => x.Command)));
-            AddInlineEmbedField(embedData, "Počet volání",
-                string.Join(Environment.NewLine, data.Select(x => FormatHelper.FormatWithSpaces(x.CallsCount))));
-            AddInlineEmbedField(embedData, "Průměrná doba",
-                string.Join(Environment.NewLine, data.Select(o => o.AverageTime + "ms")));
+                    new EmbedFieldBuilder()
+                        .WithName("Počet volání")
+                        .WithValue(string.Join("\n", data.Select(o => FormatHelper.FormatWithSpaces(o.CallsCount))))
+                        .WithIsInline(true),
 
-            embedData
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
+                    new EmbedFieldBuilder().WithName("Průměrná doba").WithValue(string.Join("\n", data.Select(o => $"{o.AverageTime}ms"))).WithIsInline(true)
+                );
 
-            await ReplyAsync(embed: embedData.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
-        private async Task PrintLoggerStatistics()
+        [Command("logger")]
+        public async Task PrintLoggerStatistics()
         {
-            var data = BotStatusService.GetLoggerStats();
-            if (data.Count == 0) return;
-
-            var embedBuilder = new EmbedBuilder()
+            await DoAsync(async () =>
             {
-                Color = Color.DarkBlue,
-                Title = "Statistiky logování"
-            };
+                var data = BotStatusService.GetLoggerStats();
 
-            AddInlineEmbedField(embedBuilder, "Název události", string.Join(Environment.NewLine, data.Select(o => o.Key)));
-            AddInlineEmbedField(embedBuilder, "Počet provedení", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+                if (data.Count == 0)
+                    throw new ArgumentException("Ještě jsem nic nezalogoval.");
 
-            embedBuilder
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
+                var embed = new BotEmbed(Context.Message.Author, title: "Statistiky logování")
+                    .WithFields(
+                        new EmbedFieldBuilder().WithName("Událost").WithValue(string.Join("\n", data.Select(o => o.Key))).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet").WithValue(string.Join("\n", data.Select(o => o.Value))).WithIsInline(true)
+                    );
 
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
-        private async Task PrintEventStatistics()
+        [Command("events")]
+        public async Task PrintEventStatistics()
         {
-            var data = CalledEventStats.GetValues();
-
-            if (data.Count == 0)
-                return;
-
-            var embedBuilder = new EmbedBuilder()
+            await DoAsync(async () =>
             {
-                Color = Color.Blue,
-                Title = "Statistika zavolaných událostí"
-            };
+                var data = CalledEventStats.GetValues();
 
-            AddInlineEmbedField(embedBuilder, "Název události", string.Join(Environment.NewLine, data.Select(o => o.Key)));
-            AddInlineEmbedField(embedBuilder, "Počet provedení", string.Join(Environment.NewLine, data.Select(o => o.Value)));
+                if (data.Count == 0)
+                    throw new ArgumentException("Ještě nebyla zavolána žádná událost.");
 
-            embedBuilder
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}");
+                var embed = new BotEmbed(Context.Message.Author, title: "Statistika zavolaných událostí")
+                    .WithFields(
+                        new EmbedFieldBuilder().WithName("Událost").WithValue(string.Join("\n", data.Select(o => o.Key))).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet").WithValue(string.Join("\n", data.Select(o => o.Value))).WithIsInline(true)
+                    );
 
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("db")]
@@ -135,85 +117,10 @@ namespace Grillbot.Modules
             {
                 var data = await BotStatusService.GetDbReport().ConfigureAwait(false);
 
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithCurrentTimestamp()
-                    .WithFooter($"Odpověď pro {Context.Message.Author.GetFullName()}", Context.Message.Author.GetUserAvatarUrl())
+                var embed = new BotEmbed(Context.Message.Author)
                     .WithFields(data.Select(o => new EmbedFieldBuilder().WithName(o.Key).WithValue(FormatHelper.FormatWithSpaces(o.Value))));
 
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        [Command("commandLog")]
-        [Summary("Log posledních N příkazů.")]
-        public async Task GetCommandLog()
-        {
-            await DoAsync(async () =>
-            {
-                var data = await BotStatusService.GetCommandLogsAsync().ConfigureAwait(false);
-                var fields = new List<EmbedFieldBuilder>();
-
-                foreach (var o in data)
-                {
-                    var name = $"{o.ID}: {(!string.IsNullOrEmpty(o.Group) ? $"{o.Group}/{o.Command}" : o.Command)}";
-
-                    var infoFields = new List<string>()
-                    {
-                        $"Uživatel: **{o.Username}**",
-                        $"Kde: **{o.GuildName}/{o.ChannelName}**",
-                        $"Kdy: **{o.CalledAt.ToLocaleDatetime()}**"
-                    };
-
-                    fields.Add(new EmbedFieldBuilder()
-                    {
-                        Name = name,
-                        Value = string.Join(Environment.NewLine, infoFields)
-                    });
-                }
-
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithCurrentTimestamp()
-                    .WithFields(fields)
-                    .WithThumbnailUrl(Context.Client.CurrentUser.GetUserAvatarUrl())
-                    .WithTitle("Log operací")
-                    .Build();
-
-                await ReplyAsync(embed: embed).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        [Command("commandLog")]
-        [Summary("Log konkrétního záznamu.")]
-        public async Task GetCommandLogDetail(string id)
-        {
-            await DoAsync(async () =>
-            {
-                var item = await BotStatusService.GetCommandDetailAsync(id).ConfigureAwait(false);
-
-                if (item == null)
-                    throw new ArgumentException($"Záznam s ID **{id}** nebyl nalezen.");
-
-                var name = $"{item.ID}: {(!string.IsNullOrEmpty(item.Group) ? $"{item.Group}/{item.Command}" : item.Command)}";
-
-                var infoFields = new List<string>()
-                {
-                    $"Uživatel: **{item.Username}**",
-                    $"Kde: **{item.GuildName}/{item.ChannelName}**",
-                    $"Kdy: **{item.CalledAt.ToLocaleDatetime()}**",
-                    $"Příkaz: **{item.FullCommand}**"
-                };
-
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithCurrentTimestamp()
-                    .AddField(o => o.WithName(name).WithValue(string.Join(Environment.NewLine, infoFields)))
-                    .WithThumbnailUrl(Context.Client.CurrentUser.GetUserAvatarUrl())
-                    .WithTitle($"Log operace s ID {id}")
-                    .Build();
-
-                await ReplyAsync(embed: embed).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
     }

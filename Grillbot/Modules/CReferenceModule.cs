@@ -23,12 +23,12 @@ namespace Grillbot.Modules
         {
             try
             {
-                var message = await Service.GetReferenceUrlAsync(topic);
-                await ReplyAsync(message);
+                var message = await Service.GetReferenceUrlAsync(topic).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
             }
             catch (NotFoundException e)
             {
-                await ReplyAsync(e.Message);
+                await ReplyAsync(e.Message).ConfigureAwait(false);
             }
         }
     }

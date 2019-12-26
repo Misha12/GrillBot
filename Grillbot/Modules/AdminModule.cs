@@ -118,34 +118,39 @@ namespace Grillbot.Modules
             await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.").ConfigureAwait(false);
         }
 
-        [Command("guild_status")]
+        [Command("guildStatus")]
         [Summary("Stav serveru")]
         public async Task GuildStatusAsync()
         {
             var guild = Context.Guild;
 
-            var builder = new StringBuilder()
-                .Append("Name: **").Append(guild.Name).AppendLine("**")
-                .Append("CategoryChannelsCount: **").Append(guild.CategoryChannels?.Count.ToString() ?? "0").AppendLine("**")
-                .Append("ChannelsCount: **").Append(guild.Channels.Count.ToString()).AppendLine("**")
-                .Append("CreatedAt: **").Append(guild.CreatedAt.ToString()).AppendLine("**")
-                .Append("HasAllMembers: **").Append(guild.HasAllMembers.ToString()).AppendLine("**")
-                .Append("IsConnected: **").Append(guild.IsConnected.ToString()).AppendLine("**")
-                .Append("IsEmbeddable: **").Append(guild.IsEmbeddable.ToString()).AppendLine("**")
-                .Append("IsSynced: **").Append(guild.IsSynced.ToString()).AppendLine("**")
-                .Append("IconID: **").Append(guild.IconId).AppendLine("**")
-                .Append("MemberCount: **").Append(guild.MemberCount.ToString()).AppendLine("**")
-                .Append("OwnerID: **").Append(guild.OwnerId.ToString()).AppendLine("**")
-                .Append("RolesCount: **").Append(guild.Roles.Count.ToString()).AppendLine("**")
-                .Append("SplashID: **").Append(guild.SplashId?.ToString() ?? "null").AppendLine("**")
-                .Append("CachedUsersCount: **").Append(guild.Users.Count.ToString()).AppendLine("**")
-                .Append("VerificationLevel: **").Append(guild.VerificationLevel.ToString()).AppendLine("**")
-                .Append("VoiceRegionID: **").Append(guild.VoiceRegionId ?? "null").AppendLine("**");
+            var embed = new BotEmbed(Context.Message.Author, title: guild.Name)
+                .WithThumbnail(guild.IconUrl)
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("CategoryChannelsCount").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("ChannelsCount").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("CreatedAt").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("HasAllMembers").WithValue($"**{guild.HasAllMembers}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("IsEmbeddable").WithValue($"**{guild.IsEmbeddable}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("IsSynced").WithValue($"**{guild.IsSynced}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("MemberCount").WithValue($"**{guild.MemberCount}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("CachedUsersCount").WithValue($"**{guild.Users.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("RolesCount").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("OwnerID").WithValue($"**{guild.OwnerId}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("SplashID").WithValue($"**{guild.SplashId?.ToString() ?? "null"}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("IconID").WithValue($"**{guild.IconId}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("VerificationLevel").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("VoiceRegionID").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("MfaLevel").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("ExplicitContentFilter").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("SystemChannel").WithValue($"**{guild.SystemChannel?.Name ?? "None"}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("DefaultMessageNotifications").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
+                );
 
-            await ReplyAsync(builder.ToString()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
-        [Command("sync_guild")]
+        [Command("syncGuild")]
         [Summary("Synchronizace serveru s botem.")]
         public async Task SyncGuild()
         {
@@ -202,7 +207,7 @@ namespace Grillbot.Modules
 
         #region EmoteManager
 
-        [Command("EmoteMergeList")]
+        [Command("emoteMergeList")]
         [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
         public async Task GetMergeList()
         {

@@ -12,8 +12,8 @@ namespace Grillbot.Modules
     [RequirePermissions("ModifyConfig")]
     public class ConfigModule : BotModuleBase
     {
-        private Configuration Config { get; set; }
-        private OptionsWriter OptionsWriter { get; set; }
+        private Configuration Config { get; }
+        private OptionsWriter OptionsWriter { get; }
 
         public ConfigModule(IOptions<Configuration> config, OptionsWriter optionsWriter)
         {
@@ -28,7 +28,7 @@ namespace Grillbot.Modules
             var value = Config.GetValue(section);
 
             if(!string.IsNullOrEmpty(value))
-                await ReplyAsync($"{section}```{value}```");
+                await ReplyAsync($"{section}```{value}```").ConfigureAwait(false);
         }
 
         [Command("GetPermissions")]
@@ -43,7 +43,7 @@ namespace Grillbot.Modules
                 data.Insert(1, "```");
                 data.Add("```");
 
-                await ReplyAsync(string.Join("\n", data));
+                await ReplyAsync(string.Join("\n", data)).ConfigureAwait(false);
             }
         }
 
@@ -53,8 +53,8 @@ namespace Grillbot.Modules
             await DoAsync(async () =>
             {
                 OptionsWriter.UpdateOptions(o => o.MethodsConfig.SetPermissions(section, type, value));
-                await ReplyAsync($"Oprávnění k {section} aktualizována.");
-            });
+                await ReplyAsync($"Oprávnění k {section} aktualizována.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

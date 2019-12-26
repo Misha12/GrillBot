@@ -1,11 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -28,27 +27,18 @@ namespace Grillbot.Modules
         [Summary("Vypíše kompletní statistiku emotů. Seřazeno vzestupně.")]
         public async Task GetCompleteEmoteInfoListAsync()
         {
-            var emoteInfos = EmoteStats.GetAllValues(true)
+            var fields = EmoteStats.GetAllValues(true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
+                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
                 .ToList();
 
-            var embedFields = new List<EmbedFieldBuilder>();
-            foreach (var emote in emoteInfos)
+            const int maxFieldsCount = EmbedBuilder.MaxFieldCount;
+            var pagesCount = Math.Ceiling((float)fields.Count / maxFieldsCount);
+            for (int i = 0; i < pagesCount; i++)
             {
-                var field = new EmbedFieldBuilder()
-                    .WithName(emote.GetRealId())
-                    .WithValue(emote.GetFormatedInfo());
-
-                embedFields.Add(field);
-            }
-
-            for (int i = 0; i < (float)embedFields.Count / EmbedBuilder.MaxFieldCount; i++)
-            {
-                var embed = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithFields(embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount))
-                    .WithFooter($"Strana {i + 1} | Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
-                    .WithCurrentTimestamp();
+                var embed = new BotEmbed(Context.Message.Author)
+                    .PrependFooter($"Strana {i + 1} z {pagesCount}")
+                    .WithFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
 
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }
@@ -64,20 +54,15 @@ namespace Grillbot.Modules
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
-            var emoteInfos = EmoteStats.GetAllValues(descOrder)
+            var fields = EmoteStats.GetAllValues(descOrder)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
-                .ToList();
+                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
+            var embed = new BotEmbed(Context.Message.Author)
+                .WithFields(fields);
 
-            var embedBuilder = new EmbedBuilder()
-                .WithColor(Color.Blue)
-                .WithFields(emoteFields)
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
-                .WithCurrentTimestamp();
-
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         [Command("")]
@@ -101,54 +86,45 @@ namespace Grillbot.Modules
                     return;
             }
 
-            var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
-            var emoteInfo = EmoteStats.GetValue(emote);
-
-            if(emoteInfo == null)
+            await DoAsync(async () =>
             {
-                var bytes = Encoding.Unicode.GetBytes(emote);
-                emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
-            }
+                var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
+                var emoteInfo = EmoteStats.GetValue(emote);
 
-            if(emoteInfo == null)
-            {
-                if(!existsInGuild)
+                if (emoteInfo == null)
                 {
-                    await ReplyAsync("Tento emote neexistuje.").ConfigureAwait(false);
-                    return;
+                    var bytes = Encoding.Unicode.GetBytes(emote);
+                    emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
                 }
 
-                await ReplyAsync("Tento emote ještě nebyl použit.").ConfigureAwait(false);
-                return;
-            }
+                if (emoteInfo == null)
+                {
+                    if (!existsInGuild)
+                        throw new ArgumentException("Tento emote neexistuje");
 
-            var emoteInfoEmbed = new EmbedBuilder()
-                .WithColor(Color.Blue)
-                .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()))
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl());
+                    throw new ArgumentException("Tento emote ještě nebyl použit");
+                }
 
-            await ReplyAsync(embed: emoteInfoEmbed.Build()).ConfigureAwait(false);
+                var embed = new BotEmbed(Context.Message.Author)
+                    .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()));
+
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
 
         [Command("unicode")]
         [Summary("Vypíše TOP25 statistika unicode emojis.")]
         private async Task GetEmoteInfoOnlyUnicode()
         {
-            var emoteInfos = EmoteStats.GetAllValues(true)
+            var fields = EmoteStats.GetAllValues(true)
                 .Where(o => o.IsUnicode)
                 .Take(EmbedBuilder.MaxFieldCount)
-                .ToList();
+                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
 
-            var emoteFields = emoteInfos.Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo())).ToList();
+            var embed = new BotEmbed(Context.Message.Author)
+                .WithFields(fields);
 
-            var embedBuilder = new EmbedBuilder()
-                .WithColor(Color.Blue)
-                .WithFields(emoteFields)
-                .WithFooter($"Odpověď pro {Context.Message.Author.GetShortName()}", Context.Message.Author.GetUserAvatarUrl())
-                .WithCurrentTimestamp();
-
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
     }
 }
