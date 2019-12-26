@@ -21,7 +21,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             logEmbedBuilder
                 .SetAuthor(user)
-                .SetTimestamp(true)
                 .SetFooter($"MemberID: {user.Id}")
                 .AddField("Založen", createdAt)
                 .AddField("Počet členů na serveru", user.Guild.MemberCount);

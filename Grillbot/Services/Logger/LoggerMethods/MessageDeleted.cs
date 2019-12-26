@@ -44,7 +44,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
             var logEmbedBuilder = new LogEmbedBuilder("Zpráva byla smazána.", LogEmbedType.MessageDeleted);
 
             logEmbedBuilder
-                .SetTimestamp(true)
                 .SetFooter($"MessageID: {messageId}")
                 .SetTitle("Zpráva nebyla nalezena v cache.")
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})");
@@ -93,7 +92,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
                 logEmbedBuilder
                     .SetAuthor(message.Author, true)
-                    .SetTimestamp(true)
                     .SetFooter($"MessageID: {message.Id} | AuthorID: {message.Author?.Id}")
                     .AddField("Odesláno v", message.CreatedAt.LocalDateTime.ToLocaleDatetime())
                     .AddField("Kanál", $"<#{message.Channel.Id}> ({message.Channel.Id})");

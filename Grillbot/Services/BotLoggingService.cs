@@ -12,6 +12,7 @@ using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using System.IO;
 using Grillbot.Helpers;
+using Grillbot.Models.Embed;
 
 namespace Grillbot.Services
 {
@@ -105,22 +106,16 @@ namespace Grillbot.Services
             await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}").ConfigureAwait(false);
         }
 
-        public void SendConfigChangeInfo(string oldHash, string newHash)
+        public void SendConfigChangeInfo()
         {
             var fileInfo = new FileInfo("appsettings.json");
 
-            var embed = new EmbedBuilder()
-            {
-                Color = Color.Gold,
-                Title = "Konfigurační soubor byl aktualizován"
-            };
-
-            embed
-                .AddField(o => o.WithIsInline(true).WithName("Starý hash").WithValue(oldHash))
-                .AddField(o => o.WithIsInline(true).WithName("Nový hash").WithValue(newHash))
-                .AddField(o => o.WithIsInline(true).WithName("Velikost").WithValue(FormatHelper.FormatAsSize(fileInfo.Length)))
+            var embed = new BotEmbed(Client.CurrentUser, Color.Gold, "Konfigurační soubor byl aktualizován")
                 .WithAuthor(Client.CurrentUser)
-                .WithCurrentTimestamp();
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("Název").WithValue(fileInfo.Name).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Velikost").WithValue(FormatHelper.FormatAsSize(fileInfo.Length)).WithIsInline(true)
+                );
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {

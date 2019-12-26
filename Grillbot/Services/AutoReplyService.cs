@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Grillbot.Models.Embed;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Services;
@@ -100,29 +101,29 @@ namespace Grillbot.Modules
             if (Data.Count == 0)
                 return null;
 
-            var embedBuilder = new EmbedBuilder();
-
-            embedBuilder
-                .WithColor(Color.Blue)
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro: {requestMessage.Author.GetShortName()}", requestMessage.Author.GetUserAvatarUrl())
+            var embed = new BotEmbed(requestMessage.Author)
                 .WithTitle("Automatické odpovědi");
 
             foreach(var item in Data)
             {
-                embedBuilder.AddField(field =>
+                embed.AddField(field =>
                 {
                     var statusMessage = item.IsDisabled ? "Neaktivní" : "Aktivní";
 
                     field
                         .WithName($"**{item.ID}** - {item.MustContains}")
-                        .WithValue($"Odpověď: {item.ReplyMessage}\nStatus: {statusMessage}\nMetoda: {item.CompareType}" +
-                            $"\nPočet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}\n" +
-                            $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}");
+                        .WithValue(string.Join("\n", new[]
+                        {
+                            $"Odpověď: {item.ReplyMessage}",
+                            $"Status: {(item.IsDisabled ? "Neaktivní" : "Aktivní")}",
+                            $"Metoda: {item.CompareType}",
+                            $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
+                            $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}"
+                        }));
                 });
             }
 
-            return embedBuilder.Build();
+            return embed.Build();
         }
 
         public async Task SetActiveStatusAsync(int id, bool disabled)

@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,31 +15,26 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         private LogEmbedType Type { get; }
 
         private EmbedFooterBuilder FooterBuilder { get; set; }
-        private bool CanSetTimestamp { get; set; }
         private List<EmbedFieldBuilder> FieldBuilders { get; }
         private string AvatarUrl { get; set; }
         private string ImageUrl { get; set; }
+
 
         public LogEmbedBuilder(string title, LogEmbedType type)
         {
             Header = title;
             Type = type;
-
             FieldBuilders = new List<EmbedFieldBuilder>();
         }
 
         public Embed Build()
         {
             var builder = new EmbedBuilder()
-            {
-                Color = Type.GetColor(),
-                Author = new EmbedAuthorBuilder().WithName(Header),
-                ThumbnailUrl = AvatarUrl,
-                Title = Title
-            };
-
-            if (CanSetTimestamp)
-                builder.WithCurrentTimestamp();
+                .WithCurrentTimestamp()
+                .WithColor(Type.GetColor())
+                .WithAuthor(Header)
+                .WithThumbnailUrl(AvatarUrl)
+                .WithTitle(Title);
 
             if (FooterBuilder != null)
                 builder.WithFooter(FooterBuilder);
@@ -72,27 +68,13 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
             return this;
         }
 
-        public LogEmbedBuilder SetFooter(ulong messageId)
-        {
-            FooterBuilder = new EmbedFooterBuilder();
-            FooterBuilder.WithText($"MessageID: {messageId}");
-
-            return this;
-        }
-
-        public LogEmbedBuilder SetTimestamp(bool active)
-        {
-            CanSetTimestamp = active;
-            return this;
-        }
-
-        public LogEmbedBuilder AddField(string name, object value, bool isInline = false)
+        public LogEmbedBuilder AddField(string name, object value, bool isInline = false, bool cut = true)
         {
             var field = new EmbedFieldBuilder();
 
             field
                 .WithName(name)
-                .WithValue(CutToDiscordLimit(value.ToString()))
+                .WithValue(cut ? CutToDiscordLimit(value.ToString()) : value.ToString())
                 .WithIsInline(isInline);
 
             FieldBuilders.Add(field);
@@ -103,7 +85,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         {
             var formated = FormatData(value);
 
-            AddField(name, $"```{formated}```", isInline);
+            AddField(name, $"```{CutToDiscordLimit(formated)}```", isInline, false);
             return this;
         }
 

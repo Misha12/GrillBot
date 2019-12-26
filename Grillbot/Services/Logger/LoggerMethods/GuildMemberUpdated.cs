@@ -33,7 +33,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
             logEmbedBuilder
                 .SetAuthor(guildUserBefore)
                 .SetFooter($"UserID: {guildUserBefore.Id}")
-                .SetTimestamp(true)
                 .AddField("Změny", "---------------------------------------------");
 
             if (guildUserBefore.Nickname != guildUserAfter.Nickname)
@@ -52,12 +51,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private bool IsChangeDetected(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            var changes = new[]
-            {
-                guildUserBefore.Nickname != guildUserAfter.Nickname
-            };
-
-            return changes.Any(o => o);
+            return guildUserBefore.Nickname != guildUserAfter.Nickname;
         }
 
         private bool IsBoostAdded(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
@@ -92,8 +86,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             logEmbedBuilder
                 .SetAuthor(user)
-                .SetFooter($"UserID: {user.Id}")
-                .SetTimestamp(true);
+                .SetFooter($"UserID: {user.Id}");
 
             await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
         }

@@ -32,7 +32,7 @@ namespace Grillbot.Services.MessageCache
             foreach (var channel in textChannels)
             {
                 await InitChannel(channel, options).ConfigureAwait(false);
-                Thread.Sleep(800);
+                Thread.Sleep(700);
             }
         }
 

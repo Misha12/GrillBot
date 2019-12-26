@@ -28,7 +28,6 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .AddCodeBlockField("Po", messageAfter.Content)
                 .AddField("Kanál", $"<#{channel.Id}> ({channel.Id})")
                 .AddField("Odkaz", messageAfter.GetJumpUrl())
-                .SetTimestamp(true)
                 .SetFooter($"MessageID: {messageAfter.Id} | AuthorID: {messageAfter.Author.Id}");
 
             await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);

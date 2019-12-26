@@ -66,5 +66,17 @@ namespace Grillbot.Models.Embed
             Builder.WithFooter(string.Join(" | ", new[] { footer, Builder.Footer.Text }), Builder.Footer.IconUrl);
             return this;
         }
+
+        public BotEmbed WithAuthor(string name, string iconUrl = null, string url = null)
+        {
+            Builder.WithAuthor(name, iconUrl, url);
+            return this;
+        }
+
+        public BotEmbed WithAuthor(IUser user)
+        {
+            Builder.WithAuthor(user);
+            return this;
+        }
     }
 }

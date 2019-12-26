@@ -145,7 +145,7 @@ namespace Grillbot
                 ActualConfigHash = newHash;
 
                 loggingService.Write($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
-                loggingService.SendConfigChangeInfo(Convert.ToBase64String(oldHash), Convert.ToBase64String(newHash));
+                loggingService.SendConfigChangeInfo();
             }
         }
 
