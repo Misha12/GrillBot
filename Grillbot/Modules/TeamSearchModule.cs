@@ -29,7 +29,7 @@ namespace Grillbot.Modules
         {
             Service = service;
         }
-        
+
         [Command("add")]
         [Summary("Přidá zprávu o hledání.")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
@@ -37,18 +37,18 @@ namespace Grillbot.Modules
         {
             if (messageToAdd.Length > MaxSearchSize)
             {
-                await ReplyAsync("Zpráva je příliš dlouhá.");
+                await ReplyAsync("Zpráva je příliš dlouhá.").ConfigureAwait(false);
                 return;
             }
-            
+
             try
             {
-                await Service.AddSearchAsync(Context);
-                await Context.Message.AddReactionAsync(new Emoji("✅"));
+                await Service.AddSearchAsync(Context).ConfigureAwait(false);
+                await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
             }
             catch
             {
-                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
                 throw;
             }
         }
@@ -72,35 +72,35 @@ namespace Grillbot.Modules
             List<TeamSearch> searches;
             if (isMisc)
             {
-                var queryData = await query.ToListAsync();
+                var queryData = await query.ToListAsync().ConfigureAwait(false);
                 searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
                     .ToList();
             }
             else
             {
-                searches = await query.Where(x => x.ChannelId == channelId.ToString()).ToListAsync();
+                searches = await query.Where(x => x.ChannelId == channelId.ToString()).ToListAsync().ConfigureAwait(false);
             }
 
             if (searches.Count == 0)
             {
-                await ReplyAsync("Zatím nikdo nic nehledá.");
+                await ReplyAsync("Zatím nikdo nic nehledá.").ConfigureAwait(false);
                 return;
             }
 
             var pages = new List<string>();
             var stringBuilder = new StringBuilder();
-            
+
             foreach (var search in searches)
             {
                 // Trying to get the message and checking if it was deleted
                 if (!(Context.Guild.GetChannel(Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
                     continue;
 
-                var message = await Service.GetMessageAsync(channel.Id, Convert.ToUInt64(search.MessageId));
+                var message = await Service.GetMessageAsync(channel.Id, Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
                 if (message == null)
                 {
                     // If message was deleted, remove it from Db
-                    await Service.Repository.RemoveSearchAsync(search.Id);
+                    await Service.Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
                     continue;
                 }
 
@@ -111,31 +111,31 @@ namespace Grillbot.Modules
                     string messageContent = message.Content.Remove(0, 12);
 
                     string userName = user.Nickname ?? user.Username;
-                    
+
                     string mess =
                         $"ID: **{search.Id}** - **{userName}** v" +
                         $" **{channel.Name}** hledá : \"{messageContent}\" [Jump]({message.GetJumpUrl()})";
-                    
+
                     // So the message doesnt overlap across several pages, that limits the message size, but that shouldn't be an issue
                     if (stringBuilder.Length + mess.Length > MaxPageSize)
                     {
                         pages.Add(stringBuilder.ToString());
                         stringBuilder.Clear();
                     }
-                    
+
                     stringBuilder.AppendLine(mess);
                 }
             }
 
-            if(stringBuilder.Length != 0) pages.Add(stringBuilder.ToString());
-            
+            if (stringBuilder.Length != 0) pages.Add(stringBuilder.ToString());
+
             // if after filters there are no searches don't print empty embed
             if (pages.Count == 0)
             {
-                await ReplyAsync("Zatím nikdo nic nehledá.");
+                await ReplyAsync("Zatím nikdo nic nehledá.").ConfigureAwait(false);
                 return;
             }
-            
+
             var pagedMessage = new PaginatedMessage()
             {
                 Pages = pages,
@@ -144,7 +144,7 @@ namespace Grillbot.Modules
                 Options = new PaginatedAppearanceOptions() { DisplayInformationIcon = false }
             };
 
-            await PagedReplyAsync(pagedMessage);
+            await PagedReplyAsync(pagedMessage).ConfigureAwait(false);
         }
 
         [Command("remove")]
@@ -152,14 +152,14 @@ namespace Grillbot.Modules
         {
             if (!int.TryParse(searchId, out int rowId))
             {
-                await ReplyAsync("Neplatný formát ID hledání.");
+                await ReplyAsync("Neplatný formát ID hledání.").ConfigureAwait(false);
                 return;
             }
 
-            var search = await Service.Repository.FindSearchByID(rowId);
+            var search = await Service.Repository.FindSearchByID(rowId).ConfigureAwait(false);
             if (search == null)
             {
-                await ReplyAsync("Hledaná zpráva neexistuje.");
+                await ReplyAsync("Hledaná zpráva neexistuje.").ConfigureAwait(false);
                 return;
             }
 
@@ -168,12 +168,12 @@ namespace Grillbot.Modules
 
             if (userId == Context.User.Id)
             {
-                await Service.Repository.RemoveSearchAsync(rowId);
-                await Context.Message.AddReactionAsync(new Emoji("✅"));
+                await Service.Repository.RemoveSearchAsync(rowId).ConfigureAwait(false);
+                await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
             }
             else
             {
-                await ReplyAsync("Na to nemáš právo.");
+                await ReplyAsync("Na to nemáš právo.").ConfigureAwait(false);
             }
         }
     }
