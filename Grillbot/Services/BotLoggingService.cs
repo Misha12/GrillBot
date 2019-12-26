@@ -46,7 +46,7 @@ namespace Grillbot.Services
         private async Task OnLogAsync(LogMessage message)
         {
             await PostException(message).ConfigureAwait(false);
-            await WriteToLogAsync($"{message.Severity}\t{message.Message}", message.Source).ConfigureAwait(false);
+            await WriteAsync($"{message.Severity}\t{message.Message}", message.Source).ConfigureAwait(false);
         }
 
         private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
@@ -95,12 +95,12 @@ namespace Grillbot.Services
             Commands.Log -= OnLogAsync;
         }
 
-        public void WriteToLog(string message, string source = "BOT")
+        public void Write(string message, string source = "BOT")
         {
-            WriteToLogAsync(message, source).GetAwaiter().GetResult();
+            WriteAsync(message, source).GetAwaiter().GetResult();
         }
 
-        public async Task WriteToLogAsync(string message, string source = "BOT")
+        public async Task WriteAsync(string message, string source = "BOT")
         {
             await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}").ConfigureAwait(false);
         }

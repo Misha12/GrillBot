@@ -119,7 +119,7 @@ namespace Grillbot
             foreach(var service in services)
             {
                 provider.GetRequiredService(service);
-                loggingService.WriteToLog($"Service {service.Name} initialized");
+                loggingService.Write($"Service {service.Name} initialized");
             }
         }
 
@@ -144,7 +144,7 @@ namespace Grillbot
                 var oldHash = ActualConfigHash;
                 ActualConfigHash = newHash;
 
-                loggingService.WriteToLog($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
+                loggingService.Write($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
                 loggingService.SendConfigChangeInfo(Convert.ToBase64String(oldHash), Convert.ToBase64String(newHash));
             }
         }

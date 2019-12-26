@@ -52,7 +52,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                LoggingService.WriteToLog($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
+                LoggingService.Write($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
             }
         }
 

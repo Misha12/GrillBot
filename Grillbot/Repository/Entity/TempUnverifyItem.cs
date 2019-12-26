@@ -21,6 +21,13 @@ namespace Grillbot.Repository.Entity
         [StringLength(30)]
         public string GuildID { get; set; }
 
+        [NotMapped]
+        public ulong GuildIDSnowflake
+        {
+            get => Convert.ToUInt64(GuildID);
+            set => GuildID = value.ToString();
+        }
+
         [Column]
         [Required]
         [StringLength(30)]

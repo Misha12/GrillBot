@@ -24,12 +24,12 @@ namespace Grillbot.Middleware
             }
             catch (Exception ex)
             {
-                await LoggingService.WriteToLogAsync(ex.ToString(), "REST API").ConfigureAwait(false);
+                await LoggingService.WriteAsync(ex.ToString(), "REST API").ConfigureAwait(false);
             }
             finally
             {
                 var url = GetUrl(context);
-                await LoggingService.WriteToLogAsync(url, "REST API").ConfigureAwait(false);
+                await LoggingService.WriteAsync(url, "REST API").ConfigureAwait(false);
             }
         }
 

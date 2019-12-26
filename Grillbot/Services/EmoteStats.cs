@@ -46,7 +46,7 @@ namespace Grillbot.Services
                 Counter = repository.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
             }
 
-            LoggingService.WriteToLog($"Emote statistics loaded from database. (Rows: {Counter.Count})");
+            LoggingService.Write($"Emote statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void SyncTimerCallback(object _)
@@ -64,7 +64,7 @@ namespace Grillbot.Services
                 }
 
                 Changes.Clear();
-                LoggingService.WriteToLog($"Emote statistics was synchronized with database. (Updated {changedData.Count} records)");
+                LoggingService.Write($"Emote statistics was synchronized with database. (Updated {changedData.Count} records)");
             }
             finally
             {

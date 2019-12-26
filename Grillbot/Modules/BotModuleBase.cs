@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
@@ -6,7 +7,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    public abstract class BotModuleBase : ModuleBase<SocketCommandContext>
+    public abstract class BotModuleBase : InteractiveBase
     {
         protected void AddInlineEmbedField(EmbedBuilder embed, string name, object value) =>
             embed.AddField(o => o.WithIsInline(true).WithName(name).WithValue(value));

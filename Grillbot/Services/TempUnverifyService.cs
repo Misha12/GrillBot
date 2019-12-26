@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
 using Grillbot.Repository.Entity.UnverifyLog;
@@ -13,7 +14,6 @@ using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services
@@ -22,14 +22,14 @@ namespace Grillbot.Services
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
-        private BotLoggingService LoggingService { get; }
+        private BotLoggingService Logger { get; }
         private DiscordSocketClient Client { get; }
 
-        public TempUnverifyService(IOptions<Configuration> config, BotLoggingService loggingService, DiscordSocketClient client)
+        public TempUnverifyService(IOptions<Configuration> config, BotLoggingService logger, DiscordSocketClient client)
         {
             Data = new List<TempUnverifyItem>();
             Config = config.Value;
-            LoggingService = loggingService;
+            Logger = logger;
             Client = client;
         }
 
@@ -64,14 +64,14 @@ namespace Grillbot.Services
                 }
             }
 
-            await LoggingService.WriteToLogAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}").ConfigureAwait(false);
+            await Logger.WriteAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}").ConfigureAwait(false);
         }
 
         private void ReturnAccess(object item)
         {
             if (item is TempUnverifyItem unverify)
             {
-                var guild = Client.GetGuild(Convert.ToUInt64(unverify.GuildID));
+                var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
 
                 var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
@@ -80,8 +80,7 @@ namespace Grillbot.Services
                     var admin = Client.GetUser(Config.MethodsConfig.TempUnverify.MainAdminSnowflake);
                     var pmChannel = admin.GetOrCreateDMChannelAsync().GetAwaiter().GetResult();
 
-                    var dataToPM = new { unverify, guildName = guild.Name };
-                    var content = $"```json\n{JsonConvert.SerializeObject(dataToPM, Formatting.Indented)}```";
+                    var content = $"```json\n{JsonConvert.SerializeObject(unverify, Formatting.Indented)}```";
                     pmChannel.SendMessageAsync(content).GetAwaiter().GetResult();
 
                     return;
@@ -113,7 +112,7 @@ namespace Grillbot.Services
                     }
                 }
 
-                LoggingService.WriteToLog($"ReturnAccess User: {user.GetShortName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)}");
+                Logger.Write($"ReturnAccess User: {user.GetShortName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)}");
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach (var channelOverride in unverify.DeserializedChannelOverrides)
@@ -170,7 +169,7 @@ namespace Grillbot.Services
             foreach (var user in users)
             {
                 if (Data.Exists(o => o.UserID == user.Id.ToString()))
-                    throw new ArgumentException($"Nelze provést odebrání rolí, protože uživatel **{user.GetFullName()}** již má unverify.");
+                    throw new ArgumentException($"Nelze provést odebrání rolí, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
 
                 if (user.Id == guild.CurrentUser.Id)
                     throw new ArgumentException("Nelze provést odebrání přístupu, protože tagnutý uživatel jsem já.");
@@ -181,12 +180,12 @@ namespace Grillbot.Services
                 {
                     var higherRoles = user.Roles.Where(o => o.Position > botMaxRolePosition).Select(o => o.Name);
 
-                    throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetShortName()}** má vyšší role " +
+                    throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetFullName()}** má vyšší role " +
                         $"**({string.Join(", ", higherRoles)})**.");
                 }
 
                 if (Config.IsUserBotAdmin(user.Id) && !self)
-                    throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetShortName()}** je administrátor bota.");
+                    throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je administrátor bota.");
             }
         }
 
@@ -219,9 +218,9 @@ namespace Grillbot.Services
             data.SetUser(user);
             await repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
 
-            await LoggingService.WriteToLogAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
+            await Logger.WriteAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
-                $"{user.GetShortName()} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
+                $"{user.GetFullName()} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
 
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false);
 
@@ -235,7 +234,7 @@ namespace Grillbot.Services
 
             var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason).ConfigureAwait(false);
 
-            var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason);
+            var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason, false);
             await user.SendPrivateMessageAsync(formatedPrivateMessage).ConfigureAwait(false);
             return unverify;
         }
@@ -261,25 +260,17 @@ namespace Grillbot.Services
                 var overwrite = channel.GetPermissionOverwrite(user);
 
                 if(overwrite != null)
-                {
                     await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
-                }
             }
         }
 
         private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)
         {
-            var overrides = new List<ChannelOverride>();
-
-            foreach (var channel in user.Guild.Channels)
-            {
-                var permissions = channel.GetPermissionOverwrite(user);
-
-                if (permissions != null)
-                    overrides.Add(new ChannelOverride(channel.Id, permissions.Value));
-            }
-
-            return overrides;
+            return user.Guild.Channels
+                .Select(channel => new { channel.Id, overrides = channel.GetPermissionOverwrite(user) })
+                .Where(channel => channel != null)
+                .Select(channel => new ChannelOverride(channel.Id, channel.overrides.Value))
+                .ToList();
         }
 
         /// <summary>
@@ -324,7 +315,7 @@ namespace Grillbot.Services
             {
                 // Days
                 if (convertedTime <= 0)
-                    throw new ArgumentException("Minimální čas pro unverify v dnech je 1 den.");
+                    throw new ArgumentException("Minimální čas pro unverify ve dnech je 1 den.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromDays(convertedTime));
             }
@@ -351,41 +342,26 @@ namespace Grillbot.Services
             return reason;
         }
 
-        private string GetFormatedPrivateMessage(SocketGuildUser user, TempUnverifyItem item, string reason)
+        private string GetFormatedPrivateMessage(SocketGuildUser user, TempUnverifyItem item, string reason, bool update)
         {
-            var builder = new StringBuilder();
+            var guildName = user.Guild.Name;
+            var endDatetime = item.GetEndDatetime().ToLocaleDatetime();
 
-            builder
-                .Append("Byly ti dočasně odebrány všechny role na serveru **")
-                .Append(user.Guild.Name)
-                .Append("**. Navráceny ti budou **")
-                .Append(item.GetEndDatetime().ToLocaleDatetime())
-                .Append("**.");
+            if (update)
+                return $"Byl ti aktualizován čas pro odebrání práv na serveru **{guildName}**. Přístup ti bude navrácen **{endDatetime}**.";
 
-            if (!string.IsNullOrEmpty(reason))
-                builder.AppendLine().Append("Důvod: ").Append(reason);
-
-            return builder.ToString();
+            return $"Byly ti dočasně odebrány všechny práva na serveru **{guildName}**. Přístup ti bude navrácen **{endDatetime}**. Důvod: {reason}";
         }
 
         private string FormatMessageToChannel(List<SocketGuildUser> users, List<TempUnverifyItem> unverifyItems, string reason)
         {
-            var builder = new StringBuilder();
+            var userNames = string.Join(", ", users.Select(o => o.GetFullName()));
+            var endDatetime = unverifyItems[0].GetEndDatetime().ToLocaleDatetime();
 
-            builder
-                .Append("Dočasné odebrání přístupu pro uživatele **")
-                .Append(string.Join(", ", users.Select(o => o.GetFullName())))
-                .Append("** bylo dokončeno. Role budou navráceny **")
-                .Append(unverifyItems[0].GetEndDatetime().ToLocaleDatetime())
-                .Append("**");
-
-            if (!string.IsNullOrEmpty(reason))
-                builder.AppendLine().Append("Důvod: ").Append(reason);
-
-            return builder.ToString();
+            return $"Dočasné odebrání přístupu pro uživatele **{userNames}** bylo dokončeno. Role budou navráceny **{endDatetime}**. Důvod: {reason}";
         }
 
-        public async Task<EmbedBuilder> ListPersonsAsync(string callerUsername, string callerAvatarUrl)
+        public async Task<BotEmbed> ListPersonsAsync(SocketUser caller)
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
@@ -394,48 +370,32 @@ namespace Grillbot.Services
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                return await CreateListPersonsAsync(persons, new Tuple<string, string>(callerUsername, callerAvatarUrl)).ConfigureAwait(false);
+                return await CreateListPersonsAsync(persons, caller).ConfigureAwait(false);
             }
         }
 
-        public async Task<EmbedBuilder> GetPersonUnverifyStatus(string callerUsername, string callerAvatarUrl, ulong searchedUserID)
+        private async Task<BotEmbed> CreateListPersonsAsync(List<TempUnverifyItem> items, SocketUser user)
         {
-            using (var repository = new TempUnverifyRepository(Config))
-            {
-                var person = await repository.FindUnverifyByUserID(searchedUserID).ConfigureAwait(false);
-
-                if (person == null)
-                    throw new ArgumentException($"Uživatel s ID {searchedUserID} zatím nemá žádné unverify.");
-
-                return await CreateListPersonsAsync(new List<TempUnverifyItem>() { person }, new Tuple<string, string>(callerUsername, callerAvatarUrl)).ConfigureAwait(false);
-            }
-        }
-
-        private async Task<EmbedBuilder> CreateListPersonsAsync(List<TempUnverifyItem> items, Tuple<string, string> caller)
-        {
-            var embedBuilder = new EmbedBuilder()
-                    .WithColor(Color.Blue)
-                    .WithCurrentTimestamp()
-                    .WithTitle("Seznam osob s odebraným přístupem.")
-                    .WithThumbnailUrl(Client.CurrentUser.GetUserAvatarUrl())
-                    .WithFooter($"Odpověď pro uživatele: {caller.Item1}", caller.Item2);
+            var embed = new BotEmbed(user, title: "Seznam osob s odebraným přístupem", thumbnail: Client.CurrentUser.GetUserAvatarUrl());
 
             foreach (var person in items)
             {
-                var guild = Client.GetGuild(Convert.ToUInt64(person.GuildID));
+                var guild = Client.GetGuild(person.GuildIDSnowflake);
 
-                var desc = $"ID: {person.ID}\nDo kdy: {person.GetEndDatetime().ToLocaleDatetime()}\n" +
-                    $"Role: {string.Join(", ", person.DeserializedRolesToReturn)}\n" +
-                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}\n" +
-                    $"Důvod: {person.Reason}";
+                var desc = string.Join("\n", new[]
+                {
+                    $"ID: {person.ID}",
+                    $"Do kdy: {person.GetEndDatetime().ToLocaleDatetime()}",
+                    $"Role: {string.Join(", ", person.DeserializedRolesToReturn)}",
+                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}",
+                    $"Důvod: {person.Reason}"
+                });
 
-                var user = await guild.GetUserFromGuildAsync(person.UserID).ConfigureAwait(false);
-
-                string username = user != null ? user.GetShortName() : $"Neznámý uživatel {person.UserID}";
-                embedBuilder.AddField(o => o.WithName(username).WithValue(desc));
+                var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserID).ConfigureAwait(false);
+                embed.AddField(o => o.WithName(unverifiedUser.GetFullName()).WithValue(desc));
             }
 
-            return embedBuilder;
+            return embed;
         }
 
         private string BuildChannelOverrideList(List<ChannelOverride> overrides, SocketGuild guild)
@@ -443,16 +403,7 @@ namespace Grillbot.Services
             if (overrides.Count == 0)
                 return "-";
 
-            var builder = new List<string>();
-
-            foreach (var channelOverride in overrides)
-            {
-                var channel = guild.GetChannel(channelOverride.ChannelIdSnowflake);
-
-                if (channel != null)
-                    builder.Add(channel.Name);
-            }
-
+            var builder = overrides.Select(o => guild.GetChannel(o.ChannelIdSnowflake)?.Name).Where(o => o != null);
             return string.Join(", ", builder);
         }
 
@@ -481,7 +432,7 @@ namespace Grillbot.Services
                 await repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
 
                 ReturnAccess(item);
-                return $"Předčasné vrácení přístupu pro uživatele **{user.GetShortName()}** bylo dokončeno.";
+                return $"Předčasné vrácení přístupu pro uživatele **{user.GetFullName()}** bylo dokončeno.";
             }
         }
 
@@ -493,8 +444,8 @@ namespace Grillbot.Services
             if (item == null)
                 throw new ArgumentException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
-            var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
-            var user = await guild.GetUserFromGuildAsync(item.UserID);
+            var guild = Client.GetGuild(item.GuildIDSnowflake);
+            var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
             var logData = new UnverifyLogUpdate() { TimeFor = $"{time} ({unverifyTime})" };
             logData.SetUser(user);
@@ -509,6 +460,7 @@ namespace Grillbot.Services
             item.StartAt = DateTime.Now;
             item.ReInitTimer(ReturnAccess);
 
+            await user.SendPrivateMessageAsync(GetFormatedPrivateMessage(user, item, null, true)).ConfigureAwait(false);
             return $"Reset času pro záznam o dočasném odebrání přístupu s ID **{id}** byl úspěšně aktualizován. " +
                 $"Role budou navráceny **{item.GetEndDatetime().ToLocaleDatetime()}**.";
         }
@@ -538,42 +490,6 @@ namespace Grillbot.Services
                 new List<TempUnverifyItem>() { unverify },
                 null
             );
-        }
-
-        public async Task<string> UpdateSelfUnverify(SocketGuildUser user, string time)
-        {
-            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
-
-            if (unverify == null)
-                throw new ArgumentException($"Reset pro uživatele {user.GetFullName()} nelze provést. Záznam nebyl nalezen");
-
-            var message = await UpdateUnverifyAsync(unverify.ID, time, user).ConfigureAwait(false);
-            return message;
-        }
-
-        public string SelfUnverifyStatus(SocketGuildUser user)
-        {
-            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
-
-            if (unverify == null)
-                throw new ArgumentException("Nelze zjistit stav unverify. Záznam nebyl nalezen.");
-
-            var unverifyTimeLeft = (unverify.GetEndDatetime() - DateTime.Now).ToString(@"hh\:mm\:ss");
-            return string.Join(Environment.NewLine, new[]
-            {
-                $"Přístup odebrán **{unverify.StartAt.ToLocaleDatetime()}**",
-                $"Přístup bude vrácen **{unverify.GetEndDatetime().ToLocaleDatetime()}** (za **{unverifyTimeLeft}**)"
-            });
-        }
-
-        public async Task<string> ReturnSelfUnverifyAccess(SocketGuildUser user)
-        {
-            var unverify = Data.Find(o => o.UserID == user.Id.ToString());
-
-            if (unverify == null)
-                throw new ArgumentException($"Nelze provést vrácení přístupu. Záznam nebyl v databázi nalezen.");
-
-            return await ReturnAccessAsync(unverify.ID, user).ConfigureAwait(false);
         }
     }
 }

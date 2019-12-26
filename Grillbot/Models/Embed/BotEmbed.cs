@@ -7,9 +7,9 @@ namespace Grillbot.Models.Embed
 {
     public class BotEmbed
     {
-        private EmbedBuilder Builder { get; set; }
+        private EmbedBuilder Builder { get; }
 
-        public BotEmbed(IUser user, Color? color = null, string title = null)
+        public BotEmbed(IUser user, Color? color = null, string title = null, string thumbnail = null)
         {
             Builder = new EmbedBuilder()
                 .WithColor(color ?? Color.Blue)
@@ -18,35 +18,44 @@ namespace Grillbot.Models.Embed
 
             if (!string.IsNullOrEmpty(title))
                 WithTitle(title);
+
+            if (!string.IsNullOrEmpty(thumbnail))
+                WithThumbnail(thumbnail);
         }
 
         public BotEmbed SetColor(Color color)
         {
-            Builder = Builder.WithColor(color);
+            Builder.WithColor(color);
             return this;
         }
 
         public BotEmbed WithFields(params EmbedFieldBuilder[] fields)
         {
-            Builder = Builder.WithFields(fields);
+            Builder.WithFields(fields);
             return this;
         }
 
         public BotEmbed WithFields(IEnumerable<EmbedFieldBuilder> fields)
         {
-            Builder = Builder.WithFields(fields);
+            Builder.WithFields(fields);
             return this;
         }
 
         public BotEmbed WithTitle(string title)
         {
-            Builder = Builder.WithTitle(title);
+            Builder.WithTitle(title);
             return this;
         }
 
         public BotEmbed AddField(Action<EmbedFieldBuilder> action)
         {
             Builder.AddField(action);
+            return this;
+        }
+
+        public BotEmbed WithThumbnail(string url)
+        {
+            Builder.WithThumbnailUrl(url);
             return this;
         }
 

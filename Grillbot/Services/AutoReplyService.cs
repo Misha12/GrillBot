@@ -39,7 +39,7 @@ namespace Grillbot.Modules
                 var autoReplyData = repository.GetAllItems();
                 Data.AddRange(autoReplyData);
 
-                BotLogging.WriteToLog($"AutoReply module loaded (loaded {Data.Count} templates)");
+                BotLogging.Write($"AutoReply module loaded (loaded {Data.Count} templates)");
             }
         }
 

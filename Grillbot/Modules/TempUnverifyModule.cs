@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using System;
@@ -78,27 +77,9 @@ namespace Grillbot.Modules
         [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
         public async Task ListUnverifyAsync()
         {
-            var callerUsername = Context.Message.Author.GetShortName();
-            var callerAvatar = Context.Message.Author.GetUserAvatarUrl();
-
             await DoAsync(async () =>
             {
-                var embed = await UnverifyService.ListPersonsAsync(callerUsername, callerAvatar).ConfigureAwait(false);
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        [Command("UserStatus")]
-        [Summary("Informace o odebrání rolí pro určitého uživatele.")]
-        [Remarks("Zadává se ID uživatele.")]
-        public async Task UserStatusAsync(ulong userId)
-        {
-            var callerUsername = Context.Message.Author.GetShortName();
-            var callerAvatar = Context.Message.Author.GetUserAvatarUrl();
-
-            await DoAsync(async () =>
-            {
-                var embed = await UnverifyService.GetPersonUnverifyStatus(callerUsername, callerAvatar, userId).ConfigureAwait(false);
+                var embed = await UnverifyService.ListPersonsAsync(Context.Message.Author).ConfigureAwait(false);
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }

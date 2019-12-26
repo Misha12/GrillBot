@@ -54,7 +54,7 @@ namespace Grillbot.Services.Statistics
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
 
             Reload(Config);
-            LoggingService.WriteToLog($"Channel statistics loaded from database. (Rows: {Counter.Count})");
+            LoggingService.Write($"Channel statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void Reload(Configuration config)
@@ -85,7 +85,7 @@ namespace Grillbot.Services.Statistics
                 }
 
                 Changes.Clear();
-                LoggingService.WriteToLog($"Channel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
+                LoggingService.Write($"Channel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
             }
             finally
             {
@@ -98,7 +98,7 @@ namespace Grillbot.Services.Statistics
             if (WebTokens.Count == 0) return;
 
             WebTokens.RemoveAll(o => !o.IsValid());
-            LoggingService.WriteToLog("Cleared invalid web tokens.");
+            LoggingService.Write("Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)
