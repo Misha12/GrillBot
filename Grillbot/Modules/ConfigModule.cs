@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Extensions;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
@@ -28,7 +29,7 @@ namespace Grillbot.Modules
             var value = Config.GetValue(section);
 
             if(!string.IsNullOrEmpty(value))
-                await ReplyAsync($"{section}```{value}```").ConfigureAwait(false);
+                await ReplyAsync($"{section.PreventMassTags()}```{value}```").ConfigureAwait(false);
         }
 
         [Command("GetPermissions")]
@@ -53,7 +54,7 @@ namespace Grillbot.Modules
             await DoAsync(async () =>
             {
                 OptionsWriter.UpdateOptions(o => o.MethodsConfig.SetPermissions(section, type, value));
-                await ReplyAsync($"Oprávnění k {section} aktualizována.").ConfigureAwait(false);
+                await ReplyAsync($"Oprávnění k {section.PreventMassTags()} aktualizována.").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
     }

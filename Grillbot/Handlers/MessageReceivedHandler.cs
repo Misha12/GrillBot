@@ -14,6 +14,7 @@ using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Repository;
 using Grillbot.Extensions.Discord;
+using Grillbot.Extensions;
 
 namespace Grillbot.Handlers
 {
@@ -77,7 +78,7 @@ namespace Grillbot.Handlers
                             case CommandError.UnknownCommand: return;
                             case CommandError.UnmetPrecondition:
                             case CommandError.ParseFailed:
-                                await context.Channel.SendMessageAsync(result.ErrorReason).ConfigureAwait(false);
+                                await context.Channel.SendMessageAsync(result.ErrorReason.PreventMassTags()).ConfigureAwait(false);
                                 break;
                             case CommandError.BadArgCount:
                                 await SendCommandHelp(context, argPos).ConfigureAwait(false);

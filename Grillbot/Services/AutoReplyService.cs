@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
@@ -68,7 +69,7 @@ namespace Grillbot.Modules
             if(item.CanReply())
             {
                 item.CallsCount++;
-                await message.Channel.SendMessageAsync(item.ReplyMessage).ConfigureAwait(false);
+                await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
                 return true;
             }
 
@@ -83,7 +84,7 @@ namespace Grillbot.Modules
             if(item.CanReply())
             {
                 item.CallsCount++;
-                await message.Channel.SendMessageAsync(item.ReplyMessage).ConfigureAwait(false);
+                await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
                 return true;
             }
 

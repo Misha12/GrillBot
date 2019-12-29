@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Discord.Commands;
 using Grillbot.Exceptions;
+using Grillbot.Extensions;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 
@@ -24,11 +25,11 @@ namespace Grillbot.Modules
             try
             {
                 var message = await Service.GetReferenceUrlAsync(topic).ConfigureAwait(false);
-                await ReplyAsync(message).ConfigureAwait(false);
+                await ReplyAsync(message.PreventMassTags()).ConfigureAwait(false);
             }
             catch (NotFoundException e)
             {
-                await ReplyAsync(e.Message).ConfigureAwait(false);
+                await ReplyAsync(e.Message.PreventMassTags()).ConfigureAwait(false);
             }
         }
     }

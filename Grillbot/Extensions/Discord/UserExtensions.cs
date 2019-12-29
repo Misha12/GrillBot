@@ -49,7 +49,7 @@ namespace Grillbot.Extensions.Discord
 
                 if (message != null)
                 {
-                    await dmChannel.SendMessageAsync(message).ConfigureAwait(false);
+                    await dmChannel.SendMessageAsync(message.PreventMassTags()).ConfigureAwait(false);
                 }
 
                 if (embedBuilder != null)

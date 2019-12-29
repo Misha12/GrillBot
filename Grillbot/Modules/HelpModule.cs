@@ -10,6 +10,7 @@ using System.Collections.Generic;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
+using Grillbot.Extensions;
 
 namespace Grillbot.Modules
 {
@@ -102,10 +103,10 @@ namespace Grillbot.Modules
                 switch (result.Error)
                 {
                     case CommandError.UnknownCommand:
-                        await ReplyAsync($"Je mi to líto, ale příkaz **{command}** neznám.").ConfigureAwait(false);
+                        await ReplyAsync($"Je mi to líto, ale příkaz **{command.PreventMassTags()}** neznám.").ConfigureAwait(false);
                         break;
                     case CommandError.UnmetPrecondition:
-                        await ReplyAsync(result.ErrorReason).ConfigureAwait(false);
+                        await ReplyAsync(result.ErrorReason.PreventMassTags()).ConfigureAwait(false);
                         break;
                 }
 
@@ -115,7 +116,7 @@ namespace Grillbot.Modules
             var embedBuilder = new EmbedBuilder()
             {
                 Color = Color.Blue,
-                Title = $"Tady máš různé varianty příkazů na **{command}**"
+                Title = $"Tady máš různé varianty příkazů na **{command.PreventMassTags()}**"
             };
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
@@ -149,7 +150,7 @@ namespace Grillbot.Modules
             }
 
             if (embedBuilder.Fields.Count == 0)
-                embedBuilder.Description = $"Na metodu **{command}** nemáš potřebná oprávnění";
+                embedBuilder.Description = $"Na metodu **{command.PreventMassTags()}** nemáš potřebná oprávnění";
 
             embedBuilder
                 .WithCurrentTimestamp()

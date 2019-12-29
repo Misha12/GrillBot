@@ -37,5 +37,13 @@ namespace Grillbot.Extensions
             var end = src.IndexOf(finish, beginning, StringComparison.Ordinal);
             return src.Substring(beginning, end - beginning);
         }
+
+        public static string PreventMassTags(this string str)
+        {
+            if (!str.Contains("everyone") && !str.Contains("here"))
+                return str;
+
+            return str.Replace("@everyone", "@ everyone").Replace("@here", "@ here");
+        }
     }
 }

@@ -79,7 +79,7 @@ namespace Grillbot.Modules
 
             if (searches.Count == 0)
             {
-                await ReplyAsync($"V kanálu {channel} nikdo nic nehledá.").ConfigureAwait(false);
+                await ReplyAsync($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá.").ConfigureAwait(false);
                 return;
             }
 
@@ -91,7 +91,7 @@ namespace Grillbot.Modules
                 await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetShortName()}** smazáno.").ConfigureAwait(false);
             }
 
-            await ReplyAsync($"Čištění kanálu {channel} dokončeno.").ConfigureAwait(false);
+            await ReplyAsync($"Čištění kanálu {channel.PreventMassTags()} dokončeno.").ConfigureAwait(false);
         }
 
         [Command("hledam_mass_remove")]
@@ -170,7 +170,7 @@ namespace Grillbot.Modules
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"Synchronizace se nezdařila {ex.Message}").ConfigureAwait(false);
+                await ReplyAsync($"Synchronizace se nezdařila {ex.Message.PreventMassTags()}").ConfigureAwait(false);
                 throw;
             }
         }
@@ -184,7 +184,7 @@ namespace Grillbot.Modules
                 var stackInfo = Logger.GetTopStack(stackKey, false);
 
                 if (stackInfo == null)
-                    throw new ArgumentException($"Sekce `{stackKey}` neexistuje.");
+                    throw new ArgumentException($"Sekce `{stackKey.PreventMassTags()}` neexistuje.");
 
                 var embed = new BotEmbed(Context.Message.Author);
 

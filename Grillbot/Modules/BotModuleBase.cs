@@ -2,6 +2,7 @@
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using System;
 using System.Threading.Tasks;
 
@@ -20,7 +21,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message).ConfigureAwait(false);
+                await ReplyAsync(ex.Message.PreventMassTags()).ConfigureAwait(false);
             }
         }
 
