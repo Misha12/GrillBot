@@ -40,10 +40,7 @@ namespace Grillbot.Extensions
 
         public static string PreventMassTags(this string str)
         {
-            if (!str.Contains("everyone") && !str.Contains("here"))
-                return str;
-
-            return str.Replace("@everyone", "@ everyone").Replace("@here", "@ here");
+            return !str.Contains("@") ? str : str.Replace("@", "@ ");
         }
     }
 }
