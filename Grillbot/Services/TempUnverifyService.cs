@@ -268,7 +268,7 @@ namespace Grillbot.Services
         {
             return user.Guild.Channels
                 .Select(channel => new { channel.Id, overrides = channel.GetPermissionOverwrite(user) })
-                .Where(channel => channel != null)
+                .Where(channel => channel?.overrides != null)
                 .Select(channel => new ChannelOverride(channel.Id, channel.overrides.Value))
                 .ToList();
         }
@@ -488,7 +488,7 @@ namespace Grillbot.Services
             return FormatMessageToChannel(
                 new List<SocketGuildUser> { user },
                 new List<TempUnverifyItem>() { unverify },
-                null
+                "Self unverify"
             );
         }
     }
