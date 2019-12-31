@@ -24,6 +24,7 @@ using Discord.Addons.Interactive;
 using Grillbot.Services.Auth;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
+using Grillbot.Services.TempUnverify;
 
 namespace Grillbot
 {

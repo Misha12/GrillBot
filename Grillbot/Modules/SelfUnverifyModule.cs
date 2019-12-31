@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
-using Grillbot.Services;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.TempUnverify;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
