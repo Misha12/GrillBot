@@ -68,8 +68,9 @@ namespace Grillbot.Services.TempUnverify
 
             await Logger.WriteAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
-                $"{user.GetFullName()} ({user.Id}) Reason: {(string.IsNullOrEmpty(reason) ? "-" : reason)}").ConfigureAwait(false);
+                $"{user.GetFullName()} ({user.Id}) Reason: {reason}").ConfigureAwait(false);
 
+            await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false);
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false);
 
             foreach (var channelOverride in overrides)

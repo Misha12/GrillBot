@@ -11,6 +11,35 @@ namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
+        /// <summary>
+        /// Remove access to channels where user can't see now, but after unverify can see.
+        /// </summary>
+        private async Task PreRemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
+        {
+            foreach (var channel in guild.Channels)
+            {
+                var channelUser = channel.GetUser(user.Id);
+
+                if (channelUser == null)
+                {
+                    // User to this channel can't see.
+                    var overwrite = channel.GetPermissionOverwrite(guild.EveryoneRole);
+
+                    if (!overwrite.HasValue)
+                        continue;
+
+                    if(overwrite.Value.ViewChannel == PermValue.Allow || overwrite.Value.ViewChannel == PermValue.Inherit)
+                    {
+                        // Everyone is allowed, user can see there after unverify.
+                        // If user have explicit deny. This channel is ignored.
+
+                        var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                        await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
+                    }
+                }
+            }
+        }
+
         private async Task RemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
             foreach (var channel in guild.Channels)
@@ -19,6 +48,11 @@ namespace Grillbot.Services.TempUnverify
 
                 if (channelUser != null)
                 {
+                    var actualPerms = channel.GetPermissionOverwrite(channelUser);
+
+                    if (actualPerms.HasValue && actualPerms.Value.SendMessages == PermValue.Deny)
+                        continue;
+
                     var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
                     await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
                 }
