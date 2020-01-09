@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Memes.MemeFeatures;
 using Grillbot.Services.TempUnverify;
@@ -8,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Memes
 {
-    public class MemesService
+    public class MemesService : IConfigChangeable
     {
         private List<MemesBase> Methods { get; }
 
@@ -29,6 +30,11 @@ namespace Grillbot.Services.Memes
                     await method.ExecuteAsync(context).ConfigureAwait(false);
                 }
             }
+        }
+
+        public void ConfigChanged(Configuration newConfig)
+        {
+            Methods.ForEach(o => o.OnConfigChange(newConfig));
         }
     }
 }

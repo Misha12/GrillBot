@@ -79,8 +79,12 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var embed = await UnverifyService.ListPersonsAsync(Context.Message.Author).ConfigureAwait(false);
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                var embeds = await UnverifyService.ListPersonsAsync(Context.Message.Author).ConfigureAwait(false);
+
+                foreach(var embed in embeds)
+                {
+                    await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                }
             }).ConfigureAwait(false);
         }
 

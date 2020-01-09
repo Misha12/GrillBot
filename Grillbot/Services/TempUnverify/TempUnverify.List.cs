@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
@@ -7,13 +8,14 @@ using Grillbot.Repository.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
-        public async Task<BotEmbed> ListPersonsAsync(SocketUser caller)
+        public async Task<List<BotEmbed>> ListPersonsAsync(SocketUser caller)
         {
             using (var repository = new TempUnverifyRepository(Config))
             {
@@ -22,13 +24,13 @@ namespace Grillbot.Services.TempUnverify
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                return await CreateListPersonsAsync(persons, caller).ConfigureAwait(false);
+                return await CreateListsPersonsAsync(persons, caller).ConfigureAwait(false);
             }
         }
 
-        private async Task<BotEmbed> CreateListPersonsAsync(List<TempUnverifyItem> items, SocketUser user)
+        private async Task<List<BotEmbed>> CreateListsPersonsAsync(List<TempUnverifyItem> items, SocketUser user)
         {
-            var embed = new BotEmbed(user, title: "Seznam osob s odebraným přístupem", thumbnail: Client.CurrentUser.GetUserAvatarUrl());
+            var fields = new List<EmbedFieldBuilder>();
 
             foreach (var person in items)
             {
@@ -44,10 +46,22 @@ namespace Grillbot.Services.TempUnverify
                 });
 
                 var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserID).ConfigureAwait(false);
-                embed.AddField(o => o.WithName(unverifiedUser.GetFullName()).WithValue(desc));
+                fields.Add(new EmbedFieldBuilder().WithName(unverifiedUser.GetFullName()).WithValue(desc));
             }
 
-            return embed;
+            var embeds = new List<BotEmbed>();
+            var pages = System.Math.Ceiling(fields.Count / 10.0);
+            for(var i = 0; i < pages; i++)
+            {
+                var partialFields = fields.Skip(Convert.ToInt32(System.Math.Ceiling(i * 10.0))).Take(10).ToList();
+
+                var embed = new BotEmbed(user, title: "Seznam osob s odebraným přístupem", thumbnail: Client.CurrentUser.GetUserAvatarUrl());
+                embed.WithFields(partialFields);
+
+                embeds.Add(embed);
+            }
+
+            return embeds;
         }
     }
 }

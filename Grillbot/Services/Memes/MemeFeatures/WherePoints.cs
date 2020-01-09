@@ -2,17 +2,17 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.TempUnverify;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Memes.MemeFeatures
 {
-    public class WherePoints : MemesBase, IConfigChangeable
+    public class WherePoints : MemesBase
     {
         private TempUnverifyService UnverifyService { get; }
 
@@ -29,8 +29,12 @@ namespace Grillbot.Services.Memes.MemeFeatures
             if (!Config.MethodsConfig.Memes.AllowedChannels.Contains(context.Channel.Id.ToString()))
                 return false;
 
-            const string regex = @"<OnlyForAuthorizedPersons>";
-            return Regex.IsMatch(context.Message.Content, regex, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline);
+            var regexes = new[]
+            {
+                "<OnlyForAuthorizedPersons>"
+            };
+
+            return regexes.All(r => Regex.IsMatch(context.Message.Content, r, RegexOptions.IgnoreCase | RegexOptions.Compiled | RegexOptions.CultureInvariant | RegexOptions.Multiline));
         }
 
         public override async Task ExecuteAsync(SocketCommandContext context)
@@ -56,11 +60,6 @@ namespace Grillbot.Services.Memes.MemeFeatures
 
             await context.Channel.SendMessageAsync(message).ConfigureAwait(false);
             await context.Message.DeleteAsync().ConfigureAwait(false);
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
         }
     }
 }
