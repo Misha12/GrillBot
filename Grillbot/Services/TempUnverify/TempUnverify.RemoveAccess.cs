@@ -13,9 +13,9 @@ namespace Grillbot.Services.TempUnverify
     public partial class TempUnverifyService
     {
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
-            SocketUser fromUser)
+            SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            CheckIfCanStartUnverify(users, guild, false);
+            CheckIfCanStartUnverify(users, guild, ignoreHigherRoles);
 
             var reason = ParseReason(data);
             var unverifyTime = ParseUnverifyTime(time);
@@ -25,7 +25,7 @@ namespace Grillbot.Services.TempUnverify
             {
                 foreach (var user in users)
                 {
-                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild, false)
+                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild, ignoreHigherRoles)
                         .ConfigureAwait(false);
                     unverifiedPersons.Add(person);
                 }

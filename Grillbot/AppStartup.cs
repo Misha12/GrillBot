@@ -25,6 +25,7 @@ using Grillbot.Services.Auth;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Memes;
 
 namespace Grillbot
 {
@@ -92,7 +93,8 @@ namespace Grillbot
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
-                .AddSingleton<CalledEventStats>();
+                .AddSingleton<CalledEventStats>()
+                .AddSingleton<MemesService>();
 
             services.AddHostedService<GrillBotService>();
         }

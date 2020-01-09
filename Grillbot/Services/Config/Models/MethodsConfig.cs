@@ -21,6 +21,8 @@ namespace Grillbot.Services.Config.Models
         public AdminConfig Admin { get; set; }
         public SelfUnverifyConfig SelfUnverify { get; set; }
         public CReferenceConfig CReference { get; set; }
+        public MemesConfig Memes { get; set; }
+
         public PermissionsConfig GetPermissions(string section)
         {
             var property = GetType().GetProperty(section);

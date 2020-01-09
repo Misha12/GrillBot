@@ -95,7 +95,7 @@ namespace Grillbot.Services.TempUnverify
             var userNames = string.Join(", ", users.Select(o => o.GetFullName()));
             var endDatetime = unverifyItems[0].GetEndDatetime().ToLocaleDatetime();
 
-            return $"Dočasné odebrání přístupu pro uživatele **{userNames}** bylo dokončeno. Role budou navráceny **{endDatetime}**. Důvod: {reason}";
+            return $"Dočasné odebrání přístupu pro uživatele **{userNames}** bylo dokončeno. Přístup bude navrácen **{endDatetime}**. Důvod: {reason}";
         }
 
         private string BuildChannelOverrideList(List<ChannelOverride> overrides, SocketGuild guild)
