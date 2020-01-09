@@ -16,27 +16,12 @@ namespace Grillbot.Services.TempUnverify
         /// </summary>
         private async Task PreRemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
-            foreach (var channel in guild.Channels)
+            var channels = guild.Channels.Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString())).ToList();
+
+            foreach(var channel in channels)
             {
-                var channelUser = channel.GetUser(user.Id);
-
-                if (channelUser == null)
-                {
-                    // User to this channel can't see.
-                    var overwrite = channel.GetPermissionOverwrite(guild.EveryoneRole);
-
-                    if (!overwrite.HasValue)
-                        continue;
-
-                    if(overwrite.Value.ViewChannel == PermValue.Allow || overwrite.Value.ViewChannel == PermValue.Inherit)
-                    {
-                        // Everyone is allowed, user can see there after unverify.
-                        // If user have explicit deny. This channel is ignored.
-
-                        var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                        await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
-                    }
-                }
+                var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
             }
         }
 

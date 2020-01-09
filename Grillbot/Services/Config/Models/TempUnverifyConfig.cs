@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Collections.Generic;
 
 namespace Grillbot.Services.Config.Models
 {
@@ -10,6 +11,13 @@ namespace Grillbot.Services.Config.Models
         {
             get => Convert.ToUInt64(MainAdminID);
             set => MainAdminID = value.ToString();
+        }
+
+        public List<string> PreprocessRemoveAccess { get; set; }
+
+        public TempUnverifyConfig()
+        {
+            PreprocessRemoveAccess = new List<string>();
         }
     }
 }
