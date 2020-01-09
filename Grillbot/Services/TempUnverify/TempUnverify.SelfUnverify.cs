@@ -16,7 +16,7 @@ namespace Grillbot.Services.TempUnverify
             TempUnverifyItem unverify;
             using (var repository = new TempUnverifyRepository(Config))
             {
-                unverify = await RemoveAccessAsync(repository, user, unverifyTime, null, user, guild, true)
+                unverify = await RemoveAccessAsync(repository, user, unverifyTime, "Self unverify", user, guild, true)
                     .ConfigureAwait(false);
             }
 
