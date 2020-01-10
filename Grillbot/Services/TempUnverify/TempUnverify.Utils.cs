@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Repository.Entity;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,7 +19,9 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var channels = guild.Channels.Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString())).ToList();
+            var channels = guild.Channels
+                .OfType<SocketTextChannel>()
+                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()));
 
             foreach(var channel in channels)
             {
@@ -27,41 +30,19 @@ namespace Grillbot.Services.TempUnverify
             }
         }
 
-        private async Task RemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
+        private async Task FindAndToggleMutedRole(SocketGuildUser user, SocketGuild guild, bool set)
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            foreach (var channel in guild.Channels.OfType<SocketTextChannel>())
-            {
-                if(channel is IChannel ic)
-                {
-                    var restChannelUser = await ic.GetUserAsync(user.Id).ConfigureAwait(false);
+            var mutedRole = guild.Roles.FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
 
-                    if(restChannelUser != null)
-                    {
-                        var perms = channel.GetPermissionOverwrite(restChannelUser);
+            if (mutedRole == null)
+                return; // Mute role not exists on this server.
 
-                        if (perms.HasValue && perms.Value.SendMessages == PermValue.Deny)
-                            continue;
-
-                        perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                        await channel.AddPermissionOverwriteAsync(restChannelUser, perms.Value).ConfigureAwait(false);
-                    }
-                }
-            }
-        }
-
-        private async Task ReturnAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
-        {
-            await guild.SyncGuildAsync().ConfigureAwait(false);
-
-            foreach (var channel in guild.Channels)
-            {
-                var overwrite = channel.GetPermissionOverwrite(user);
-
-                if (overwrite != null)
-                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
-            }
+            if (set)
+                await user.AddRoleAsync(mutedRole).ConfigureAwait(false);
+            else
+                await user.RemoveRoleAsync(mutedRole).ConfigureAwait(false);
         }
 
         private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)

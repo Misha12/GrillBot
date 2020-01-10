@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Repository;
 using Grillbot.Repository.Entity;
@@ -67,18 +68,23 @@ namespace Grillbot.Services.TempUnverify
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
                 $"{user.GetFullName()} ({user.Id}) Reason: {reason}").ConfigureAwait(false);
 
-            await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false);
-            await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false);
+            await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false); // Set SendMessage: Deny for extra channels.
+            await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false); // Remove all roles for user.
 
+            // Remove all extra channel permissions.
             foreach (var channelOverride in overrides)
             {
                 var channel = user.Guild.GetChannel(channelOverride.ChannelIdSnowflake);
-                await channel?.RemovePermissionOverwriteAsync(user);
+
+                // Where had access, now not have.
+                channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
-            await RemoveAccessToPublicChannels(user, guild).ConfigureAwait(false);
+            await FindAndToggleMutedRole(user, guild, true).ConfigureAwait(false);
 
-            var unverify = await repository.AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason).ConfigureAwait(false);
+            var unverify = await repository
+                .AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
+                .ConfigureAwait(false);
 
             var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason, false);
             await user.SendPrivateMessageAsync(formatedPrivateMessage).ConfigureAwait(false);

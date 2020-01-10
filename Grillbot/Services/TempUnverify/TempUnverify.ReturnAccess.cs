@@ -31,10 +31,8 @@ namespace Grillbot.Services.TempUnverify
                     return;
                 }
 
-                ReturnAccessToPublicChannels(user, guild).GetAwaiter().GetResult();
-
                 var rolesToReturn = unverify.DeserializedRolesToReturn;
-                var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name)).ToList();
+                var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name) && !user.Roles.Any(x => x.Id == o.Id)).ToList();
 
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
 
@@ -57,15 +55,23 @@ namespace Grillbot.Services.TempUnverify
                     }
                 }
 
-                Logger.Write($"ReturnAccess User: {user.GetShortName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)}");
+                var overrides = unverify.DeserializedChannelOverrides
+                    .Select(o => new { channel = guild.GetChannel(o.ChannelIdSnowflake), channelOverride = o })
+                    .Where(o => o.channel != null)
+                    .ToList();
+
+                Logger.Write($"ReturnAccess User: {user.GetFullName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)} " +
+                    $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))}");
+
+                FindAndToggleMutedRole(user, guild, false).GetAwaiter().GetResult();
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
-                foreach (var channelOverride in unverify.DeserializedChannelOverrides)
+                foreach(var channelOverride in overrides)
                 {
-                    var channel = guild.GetChannel(channelOverride.ChannelIdSnowflake);
-
-                    if (channel != null)
-                        channel.AddPermissionOverwriteAsync(user, channelOverride.GetPermissions()).GetAwaiter().GetResult();
+                    channelOverride.channel
+                        .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions())
+                        .GetAwaiter()
+                        .GetResult();
                 }
 
                 using (var repository = new TempUnverifyRepository(Config))
