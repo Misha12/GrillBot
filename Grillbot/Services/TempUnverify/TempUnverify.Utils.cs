@@ -25,6 +25,9 @@ namespace Grillbot.Services.TempUnverify
 
             foreach(var channel in channels)
             {
+                var canSee = channel.GetUser(user.Id) != null;
+                if (!canSee) return;
+
                 var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
                 await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
             }
@@ -49,9 +52,26 @@ namespace Grillbot.Services.TempUnverify
         {
             return user.Guild.Channels
                 .Select(channel => new { channel.Id, overrides = channel.GetPermissionOverwrite(user) })
-                .Where(channel => channel?.overrides != null)
+                .Where(channel => channel?.overrides != null && (channel?.overrides?.AllowValue > 0 || channel?.overrides?.DenyValue > 0))
                 .Select(channel => new ChannelOverride(channel.Id, channel.overrides.Value))
                 .ToList();
+        }
+
+        private async Task RemoveOverwritesForPreprocessedChannels(SocketGuildUser user, SocketGuild guild)
+        {
+            await guild.SyncGuildAsync().ConfigureAwait(false);
+
+            var channels = guild.Channels
+                .OfType<SocketTextChannel>()
+                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()));
+
+            foreach(var channel in channels)
+            {
+                var overwrites = channel.GetPermissionOverwrite(user);
+
+                if (overwrites != null)
+                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
+            }
         }
 
         private string GetFormatedPrivateMessage(SocketGuildUser user, TempUnverifyItem item, string reason, bool update)

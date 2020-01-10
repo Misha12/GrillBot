@@ -11,7 +11,6 @@ using System.Threading;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
-using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.TempUnverify;
 

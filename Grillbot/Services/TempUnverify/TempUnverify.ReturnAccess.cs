@@ -74,6 +74,8 @@ namespace Grillbot.Services.TempUnverify
                         .GetResult();
                 }
 
+                RemoveOverwritesForPreprocessedChannels(user, guild).GetAwaiter().GetResult();
+
                 using (var repository = new TempUnverifyRepository(Config))
                 {
                     repository.RemoveItem(unverify.ID);
