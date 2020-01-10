@@ -16,6 +16,8 @@ namespace Grillbot.Services.TempUnverify
         /// </summary>
         private async Task PreRemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
+            await guild.SyncGuildAsync().ConfigureAwait(false);
+
             var channels = guild.Channels.Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString())).ToList();
 
             foreach(var channel in channels)
@@ -27,25 +29,32 @@ namespace Grillbot.Services.TempUnverify
 
         private async Task RemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
-            foreach (var channel in guild.Channels)
+            await guild.SyncGuildAsync().ConfigureAwait(false);
+
+            foreach (var channel in guild.Channels.OfType<SocketTextChannel>())
             {
-                var channelUser = channel.GetUser(user.Id);
-
-                if (channelUser != null)
+                if(channel is IChannel ic)
                 {
-                    var actualPerms = channel.GetPermissionOverwrite(channelUser);
+                    var restChannelUser = await ic.GetUserAsync(user.Id).ConfigureAwait(false);
 
-                    if (actualPerms.HasValue && actualPerms.Value.SendMessages == PermValue.Deny)
-                        continue;
+                    if(restChannelUser != null)
+                    {
+                        var perms = channel.GetPermissionOverwrite(restChannelUser);
 
-                    var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                    await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
+                        if (perms.HasValue && perms.Value.SendMessages == PermValue.Deny)
+                            continue;
+
+                        perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                        await channel.AddPermissionOverwriteAsync(restChannelUser, perms.Value).ConfigureAwait(false);
+                    }
                 }
             }
         }
 
         private async Task ReturnAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
+            await guild.SyncGuildAsync().ConfigureAwait(false);
+
             foreach (var channel in guild.Channels)
             {
                 var overwrite = channel.GetPermissionOverwrite(user);

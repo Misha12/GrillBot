@@ -28,5 +28,16 @@ namespace Grillbot.Extensions.Discord
 
             return user;
         }
+
+        public static async Task SyncGuildAsync(this SocketGuild guild)
+        {
+            if (guild.SyncPromise != null)
+                await guild.SyncPromise.ConfigureAwait(false);
+
+            await guild.DownloadUsersAsync().ConfigureAwait(false);
+
+            if (guild.DownloaderPromise != null)
+                await guild.DownloaderPromise.ConfigureAwait(false);
+        }
     }
 }
