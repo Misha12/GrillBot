@@ -57,13 +57,15 @@ namespace Grillbot.Services.TempUnverify
                 .ToList();
         }
 
-        private async Task RemoveOverwritesForPreprocessedChannels(SocketGuildUser user, SocketGuild guild)
+        private async Task RemoveOverwritesForPreprocessedChannels(SocketGuildUser user, SocketGuild guild,
+            List<ChannelOverride> overrideExceptions)
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
             var channels = guild.Channels
                 .OfType<SocketTextChannel>()
-                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()));
+                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()))
+                .Where(o => !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
 
             foreach(var channel in channels)
             {
