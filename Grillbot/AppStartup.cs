@@ -26,6 +26,7 @@ using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Services.Memes;
+using Grillbot.Middleware.DiscordUserAuthorization;
 
 namespace Grillbot
 {
@@ -54,7 +55,10 @@ namespace Grillbot
 
             services.Configure<Configuration>(Configuration);
             services.AddTransient<OptionsWriter>();
-            services.AddSingleton<AuthService>();
+            
+            services
+                .AddSingleton<AuthService>()
+                .AddTransient<DcUserAuthorization>();
         }
 
         private void ConfigureDiscord(IServiceCollection services)
