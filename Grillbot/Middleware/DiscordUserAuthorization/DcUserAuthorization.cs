@@ -28,7 +28,7 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
             if (headerParts.Length != 2)
                 throw new UnauthorizedAccessException("Authorization header is in invalid format.");
 
-            if (headerParts[0].ToLower().Trim() != "GrillBotDcUserAuth")
+            if(!string.Equals(headerParts[0].Trim(), "GrillBotDcUserAuth", StringComparison.InvariantCultureIgnoreCase))
                 throw new UnauthorizedAccessException("Invalid authentication type.");
 
             var userId = Convert.ToUInt64(headerParts[1]);
@@ -61,13 +61,13 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
         private void CheckEveryonePermissions(SocketGuild guild, ulong userID)
         {
             if(guild.GetUser(userID) == null)
-                throw new UnauthorizedAccessException("User defined in authorization header is not on required server.");
+                throw new ForbiddenAccessException("User defined in authorization header is not on required server.");
         }
 
         private void CheckOwnerPermissions(SocketGuild guild, ulong userID)
         {
             if (guild.OwnerId != userID)
-                throw new UnauthorizedAccessException("This method is allowed only for server owner.");
+                throw new ForbiddenAccessException("This method is allowed only for server owner.");
         }
 
         private void CheckBotsPermissions(SocketGuild guild, ulong userID)
@@ -77,7 +77,7 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
             var user = guild.GetUser(userID);
 
             if (!user.IsBot)
-                throw new UnauthorizedAccessException("This method is allowed only for bot users");
+                throw new ForbiddenAccessException("This method is allowed only for bot users");
         }
 
         private void CheckAdministratorPermissions(SocketGuild guild, ulong userID)
@@ -90,7 +90,7 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
             var user = guild.GetUser(userID);
 
             if (!user.Roles.Any(o => o.Permissions.Administrator))
-                throw new UnauthorizedAccessException("This method is allowed only for Administrators");
+                throw new ForbiddenAccessException("This method is allowed only for Administrators");
         }
     }
 }
