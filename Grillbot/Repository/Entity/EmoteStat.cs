@@ -25,12 +25,24 @@ namespace Grillbot.Repository.Entity
         [Required]
         public bool IsUnicode { get; set; }
 
+        [Column]
+        [Required]
+        public string GuildID { get; set; }
+
+        [NotMapped]
+        public ulong GuildIDSnowflake
+        {
+            get => string.IsNullOrEmpty(GuildID) ? 0 : Convert.ToUInt64(GuildID);
+            set => GuildID = value.ToString();
+        }
+
         public EmoteStat() { }
 
-        public EmoteStat(string emoteId, bool isUnicode)
+        public EmoteStat(string emoteId, bool isUnicode, ulong guildID)
         {
             EmoteID = emoteId;
             IsUnicode = isUnicode;
+            GuildIDSnowflake = guildID;
             IncrementAndUpdate();
         }
 

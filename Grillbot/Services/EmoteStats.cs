@@ -57,7 +57,10 @@ namespace Grillbot.Services
             {
                 if (Changes.Count == 0) return;
 
-                var changedData = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
+                var changedData = Counter
+                    .Where(o => Changes.Contains(o.Key))
+                    .ToDictionary(o => o.Key, o => o.Value);
+
                 using (var repository = new EmoteStatsRepository(Config))
                 {
                     repository.UpdateEmoteStatistics(changedData).Wait();
@@ -90,7 +93,7 @@ namespace Grillbot.Services
 
                 if (mentionedEmotes.Count == 0)
                 {
-                    TryIncrementUnicodeFromMessage(context.Message.Content);
+                    TryIncrementUnicodeFromMessage(context.Message.Content, context.Guild);
                     return;
                 }
 
@@ -98,14 +101,14 @@ namespace Grillbot.Services
                 {
                     if (emote is Emoji emoji)
                     {
-                        IncrementCounter(emoji.Name, true);
+                        IncrementCounter(emoji.Name, true, context.Guild);
                     }
                     else
                     {
                         var emoteId = emote.ToString();
 
                         if (serverEmotes.Any(o => o.ToString() == emoteId))
-                            IncrementCounter(emoteId, false);
+                            IncrementCounter(emoteId, false, context.Guild);
                     }
                 }
             }
@@ -126,14 +129,14 @@ namespace Grillbot.Services
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    IncrementCounter(emoji.Name, true);
+                    IncrementCounter(emoji.Name, true, channel.Guild);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        IncrementCounter(reaction.Emote.ToString(), false);
+                        IncrementCounter(reaction.Emote.ToString(), false, channel.Guild);
                 }
             }
             finally
@@ -169,7 +172,7 @@ namespace Grillbot.Services
             }
         }
 
-        private void TryIncrementUnicodeFromMessage(string content)
+        private void TryIncrementUnicodeFromMessage(string content, SocketGuild guild)
         {
             var emojis = content
                 .Split(' ')
@@ -178,11 +181,11 @@ namespace Grillbot.Services
 
             foreach (var emoji in emojis)
             {
-                IncrementCounter(emoji, true);
+                IncrementCounter(emoji, true, guild);
             }
         }
 
-        private void IncrementCounter(string emoteId, bool isUnicode)
+        private void IncrementCounter(string emoteId, bool isUnicode, SocketGuild guild)
         {
             if (isUnicode)
             {
@@ -191,7 +194,7 @@ namespace Grillbot.Services
             }
 
             if (!Counter.ContainsKey(emoteId))
-                Counter.Add(emoteId, new EmoteStat(emoteId, isUnicode));
+                Counter.Add(emoteId, new EmoteStat(emoteId, isUnicode, guild.Id));
             else
                 GetValue(emoteId).IncrementAndUpdate();
 
@@ -218,20 +221,17 @@ namespace Grillbot.Services
             return !Counter.ContainsKey(emoteId) ? null : Counter[emoteId];
         }
 
-        public List<EmoteStat> GetAllValues(bool descOrder)
+        public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode)
         {
+            var query = Counter.Values.Where(o => o.GuildIDSnowflake == guildID);
+
+            if (excludeUnicode)
+                query = query.Where(o => !o.IsUnicode);
+
             if (descOrder)
-            {
-                return Counter.Values
-                    .OrderByDescending(o => o.Count)
-                    .ThenByDescending(o => o.LastOccuredAt).ToList();
-            }
+                return query.OrderByDescending(o => o.Count).ThenByDescending(o => o.LastOccuredAt).ToList();
             else
-            {
-                return Counter.Values
-                    .OrderBy(o => o.Count)
-                    .ThenBy(o => o.LastOccuredAt).ToList();
-            }
+                return query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt).ToList();
         }
 
         public void ConfigChanged(Configuration newConfig)
@@ -251,7 +251,7 @@ namespace Grillbot.Services
 
         public List<EmoteMergeListItem> GetMergeList(SocketGuild guild)
         {
-            var emotes = GetAllValues(true).FindAll(o => !o.IsUnicode);
+            var emotes = GetAllValues(true, guild.Id, true);
             var data = guild.Emotes.Select(o => new EmoteMergeListItem() { Emote = o }).ToList();
 
             foreach (var emote in emotes)

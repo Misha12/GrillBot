@@ -27,7 +27,7 @@ namespace Grillbot.Modules
         [Summary("Vypíše kompletní statistiku emotů. Seřazeno vzestupně.")]
         public async Task GetCompleteEmoteInfoListAsync()
         {
-            var fields = EmoteStats.GetAllValues(true)
+            var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
                 .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
                 .ToList();
@@ -54,7 +54,7 @@ namespace Grillbot.Modules
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
-            var fields = EmoteStats.GetAllValues(descOrder)
+            var fields = EmoteStats.GetAllValues(descOrder, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
@@ -116,7 +116,7 @@ namespace Grillbot.Modules
         [Summary("Vypíše TOP25 statistika unicode emojis.")]
         private async Task GetEmoteInfoOnlyUnicode()
         {
-            var fields = EmoteStats.GetAllValues(true)
+            var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, false)
                 .Where(o => o.IsUnicode)
                 .Take(EmbedBuilder.MaxFieldCount)
                 .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
