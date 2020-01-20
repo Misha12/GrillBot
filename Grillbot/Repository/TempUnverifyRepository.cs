@@ -22,7 +22,7 @@ namespace Grillbot.Repository
             return Context.TempUnverify.AsQueryable();
         }
 
-        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, long timeFor,
+        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, int timeFor,
             List<ChannelOverride> overrides, string reason)
         {
             var entity = new TempUnverifyItem()
@@ -75,7 +75,7 @@ namespace Grillbot.Repository
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task UpdateTimeAsync(int id, long time)
+        public async Task UpdateTimeAsync(int id, int time)
         {
             var item = await FindItemByIDAsync(id).ConfigureAwait(false);
 

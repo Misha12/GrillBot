@@ -39,7 +39,7 @@ namespace Grillbot.Services.TempUnverify
         }
 
         private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user,
-            long unverifyTime, string reason, SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
+            int unverifyTime, string reason, SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
         {
             var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
 

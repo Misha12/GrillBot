@@ -35,7 +35,7 @@ namespace Grillbot.Repository.Entity
 
         [Column]
         [Required]
-        public long TimeFor { get; set; }
+        public int TimeFor { get; set; }
 
         [Column]
         [Required]
