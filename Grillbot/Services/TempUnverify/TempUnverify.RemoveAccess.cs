@@ -41,7 +41,9 @@ namespace Grillbot.Services.TempUnverify
         private async Task<TempUnverifyItem> RemoveAccessAsync(TempUnverifyRepository repository, SocketGuildUser user,
             int unverifyTime, string reason, SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
         {
-            var rolesToRemove = user.Roles.Where(o => !o.IsEveryone && !o.IsManaged).ToList();
+            var rolesToRemove = user.Roles
+                .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
+                .ToList(); // Ignore Muted roles.
 
             if (ignoreHigherRoles)
             {
@@ -68,6 +70,8 @@ namespace Grillbot.Services.TempUnverify
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
                 $"{user.GetFullName()} ({user.Id}) Reason: {reason}").ConfigureAwait(false);
 
+            await FindAndToggleMutedRole(user, guild, true).ConfigureAwait(false);
+
             await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false); // Set SendMessage: Deny for extra channels.
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false); // Remove all roles for user.
 
@@ -79,8 +83,6 @@ namespace Grillbot.Services.TempUnverify
                 // Where had access, now not have.
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
-
-            await FindAndToggleMutedRole(user, guild, true).ConfigureAwait(false);
 
             var unverify = await repository
                 .AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason)

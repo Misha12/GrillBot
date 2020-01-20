@@ -63,7 +63,6 @@ namespace Grillbot.Services.TempUnverify
                 Logger.Write($"ReturnAccess User: {user.GetFullName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)} " +
                     $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))}");
 
-                FindAndToggleMutedRole(user, guild, false).GetAwaiter().GetResult();
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach(var channelOverride in overrides)
@@ -74,6 +73,7 @@ namespace Grillbot.Services.TempUnverify
                         .GetResult();
                 }
 
+                FindAndToggleMutedRole(user, guild, false).GetAwaiter().GetResult();
                 RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
 
                 using (var repository = new TempUnverifyRepository(Config))
