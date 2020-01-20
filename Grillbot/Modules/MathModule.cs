@@ -24,7 +24,7 @@ namespace Grillbot.Modules
             var result = Calculator.Solve(expression, Context.Message);
 
             var embed = new BotEmbed(Context.Message.Author, Color.Green)
-                .WithFields(new EmbedFieldBuilder().WithName("Výraz").WithValue($"`{expression}`"));
+                .AddField("Výraz", $"`{expression}`", false);
 
             if (result == null)
             {
@@ -50,7 +50,7 @@ namespace Grillbot.Modules
                 {
                     embed
                         .WithTitle("Výpočet nebyl úspěšně proveden.")
-                        .AddField(o => o.WithName("Chybové hlášení").WithValue(result.ErrorMessage.Trim()));
+                        .AddField("Chybové hlášení", result.ErrorMessage.Trim(), false);
                 }
 
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
@@ -58,7 +58,7 @@ namespace Grillbot.Modules
             }
 
             embed
-                .AddField(o => o.WithName("Výsledek").WithValue(result.Result.ToString()).WithIsInline(true))
+                .AddField("Výsledek", result.Result.ToString(), true)
                 .AddField(o => o.WithName("Doba zpracování").WithValue(result.GetComputingTime()).WithIsInline(true));
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);

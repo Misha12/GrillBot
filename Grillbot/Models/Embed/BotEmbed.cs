@@ -31,7 +31,11 @@ namespace Grillbot.Models.Embed
 
         public BotEmbed WithFields(params EmbedFieldBuilder[] fields)
         {
-            Builder.WithFields(fields);
+            foreach(var field in fields)
+            {
+                AddField(field.Name, field.Value?.ToString(), field.IsInline);
+            }
+
             return this;
         }
 
@@ -49,7 +53,52 @@ namespace Grillbot.Models.Embed
 
         public BotEmbed AddField(Action<EmbedFieldBuilder> action)
         {
-            Builder.AddField(action);
+            var field = new EmbedFieldBuilder();
+            action(field);
+
+            AddField(field.Name, field.Value?.ToString(), field.IsInline);
+            return this;
+        }
+
+        public BotEmbed AddField(string name, string value, bool inline)
+        {
+            if (name.Length >= EmbedFieldBuilder.MaxFieldNameLength)
+                name = name.Substring(0, EmbedFieldBuilder.MaxFieldNameLength - 3) + "...";
+
+            if (value == null)
+                throw new ArgumentException($"Neplatná hodnota NULL v objektu s klíčem {name}.");
+
+            if (value.Length >= EmbedFieldBuilder.MaxFieldValueLength)
+            {
+                if(value.StartsWith("```") && value.EndsWith("```"))
+                {
+                    // Cut CodeBlocks.
+
+                    var tmp = value
+                        .Substring(3)
+                        .Substring(0, value.Length - 3)
+                        .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 9);
+
+                    value = "```" + tmp + "```";
+                }
+                else if (value.StartsWith("`") && value.EndsWith("`"))
+                {
+                    // CUT `...` blocks
+
+                    var tmp = value
+                        .Substring(1)
+                        .Substring(0, value.Length - 1)
+                        .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 5);
+
+                    value = "`" + tmp + "...`";
+                }
+                else
+                {
+                    value = value.Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 3) + "...";
+                }
+            }
+
+            Builder.AddField(o => o.WithName(name).WithValue(value).WithIsInline(inline));
             return this;
         }
 
