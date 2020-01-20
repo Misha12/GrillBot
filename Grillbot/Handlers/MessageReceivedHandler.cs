@@ -15,7 +15,6 @@ using Grillbot.Services.Config.Models;
 using Grillbot.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
-using Grillbot.Services.Memes;
 
 namespace Grillbot.Handlers
 {
@@ -28,12 +27,11 @@ namespace Grillbot.Handlers
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private CalledEventStats CalledEventStats { get; }
-        private MemesService MemesService { get; }
 
         private Configuration Config { get; set; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats, MemesService memes)
+            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats)
         {
             Client = client;
             Commands = commands;
@@ -42,7 +40,6 @@ namespace Grillbot.Handlers
             AutoReply = autoReply;
             EmoteChain = emoteChain;
             CalledEventStats = calledEventStats;
-            MemesService = memes;
 
             ConfigChanged(config.Value);
 
@@ -101,7 +98,6 @@ namespace Grillbot.Handlers
                     await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
                     await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
                     await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
-                    await MemesService.ProcessAsync(context).ConfigureAwait(false);
                 }
             }
             finally

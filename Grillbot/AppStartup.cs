@@ -25,7 +25,6 @@ using Grillbot.Services.Auth;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
-using Grillbot.Services.Memes;
 using Grillbot.Middleware.DiscordUserAuthorization;
 
 namespace Grillbot
@@ -55,7 +54,7 @@ namespace Grillbot
 
             services.Configure<Configuration>(Configuration);
             services.AddTransient<OptionsWriter>();
-            
+
             services
                 .AddSingleton<AuthService>()
                 .AddTransient<DcUserAuthorization>();
@@ -76,7 +75,7 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
-            foreach(var handler in GetHandlers())
+            foreach (var handler in GetHandlers())
             {
                 services.AddSingleton(handler);
             }
@@ -97,8 +96,7 @@ namespace Grillbot
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
-                .AddSingleton<CalledEventStats>()
-                .AddSingleton<MemesService>();
+                .AddSingleton<CalledEventStats>();
 
             services.AddHostedService<GrillBotService>();
         }
@@ -123,7 +121,7 @@ namespace Grillbot
 
         private void InitServices(IServiceProvider provider, Type[] services, BotLoggingService loggingService)
         {
-            foreach(var service in services)
+            foreach (var service in services)
             {
                 provider.GetRequiredService(service);
                 loggingService.Write($"Service {service.Name} initialized");
@@ -134,7 +132,7 @@ namespace Grillbot
         {
             var newHash = GetConfigHash();
 
-            if(!ActualConfigHash.SequenceEqual(newHash))
+            if (!ActualConfigHash.SequenceEqual(newHash))
             {
                 var changeableTypes = Assembly.GetExecutingAssembly()
                     .GetTypes().Where(o => o.GetInterface(typeof(IConfigChangeable).FullName) != null);
@@ -142,7 +140,7 @@ namespace Grillbot
                 var configurationInstance = Configuration.Get<Configuration>();
                 var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
 
-                foreach(var type in changeableTypes)
+                foreach (var type in changeableTypes)
                 {
                     var service = (IConfigChangeable)ServiceProvider.GetService(type);
                     service?.ConfigChanged(configurationInstance);
@@ -162,7 +160,7 @@ namespace Grillbot
             {
                 using (var fs = File.OpenRead("appsettings.json"))
                 {
-                    using(var sha1 = SHA1.Create())
+                    using (var sha1 = SHA1.Create())
                     {
                         return sha1.ComputeHash(fs);
                     }
