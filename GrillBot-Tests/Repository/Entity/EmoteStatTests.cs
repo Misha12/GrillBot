@@ -13,7 +13,7 @@ namespace GrillBot_Tests.Repository.Entity
         public void ConstructorIncrement()
         {
             const string emote = "<:rtzW:123456>";
-            var result = new EmoteStat(emote, false);
+            var result = new EmoteStat(emote, false, 0);
 
             Assert.AreEqual(1, result.Count);
             Assert.AreEqual(emote, result.EmoteID);
@@ -23,7 +23,7 @@ namespace GrillBot_Tests.Repository.Entity
         public void GetFormatedInfo()
         {
             const string emote = "<:rtzW:123456>";
-            var emoteStat = new EmoteStat(emote, false);
+            var emoteStat = new EmoteStat(emote, false, 0);
 
             var result = emoteStat.GetFormatedInfo();
 
@@ -36,7 +36,7 @@ namespace GrillBot_Tests.Repository.Entity
         [TestMethod]
         public void Decrement()
         {
-            var emote = new EmoteStat("<:rtzW:123456>", false);
+            var emote = new EmoteStat("<:rtzW:123456>", false, 0);
             emote.Decrement();
 
             Assert.AreEqual(0, emote.Count);
