@@ -18,7 +18,7 @@ namespace Grillbot.Modules
 
         [Command("")]
         [Summary("Odebrání práv sám sobě.")]
-        [Remarks("Parametr time je ve formátu {cas}{s/m/h/d}. Např.: 30s.\nPopis: s: sekundy, m: minuty, h: hodiny, d: dny.")]
+        [Remarks("Parametr time je ve formátu {cas}{m/h/d}. Např.: 30m.\nPopis: m: minuty, h: hodiny, d: dny.")]
         public async Task SetSelfUnverify(string time)
         {
             await DoAsync(async () =>
