@@ -22,6 +22,7 @@ namespace Grillbot.Services.Config.Models
         public SelfUnverifyConfig SelfUnverify { get; set; }
         public CReferenceConfig CReference { get; set; }
         public MemesConfig Memes { get; set; }
+        public BirthdaysConfig Birthdays { get; set; }
 
         public PermissionsConfig GetPermissions(string section)
         {
