@@ -29,17 +29,6 @@ namespace Grillbot.Repository.Entity
 
         [Column]
         [Required]
-        public string ChannelID { get; set; }
-
-        [NotMapped]
-        public ulong ChannelIDSnowflake
-        {
-            get => Convert.ToUInt64(ChannelID);
-            set => ChannelID = value.ToString();
-        }
-
-        [Column]
-        [Required]
         public string GuildID { get; set; }
 
         [NotMapped]
@@ -47,6 +36,15 @@ namespace Grillbot.Repository.Entity
         {
             get => Convert.ToUInt64(GuildID);
             set => GuildID = value.ToString();
+        }
+
+        public int ComputeAge()
+        {
+            var today = DateTime.Today;
+            var age = today.Year - Date.Year;
+            if (Date.Date > today.AddYears(-age)) age--;
+
+            return age;
         }
     }
 }

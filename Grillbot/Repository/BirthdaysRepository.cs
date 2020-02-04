@@ -1,7 +1,11 @@
 ﻿using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Repository.Entity;
 using Grillbot.Services.Config.Models;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Repository
@@ -16,17 +20,48 @@ namespace Grillbot.Repository
         {
             var entity = new Birthday()
             {
-                AcceptAge = acceptAge,
                 Date = date.Date,
-                ChannelIDSnowflake = context.Message.Channel.Id,
                 GuildIDSnowflake = context.Guild.Id,
-                IDSnowflake = context.Message.Author.Id
+                IDSnowflake = context.Message.Author.Id,
+                AcceptAge = acceptAge
             };
 
             await Context.Set<Birthday>().AddAsync(entity).ConfigureAwait(false);
             await Context.SaveChangesAsync().ConfigureAwait(false);
 
             return entity;
+        }
+
+        public async Task<List<Birthday>> GetBirthdaysForDayAsync(DateTime date)
+        {
+            var result = new List<Birthday>();
+
+            foreach (var birthday in await Context.Birthdays.ToListAsync().ConfigureAwait(false))
+            {
+                if (birthday.Date.Day == date.Day && birthday.Date.Month == date.Month)
+                {
+                    result.Add(birthday);
+                }
+            }
+
+            return result;
+        }
+
+        public async Task<bool> ExistsUserAsync(SocketUser user)
+        {
+            var userID = user.Id.ToString();
+            return await Context.Birthdays.AnyAsync(o => o.ID == userID).ConfigureAwait(false);
+        }
+
+        public async Task RemoveAsync(SocketUser user)
+        {
+            var userID = user.Id.ToString();
+            var entity = await Context.Birthdays.FirstOrDefaultAsync(o => o.ID == userID).ConfigureAwait(false);
+
+            if (entity == null) return;
+
+            Context.Set<Birthday>().Remove(entity);
+            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
     }
 }
