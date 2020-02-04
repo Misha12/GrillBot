@@ -13,6 +13,7 @@ using Microsoft.Extensions.Options;
 using System.IO;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
+using Grillbot.Exceptions;
 
 namespace Grillbot.Services
 {
@@ -22,14 +23,16 @@ namespace Grillbot.Services
 
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
+        private IServiceProvider Services { get; }
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services)
         {
             Client = client;
             Commands = commands;
             Init(config.Value);
+            Services = services;
             Client.Log += OnLogAsync;
             Commands.Log += OnLogAsync;
         }
@@ -61,6 +64,13 @@ namespace Grillbot.Services
         private async Task PostException(LogMessage message)
         {
             if (!IsValidException(message)) return;
+
+            if(message.Exception is CommandException ce && message.Exception.InnerException is ThrowHelpException)
+            {
+                string helpCommand = $"grillhelp {ce.Context.Message.Content.Substring(1)}";
+                await Commands.ExecuteAsync(ce.Context, helpCommand, Services).ConfigureAwait(false);
+                return;
+            }
 
             var exceptionMessage = message.Exception.ToString();
             var parts = exceptionMessage.SplitInParts(MessageSizeForException).ToArray();

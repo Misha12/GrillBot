@@ -109,9 +109,7 @@ namespace Grillbot.Handlers
 
         private async Task SendCommandHelp(SocketCommandContext context, int argPos)
         {
-            var commandWord = context.Message.Content.Split(' ')[0].Substring(argPos);
-            var helpCommand = $"grillhelp {commandWord}";
-
+            var helpCommand = $"grillhelp {context.Message.Content.Substring(argPos)}";
             await Commands.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
         }
 
