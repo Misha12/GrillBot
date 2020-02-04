@@ -242,5 +242,39 @@ namespace Grillbot.Modules
         }
 
         #endregion
+
+        [Command("guildList")]
+        public async Task GetGuildListAsync()
+        {
+            await DoAsync(async () =>
+            {
+                foreach (var guild in Context.Client.Guilds)
+                {
+                    await guild.SyncGuildAsync().ConfigureAwait(false);
+                    await ReplyAsync($"{guild.Name} - {guild.Id}").ConfigureAwait(false);
+                }
+            }).ConfigureAwait(false);
+        }
+
+        [Command("leaveServer")]
+        public async Task LeaveServerAsync(string guildID)
+        {
+            await DoAsync(async () =>
+            {
+                if (Context.Guild.Id.ToString() == guildID)
+                    throw new ArgumentException("Nelze leavnout tento server");
+
+                var guild = Context.Client.GetGuild(Convert.ToUInt64(guildID));
+                if (guild == null)
+                {
+                    throw new ArgumentException("Takový server neznám.");
+                }
+                else
+                {
+                    await guild.LeaveAsync().ConfigureAwait(false);
+                    await ReplyAsync("Hotovo");
+                }
+            }).ConfigureAwait(false);
+        }
     }
 }
