@@ -27,5 +27,6 @@ namespace Grillbot.Repository
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<CommandLog> CommandLog { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; } 
+        public virtual DbSet<Birthday> Birthdays { get; set; }
     }
 }
