@@ -67,6 +67,7 @@
     <Build Include="Tables\TempUnverify.sql" />
     <Build Include="Tables\CommandLog.sql" />
     <Build Include="Tables\UnverifyLog.sql" />
+    <Build Include="Tables\Birthdays.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />

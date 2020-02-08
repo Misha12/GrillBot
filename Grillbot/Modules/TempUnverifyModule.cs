@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Exceptions;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
@@ -34,11 +35,11 @@ namespace Grillbot.Modules
                     await ListUnverifyAsync().ConfigureAwait(false);
                     return;
                 case "remove":
-                    if (string.IsNullOrEmpty(reasonAndUserMentions)) return;
+                    if (string.IsNullOrEmpty(reasonAndUserMentions)) throw new ThrowHelpException();
                     await RemoveUnverifyAsync(Convert.ToInt32(reasonAndUserMentions.Split(' ')[0])).ConfigureAwait(false);
                     return;
                 case "update":
-                    if (string.IsNullOrEmpty(reasonAndUserMentions)) return;
+                    if (string.IsNullOrEmpty(reasonAndUserMentions)) throw new ThrowHelpException();
                     var fields = reasonAndUserMentions.Split(' ');
                     if (fields.Length < 2)
                     {
@@ -53,7 +54,7 @@ namespace Grillbot.Modules
             {
                 var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
 
-                if(usersToUnverify.Count > 0)
+                if (usersToUnverify.Count > 0)
                 {
                     var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
                         reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
@@ -81,7 +82,7 @@ namespace Grillbot.Modules
             {
                 var embeds = await UnverifyService.ListPersonsAsync(Context.Message.Author).ConfigureAwait(false);
 
-                foreach(var embed in embeds)
+                foreach (var embed in embeds)
                 {
                     await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
                 }
