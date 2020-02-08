@@ -1,8 +1,8 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
-using Grillbot.Repository.Entity.UnverifyLog;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.UnverifyLog;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
@@ -38,7 +38,7 @@ namespace Grillbot.Services.TempUnverify
 
                 if (isAutoRemove)
                 {
-                    using (var repository = new TempUnverifyRepository(Config))
+                    using (var repository = new GrillBotRepository(Config))
                     {
                         var data = new UnverifyLogRemove()
                         {
@@ -48,7 +48,7 @@ namespace Grillbot.Services.TempUnverify
 
                         data.SetUser(user);
 
-                        repository
+                        repository.TempUnverify
                             .LogOperationAsync(UnverifyLogOperation.AutoRemove, Client.CurrentUser, guild, data)
                             .GetAwaiter()
                             .GetResult();
@@ -76,9 +76,9 @@ namespace Grillbot.Services.TempUnverify
                 FindAndToggleMutedRole(user, guild, false).GetAwaiter().GetResult();
                 RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
 
-                using (var repository = new TempUnverifyRepository(Config))
+                using (var repository = new GrillBotRepository(Config))
                 {
-                    repository.RemoveItem(unverify.ID);
+                    repository.TempUnverify.RemoveItem(unverify.ID);
                 }
 
                 unverify.Dispose();
@@ -88,9 +88,9 @@ namespace Grillbot.Services.TempUnverify
 
         public async Task<string> ReturnAccessAsync(int id, SocketUser fromUser)
         {
-            using (var repository = new TempUnverifyRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                var item = await repository.FindItemByIDAsync(id).ConfigureAwait(false);
+                var item = await repository.TempUnverify.FindItemByIDAsync(id).ConfigureAwait(false);
 
                 if (item == null)
                     throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
@@ -108,7 +108,7 @@ namespace Grillbot.Services.TempUnverify
                 };
                 data.SetUser(user);
 
-                await repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
+                await repository.TempUnverify.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
 
                 ReturnAccess(item);
                 return $"Předčasné vrácení přístupu pro uživatele **{user.GetFullName()}** bylo dokončeno.";

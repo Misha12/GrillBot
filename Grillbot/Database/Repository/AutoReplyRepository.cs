@@ -1,15 +1,15 @@
-﻿using Grillbot.Repository.Entity;
+﻿using Grillbot.Database.Entity;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class AutoReplyRepository : RepositoryBase
     {
-        public AutoReplyRepository(Configuration config) : base(config)
+        public AutoReplyRepository(GrillBotContext context) : base(context)
         {
         }
 
@@ -18,7 +18,7 @@ namespace Grillbot.Repository
             return Context.AutoReply.ToList();
         }
 
-        public async Task SetActiveStatus(int id, bool disabled)
+        public async Task SetActiveStatusAsync(int id, bool disabled)
         {
             var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
 

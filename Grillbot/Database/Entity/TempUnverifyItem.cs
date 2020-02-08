@@ -5,7 +5,7 @@ using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 using System.Threading;
 
-namespace Grillbot.Repository.Entity
+namespace Grillbot.Database.Entity
 {
     [Table("TempUnverify")]
     public class TempUnverifyItem : IDisposable

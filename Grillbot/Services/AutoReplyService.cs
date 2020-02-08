@@ -4,8 +4,8 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
@@ -36,11 +36,9 @@ namespace Grillbot.Modules
         {
             Data.Clear();
 
-            using(var repository = new AutoReplyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                var autoReplyData = repository.GetAllItems();
-                Data.AddRange(autoReplyData);
-
+                Data.AddRange(repository.AutoReply.GetAllItems());
                 BotLogging.Write($"AutoReply module loaded (loaded {Data.Count} templates)");
             }
         }
@@ -116,7 +114,7 @@ namespace Grillbot.Modules
                         .WithValue(string.Join("\n", new[]
                         {
                             $"Odpověď: {item.ReplyMessage}",
-                            $"Status: {(item.IsDisabled ? "Neaktivní" : "Aktivní")}",
+                            $"Status: {statusMessage}",
                             $"Metoda: {item.CompareType}",
                             $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
                             $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}"
@@ -134,9 +132,9 @@ namespace Grillbot.Modules
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
 
-            using(var repository = new AutoReplyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                await repository.SetActiveStatus(id, disabled).ConfigureAwait(false);
+                await repository.AutoReply.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
             }
 
             if (item.IsDisabled == disabled)
@@ -160,9 +158,9 @@ namespace Grillbot.Modules
 
             item.SetCompareType(compareType);
 
-            using(var repository = new AutoReplyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                await repository.AddItemAsync(item).ConfigureAwait(false);
+                await repository.AutoReply.AddItemAsync(item).ConfigureAwait(false);
             }
 
             Data.Add(item);
@@ -175,9 +173,9 @@ namespace Grillbot.Modules
             if (item == null)
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
 
-            using(var repository = new AutoReplyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                await repository.EditItemAsync(id, mustContains, reply, compareType, caseSensitive).ConfigureAwait(false);
+                await repository.AutoReply.EditItemAsync(id, mustContains, reply, compareType, caseSensitive).ConfigureAwait(false);
             }
 
             item.MustContains = mustContains;
@@ -191,9 +189,9 @@ namespace Grillbot.Modules
             if (!Data.Any(o => o.ID == id))
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
 
-            using(var repository = new AutoReplyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                await repository.RemoveItemAsync(id).ConfigureAwait(false);
+                await repository.AutoReply.RemoveItemAsync(id).ConfigureAwait(false);
             }
 
             Data.RemoveAll(o => o.ID == id);

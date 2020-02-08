@@ -1,18 +1,18 @@
-﻿using System;
+﻿using Discord;
+using Discord.Commands;
+using Discord.WebSocket;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
+using Grillbot.Extensions;
+using Grillbot.Models;
+using Grillbot.Services.Config;
+using Grillbot.Services.Config.Models;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
-using Discord;
-using Discord.Commands;
-using Discord.WebSocket;
-using Grillbot.Extensions;
-using Grillbot.Models;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
-using Grillbot.Services.Config;
-using Grillbot.Services.Config.Models;
 
 namespace Grillbot.Services
 {
@@ -41,9 +41,9 @@ namespace Grillbot.Services
 
         public void Init()
         {
-            using (var repository = new EmoteStatsRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                Counter = repository.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
+                Counter = repository.EmoteStats.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
             }
 
             LoggingService.Write($"Emote statistics loaded from database. (Rows: {Counter.Count})");
@@ -61,9 +61,9 @@ namespace Grillbot.Services
                     .Where(o => Changes.Contains(o.Key))
                     .ToDictionary(o => o.Key, o => o.Value);
 
-                using (var repository = new EmoteStatsRepository(Config))
+                using (var repository = new GrillBotRepository(Config))
                 {
-                    repository.UpdateEmoteStatistics(changedData).Wait();
+                    repository.EmoteStats.UpdateEmoteStatistics(changedData).Wait();
                 }
 
                 Changes.Clear();
@@ -274,7 +274,7 @@ namespace Grillbot.Services
 
             try
             {
-                using (var repository = new EmoteStatsRepository(Config))
+                using (var repository = new GrillBotRepository(Config))
                 {
                     foreach (var item in GetMergeList(guild))
                     {
@@ -286,7 +286,7 @@ namespace Grillbot.Services
                         foreach (var source in item.Emotes)
                         {
                             emote.Count += source.Value;
-                            await repository.RemoveEmoteAsync(source.Key).ConfigureAwait(false);
+                            await repository.EmoteStats.RemoveEmoteAsync(source.Key).ConfigureAwait(false);
                             Counter.Remove(source.Key);
                         }
 

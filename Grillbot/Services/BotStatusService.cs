@@ -1,12 +1,12 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
 using Grillbot.Modules;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Hosting;
@@ -92,17 +92,17 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, int>> GetDbReport()
         {
-            using (var repository = new BotDbRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                return await repository.GetTableRowsCount().ConfigureAwait(false);
+                return await repository.BotDb.GetTableRowsCount().ConfigureAwait(false);
             }
         }
 
         public async Task<List<Models.BotStatus.CommandLog>> GetCommandLogsAsync()
         {
-            using (var repository = new LogRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                var data = await repository.GetCommandLogsAsync(5).ConfigureAwait(false);
+                var data = await repository.Log.GetCommandLogsAsync(5).ConfigureAwait(false);
                 var result = new List<Models.BotStatus.CommandLog>();
 
                 foreach (var dbData in data)
@@ -126,9 +126,9 @@ namespace Grillbot.Services
 
         public async Task<Models.BotStatus.CommandLog> GetCommandDetailAsync(string id)
         {
-            using (var repository = new LogRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                var data = await repository.GetCommandLogDetailAsync(Convert.ToInt64(id)).ConfigureAwait(false);
+                var data = await repository.Log.GetCommandLogDetailAsync(Convert.ToInt64(id)).ConfigureAwait(false);
 
                 if (data == null)
                     return null;
@@ -147,7 +147,7 @@ namespace Grillbot.Services
             }
         }
 
-        private async Task SetCommandLogData(Models.BotStatus.CommandLog item, Repository.Entity.CommandLog dbData)
+        private async Task SetCommandLogData(Models.BotStatus.CommandLog item, Database.Entity.CommandLog dbData)
         {
             if (dbData.GuildIDSnowflake != null)
             {

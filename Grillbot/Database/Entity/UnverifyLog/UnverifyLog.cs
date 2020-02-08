@@ -6,7 +6,7 @@ using System.ComponentModel.DataAnnotations.Schema;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Grillbot.Repository.Entity.UnverifyLog
+namespace Grillbot.Database.Entity.UnverifyLog
 {
     [Table("UnverifyLog")]
     public class UnverifyLog

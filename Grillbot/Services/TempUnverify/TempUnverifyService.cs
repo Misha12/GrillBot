@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
@@ -37,9 +37,9 @@ namespace Grillbot.Services.TempUnverify
             int processedCount = 0;
             int waitingCount = 0;
 
-            using (var repository = new TempUnverifyRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                var items = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
+                var items = await repository.TempUnverify.GetAllItems().ToListAsync().ConfigureAwait(false);
 
                 foreach (var item in items)
                 {

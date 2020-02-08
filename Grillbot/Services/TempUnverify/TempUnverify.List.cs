@@ -3,8 +3,8 @@ using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -17,9 +17,9 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<List<BotEmbed>> ListPersonsAsync(SocketUser caller)
         {
-            using (var repository = new TempUnverifyRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                var persons = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
+                var persons = await repository.TempUnverify.GetAllItems().ToListAsync().ConfigureAwait(false);
 
                 if (persons.Count == 0)
                     throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");

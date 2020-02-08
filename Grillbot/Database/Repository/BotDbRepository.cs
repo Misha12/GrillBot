@@ -1,13 +1,12 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class BotDbRepository : RepositoryBase
     {
-        public BotDbRepository(Configuration config) : base(config)
+        public BotDbRepository(GrillBotContext context) : base(context)
         {
         }
 

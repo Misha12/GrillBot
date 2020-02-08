@@ -75,7 +75,7 @@ namespace Grillbot.Modules
         public async Task TeamSearchCleanChannel(string channel)
         {
             var mentionedChannelId = Context.Message.MentionedChannels.First().Id.ToString();
-            var searches = await TeamSearchService.Repository.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync().ConfigureAwait(false);
+            var searches = await TeamSearchService.Repository.TeamSearch.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync().ConfigureAwait(false);
 
             if (searches.Count == 0)
             {
@@ -87,7 +87,7 @@ namespace Grillbot.Modules
             {
                 var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
 
-                await TeamSearchService.Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                await TeamSearchService.Repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
                 await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetShortName()}** smazáno.").ConfigureAwait(false);
             }
 
@@ -100,7 +100,7 @@ namespace Grillbot.Modules
         {
             foreach (var id in searchIds)
             {
-                var search = await TeamSearchService.Repository.FindSearchByID(id).ConfigureAwait(false);
+                var search = await TeamSearchService.Repository.TeamSearch.FindSearchByID(id).ConfigureAwait(false);
 
                 if (search != null)
                 {
@@ -111,7 +111,7 @@ namespace Grillbot.Modules
                     else
                         await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
 
-                    await TeamSearchService.Repository.RemoveSearchAsync(id).ConfigureAwait(false);
+                    await TeamSearchService.Repository.TeamSearch.RemoveSearchAsync(id).ConfigureAwait(false);
                 }
             }
 

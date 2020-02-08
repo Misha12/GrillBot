@@ -8,7 +8,7 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Repository.Entity;
+using Grillbot.Database.Entity;
 using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
@@ -66,7 +66,7 @@ namespace Grillbot.Modules
             if (category == null)
                 return;
 
-            var query = Service.Repository.GetAllSearches();
+            var query = Service.Repository.TeamSearch.GetAllSearches();
             bool isMisc = category == generalCategoryId;
 
             List<TeamSearch> searches;
@@ -100,7 +100,7 @@ namespace Grillbot.Modules
                 if (message == null)
                 {
                     // If message was deleted, remove it from Db
-                    await Service.Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                    await Service.Repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
                     continue;
                 }
 
@@ -156,7 +156,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var search = await Service.Repository.FindSearchByID(rowId).ConfigureAwait(false);
+            var search = await Service.Repository.TeamSearch.FindSearchByID(rowId).ConfigureAwait(false);
             if (search == null)
             {
                 await ReplyAsync("Hledaná zpráva neexistuje.").ConfigureAwait(false);
@@ -168,7 +168,7 @@ namespace Grillbot.Modules
 
             if (userId == Context.User.Id)
             {
-                await Service.Repository.RemoveSearchAsync(rowId).ConfigureAwait(false);
+                await Service.Repository.TeamSearch.RemoveSearchAsync(rowId).ConfigureAwait(false);
                 await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
             }
             else

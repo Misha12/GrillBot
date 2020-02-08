@@ -1,14 +1,13 @@
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Repository.Entity;
-using Grillbot.Services.Config.Models;
+using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class TeamSearchRepository : RepositoryBase
     {
-        public TeamSearchRepository(Configuration config) : base(config)
+        public TeamSearchRepository(GrillBotContext context) : base(context)
         {
         }
 

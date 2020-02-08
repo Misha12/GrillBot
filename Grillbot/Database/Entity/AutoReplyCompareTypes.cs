@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Repository.Entity
+﻿namespace Grillbot.Database.Entity
 {
     public enum AutoReplyCompareTypes
     {

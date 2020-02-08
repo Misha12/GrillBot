@@ -1,15 +1,14 @@
 ﻿using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grillbot.Repository.Entity;
-using Grillbot.Services.Config.Models;
+using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class ChannelStatsRepository : RepositoryBase
     {
-        public ChannelStatsRepository(Configuration config) : base(config)
+        public ChannelStatsRepository(GrillBotContext context) : base(context)
         {
         }
 

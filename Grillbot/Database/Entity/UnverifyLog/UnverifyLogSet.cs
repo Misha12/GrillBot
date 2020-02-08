@@ -1,7 +1,7 @@
 ﻿using System;
 using System.Collections.Generic;
 
-namespace Grillbot.Repository.Entity.UnverifyLog
+namespace Grillbot.Database.Entity.UnverifyLog
 {
     public class UnverifyLogSet : UnverifyLogDataBase
     {

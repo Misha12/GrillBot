@@ -1,14 +1,13 @@
 ﻿using System.Collections.Generic;
 using System.Threading.Tasks;
-using Grillbot.Repository.Entity;
-using Grillbot.Services.Config.Models;
+using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class EmoteStatsRepository : RepositoryBase
     {
-        public EmoteStatsRepository(Configuration config) : base(config)
+        public EmoteStatsRepository(GrillBotContext context) : base(context)
         {
         }
 

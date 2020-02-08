@@ -1,7 +1,7 @@
 using System;
 using System.Collections.Generic;
 
-namespace Grillbot.Repository.Entity
+namespace Grillbot.Database.Entity
 {
     public partial class TeamSearch
     {

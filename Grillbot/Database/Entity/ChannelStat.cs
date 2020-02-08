@@ -2,7 +2,7 @@
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Grillbot.Repository.Entity
+namespace Grillbot.Database.Entity
 {
     [Table("Channelstats")]
     public class ChannelStat

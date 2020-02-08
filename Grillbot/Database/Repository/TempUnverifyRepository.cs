@@ -1,7 +1,6 @@
 ﻿using Discord;
-using Grillbot.Repository.Entity;
-using Grillbot.Repository.Entity.UnverifyLog;
-using Grillbot.Services.Config.Models;
+using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using System;
@@ -9,11 +8,11 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class TempUnverifyRepository : RepositoryBase
     {
-        public TempUnverifyRepository(Configuration config) : base(config)
+        public TempUnverifyRepository(GrillBotContext context) : base(context)
         {
         }
 

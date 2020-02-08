@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Grillbot.Extensions.Discord;
 
-namespace Grillbot.Repository.Entity.UnverifyLog
+namespace Grillbot.Database.Entity.UnverifyLog
 {
     public class UnverifyLogDataBase
     {

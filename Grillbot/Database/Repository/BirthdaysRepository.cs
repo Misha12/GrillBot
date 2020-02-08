@@ -1,18 +1,17 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Repository.Entity;
-using Grillbot.Services.Config.Models;
+using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class BirthdaysRepository : RepositoryBase
     {
-        public BirthdaysRepository(Configuration config) : base(config)
+        public BirthdaysRepository(GrillBotContext context) : base(context)
         {
         }
 

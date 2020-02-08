@@ -1,17 +1,16 @@
 using System.Collections.Generic;
 using System;
-using Grillbot.Repository.Entity;
 using Discord;
 using System.Threading.Tasks;
-using Grillbot.Services.Config.Models;
 using System.Linq;
 using Microsoft.EntityFrameworkCore;
+using Grillbot.Database.Entity;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database.Repository
 {
     public class LogRepository : RepositoryBase
     {
-        public LogRepository(Configuration config) : base(config)
+        public LogRepository(GrillBotContext context) : base(context)
         {
         }
 

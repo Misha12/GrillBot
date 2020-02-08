@@ -4,7 +4,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
-namespace Grillbot.Repository.Entity
+namespace Grillbot.Database.Entity
 {
     [Table("AutoReply")]
     public class AutoReplyItem

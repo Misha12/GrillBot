@@ -1,9 +1,8 @@
-﻿using System.Data.Common;
-using Grillbot.Repository.Entity;
-using Grillbot.Repository.Entity.UnverifyLog;
+﻿using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
 
-namespace Grillbot.Repository
+namespace Grillbot.Database
 {
     public class GrillBotContext : DbContext
     {

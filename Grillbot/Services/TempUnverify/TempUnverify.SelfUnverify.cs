@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Repository;
-using Grillbot.Repository.Entity;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 
@@ -14,7 +14,7 @@ namespace Grillbot.Services.TempUnverify
 
             var unverifyTime = ParseUnverifyTime(time);
             TempUnverifyItem unverify;
-            using (var repository = new TempUnverifyRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
                 unverify = await RemoveAccessAsync(repository, user, unverifyTime, "Self unverify", user, guild, true)
                     .ConfigureAwait(false);

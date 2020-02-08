@@ -2,7 +2,7 @@
 using Newtonsoft.Json;
 using System;
 
-namespace Grillbot.Repository.Entity
+namespace Grillbot.Database.Entity
 {
     public class ChannelOverride
     {

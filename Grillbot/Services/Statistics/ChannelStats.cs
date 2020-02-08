@@ -3,7 +3,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models;
-using Grillbot.Repository;
+using Grillbot.Database;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using System;
@@ -42,9 +42,9 @@ namespace Grillbot.Services.Statistics
 
         public void Init()
         {
-            using (var repository = new ChannelStatsRepository(Config))
+            using(var repository = new GrillBotRepository(Config))
             {
-                var data = repository.GetChannelStatistics().Result;
+                var data = repository.ChannelStats.GetChannelStatistics().Result;
 
                 Counter = data.ToDictionary(o => o.SnowflakeID, o => o.Count);
                 LastMessagesAt = data.ToDictionary(o => o.SnowflakeID, o => o.LastMessageAt);
@@ -79,9 +79,9 @@ namespace Grillbot.Services.Statistics
                 var forUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
                 var lastMessageDates = LastMessagesAt.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
 
-                using (var repository = new ChannelStatsRepository(Config))
+                using(var repository = new GrillBotRepository(Config))
                 {
-                    repository.UpdateChannelboardStatisticsAsync(forUpdate, lastMessageDates).Wait();
+                    repository.ChannelStats.UpdateChannelboardStatisticsAsync(forUpdate, lastMessageDates).Wait();
                 }
 
                 Changes.Clear();

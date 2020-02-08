@@ -12,9 +12,9 @@ using System.Linq;
 using Grillbot.Services.Config;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
-using Grillbot.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
+using Grillbot.Database;
 
 namespace Grillbot.Handlers
 {
@@ -132,9 +132,9 @@ namespace Grillbot.Handlers
                         commandInfo = validCommandInfo;
                 }
 
-                using (var repository = new LogRepository(Config))
+                using(var repository = new GrillBotRepository(Config))
                 {
-                    await repository.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
+                    await repository.Log.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
                         DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);
                 }
             }
