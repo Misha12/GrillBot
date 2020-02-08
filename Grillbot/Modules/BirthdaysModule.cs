@@ -41,8 +41,8 @@ namespace Grillbot.Modules
                         var user = await guild.GetUserFromGuildAsync(birthday.ID).ConfigureAwait(false);
                         var embed = new BotEmbed(Context.User, null, $"Dnes má narozeniny {user.GetFullName()}", user.GetUserAvatarUrl());
 
-                        if (birthdays[0].AcceptAge)
-                            embed.AddField(o => o.WithName("Věk").WithValue(birthdays[0].ComputeAge()));
+                        if (birthday.AcceptAge)
+                            embed.AddField(o => o.WithName("Věk").WithValue(birthday.ComputeAge()));
 
                         await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
                     }
