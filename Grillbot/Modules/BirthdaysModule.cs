@@ -30,7 +30,7 @@ namespace Grillbot.Modules
             {
                 using (var repository = new BirthdaysRepository(Config))
                 {
-                    var birthdays = await repository.GetBirthdaysForDayAsync(DateTime.Today).ConfigureAwait(false);
+                    var birthdays = await repository.GetBirthdaysForDayAsync(DateTime.Today, Context.Guild.Id.ToString()).ConfigureAwait(false);
 
                     if (birthdays.Count == 0)
                         throw new ArgumentException("Dnes nemá nikdo narozeniny.");
@@ -59,7 +59,7 @@ namespace Grillbot.Modules
             {
                 using (var repository = new BirthdaysRepository(Config))
                 {
-                    var exists = await repository.ExistsUserAsync(Context.User).ConfigureAwait(false);
+                    var exists = await repository.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
 
                     if (exists)
                         throw new ArgumentException("Tento uživatel už má uložené datum narození.");
@@ -78,6 +78,7 @@ namespace Grillbot.Modules
                     }
 
                     await ReplyAsync("Datum narození bylo úspěšně přidáno.").ConfigureAwait(false);
+                    await Context.Message.DeleteAsync(new Discord.RequestOptions() { AuditLogReason = "Add Birthday" }).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
@@ -90,12 +91,12 @@ namespace Grillbot.Modules
             {
                 using (var repository = new BirthdaysRepository(Config))
                 {
-                    var exists = await repository.ExistsUserAsync(Context.User).ConfigureAwait(false);
+                    var exists = await repository.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
 
                     if (!exists)
                         throw new ArgumentException("Tento uživatle nemá uložené datum narození.");
 
-                    await repository.RemoveAsync(Context.User).ConfigureAwait(false);
+                    await repository.RemoveAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
                     await ReplyAsync("Datum narození bylo odebráno.").ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);

@@ -32,11 +32,12 @@ namespace Grillbot.Repository
             return entity;
         }
 
-        public async Task<List<Birthday>> GetBirthdaysForDayAsync(DateTime date)
+        public async Task<List<Birthday>> GetBirthdaysForDayAsync(DateTime date, string guildID)
         {
             var result = new List<Birthday>();
 
-            foreach (var birthday in await Context.Birthdays.ToListAsync().ConfigureAwait(false))
+            var query = Context.Birthdays.Where(o => o.GuildID == guildID);
+            foreach (var birthday in await query.ToListAsync().ConfigureAwait(false))
             {
                 if (birthday.Date.Day == date.Day && birthday.Date.Month == date.Month)
                 {
@@ -47,16 +48,16 @@ namespace Grillbot.Repository
             return result;
         }
 
-        public async Task<bool> ExistsUserAsync(SocketUser user)
+        public async Task<bool> ExistsUserAsync(SocketUser user, string guildID)
         {
             var userID = user.Id.ToString();
-            return await Context.Birthdays.AnyAsync(o => o.ID == userID).ConfigureAwait(false);
+            return await Context.Birthdays.AnyAsync(o => o.GuildID == guildID && o.ID == userID).ConfigureAwait(false);
         }
 
-        public async Task RemoveAsync(SocketUser user)
+        public async Task RemoveAsync(SocketUser user, string guildID)
         {
             var userID = user.Id.ToString();
-            var entity = await Context.Birthdays.FirstOrDefaultAsync(o => o.ID == userID).ConfigureAwait(false);
+            var entity = await Context.Birthdays.FirstOrDefaultAsync(o => o.GuildID == guildID && o.ID == userID).ConfigureAwait(false);
 
             if (entity == null) return;
 
