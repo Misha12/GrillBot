@@ -9,7 +9,6 @@ using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using System.Linq;
-using Grillbot.Services.Config;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Extensions.Discord;
@@ -19,7 +18,7 @@ using Grillbot.Services.Initiable;
 
 namespace Grillbot.Handlers
 {
-    public class MessageReceivedHandler : IConfigChangeable, IInitiable, IDisposable
+    public class MessageReceivedHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -30,8 +29,7 @@ namespace Grillbot.Handlers
         private CalledEventStats CalledEventStats { get; }
         private Statistics Statistics { get; }
         private EmoteStats EmoteStats { get; }
-
-        private Configuration Config { get; set; }
+        private Configuration Config { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
             ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats, Statistics statistics,
@@ -46,8 +44,7 @@ namespace Grillbot.Handlers
             CalledEventStats = calledEventStats;
             Statistics = statistics;
             EmoteStats = emoteStats;
-
-            ConfigChanged(config.Value);
+            Config = config.Value;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -158,11 +155,6 @@ namespace Grillbot.Handlers
 
             socketUserMessage = userMessage;
             return true;
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
         }
 
         public void Dispose()

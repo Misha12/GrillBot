@@ -2,7 +2,6 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
@@ -11,10 +10,10 @@ using Microsoft.Extensions.Options;
 
 namespace Grillbot.Handlers
 {
-    public class UserJoinedHandler : IConfigChangeable, IDisposable, IInitiable
+    public class UserJoinedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private Configuration Config { get; set; }
+        private Configuration Config { get; }
         private Logger Logger { get; }
         private CalledEventStats CalledEventStats { get; }
 
@@ -23,8 +22,7 @@ namespace Grillbot.Handlers
             Client = client;
             Logger = logger;
             CalledEventStats = calledEventStats;
-
-            ConfigChanged(config.Value);
+            Config = config.Value;
         }
 
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
@@ -46,11 +44,6 @@ namespace Grillbot.Handlers
         }
 
         #endregion
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
-        }
 
         public void Init()
         {

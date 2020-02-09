@@ -1,13 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Services;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using System;
@@ -18,7 +16,7 @@ using Grillbot.Services.Initiable;
 
 namespace Grillbot.Modules
 {
-    public class AutoReplyService : IConfigChangeable, IInitiable
+    public class AutoReplyService : IInitiable
     {
         private List<AutoReplyItem> Data { get; }
         private BotLoggingService BotLogging { get; }
@@ -86,12 +84,6 @@ namespace Grillbot.Modules
             }
 
             return false;
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
-            Init();
         }
 
         public Embed GetList(SocketUserMessage requestMessage)

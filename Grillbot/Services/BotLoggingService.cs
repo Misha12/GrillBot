@@ -7,17 +7,13 @@ using System.Threading.Tasks;
 using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
-using System.IO;
-using Grillbot.Helpers;
-using Grillbot.Models.Embed;
 using Grillbot.Exceptions;
 
 namespace Grillbot.Services
 {
-    public class BotLoggingService : IConfigChangeable, IDisposable
+    public class BotLoggingService : IDisposable
     {
         public const int MessageSizeForException = 1980;
 
@@ -114,23 +110,6 @@ namespace Grillbot.Services
         public async Task WriteAsync(string message, string source = "BOT")
         {
             await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}").ConfigureAwait(false);
-        }
-
-        public void SendConfigChangeInfo()
-        {
-            var fileInfo = new FileInfo("appsettings.json");
-
-            var embed = new BotEmbed(Client.CurrentUser, Color.Gold, "Konfigurační soubor byl aktualizován")
-                .WithAuthor(Client.CurrentUser)
-                .WithFields(
-                    new EmbedFieldBuilder().WithName("Název").WithValue(fileInfo.Name).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Velikost").WithValue(FormatHelper.FormatAsSize(fileInfo.Length)).WithIsInline(true)
-                );
-
-            if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
-            {
-                channel.SendMessageAsync(embed: embed.Build()).GetAwaiter().GetResult();
-            }
         }
     }
 }

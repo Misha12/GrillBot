@@ -5,40 +5,33 @@ using System;
 using System.Reflection;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
-using Grillbot.Services.Config;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
-using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
-using Grillbot.Services.TempUnverify;
 using Grillbot.Services.Initiable;
 
 namespace Grillbot
 {
-    public class GrillBotService : IConfigChangeable, IHostedService
+    public class GrillBotService : IHostedService
     {
         public static TimeSpan DatabaseSyncPeriod { get; } = TimeSpan.FromSeconds(60);
 
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
-        private Configuration Config { get; set; }
-        private IMessageCache Cache { get; }
-        private TempUnverifyService TempUnverify { get; }
+        private Configuration Config { get; }
         private CalledEventStats CalledEventStats { get; }
         private InitService InitService { get; }
 
-        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IMessageCache cache,
-            IOptions<Configuration> config, TempUnverifyService tempUnverify, CalledEventStats calledEventStats, InitService initService)
+        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
+            CalledEventStats calledEventStats, InitService initService)
         {
             Services = services;
             Client = client;
             Commands = commands;
             Config = config.Value;
-            Cache = cache;
-            TempUnverify = tempUnverify;
             CalledEventStats = calledEventStats;
             InitService = initService;
 
@@ -88,12 +81,6 @@ namespace Grillbot
                 await Client.SetGameAsync(FormatActivity(activityMessage)).ConfigureAwait(false);
             else
                 await Client.SetGameAsync(null).ConfigureAwait(false);
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
-            SetActivity(newConfig.Discord.Activity).Wait();
         }
     }
 }

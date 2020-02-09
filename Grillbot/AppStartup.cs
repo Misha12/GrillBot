@@ -13,13 +13,7 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Primitives;
 using System;
-using System.Collections.Generic;
-using System.IO;
-using System.Linq;
-using System.Reflection;
-using System.Security.Cryptography;
 using Discord.Addons.Interactive;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
@@ -32,8 +26,6 @@ namespace Grillbot
     public class AppStartup
     {
         public IConfiguration Configuration { get; }
-        private byte[] ActualConfigHash { get; set; }
-        private IServiceProvider ServiceProvider { get; set; }
 
         public AppStartup(IConfiguration configuration)
         {
@@ -48,9 +40,6 @@ namespace Grillbot
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             ConfigureDiscord(services);
-
-            ActualConfigHash = GetConfigHash();
-            ChangeToken.OnChange(() => Configuration.GetReloadToken(), OnConfigChange);
 
             services.Configure<Configuration>(Configuration);
             services.AddTransient<OptionsWriter>();
@@ -111,7 +100,6 @@ namespace Grillbot
         public void Configure(IApplicationBuilder app)
         {
             var serviceProvider = app.ApplicationServices;
-            ServiceProvider = serviceProvider;
 
             app
                 .UseMiddleware<LogMiddleware>()
@@ -120,50 +108,6 @@ namespace Grillbot
                 .UseWelcomePage();
 
             serviceProvider.GetRequiredService<InitService>().Init();
-        }
-
-        private void OnConfigChange()
-        {
-            var newHash = GetConfigHash();
-
-            if (!ActualConfigHash.SequenceEqual(newHash))
-            {
-                var changeableTypes = Assembly.GetExecutingAssembly()
-                    .GetTypes().Where(o => o.GetInterface(typeof(IConfigChangeable).FullName) != null);
-
-                var configurationInstance = Configuration.Get<Configuration>();
-                var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
-
-                foreach (var type in changeableTypes)
-                {
-                    var service = (IConfigChangeable)ServiceProvider.GetService(type);
-                    service?.ConfigChanged(configurationInstance);
-                }
-
-                var oldHash = ActualConfigHash;
-                ActualConfigHash = newHash;
-
-                loggingService.Write($"Updated config ({Convert.ToBase64String(oldHash)}) => ({Convert.ToBase64String(newHash)})");
-                loggingService.SendConfigChangeInfo();
-            }
-        }
-
-        private byte[] GetConfigHash()
-        {
-            if (File.Exists("appsettings.json"))
-            {
-                using (var fs = File.OpenRead("appsettings.json"))
-                {
-                    using (var sha1 = SHA1.Create())
-                    {
-                        return sha1.ComputeHash(fs);
-                    }
-                }
-            }
-            else
-            {
-                return new byte[20];
-            }
         }
     }
 }

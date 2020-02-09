@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using System;
@@ -12,11 +11,11 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class EmoteChain : IConfigChangeable
+    public class EmoteChain
     {
         // Dictionary<ChannelID, List<UserID, Message>>
         private Dictionary<ulong, List<Tuple<ulong, string>>> LastMessages { get; }
-        private int ReactLimit { get; set; }
+        private int ReactLimit { get; }
         private SemaphoreSlim Semaphore { get; }
 
         public EmoteChain(IOptions<Configuration> configuration)
@@ -108,20 +107,6 @@ namespace Grillbot.Services
 
             var emoteTemplate = string.Join(" ", emotes.Select(o => o.Value.ToString()));
             return emoteTemplate == context.Message.Content || isUTFEmoji;
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Semaphore.Wait();
-
-            try
-            {
-                ReactLimit = newConfig.EmoteChain_CheckLastCount;
-            }
-            finally
-            {
-                Semaphore.Release();
-            }
         }
     }
 }

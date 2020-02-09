@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
@@ -12,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.TempUnverify
 {
-    public partial class TempUnverifyService : IConfigChangeable, IInitiable
+    public partial class TempUnverifyService : IInitiable
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
@@ -59,11 +58,6 @@ namespace Grillbot.Services.TempUnverify
             }
 
             await Logger.WriteAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}").ConfigureAwait(false);
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
         }
 
         public void Init() { }
