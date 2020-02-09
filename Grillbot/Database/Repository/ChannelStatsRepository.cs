@@ -1,8 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
-using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
 using Grillbot.Database.Entity;
-using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Database.Repository
 {
@@ -12,35 +10,33 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task<List<ChannelStat>> GetChannelStatistics()
-        {
-            return await Context.ChannelStats.ToListAsync().ConfigureAwait(false);
-        }
+        public List<ChannelStat> GetChannelStatistics() => Context.ChannelStats.ToList();
 
-        public async Task UpdateChannelboardStatisticsAsync(Dictionary<ulong, long> dataForUpdate, Dictionary<ulong, DateTime> lastMessageData)
+        public void UpdateChannelboard(List<ChannelStat> updatedItems)
         {
-            foreach(var itemForUpdate in dataForUpdate)
+            foreach(var item in updatedItems)
             {
-                var entity = await Context.ChannelStats.FirstOrDefaultAsync(o => o.ID == itemForUpdate.Key.ToString()).ConfigureAwait(false);
-                if (entity == null)
+                var entity = Context.ChannelStats.FirstOrDefault(o => o.ID == item.ID);
+
+                if(entity == null)
                 {
                     entity = new ChannelStat()
                     {
-                        Count = itemForUpdate.Value,
-                        SnowflakeID = itemForUpdate.Key,
-                        LastMessageAt = lastMessageData[itemForUpdate.Key]
+                        Count = item.Count,
+                        ID = item.ID,
+                        LastMessageAt = item.LastMessageAt
                     };
 
-                    await Context.AddAsync(entity).ConfigureAwait(false);
+                    Context.Set<ChannelStat>().Add(entity);
                 }
                 else
                 {
-                    entity.Count = itemForUpdate.Value;
-                    entity.LastMessageAt = lastMessageData[itemForUpdate.Key];
+                    entity.Count = item.Count;
+                    entity.LastMessageAt = item.LastMessageAt;
                 }
             }
 
-            await Context.SaveChangesAsync().ConfigureAwait(false);
+            Context.SaveChanges();
         }
     }
 }

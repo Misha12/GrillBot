@@ -2,7 +2,6 @@
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Middleware.DiscordUserAuthorization;
-using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
@@ -16,10 +15,10 @@ namespace Grillbot.Controllers
         private DcUserAuthorization Auth { get; }
         private EmoteStats EmoteStats { get; }
 
-        public EmoteStatsController(DcUserAuthorization auth, Statistics stats)
+        public EmoteStatsController(DcUserAuthorization auth, EmoteStats emoteStats)
         {
             Auth = auth;
-            EmoteStats = stats.EmoteStats;
+            EmoteStats = emoteStats;
         }
 
         [HttpGet("getAll/{guildID}")]

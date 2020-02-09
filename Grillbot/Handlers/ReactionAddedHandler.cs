@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Services;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using System;
@@ -14,10 +13,10 @@ namespace Grillbot.Handlers
         private EmoteStats EmoteStats { get; }
         private CalledEventStats CalledEventStats { get; }
 
-        public ReactionAddedHandler(DiscordSocketClient client, Statistics statistics, CalledEventStats calledEventStats)
+        public ReactionAddedHandler(DiscordSocketClient client, EmoteStats emoteStats, CalledEventStats calledEventStats)
         {
             Client = client;
-            EmoteStats = statistics.EmoteStats;
+            EmoteStats = emoteStats;
             CalledEventStats = calledEventStats;
         }
 

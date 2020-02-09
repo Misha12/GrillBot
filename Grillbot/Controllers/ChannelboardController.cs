@@ -13,9 +13,9 @@ namespace Grillbot.Controllers
         private ChannelStats ChannelStats { get; }
         private DiscordSocketClient DiscordClient { get; }
 
-        public ChannelboardController(Statistics statistics, DiscordSocketClient discordClient)
+        public ChannelboardController(ChannelStats channelStats, DiscordSocketClient discordClient)
         {
-            ChannelStats = statistics.ChannelStats;
+            ChannelStats = channelStats;
             DiscordClient = discordClient;
         }
 

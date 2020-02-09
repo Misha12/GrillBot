@@ -12,7 +12,6 @@ using Grillbot.Services.Statistics;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -25,11 +24,11 @@ namespace Grillbot.Modules
         private Logger Logger { get; }
         private EmoteStats EmoteStats { get; }
 
-        public AdminModule(TeamSearchService teamSearchService, Logger logger, Statistics statistics)
+        public AdminModule(TeamSearchService teamSearchService, Logger logger, EmoteStats emoteStats)
         {
             TeamSearchService = teamSearchService;
             Logger = logger;
-            EmoteStats = statistics.EmoteStats;
+            EmoteStats = emoteStats;
         }
 
         [Command("pinpurge")]
@@ -272,7 +271,7 @@ namespace Grillbot.Modules
                 else
                 {
                     await guild.LeaveAsync().ConfigureAwait(false);
-                    await ReplyAsync("Hotovo");
+                    await ReplyAsync("Hotovo").ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }

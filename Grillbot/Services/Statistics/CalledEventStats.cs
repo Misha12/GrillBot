@@ -21,7 +21,7 @@ namespace Grillbot.Services.Statistics
                 Data[eventName]++;
         }
 
-        public Dictionary<string, string> GetValues()
+        public Dictionary<string, string> ToFormatedDictionary()
         {
             return Data
                 .OrderByDescending(o => o.Value)

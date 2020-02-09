@@ -5,8 +5,9 @@ using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Models;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Initiable;
+using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,24 +15,23 @@ using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace Grillbot.Services
+namespace Grillbot.Services.Statistics
 {
-    public class EmoteStats : IConfigChangeable, IDisposable
+    public class EmoteStats : IDisposable, IInitiable
     {
-        public Dictionary<string, EmoteStat> Counter { get; private set; }
-        public HashSet<string> Changes { get; }
-        private Configuration Config { get; set; }
-        private SemaphoreSlim Semaphore { get; }
+        private Dictionary<string, EmoteStat> Counter { get; set; }
+        private HashSet<string> Changes { get; }
+        private Configuration Config { get; }
         private Timer DbSyncTimer { get; }
         private BotLoggingService LoggingService { get; }
+        private static object Locker { get; } = new object();
 
-        public EmoteStats(Configuration configuration, BotLoggingService loggingService)
+        public EmoteStats(IOptions<Configuration> config, BotLoggingService loggingService)
         {
-            ConfigChanged(configuration);
+            Config = config.Value;
 
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
-            Semaphore = new SemaphoreSlim(1, 1);
 
             LoggingService = loggingService;
 
@@ -43,7 +43,7 @@ namespace Grillbot.Services
         {
             using (var repository = new GrillBotRepository(Config))
             {
-                Counter = repository.EmoteStats.GetEmoteStatistics().Result.ToDictionary(o => o.EmoteID, o => o);
+                Counter = repository.EmoteStats.GetEmoteStatistics().ToDictionary(o => o.EmoteID, o => o);
             }
 
             LoggingService.Write($"Emote statistics loaded from database. (Rows: {Counter.Count})");
@@ -51,39 +51,27 @@ namespace Grillbot.Services
 
         private void SyncTimerCallback(object _)
         {
-            Semaphore.Wait();
-
-            try
+            lock (Locker)
             {
                 if (Changes.Count == 0) return;
 
-                var changedData = Counter
-                    .Where(o => Changes.Contains(o.Key))
-                    .ToDictionary(o => o.Key, o => o.Value);
+                var dataForUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
 
                 using (var repository = new GrillBotRepository(Config))
                 {
-                    repository.EmoteStats.UpdateEmoteStatistics(changedData).Wait();
+                    repository.EmoteStats.UpdateEmoteStatistics(dataForUpdate);
                 }
 
                 Changes.Clear();
-                LoggingService.Write($"Emote statistics was synchronized with database. (Updated {changedData.Count} records)");
-            }
-            finally
-            {
-                Semaphore.Release();
+                LoggingService.Write($"Emote statistics was synchronized with database. (Updated {dataForUpdate.Count} records)");
             }
         }
 
         public async Task AnylyzeMessageAndIncrementValuesAsync(SocketCommandContext context)
         {
-            if (context.Guild == null) return;
-
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
+            lock (Locker)
             {
-                var serverEmotes = context.Guild.Emotes;
+                if (context.Guild == null) return;
 
                 var mentionedEmotes = context.Message.Tags
                     .Where(o => o.Type == TagType.Emoji)
@@ -106,25 +94,21 @@ namespace Grillbot.Services
                     else
                     {
                         var emoteId = emote.ToString();
+                        var serverEmotes = context.Guild.Emotes;
 
                         if (serverEmotes.Any(o => o.ToString() == emoteId))
                             IncrementCounter(emoteId, false, context.Guild);
                     }
                 }
             }
-            finally
-            {
-                Semaphore.Release();
-            }
         }
 
         public async Task IncrementFromReaction(SocketReaction reaction)
         {
-            if (!(reaction.Channel is SocketGuildChannel channel)) return;
-
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-            try
+            lock (Locker)
             {
+                if (!(reaction.Channel is SocketGuildChannel channel)) return;
+
                 var serverEmotes = channel.Guild.Emotes;
 
                 if (reaction.Emote is Emoji emoji)
@@ -139,20 +123,13 @@ namespace Grillbot.Services
                         IncrementCounter(reaction.Emote.ToString(), false, channel.Guild);
                 }
             }
-            finally
-            {
-                Semaphore.Release();
-            }
         }
 
         public async Task DecrementFromReaction(SocketReaction reaction)
         {
-            if (!(reaction.Channel is SocketGuildChannel channel)) return;
-
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-            try
+            lock (Locker)
             {
-                var serverEmotes = channel.Guild.Emotes;
+                if (!(reaction.Channel is SocketGuildChannel channel)) return;
 
                 if (reaction.Emote is Emoji emoji)
                 {
@@ -161,14 +138,11 @@ namespace Grillbot.Services
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
+                    var serverEmotes = channel.Guild.Emotes;
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
                         DecrementCounter(emoteId, false);
                 }
-            }
-            finally
-            {
-                Semaphore.Release();
             }
         }
 
@@ -234,18 +208,12 @@ namespace Grillbot.Services
                 return query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt).ToList();
         }
 
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Config = newConfig;
-        }
-
         public void Dispose()
         {
             SyncTimerCallback(null);
 
             Counter.Clear();
             Changes.Clear();
-            Semaphore.Dispose();
             DbSyncTimer.Dispose();
         }
 
@@ -270,9 +238,7 @@ namespace Grillbot.Services
 
         public async Task MergeEmotesAsync(SocketGuild guild)
         {
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
+            lock (Locker)
             {
                 using (var repository = new GrillBotRepository(Config))
                 {
@@ -286,7 +252,7 @@ namespace Grillbot.Services
                         foreach (var source in item.Emotes)
                         {
                             emote.Count += source.Value;
-                            await repository.EmoteStats.RemoveEmoteAsync(source.Key).ConfigureAwait(false);
+                            repository.EmoteStats.RemoveEmote(source.Key);
                             Counter.Remove(source.Key);
                         }
 
@@ -294,10 +260,8 @@ namespace Grillbot.Services
                     }
                 }
             }
-            finally
-            {
-                Semaphore.Release();
-            }
         }
+
+        public async Task InitAsync() { }
     }
 }

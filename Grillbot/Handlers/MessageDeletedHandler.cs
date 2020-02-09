@@ -12,15 +12,15 @@ namespace Grillbot.Handlers
 {
     public class MessageDeletedHandler : IDisposable, IInitiable
     {
-        private Statistics Statistics { get; }
+        private ChannelStats Statistics { get; }
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
         private CalledEventStats CalledEventStats { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, Statistics statistics, Logger logger, CalledEventStats calledEventStats)
+        public MessageDeletedHandler(DiscordSocketClient client, ChannelStats channelStats, Logger logger, CalledEventStats calledEventStats)
         {
             Client = client;
-            Statistics = statistics;
+            Statistics = channelStats;
             Logger = logger;
             CalledEventStats = calledEventStats;
         }
@@ -40,7 +40,7 @@ namespace Grillbot.Handlers
             if (message.HasValue && !message.Value.Author.IsUser()) return;
 
             if (message.Value is SocketUserMessage)
-                await Statistics.ChannelStats.DecrementCounterAsync(channel).ConfigureAwait(false);
+                await Statistics.DecrementCounterAsync(channel).ConfigureAwait(false);
 
             await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);
         }

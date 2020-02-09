@@ -4,92 +4,75 @@ using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Database;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Grillbot.Database.Entity;
+using Microsoft.Extensions.Options;
+using Grillbot.Services.Initiable;
 
 namespace Grillbot.Services.Statistics
 {
-    public class ChannelStats : IConfigChangeable, IDisposable
+    public class ChannelStats : IDisposable, IInitiable
     {
         public const int ChannelboardTakeTop = 10;
         public const int TokenLength = 20;
 
-        public Dictionary<ulong, long> Counter { get; private set; }
-        private Configuration Config { get; set; }
+        private Dictionary<ulong, ChannelStat> Counters { get; }
+        private static object Locker { get; } = new object();
+
+        private Configuration Config { get; }
         private Timer DbSyncTimer { get; set; }
         private HashSet<ulong> Changes { get; }
-        private SemaphoreSlim Semaphore { get; }
         private List<ChannelboardWebToken> WebTokens { get; }
-        private Dictionary<ulong, DateTime> LastMessagesAt { get; set; }
         private BotLoggingService LoggingService { get; }
 
-        public ChannelStats(Configuration config, BotLoggingService loggingService)
+        public ChannelStats(IOptions<Configuration> config, BotLoggingService loggingService)
         {
-            Counter = new Dictionary<ulong, long>();
             Changes = new HashSet<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
-            LastMessagesAt = new Dictionary<ulong, DateTime>();
-            LoggingService = loggingService;
+            Counters = new Dictionary<ulong, ChannelStat>();
 
-            Reload(config);
-            Semaphore = new SemaphoreSlim(1, 1);
+            LoggingService = loggingService;
+            Config = config.Value;
         }
 
         public void Init()
         {
-            using(var repository = new GrillBotRepository(Config))
+            using (var repository = new GrillBotRepository(Config))
             {
-                var data = repository.ChannelStats.GetChannelStatistics().Result;
+                var data = repository.ChannelStats.GetChannelStatistics();
 
-                Counter = data.ToDictionary(o => o.SnowflakeID, o => o.Count);
-                LastMessagesAt = data.ToDictionary(o => o.SnowflakeID, o => o.LastMessageAt);
+                foreach (var stat in data)
+                {
+                    Counters.Add(stat.SnowflakeID, stat);
+                }
             }
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
-
-            Reload(Config);
-            LoggingService.Write($"Channel statistics loaded from database. (Rows: {Counter.Count})");
-        }
-
-        private void Reload(Configuration config)
-        {
-            Config = config;
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Reload(newConfig);
+            LoggingService.Write($"Channel statistics loaded from database. (Rows: {Counters.Count})");
         }
 
         private void SyncTimerCallback(object _)
         {
-            Semaphore.Wait();
-
-            try
+            lock (Locker)
             {
                 CleanInvalidWebTokens();
 
                 if (Changes.Count == 0) return;
-                var forUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
-                var lastMessageDates = LastMessagesAt.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
 
-                using(var repository = new GrillBotRepository(Config))
+                var itemsForUpdate = Counters.Where(o => Changes.Contains(o.Key)).Select(o => o.Value).ToList();
+                using (var repository = new GrillBotRepository(Config))
                 {
-                    repository.ChannelStats.UpdateChannelboardStatisticsAsync(forUpdate, lastMessageDates).Wait();
+                    repository.ChannelStats.UpdateChannelboard(itemsForUpdate);
                 }
 
                 Changes.Clear();
-                LoggingService.Write($"Channel statistics was synchronized with database. (Updated {forUpdate.Count} records)");
-            }
-            finally
-            {
-                Semaphore.Release();
+                LoggingService.Write($"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
             }
         }
 
@@ -105,24 +88,17 @@ namespace Grillbot.Services.Statistics
         {
             if (channel is IPrivateChannel) return;
 
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-            try
+            lock (Locker)
             {
-                if (!Counter.ContainsKey(channel.Id))
-                    Counter.Add(channel.Id, 1);
-                else
-                    Counter[channel.Id]++;
+                if (!Counters.ContainsKey(channel.Id))
+                    Counters.Add(channel.Id, new ChannelStat() { SnowflakeID = channel.Id });
+
+                var counterForChannel = Counters[channel.Id];
+
+                counterForChannel.Count++;
+                counterForChannel.LastMessageAt = DateTime.Now;
 
                 Changes.Add(channel.Id);
-
-                if (!LastMessagesAt.ContainsKey(channel.Id))
-                    LastMessagesAt.Add(channel.Id, DateTime.MinValue);
-
-                LastMessagesAt[channel.Id] = DateTime.Now;
-            }
-            finally
-            {
-                Semaphore.Release();
             }
         }
 
@@ -130,34 +106,35 @@ namespace Grillbot.Services.Statistics
         {
             if (channel is IPrivateChannel) return;
 
-            await Semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
+            lock (Locker)
             {
-                if (!Counter.ContainsKey(channel.Id)) return;
+                if (!Counters.ContainsKey(channel.Id)) return;
 
-                Counter[channel.Id]--;
+                var counter = Counters[channel.Id];
 
-                if (Counter[channel.Id] < 0)
-                    Counter[channel.Id] = 0;
+                counter.Count--;
+                if (counter.Count < 0)
+                    counter.Count = 0;
 
                 Changes.Add(channel.Id);
             }
-            finally
-            {
-                Semaphore.Release();
-            }
+        }
+
+        public List<ChannelStat> GetAllValues()
+        {
+            return Counters.Values.OrderByDescending(o => o.Count).ToList();
         }
 
         public Tuple<int, long, DateTime> GetValue(ulong channelID)
         {
-            if (!Counter.ContainsKey(channelID))
+            if (!Counters.ContainsKey(channelID))
                 return new Tuple<int, long, DateTime>(0, 0, DateTime.MinValue);
 
-            var orderedData = Counter.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
-            var keyPosition = orderedData.Keys.ToList().FindIndex(o => o == channelID) + 1;
-            var lastMessageAt = LastMessagesAt.ContainsKey(channelID) ? LastMessagesAt[channelID] : DateTime.MinValue;
-            return new Tuple<int, long, DateTime>(keyPosition, orderedData[channelID], lastMessageAt);
+            var orderedData = Counters.OrderByDescending(o => o.Value.Count).ToDictionary(o => o.Key, o => o.Value);
+            var position = orderedData.Keys.ToList().FindIndex(o => o == channelID) + 1;
+            var channel = Counters[channelID];
+
+            return new Tuple<int, long, DateTime>(position, channel.Count, channel.LastMessageAt);
         }
 
         public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
@@ -179,23 +156,22 @@ namespace Grillbot.Services.Statistics
             var tokenData = WebTokens.Find(o => o.Token == token);
 
             webToken = tokenData;
-            return Counter
+            return Counters
                 .Where(o => CanUserToChannel(client, o.Key, tokenData.UserID))
                 .Select(o => GetChannelboardItem(o, client))
                 .OrderByDescending(o => o.Count)
                 .ToList();
         }
 
-        private ChannelboardItem GetChannelboardItem(KeyValuePair<ulong, long> channelCountPair, DiscordSocketClient client)
+        private ChannelboardItem GetChannelboardItem(KeyValuePair<ulong, ChannelStat> channelCountPair, DiscordSocketClient client)
         {
             if (!(client.GetChannel(channelCountPair.Key) is ISocketMessageChannel channel)) return null;
-            var lastMessageAt = LastMessagesAt.ContainsKey(channel.Id) ? LastMessagesAt[channel.Id] : DateTime.MinValue;
 
             return new ChannelboardItem()
             {
                 ChannelName = channel.Name,
-                Count = channelCountPair.Value,
-                LastMessageAt = lastMessageAt
+                Count = channelCountPair.Value.Count,
+                LastMessageAt = channelCountPair.Value.LastMessageAt
             };
         }
 
@@ -214,8 +190,8 @@ namespace Grillbot.Services.Statistics
         {
             if (disposing)
             {
+                SyncTimerCallback(null);
                 DbSyncTimer.Dispose();
-                Semaphore.Dispose();
             }
         }
 
@@ -223,6 +199,9 @@ namespace Grillbot.Services.Statistics
         {
             Dispose(true);
         }
+
         #endregion
+
+        public async Task InitAsync() { }
     }
 }

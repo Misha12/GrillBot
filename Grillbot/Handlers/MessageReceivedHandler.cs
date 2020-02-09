@@ -24,23 +24,28 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
-        private Statistics Statistics { get; }
+        private ChannelStats ChannelStats { get; }
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private CalledEventStats CalledEventStats { get; }
+        private Statistics Statistics { get; }
+        private EmoteStats EmoteStats { get; }
 
         private Configuration Config { get; set; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            Statistics statistics, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats)
+            ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats, Statistics statistics,
+            EmoteStats emoteStats)
         {
             Client = client;
             Commands = commands;
             Services = services;
-            Statistics = statistics;
+            ChannelStats = channelStats;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
             CalledEventStats = calledEventStats;
+            Statistics = statistics;
+            EmoteStats = emoteStats;
 
             ConfigChanged(config.Value);
         }
@@ -93,10 +98,10 @@ namespace Grillbot.Handlers
                 }
                 else
                 {
-                    await Statistics.ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
+                    await ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
                     await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
                     await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
-                    await Statistics.EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
+                    await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
                 }
             }
             finally
@@ -131,7 +136,7 @@ namespace Grillbot.Handlers
                         commandInfo = validCommandInfo;
                 }
 
-                using(var repository = new GrillBotRepository(Config))
+                using (var repository = new GrillBotRepository(Config))
                 {
                     await repository.Log.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
                         DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);

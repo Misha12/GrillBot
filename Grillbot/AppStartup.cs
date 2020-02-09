@@ -101,7 +101,9 @@ namespace Grillbot
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
                 .AddSingleton<CalledEventStats>()
-                .AddSingleton<InitService>();
+                .AddSingleton<InitService>()
+                .AddSingleton<ChannelStats>()
+                .AddSingleton<EmoteStats>();
 
             services.AddHostedService<GrillBotService>();
         }
@@ -118,7 +120,6 @@ namespace Grillbot
                 .UseWelcomePage();
 
             serviceProvider.GetRequiredService<InitService>().Init();
-            serviceProvider.GetRequiredService<Statistics>().Init();
         }
 
         private void OnConfigChange()

@@ -94,7 +94,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var data = CalledEventStats.GetValues();
+                var data = CalledEventStats.ToFormatedDictionary();
 
                 if (data.Count == 0)
                     throw new ArgumentException("Ještě nebyla zavolána žádná událost.");

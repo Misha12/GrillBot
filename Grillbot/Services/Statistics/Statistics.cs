@@ -8,27 +8,16 @@ using System.Linq;
 
 namespace Grillbot.Services.Statistics
 {
-    public class Statistics : IConfigChangeable, IDisposable
+    public class Statistics
     {
         public Dictionary<string, StatisticsData> Data { get; }
         public double AvgReactTime { get; private set; }
-        public ChannelStats ChannelStats { get; }
-        public EmoteStats EmoteStats { get; }
+        private Configuration Config { get; }
 
-        private Configuration Config { get; set; }
-
-        public Statistics(IOptions<Configuration> configuration, BotLoggingService loggingService)
+        public Statistics(IOptions<Configuration> configuration)
         {
             Data = new Dictionary<string, StatisticsData>();
-            ChannelStats = new ChannelStats(configuration.Value, loggingService);
-            EmoteStats = new EmoteStats(configuration.Value, loggingService);
             Config = configuration.Value;
-        }
-
-        public void Init()
-        {
-            ChannelStats.Init();
-            EmoteStats.Init();
         }
 
         public void LogCall(string command, long elapsedTime)
@@ -53,24 +42,5 @@ namespace Grillbot.Services.Statistics
         }
 
         public TimeSpan GetAvgReactTime() => TimeSpan.FromMilliseconds(AvgReactTime);
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            ChannelStats.ConfigChanged(newConfig);
-            Config = newConfig;
-        }
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                ChannelStats.Dispose();
-            }
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
@@ -11,20 +12,17 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task<List<EmoteStat>> GetEmoteStatistics()
-        {
-            return await Context.EmoteStats.ToListAsync().ConfigureAwait(false);
-        }
+        public List<EmoteStat> GetEmoteStatistics() => Context.EmoteStats.ToList();
 
-        public async Task UpdateEmoteStatistics(Dictionary<string, EmoteStat> changedData)
+        public void UpdateEmoteStatistics(Dictionary<string, EmoteStat> changedData)
         {
             foreach(var changedItem in changedData.Values)
             {
-                var entity = await Context.EmoteStats.FirstOrDefaultAsync(o => o.EmoteID == changedItem.EmoteID).ConfigureAwait(false);
+                var entity = Context.EmoteStats.FirstOrDefault(o => o.EmoteID == changedItem.EmoteID);
 
                 if(entity == null)
                 {
-                    await Context.EmoteStats.AddAsync(changedItem).ConfigureAwait(false);
+                    Context.EmoteStats.Add(changedItem);
                 }
                 else
                 {
@@ -33,18 +31,18 @@ namespace Grillbot.Database.Repository
                 }
             }
 
-            await Context.SaveChangesAsync().ConfigureAwait(false);
+            Context.SaveChanges();
         }
 
-        public async Task RemoveEmoteAsync(string emoteId)
+        public void RemoveEmote(string emoteId)
         {
-            var entity = await Context.EmoteStats.FirstOrDefaultAsync(o => o.EmoteID == emoteId).ConfigureAwait(false);
+            var entity = Context.EmoteStats.FirstOrDefault(o => o.EmoteID == emoteId);
 
             if (entity == null)
                 return;
 
             Context.Remove(entity);
-            await Context.SaveChangesAsync().ConfigureAwait(false);
+            Context.SaveChanges();
         }
     }
 }

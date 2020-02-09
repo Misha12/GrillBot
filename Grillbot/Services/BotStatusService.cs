@@ -21,25 +21,24 @@ namespace Grillbot.Services
 {
     public class BotStatusService
     {
-        private Statistics.Statistics Statistics { get; }
+        private ChannelStats ChannelStats { get; }
         private IHostingEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
         private AutoReplyService AutoReplyService { get; }
         private Configuration Config { get; }
-        private CalledEventStats CalledEventStats { get; }
         private DiscordSocketClient Client { get; }
+        private Statistics.Statistics Statistics { get; }
 
-        public BotStatusService(Statistics.Statistics statistics, IHostingEnvironment hostingEnvironment, Logger.Logger logger,
-            AutoReplyService autoReplyService, IOptions<Configuration> config, CalledEventStats calledEventStats,
-            DiscordSocketClient client)
+        public BotStatusService(ChannelStats channelStats, IHostingEnvironment hostingEnvironment, Logger.Logger logger,
+            AutoReplyService autoReplyService, IOptions<Configuration> config, DiscordSocketClient client, Statistics.Statistics statistics)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
             AutoReplyService = autoReplyService;
             Config = config.Value;
-            CalledEventStats = calledEventStats;
             Client = client;
+            ChannelStats = channelStats;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -49,7 +48,7 @@ namespace Grillbot.Services
             return new SimpleBotStatus()
             {
                 RamUsage = FormatHelper.FormatAsSize(process.WorkingSet64),
-                ActiveWebTokensCount = Statistics.ChannelStats.GetActiveWebTokensCount(),
+                ActiveWebTokensCount = ChannelStats.GetActiveWebTokensCount(),
                 InstanceType = GetInstanceType(),
                 StartTime = process.StartTime,
                 ThreadStatus = GetThreadStatus(process),
@@ -87,8 +86,6 @@ namespace Grillbot.Services
         }
 
         public List<AutoReplyItem> GetAutoReplyItems() => AutoReplyService.GetItems();
-
-        public Dictionary<string, string> GetCalledEventStats() => CalledEventStats.GetValues();
 
         public async Task<Dictionary<string, int>> GetDbReport()
         {

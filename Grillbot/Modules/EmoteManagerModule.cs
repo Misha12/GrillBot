@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
 using Grillbot.Models.Embed;
-using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
@@ -18,9 +17,9 @@ namespace Grillbot.Modules
     {
         private EmoteStats EmoteStats { get; }
 
-        public EmoteManagerModule(Statistics statistics)
+        public EmoteManagerModule(EmoteStats emoteStats)
         {
-            EmoteStats = statistics.EmoteStats;
+            EmoteStats = emoteStats;
         }
 
         [Command("all")]
