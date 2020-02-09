@@ -6,7 +6,7 @@ namespace Grillbot.Database
 {
     public class GrillBotContext : DbContext
     {
-        private string ConnectionString { get; set; }
+        private string ConnectionString { get; }
 
         public GrillBotContext(string connectionString)
         {
@@ -25,7 +25,7 @@ namespace Grillbot.Database
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<CommandLog> CommandLog { get; set; }
-        public virtual DbSet<UnverifyLog> UnverifyLog { get; set; } 
+        public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
         public virtual DbSet<Birthday> Birthdays { get; set; }
     }
 }

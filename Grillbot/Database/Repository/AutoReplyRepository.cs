@@ -1,5 +1,4 @@
 ﻿using Grillbot.Database.Entity;
-using Grillbot.Services.Config.Models;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;

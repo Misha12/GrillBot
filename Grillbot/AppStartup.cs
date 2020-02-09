@@ -21,7 +21,6 @@ using System.Linq;
 using System.Reflection;
 using System.Security.Cryptography;
 using Discord.Addons.Interactive;
-using Grillbot.Services.Auth;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
@@ -57,7 +56,6 @@ namespace Grillbot
             services.AddTransient<OptionsWriter>();
 
             services
-                .AddSingleton<AuthService>()
                 .AddTransient<DcUserAuthorization>();
         }
 
