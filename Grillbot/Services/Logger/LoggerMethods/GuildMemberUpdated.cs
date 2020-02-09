@@ -88,7 +88,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 .SetAuthor(user)
                 .SetFooter($"UserID: {user.Id}");
 
-            await SendEmbedAsync(logEmbedBuilder).ConfigureAwait(false);
+            await SendEmbedToAdminChannel(logEmbedBuilder).ConfigureAwait(false);
         }
     }
 }

@@ -31,9 +31,9 @@ namespace Grillbot.Services.Logger.LoggerMethods
             TopStack = stack;
         }
 
-        protected ISocketMessageChannel GetLoggerRoom()
+        protected ISocketMessageChannel GetLoggerRoom(bool adminChannel = false)
         {
-            var id = Convert.ToUInt64(Config.Discord.LoggerRoomID);
+            var id = !adminChannel ? Convert.ToUInt64(Config.Discord.LoggerRoomID) : Config.Discord.AdminChannelSnowflakeID;
             var channel = Client.GetChannel(id);
 
             if (channel == null)
@@ -49,6 +49,12 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             TopStack?.Add(result);
             return result;
+        }
+
+        protected async Task<RestUserMessage> SendEmbedToAdminChannel(LogEmbedBuilder embedBuilder)
+        {
+            var channel = GetLoggerRoom(true);
+            return await channel.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
     }
 }
