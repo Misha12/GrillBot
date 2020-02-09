@@ -3,7 +3,6 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
@@ -19,7 +18,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
     public class MessageDeleted : LoggerMethodBase
     {
         public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
-            BotLoggingService loggingService, TopStack stack) : base(client, config, messageCache, httpClient, loggingService, stack)
+            BotLoggingService loggingService) : base(client, config, messageCache, httpClient, loggingService)
         {
         }
 
@@ -117,13 +116,11 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 }
 
                 var loggerChannel = GetLoggerRoom();
-                var result = await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build()).ConfigureAwait(false);
+                await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build()).ConfigureAwait(false);
                 foreach (var stream in streams)
                 {
                     await loggerChannel.SendFileAsync(stream.Item2, stream.Item1).ConfigureAwait(false);
                 }
-
-                TopStack.Add(result, message.Author.GetShortName());
             }
             finally
             {

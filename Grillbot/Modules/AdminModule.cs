@@ -174,36 +174,6 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("getTopStackInfo")]
-        [Summary("Posledních pet událostí v dané kategorii zapsané do loggeru.")]
-        public async Task GetTopStackInfo(string stackKey)
-        {
-            await DoAsync(async () =>
-            {
-                var stackInfo = Logger.GetTopStack(stackKey, false);
-
-                if (stackInfo == null)
-                    throw new ArgumentException($"Sekce `{stackKey.PreventMassTags()}` neexistuje.");
-
-                var embed = new BotEmbed(Context.Message.Author);
-
-                foreach (var item in stackInfo.Data)
-                {
-                    embed.AddField(o =>
-                    {
-                        o.WithName(item.Item1.ToLocaleDatetime());
-
-                        if (!string.IsNullOrEmpty(item.Item2))
-                            o.WithValue($"{item.Item2} - {item.Item3}");
-                        else
-                            o.WithValue(item.Item3);
-                    });
-                }
-
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
         #region EmoteManager
 
         [Command("emoteMergeList")]
@@ -241,39 +211,5 @@ namespace Grillbot.Modules
         }
 
         #endregion
-
-        [Command("guildList")]
-        public async Task GetGuildListAsync()
-        {
-            await DoAsync(async () =>
-            {
-                foreach (var guild in Context.Client.Guilds)
-                {
-                    await guild.SyncGuildAsync().ConfigureAwait(false);
-                    await ReplyAsync($"{guild.Name} - {guild.Id}").ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
-        }
-
-        [Command("leaveServer")]
-        public async Task LeaveServerAsync(string guildID)
-        {
-            await DoAsync(async () =>
-            {
-                if (Context.Guild.Id.ToString() == guildID)
-                    throw new ArgumentException("Nelze leavnout tento server");
-
-                var guild = Context.Client.GetGuild(Convert.ToUInt64(guildID));
-                if (guild == null)
-                {
-                    throw new ArgumentException("Takový server neznám.");
-                }
-                else
-                {
-                    await guild.LeaveAsync().ConfigureAwait(false);
-                    await ReplyAsync("Hotovo").ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
-        }
     }
 }

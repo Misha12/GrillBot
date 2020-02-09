@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
@@ -20,7 +19,6 @@ namespace Grillbot.Services.Logger
         private IMessageCache MessageCache { get; }
         private BotLoggingService LoggingService { get; }
 
-        public Dictionary<string, TopStack> EventsTopStack { get; }
         public Dictionary<string, uint> Counters { get; }
 
         public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, BotLoggingService loggingService)
@@ -31,15 +29,13 @@ namespace Grillbot.Services.Logger
             LoggingService = loggingService;
 
             Counters = new Dictionary<string, uint>();
-            EventsTopStack = new Dictionary<string, TopStack>();
 
             HttpClient = new HttpClient();
         }
 
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            var stack = GetTopStack("GuildMemberUpdated");
-            var method = new GuildMemberUpdated(Client, Config, stack);
+            var method = new GuildMemberUpdated(Client, Config);
             var result = await method.ProcessAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
 
             if (result)
@@ -48,8 +44,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var stack = GetTopStack("MessageDeleted");
-            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, LoggingService, stack);
+            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, LoggingService);
             await method.ProcessAsync(message, channel).ConfigureAwait(false);
 
             IncrementEventHandle("MessageDeleted");
@@ -57,8 +52,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageEdited(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
-            var stack = GetTopStack("MessageEdited");
-            var method = new MessageEdited(Client, Config, MessageCache, stack);
+            var method = new MessageEdited(Client, Config, MessageCache);
             var result = await method.ProcessAsync(messageBefore, messageAfter, channel).ConfigureAwait(false);
 
             if (result)
@@ -67,8 +61,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnUserJoined(SocketGuildUser user)
         {
-            var stack = GetTopStack("UserJoined");
-            var method = new UserJoined(Client, Config, stack);
+            var method = new UserJoined(Client, Config);
             await method.ProcessAsync(user).ConfigureAwait(false);
 
             IncrementEventHandle("UserJoined");
@@ -76,8 +69,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnUserLeft(SocketGuildUser user)
         {
-            var stack = GetTopStack("UserLeft");
-            var method = new UserLeft(Client, Config, stack);
+            var method = new UserLeft(Client, Config);
             await method.ProcessAsync(user).ConfigureAwait(false);
 
             IncrementEventHandle("UserLeft");
@@ -91,33 +83,10 @@ namespace Grillbot.Services.Logger
                 Counters[name]++;
         }
 
-        public TopStack GetTopStack(string eventName, bool createNew = true)
-        {
-            if (!EventsTopStack.ContainsKey(eventName))
-            {
-                if (!createNew)
-                    return null;
-
-                var stack = new TopStack();
-                EventsTopStack.Add(eventName, stack);
-
-                return stack;
-            }
-
-            return EventsTopStack[eventName];
-        }
-
         public void Dispose()
         {
             HttpClient.Dispose();
             Counters.Clear();
-
-            foreach (var stack in EventsTopStack)
-            {
-                stack.Value.Clear();
-            }
-
-            EventsTopStack.Clear();
         }
     }
 }

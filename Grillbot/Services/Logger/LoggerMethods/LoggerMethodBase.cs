@@ -1,7 +1,6 @@
 ﻿using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
-using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
@@ -18,17 +17,15 @@ namespace Grillbot.Services.Logger.LoggerMethods
         protected IMessageCache MessageCache { get; }
         protected HttpClient HttpClient { get; }
         protected BotLoggingService LoggingService { get; }
-        protected TopStack TopStack { get; }
 
         protected LoggerMethodBase(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
-            BotLoggingService loggingService, TopStack stack)
+            BotLoggingService loggingService)
         {
             Client = client;
             Config = config;
             MessageCache = messageCache;
             HttpClient = httpClient;
             LoggingService = loggingService;
-            TopStack = stack;
         }
 
         protected ISocketMessageChannel GetLoggerRoom(bool adminChannel = false)
@@ -45,10 +42,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         protected async Task<RestUserMessage> SendEmbedAsync(LogEmbedBuilder embedBuilder)
         {
             var loggerRoom = GetLoggerRoom();
-            var result = await loggerRoom.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
-
-            TopStack?.Add(result);
-            return result;
+            return await loggerRoom.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
         protected async Task<RestUserMessage> SendEmbedToAdminChannel(LogEmbedBuilder embedBuilder)
