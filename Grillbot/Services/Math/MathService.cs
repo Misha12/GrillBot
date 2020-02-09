@@ -2,28 +2,27 @@
 using Grillbot.Models;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.Math
 {
-    public class MathService : IConfigChangeable
+    public class MathService : IInitiable
     {
         private List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
-
-        private Configuration Config { get; set; }
+        private Configuration Config { get; }
 
         public MathService(IOptions<Configuration> config)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
-
-            InitSessions();
         }
 
         private void InitSessions()
@@ -121,9 +120,10 @@ namespace Grillbot.Services.Math
             }
         }
 
-        public void ConfigChanged(Configuration newConfig)
+        public async Task InitAsync() { }
+
+        public void Init()
         {
-            Config = newConfig;
             InitSessions();
         }
     }

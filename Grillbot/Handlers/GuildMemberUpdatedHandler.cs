@@ -1,11 +1,13 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class GuildMemberUpdatedHandler : IHandle
+    public class GuildMemberUpdatedHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
@@ -31,5 +33,12 @@ namespace Grillbot.Handlers
         {
             Client.GuildMemberUpdated -= OnGuildMemberUpdatedAsync;
         }
+
+        public void Init()
+        {
+            Client.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

@@ -14,10 +14,11 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Grillbot.Services.Initiable;
 
 namespace Grillbot.Modules
 {
-    public class AutoReplyService : IConfigChangeable
+    public class AutoReplyService : IConfigChangeable, IInitiable
     {
         private List<AutoReplyItem> Data { get; }
         private BotLoggingService BotLogging { get; }
@@ -28,11 +29,9 @@ namespace Grillbot.Modules
             Data = new List<AutoReplyItem>();
             BotLogging = botLogging;
             Config = configuration.Value;
-
-            Init();
         }
 
-        private void Init()
+        public void Init()
         {
             Data.Clear();
 
@@ -209,5 +208,7 @@ namespace Grillbot.Modules
                 .ThenBy(o => o.ID)
                 .ToList();
         }
+
+        public async Task InitAsync() { }
     }
 }

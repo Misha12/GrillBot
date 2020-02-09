@@ -1,12 +1,14 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Services;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class ReactionRemovedHandler : IHandle
+    public class ReactionRemovedHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private EmoteStats EmoteStats { get; }
@@ -17,8 +19,6 @@ namespace Grillbot.Handlers
             Client = client;
             EmoteStats = statistics.EmoteStats;
             CalledEventStats = calledEventStats;
-
-            Client.ReactionRemoved += OnReactionRemovedAsync;
         }
 
         private async Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
@@ -31,5 +31,12 @@ namespace Grillbot.Handlers
         {
             Client.ReactionRemoved -= OnReactionRemovedAsync;
         }
+
+        public void Init()
+        {
+            Client.ReactionRemoved += OnReactionRemovedAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

@@ -1,13 +1,15 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class MessageEditedHandler : IHandle
+    public class MessageEditedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
@@ -18,8 +20,6 @@ namespace Grillbot.Handlers
             Client = client;
             Logger = logger;
             CalledEventStats = calledEventStats;
-
-            Client.MessageUpdated += OnMessageUpdatedAsync;
         }
 
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
@@ -35,5 +35,12 @@ namespace Grillbot.Handlers
         {
             Client.MessageUpdated -= OnMessageUpdatedAsync;
         }
+
+        public void Init()
+        {
+            Client.MessageUpdated += OnMessageUpdatedAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

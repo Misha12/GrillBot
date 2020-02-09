@@ -1,14 +1,16 @@
-﻿using System.Collections.Generic;
+﻿using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 
 namespace Grillbot.Handlers
 {
-    public class MessageDeletedHandler : IHandle
+    public class MessageDeletedHandler : IDisposable, IInitiable
     {
         private Statistics Statistics { get; }
         private DiscordSocketClient Client { get; }
@@ -21,9 +23,6 @@ namespace Grillbot.Handlers
             Statistics = statistics;
             Logger = logger;
             CalledEventStats = calledEventStats;
-
-            Client.MessageDeleted += OnMessageDeletedAsync;
-            Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
         }
 
         private async Task OnMessageBulkDeletedAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
@@ -51,5 +50,13 @@ namespace Grillbot.Handlers
             Client.MessageDeleted -= OnMessageDeletedAsync;
             Client.MessagesBulkDeleted -= OnMessageBulkDeletedAsync;
         }
+
+        public void Init()
+        {
+            Client.MessageDeleted += OnMessageDeletedAsync;
+            Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

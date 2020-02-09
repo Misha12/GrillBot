@@ -3,6 +3,7 @@ using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 using System;
@@ -11,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.TempUnverify
 {
-    public partial class TempUnverifyService : IConfigChangeable
+    public partial class TempUnverifyService : IConfigChangeable, IInitiable
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
@@ -64,5 +65,7 @@ namespace Grillbot.Services.TempUnverify
         {
             Config = newConfig;
         }
+
+        public void Init() { }
     }
 }

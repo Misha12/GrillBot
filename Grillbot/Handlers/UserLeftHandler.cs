@@ -1,11 +1,13 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class UserLeftHandler : IHandle
+    public class UserLeftHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
@@ -16,8 +18,6 @@ namespace Grillbot.Handlers
             Client = client;
             Logger = logger;
             CalledEventStats = calledEventStats;
-
-            Client.UserLeft += OnUserLeftAsync;
         }
 
         private async Task OnUserLeftAsync(SocketGuildUser user)
@@ -30,5 +30,12 @@ namespace Grillbot.Handlers
         {
             Client.UserLeft -= OnUserLeftAsync;
         }
+
+        public void Init()
+        {
+            Client.UserLeft += OnUserLeftAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

@@ -15,10 +15,11 @@ using Grillbot.Services.Config.Models;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Database;
+using Grillbot.Services.Initiable;
 
 namespace Grillbot.Handlers
 {
-    public class MessageReceivedHandler : IConfigChangeable, IHandle
+    public class MessageReceivedHandler : IConfigChangeable, IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
@@ -42,8 +43,6 @@ namespace Grillbot.Handlers
             CalledEventStats = calledEventStats;
 
             ConfigChanged(config.Value);
-
-            Client.MessageReceived += OnMessageReceivedAsync;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -165,5 +164,12 @@ namespace Grillbot.Handlers
         {
             Client.MessageReceived -= OnMessageReceivedAsync;
         }
+
+        public void Init()
+        {
+            Client.MessageReceived += OnMessageReceivedAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

@@ -26,6 +26,7 @@ using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Middleware.DiscordUserAuthorization;
+using Grillbot.Services.Initiable;
 
 namespace Grillbot
 {
@@ -75,10 +76,15 @@ namespace Grillbot
                 CaseSensitiveCommands = true
             };
 
-            foreach (var handler in GetHandlers())
-            {
-                services.AddSingleton(handler);
-            }
+            services
+                .AddSingleton<GuildMemberUpdatedHandler>()
+                .AddSingleton<MessageDeletedHandler>()
+                .AddSingleton<MessageEditedHandler>()
+                .AddSingleton<MessageReceivedHandler>()
+                .AddSingleton<ReactionAddedHandler>()
+                .AddSingleton<ReactionRemovedHandler>()
+                .AddSingleton<UserJoinedHandler>()
+                .AddSingleton<UserLeftHandler>();
 
             services
                 .AddSingleton(new CommandService(commandsConfig))
@@ -96,7 +102,8 @@ namespace Grillbot
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
-                .AddSingleton<CalledEventStats>();
+                .AddSingleton<CalledEventStats>()
+                .AddSingleton<InitService>();
 
             services.AddHostedService<GrillBotService>();
         }
@@ -112,20 +119,8 @@ namespace Grillbot
                 .UseMvc()
                 .UseWelcomePage();
 
-            var loggingService = ServiceProvider.GetRequiredService<BotLoggingService>();
-
-            var handlers = GetHandlers().ToArray();
-            InitServices(ServiceProvider, handlers, loggingService);
+            serviceProvider.GetRequiredService<InitService>().Init();
             serviceProvider.GetRequiredService<Statistics>().Init();
-        }
-
-        private void InitServices(IServiceProvider provider, Type[] services, BotLoggingService loggingService)
-        {
-            foreach (var service in services)
-            {
-                provider.GetRequiredService(service);
-                loggingService.Write($"Service {service.Name} initialized");
-            }
         }
 
         private void OnConfigChange()
@@ -170,11 +165,6 @@ namespace Grillbot
             {
                 return new byte[20];
             }
-        }
-
-        private List<Type> GetHandlers()
-        {
-            return Assembly.GetExecutingAssembly().GetTypes().Where(o => o.GetInterface(nameof(IHandle)) != null).ToList();
         }
     }
 }

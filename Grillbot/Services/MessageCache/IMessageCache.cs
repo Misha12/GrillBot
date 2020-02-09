@@ -1,12 +1,12 @@
 ﻿using Discord;
+using Grillbot.Services.Initiable;
 using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.MessageCache
 {
-    public interface IMessageCache : IDisposable
+    public interface IMessageCache : IDisposable, IInitiable
     {
-        Task InitAsync();
         IMessage TryRemove(ulong id);
         IMessage Get(ulong id);
         void Update(IMessage message);

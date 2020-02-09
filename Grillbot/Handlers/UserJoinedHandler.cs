@@ -1,15 +1,17 @@
-﻿using System.Threading.Tasks;
+﻿using System;
+using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Handlers
 {
-    public class UserJoinedHandler : IConfigChangeable, IHandle
+    public class UserJoinedHandler : IConfigChangeable, IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
         private Configuration Config { get; set; }
@@ -23,8 +25,6 @@ namespace Grillbot.Handlers
             CalledEventStats = calledEventStats;
 
             ConfigChanged(config.Value);
-
-            Client.UserJoined += OnUserJoinedOnServerAsync;
         }
 
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
@@ -51,5 +51,12 @@ namespace Grillbot.Handlers
         {
             Config = newConfig;
         }
+
+        public void Init()
+        {
+            Client.UserJoined += OnUserJoinedOnServerAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

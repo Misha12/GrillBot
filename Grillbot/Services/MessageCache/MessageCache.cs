@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.MessageCache
@@ -32,27 +31,23 @@ namespace Grillbot.Services.MessageCache
             foreach (var channel in textChannels)
             {
                 await InitChannel(channel, options).ConfigureAwait(false);
-                Thread.Sleep(200);
             }
         }
 
-        private async Task InitChannel(SocketTextChannel channel, RequestOptions options = null, bool removeExists = false)
+        private async Task InitChannel(SocketTextChannel channel, RequestOptions options = null)
         {
             try
             {
-                var messages = (await channel.GetMessagesAsync(50, options).FlattenAsync().ConfigureAwait(false)).ToList();
+                var messages = (await channel.GetMessagesAsync(options: options).FlattenAsync().ConfigureAwait(false)).ToList();
 
                 foreach (var message in messages)
                 {
-                    if (removeExists && Data.ContainsKey(message.Id))
-                        Data.Remove(message.Id);
-
                     Data.Add(message.Id, message);
                 }
             }
             catch (Exception ex)
             {
-                LoggingService.Write($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}");
+                await LoggingService.WriteAsync($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}").ConfigureAwait(false);
             }
         }
 
@@ -101,5 +96,7 @@ namespace Grillbot.Services.MessageCache
 
             Data[message.Id] = message;
         }
+
+        public void Init() { }
     }
 }
