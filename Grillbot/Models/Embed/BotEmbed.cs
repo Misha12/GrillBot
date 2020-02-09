@@ -9,12 +9,14 @@ namespace Grillbot.Models.Embed
     {
         private EmbedBuilder Builder { get; }
 
-        public BotEmbed(IUser user, Color? color = null, string title = null, string thumbnail = null)
+        public BotEmbed(IUser responseFor = null, Color? color = null, string title = null, string thumbnail = null)
         {
             Builder = new EmbedBuilder()
                 .WithColor(color ?? Color.Blue)
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpověď pro {user.GetFullName()}", user.GetUserAvatarUrl());
+                .WithCurrentTimestamp();
+
+            if (responseFor != null)
+                Builder.WithFooter($"Odpověď pro {responseFor.GetFullName()}", responseFor.GetUserAvatarUrl());
 
             if (!string.IsNullOrEmpty(title))
                 WithTitle(title);
@@ -31,7 +33,7 @@ namespace Grillbot.Models.Embed
 
         public BotEmbed WithFields(params EmbedFieldBuilder[] fields)
         {
-            foreach(var field in fields)
+            foreach (var field in fields)
             {
                 AddField(field.Name, field.Value?.ToString(), field.IsInline);
             }
@@ -70,7 +72,7 @@ namespace Grillbot.Models.Embed
 
             if (value.Length >= EmbedFieldBuilder.MaxFieldValueLength)
             {
-                if(value.StartsWith("```") && value.EndsWith("```"))
+                if (value.StartsWith("```") && value.EndsWith("```"))
                 {
                     // Cut CodeBlocks.
 
@@ -125,6 +127,12 @@ namespace Grillbot.Models.Embed
         public BotEmbed WithAuthor(IUser user)
         {
             Builder.WithAuthor(user);
+            return this;
+        }
+
+        public BotEmbed WithFooter(string footer, string iconUrl)
+        {
+            Builder.WithFooter(o => o.WithText(footer).WithIconUrl(iconUrl));
             return this;
         }
     }
