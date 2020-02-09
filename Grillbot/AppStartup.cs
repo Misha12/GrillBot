@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Handlers;
-using Grillbot.Modules;
 using Grillbot.Services;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
@@ -13,13 +12,13 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using System;
 using Discord.Addons.Interactive;
 using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Services.Initiable;
+using Grillbot.Modules.AutoReply;
 
 namespace Grillbot
 {

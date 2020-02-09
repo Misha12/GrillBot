@@ -5,7 +5,6 @@ using System;
 using System.Diagnostics;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
-using Grillbot.Modules;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using System.Linq;
@@ -15,6 +14,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Database;
 using Grillbot.Services.Initiable;
+using Grillbot.Modules.AutoReply;
 
 namespace Grillbot.Handlers
 {

@@ -6,7 +6,6 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using Microsoft.EntityFrameworkCore;
@@ -21,13 +20,11 @@ namespace Grillbot.Modules
     public class AdminModule : BotModuleBase
     {
         private TeamSearchService TeamSearchService { get; }
-        private Logger Logger { get; }
         private EmoteStats EmoteStats { get; }
 
-        public AdminModule(TeamSearchService teamSearchService, Logger logger, EmoteStats emoteStats)
+        public AdminModule(TeamSearchService teamSearchService, EmoteStats emoteStats)
         {
             TeamSearchService = teamSearchService;
-            Logger = logger;
             EmoteStats = emoteStats;
         }
 

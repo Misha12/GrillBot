@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
-using Grillbot.Services;
+using Grillbot.Modules.AutoReply;
+using Grillbot.Services.AutoReply;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;

@@ -14,13 +14,13 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Initiable;
 
-namespace Grillbot.Modules
+namespace Grillbot.Modules.AutoReply
 {
     public class AutoReplyService : IInitiable
     {
         private List<AutoReplyItem> Data { get; }
         private BotLoggingService BotLogging { get; }
-        private Configuration Config { get; set; }
+        private Configuration Config { get; }
 
         public AutoReplyService(IOptions<Configuration> configuration, BotLoggingService botLogging)
         {
