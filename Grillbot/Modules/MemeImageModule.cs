@@ -9,26 +9,23 @@ using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Name("Nudes a další zajímavé fotky")]
-    [RequirePermissions("MemeImages", BoosterAllowed = true, DisabledForPM = false)]
     public class MemeImageModule : BotModuleBase
     {
-        private Configuration Config { get; }
-
-        public MemeImageModule(IOptions<Configuration> configuration)
+        public MemeImageModule(IOptions<Configuration> configuration) : base(configuration)
         {
-            Config = configuration.Value;
         }
 
         [Command("nudes")]
-        public async Task SendNudeAsync() => await SendAsync("Nudes").ConfigureAwait(false);
+        public async Task SendNudeAsync() => await SendAsync("nudes").ConfigureAwait(false);
 
         [Command("notnudes")]
-        public async Task SendNotNudesAsync() => await SendAsync("NotNudes").ConfigureAwait(false);
+        public async Task SendNotNudesAsync() => await SendAsync("notnudes").ConfigureAwait(false);
 
         private async Task SendAsync(string category)
         {
-            var config = Config.MethodsConfig.MemeImages;
+            var config = GetMethodConfig<MemeImagesConfig>("", category);
 
             var path = "";
             switch (category)

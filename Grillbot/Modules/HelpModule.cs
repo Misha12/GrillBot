@@ -14,19 +14,17 @@ using Grillbot.Extensions;
 
 namespace Grillbot.Modules
 {
-    [Group("grillhelp")]
     [Name("Nápověda")]
-    [RequirePermissions("Help", BoosterAllowed = true)]
+    [Group("grillhelp")]
+    [RequirePermissions]
     public class HelpModule : BotModuleBase
     {
         private CommandService CommandService { get; }
-        private Configuration Config { get; }
         private IServiceProvider Services { get; }
 
-        public HelpModule(CommandService commandService, IOptions<Configuration> config, IServiceProvider services)
+        public HelpModule(CommandService commandService, IOptions<Configuration> config, IServiceProvider services) : base(config)
         {
             CommandService = commandService;
-            Config = config.Value;
             Services = services;
         }
 

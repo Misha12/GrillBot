@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Models;
 using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
@@ -32,7 +33,7 @@ namespace Grillbot.Services.Math
                 Sessions.Clear();
 
                 const int sessionCount = 10; // 10 computing units (processes) for every group.
-                var calcTime = Config.MethodsConfig.Math.ComputingTime;
+                var calcTime = 10000; // 10 seconds. Booster have double time.
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.
             }
@@ -68,7 +69,8 @@ namespace Grillbot.Services.Math
 
             try
             {
-                bool booster = message.Author is SocketGuildUser user && Config.Discord.IsBooster(user.Roles);
+                var user = (SocketGuildUser)message.Author;
+                bool booster = Config.Discord.IsBooster(user.Roles);
                 session = LockAndGetSession(input, booster);
 
                 input = ("" + input).Trim(); // treatment against null values.
@@ -89,29 +91,35 @@ namespace Grillbot.Services.Math
                     };
                 }
 
-                var appPath = Config.MethodsConfig.Math.ProcessPath;
-                using (var process = new Process())
+                using (var repository = new GrillBotRepository(Config))
                 {
-                    process.StartInfo.FileName = "dotnet";
-                    process.StartInfo.Arguments = $"{appPath} \"{input}\"";
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardOutput = true;
+                    var config = repository.Config.FindConfig(user.Guild.Id, "solve", "");
+                    var configData = config.GetData<MathConfig>();
 
-                    process.Start();
-
-                    if (!process.WaitForExit(session.ComputingTime))
+                    var appPath = configData.ProcessPath;
+                    using (var process = new Process())
                     {
-                        process.Kill();
-                        return new MathCalcResult()
-                        {
-                            IsTimeout = true,
-                            AssingedComputingTime = session.ComputingTime
-                        };
-                    }
+                        process.StartInfo.FileName = "dotnet";
+                        process.StartInfo.Arguments = $"{appPath} \"{input}\"";
+                        process.StartInfo.UseShellExecute = false;
+                        process.StartInfo.CreateNoWindow = true;
+                        process.StartInfo.RedirectStandardOutput = true;
 
-                    var output = process.StandardOutput.ReadToEnd();
-                    return JsonConvert.DeserializeObject<MathCalcResult>(output);
+                        process.Start();
+
+                        if (!process.WaitForExit(session.ComputingTime))
+                        {
+                            process.Kill();
+                            return new MathCalcResult()
+                            {
+                                IsTimeout = true,
+                                AssingedComputingTime = session.ComputingTime
+                            };
+                        }
+
+                        var output = process.StandardOutput.ReadToEnd();
+                        return JsonConvert.DeserializeObject<MathCalcResult>(output);
+                    }
                 }
             }
             finally

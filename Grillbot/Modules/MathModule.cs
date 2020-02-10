@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Name("Počítání")]
-    [RequirePermissions("Math", BoosterAllowed = true)]
+    [RequirePermissions]
     public class MathModule : BotModuleBase
     {
         private MathService Calculator { get; }

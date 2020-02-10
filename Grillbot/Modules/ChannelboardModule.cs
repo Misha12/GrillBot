@@ -14,8 +14,8 @@ using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Name("Channel leaderboards")]
-    [RequirePermissions("Channelboard", DisabledForPM = true, BoosterAllowed = true)]
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }

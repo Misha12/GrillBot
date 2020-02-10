@@ -1,4 +1,5 @@
 ﻿using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
 
@@ -19,6 +20,13 @@ namespace Grillbot.Database
             optionsBuilder.UseSqlServer(ConnectionString);
         }
 
+        protected override void OnModelCreating(ModelBuilder modelBuilder)
+        {
+            base.OnModelCreating(modelBuilder);
+
+            modelBuilder.Entity<MethodsConfig>().HasMany(o => o.Permissions).WithOne(o => o.Method);
+        }
+
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
         public virtual DbSet<ChannelStat> ChannelStats { get; set; }
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
@@ -27,5 +35,6 @@ namespace Grillbot.Database
         public virtual DbSet<CommandLog> CommandLog { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
         public virtual DbSet<Birthday> Birthdays { get; set; }
+        public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
     }
 }

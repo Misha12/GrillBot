@@ -1,8 +1,10 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Config.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -19,17 +21,23 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var channels = guild.Channels
-                .OfType<SocketTextChannel>()
-                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()));
-
-            foreach(var channel in channels)
+            using (var repository = new GrillBotRepository(Config))
             {
-                var canSee = channel.GetUser(user.Id) != null;
-                if (!canSee) return;
+                var config = repository.Config.FindConfig(guild.Id, "unverify", "");
+                var configData = config.GetData<TempUnverifyConfig>();
 
-                var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
+                var channels = guild.Channels
+                    .OfType<SocketTextChannel>()
+                    .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()));
+
+                foreach (var channel in channels)
+                {
+                    var canSee = channel.GetUser(user.Id) != null;
+                    if (!canSee) return;
+
+                    var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                    await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
+                }
             }
         }
 
@@ -62,17 +70,23 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var channels = guild.Channels
-                .OfType<SocketTextChannel>()
-                .Where(o => Config.MethodsConfig.TempUnverify.PreprocessRemoveAccess.Contains(o.Id.ToString()))
-                .Where(o => !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
-
-            foreach(var channel in channels)
+            using (var repository = new GrillBotRepository(Config))
             {
-                var overwrites = channel.GetPermissionOverwrite(user);
+                var config = repository.Config.FindConfig(guild.Id, "unverify", "");
+                var configData = config.GetData<TempUnverifyConfig>();
 
-                if (overwrites != null)
-                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
+                var channels = guild.Channels
+                    .OfType<SocketTextChannel>()
+                    .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()))
+                    .Where(o => !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
+
+                foreach (var channel in channels)
+                {
+                    var overwrites = channel.GetPermissionOverwrite(user);
+
+                    if (overwrites != null)
+                        await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
+                }
             }
         }
 

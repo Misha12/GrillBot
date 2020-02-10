@@ -9,31 +9,32 @@ using Grillbot.Extensions.Discord;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Name("Pozdrav bota")]
-    [RequirePermissions("Greeting", BoosterAllowed = true)]
     public class GreetModule : BotModuleBase
     {
-        private Configuration Config { get; }
-
-        public GreetModule(IOptions<Configuration> config)
+        public GreetModule(IOptions<Configuration> config) : base(config)
         {
-            Config = config.Value;
         }
 
         [Command("grillhi"), Alias("hojkashi", "hi")]
-        public async Task GreetAsync() => await GreetAsync(Config.MethodsConfig.Greeting.OutputMode.ToString().ToLower()).ConfigureAwait(false);
+        public async Task GreetAsync() => await GreetAsync(null).ConfigureAwait(false);
 
         [Command("grillhi"), Alias("hojkashi", "hi")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         public async Task GreetAsync(string mode)
         {
+            var config = GetMethodConfig<GreetingConfig>("", "grillhi");
+
+            if (string.IsNullOrEmpty(mode))
+                mode = config.OutputMode.ToString().ToLower();
+
             mode = char.ToUpper(mode[0]) + mode.Substring(1);
             var availableModes = new[] { "Text", "Bin", "Hex" };
 
             if (!availableModes.Contains(mode)) return;
-            var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
 
-            var message = messageTemplate.Replace("{person}", Context.User.GetShortName());
+            var message = config.MessageTemplate.Replace("{person}", Context.User.GetShortName());
 
             switch (Enum.Parse<GreetingOutputModes>(mode))
             {
@@ -44,7 +45,7 @@ namespace Grillbot.Modules
                     message = ConvertToBinOrHexa(message, 16);
                     break;
                 case GreetingOutputModes.Text:
-                    message = messageTemplate.Replace("{person}", Context.User.Mention);
+                    message = config.MessageTemplate.Replace("{person}", Context.User.Mention);
                     break;
             }
 
@@ -59,8 +60,9 @@ namespace Grillbot.Modules
 
             if (!supportedBases.Contains(@base)) return;
 
-            var messageTemplate = Config.MethodsConfig.Greeting.MessageTemplate;
-            var message = messageTemplate.Replace("{person}", Context.User.GetFullName());
+            var config = GetMethodConfig<GreetingConfig>("", "grillhi");
+
+            var message = config.MessageTemplate.Replace("{person}", Context.User.GetFullName());
             var converted = ConvertToBinOrHexa(message, @base);
 
             await ReplyAsync(converted).ConfigureAwait(false);

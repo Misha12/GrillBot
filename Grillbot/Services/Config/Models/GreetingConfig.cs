@@ -3,7 +3,7 @@ using Newtonsoft.Json.Converters;
 
 namespace Grillbot.Services.Config.Models
 {
-    public class GreetingConfig : MethodConfigBase
+    public class GreetingConfig
     {
         public string MessageTemplate { get; set; }
 

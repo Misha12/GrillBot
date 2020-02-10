@@ -19,6 +19,7 @@ using Grillbot.Services.TempUnverify;
 using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
+using Grillbot.Services.Permissions;
 
 namespace Grillbot
 {
@@ -41,7 +42,6 @@ namespace Grillbot
             ConfigureDiscord(services);
 
             services.Configure<Configuration>(Configuration);
-            services.AddTransient<OptionsWriter>();
 
             services
                 .AddTransient<DcUserAuthorization>();
@@ -91,7 +91,8 @@ namespace Grillbot
                 .AddSingleton<CalledEventStats>()
                 .AddSingleton<InitService>()
                 .AddSingleton<ChannelStats>()
-                .AddSingleton<EmoteStats>();
+                .AddSingleton<EmoteStats>()
+                .AddSingleton<PermissionsManager>();
 
             services.AddHostedService<GrillBotService>();
         }

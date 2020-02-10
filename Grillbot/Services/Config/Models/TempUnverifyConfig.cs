@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Grillbot.Services.Config.Models
 {
-    public class TempUnverifyConfig : MethodConfigBase
+    public class TempUnverifyConfig
     {
         public string MainAdminID { get; set; }
 

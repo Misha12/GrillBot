@@ -22,11 +22,7 @@ namespace Grillbot.Services.TempUnverify
                 var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
                 if (user == null)
                 {
-                    var admin = Client.GetUser(Config.MethodsConfig.TempUnverify.MainAdminSnowflake);
-                    var pmChannel = admin.GetOrCreateDMChannelAsync().GetAwaiter().GetResult();
-
-                    var content = $"```json\n{JsonConvert.SerializeObject(unverify, Formatting.Indented)}```";
-                    pmChannel.SendMessageAsync(content).GetAwaiter().GetResult();
+                    //TODO: Send to admin channel embed. if user not found.
 
                     return;
                 }

@@ -29,6 +29,7 @@ namespace Grillbot.Database
             Log = new LogRepository(Context);
             TeamSearch = new TeamSearchRepository(Context);
             TempUnverify = new TempUnverifyRepository(Context);
+            Config = new ConfigRepository(Context);
         }
 
         public void Dispose()
@@ -44,5 +45,6 @@ namespace Grillbot.Database
         public LogRepository Log { get; private set; }
         public TeamSearchRepository TeamSearch { get; private set; }
         public TempUnverifyRepository TempUnverify { get; private set; }
+        public ConfigRepository Config { get; private set; }
     }
 }

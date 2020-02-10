@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Config.Models
 {
-    public class MemeImagesConfig : MethodConfigBase
+    public class MemeImagesConfig
     {
         public string NudesDataPath { get; set; }
         public string NotNudesDataPath { get; set; }

@@ -8,9 +8,9 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Group("autoreply")]
     [Name("Ovládání automatických odpovědí")]
-    [RequirePermissions("AutoReply")]
     public class AutoReplyModule : BotModuleBase
     {
         private AutoReplyService Service { get; }

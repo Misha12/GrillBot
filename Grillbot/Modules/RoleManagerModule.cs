@@ -11,9 +11,9 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [Name("Správa rolí")]
     [Group("roleinfo")]
-    [RequirePermissions("RoleManager", DisabledForPM = true, BoosterAllowed = true)]
+    [RequirePermissions]
+    [Name("Správa rolí")]
     public class RoleManagerModule : BotModuleBase
     {
         [Command("all")]

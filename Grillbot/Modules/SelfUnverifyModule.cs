@@ -5,8 +5,8 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Group("selfunverify")]
-    [RequirePermissions("SelfUnverify", DisabledForPM = true, BoosterAllowed = true)]
     public class SelfUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }

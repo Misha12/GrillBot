@@ -15,8 +15,8 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [RequirePermissions]
     [Name("Administrační funkce")]
-    [RequirePermissions("Admin", DisabledForPM = true)]
     public class AdminModule : BotModuleBase
     {
         private TeamSearchService TeamSearchService { get; }

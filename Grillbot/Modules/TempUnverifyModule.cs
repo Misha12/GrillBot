@@ -10,8 +10,8 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("unverify")]
+    [RequirePermissions]
     [Name("Odebrání přístupu.")]
-    [RequirePermissions("TempUnverify", DisabledForPM = true)]
     public class TempUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }

@@ -139,14 +139,19 @@ namespace Grillbot.Services.Statistics
 
         public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
         {
-            var tokenValidFor = Config.MethodsConfig.Channelboard.GetTokenValidTime();
-            var token = StringHelper.CreateRandomString(TokenLength);
-            var rawUrl = Config.MethodsConfig.Channelboard.WebUrl;
+            using(var repository = new GrillBotRepository(Config))
+            {
+                var config = repository.Config.FindConfig(context.Guild.Id, "channelboard", "").GetData<ChannelboardConfig>();
 
-            var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
-            WebTokens.Add(webToken);
+                var tokenValidFor = config.GetTokenValidTime();
+                var token = StringHelper.CreateRandomString(TokenLength);
+                var rawUrl = config.WebUrl;
 
-            return webToken;
+                var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
+                WebTokens.Add(webToken);
+
+                return webToken;
+            }
         }
 
         public bool ExistsWebToken(string token) => WebTokens.Any(o => o.Token == token);

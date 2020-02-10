@@ -1,6 +1,6 @@
 ﻿namespace Grillbot.Services.Config.Models
 {
-    public class TeamSearchConfig : MethodConfigBase
+    public class TeamSearchConfig
     {
         public ulong GeneralCategoryID { get; set; }
     }

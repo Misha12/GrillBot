@@ -13,14 +13,11 @@ namespace Grillbot.Modules
 {
     [Group("birthday")]
     [Name("Narozeniny")]
-    [RequirePermissions("Birthdays", BoosterAllowed = true, DisabledForPM = true)]
+    [RequirePermissions]
     public class BirthdaysModule : BotModuleBase
     {
-        private Configuration Config { get; }
-
-        public BirthdaysModule(IOptions<Configuration> options)
+        public BirthdaysModule(IOptions<Configuration> options) : base(options)
         {
-            Config = options.Value;
         }
 
         [Command("")]

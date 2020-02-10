@@ -10,15 +10,16 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Services;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Modules
 {
     [Group("hledam")]
+    [RequirePermissions]
     [Name("Hledání týmů")]
-    [RequirePermissions("TeamSearch", DisabledForPM = true, BoosterAllowed = true)]
-    public class TeamSearchModule : InteractiveBase
+    public class TeamSearchModule : BotModuleBase
     {
         private TeamSearchService Service { get; }
 
@@ -57,9 +58,10 @@ namespace Grillbot.Modules
         [Summary("Vypíše informace o hledání")]
         public async Task TeamSearchInfoAsync()
         {
+            var config = GetMethodConfig<TeamSearchConfig>("hledam", "");
             ulong channelId = Context.Channel.Id;
 
-            ulong generalCategoryId = Service.GetGeneralCategoryID();
+            ulong generalCategoryId = config.GeneralCategoryID;
             var category = (Context.Channel as SocketTextChannel)?.Category?.Id;
 
             // for now returning if the channel isn't categorized

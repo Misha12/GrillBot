@@ -11,8 +11,8 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("emoteinfo")]
+    [RequirePermissions]
     [Name("Správa emotů")]
-    [RequirePermissions("EmoteManager", DisabledForPM = true, BoosterAllowed = true)]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }

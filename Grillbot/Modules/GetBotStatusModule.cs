@@ -12,9 +12,9 @@ using Grillbot.Models.Embed;
 
 namespace Grillbot.Modules
 {
-    [Name("Stav bota")]
     [Group("status")]
-    [RequirePermissions("GrillStatus")]
+    [Name("Stav bota")]
+    [RequirePermissions]
     public class GetBotStatusModule : BotModuleBase
     {
         private CalledEventStats CalledEventStats { get; }
