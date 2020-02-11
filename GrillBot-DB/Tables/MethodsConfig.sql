@@ -5,6 +5,5 @@
 	[Group] VARCHAR(100) NOT NULL,
 	[Command] VARCHAR(100) NOT NULL,
 	[ConfigData] VARCHAR(MAX) NOT NULL,
-	[PMAllowed] BIT NOT NULL CONSTRAINT [DF_MethodsConfig_PMAllowed] DEFAULT (0),
 	[OnlyAdmins] BIT NOT NULL CONSTRAINT [DF_MethodsConfig_OnlyAdmins] DEFAULT (0)
 );

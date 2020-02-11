@@ -1,11 +1,9 @@
 ﻿using Discord;
 using Discord.Addons.Interactive;
-using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Extensions;
 using Grillbot.Services.Config.Models;
-using Microsoft.CodeAnalysis.Options;
 using Microsoft.Extensions.Options;
 using System;
 using System.Threading.Tasks;

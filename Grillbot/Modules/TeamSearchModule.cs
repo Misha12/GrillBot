@@ -8,11 +8,15 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Entity;
+using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
@@ -26,7 +30,7 @@ namespace Grillbot.Modules
         private const uint MaxPageSize = 1980;
         private const uint MaxSearchSize = 1900;
 
-        public TeamSearchModule(TeamSearchService service)
+        public TeamSearchModule(TeamSearchService service, IOptions<Configuration> options) : base(options)
         {
             Service = service;
         }
@@ -177,6 +181,59 @@ namespace Grillbot.Modules
             {
                 await ReplyAsync("Na to nemáš právo.").ConfigureAwait(false);
             }
+        }
+
+        [Command("cleanChannel")]
+        public async Task CleanChannelAsync(string channel)
+        {
+            var mentionedChannelID = Context.Message.MentionedChannels.First().Id.ToString();
+
+            using (var repository = new GrillBotRepository(Config))
+            {
+                var searches = await repository.TeamSearch.GetAllSearches().Where(o => o.ChannelId == mentionedChannelID).ToListAsync().ConfigureAwait(false);
+
+                if (searches.Count == 0)
+                {
+                    await ReplyAsync($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá.").ConfigureAwait(false);
+                    return;
+                }
+
+                foreach (var search in searches)
+                {
+                    var message = await Service.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
+
+                    await repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                    await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetFullName()}** smazáno.").ConfigureAwait(false);
+                }
+
+                await ReplyAsync($"Čištění kanálu {channel.PreventMassTags()} dokončeno.").ConfigureAwait(false);
+            }
+        }
+
+        [Command("massRemove")]
+        public async Task MassRemoveAsync(params int[] searchIds)
+        {
+            using (var repository = new GrillBotRepository(Config))
+            {
+                foreach (var id in searchIds)
+                {
+                    var search = await repository.TeamSearch.FindSearchByID(id).ConfigureAwait(false);
+
+                    if (search != null)
+                    {
+                        var message = await Service.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
+
+                        if (message == null)
+                            await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
+                        else
+                            await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
+
+                        await repository.TeamSearch.RemoveSearchAsync(id).ConfigureAwait(false);
+                    }
+                }
+            }
+
+            await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.").ConfigureAwait(false);
         }
     }
 }

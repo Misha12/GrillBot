@@ -66,54 +66,6 @@ namespace Grillbot.Modules
             }).ConfigureAwait(false);
         }
 
-        [Command("hledam_clean_channel")]
-        [Summary("Smazání všech hledání v zadaném kanálu.")]
-        public async Task TeamSearchCleanChannel(string channel)
-        {
-            var mentionedChannelId = Context.Message.MentionedChannels.First().Id.ToString();
-            var searches = await TeamSearchService.Repository.TeamSearch.GetAllSearches().Where(o => o.ChannelId == mentionedChannelId).ToListAsync().ConfigureAwait(false);
-
-            if (searches.Count == 0)
-            {
-                await ReplyAsync($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá.").ConfigureAwait(false);
-                return;
-            }
-
-            foreach (var search in searches)
-            {
-                var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
-
-                await TeamSearchService.Repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
-                await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetShortName()}** smazáno.").ConfigureAwait(false);
-            }
-
-            await ReplyAsync($"Čištění kanálu {channel.PreventMassTags()} dokončeno.").ConfigureAwait(false);
-        }
-
-        [Command("hledam_mass_remove")]
-        [Summary("Hromadné smazání hledání.")]
-        public async Task TeamSearchMassRemove(params int[] searchIds)
-        {
-            foreach (var id in searchIds)
-            {
-                var search = await TeamSearchService.Repository.TeamSearch.FindSearchByID(id).ConfigureAwait(false);
-
-                if (search != null)
-                {
-                    var message = await TeamSearchService.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
-
-                    if (message == null)
-                        await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
-                    else
-                        await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
-
-                    await TeamSearchService.Repository.TeamSearch.RemoveSearchAsync(id).ConfigureAwait(false);
-                }
-            }
-
-            await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.").ConfigureAwait(false);
-        }
-
         [Command("guildStatus")]
         [Summary("Stav serveru")]
         public async Task GuildStatusAsync()

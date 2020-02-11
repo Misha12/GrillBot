@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System.Threading.Tasks;
@@ -23,7 +24,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var user = Context.Guild.GetUser(Context.User.Id);
+                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id.ToString());
                 var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time).ConfigureAwait(false);
                 await ReplyAsync(message).ConfigureAwait(false);
             }).ConfigureAwait(false);

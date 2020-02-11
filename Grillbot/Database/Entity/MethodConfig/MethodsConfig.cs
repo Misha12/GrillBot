@@ -40,9 +40,6 @@ namespace Grillbot.Database.Entity.MethodConfig
         public TData GetData<TData>() => string.IsNullOrEmpty(ConfigData) ? default : JsonConvert.DeserializeObject<TData>(ConfigData);
 
         [Column]
-        public bool PMAllowed { get; set; }
-
-        [Column]
         public bool OnlyAdmins { get; set; }
 
         public ISet<MethodPerm> Permissions { get; set; }
