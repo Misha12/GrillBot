@@ -7,8 +7,7 @@ namespace Grillbot.Services.Config.Models
 {
     public class MemeImagesConfig
     {
-        public string NudesDataPath { get; set; }
-        public string NotNudesDataPath { get; set; }
+        public string Path { get; set; }
         public List<string> AllowedImageTypes { get; set; }
 
         public MemeImagesConfig()

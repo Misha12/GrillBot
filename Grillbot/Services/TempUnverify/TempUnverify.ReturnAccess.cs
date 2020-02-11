@@ -22,8 +22,7 @@ namespace Grillbot.Services.TempUnverify
                 var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
                 if (user == null)
                 {
-                    //TODO: Send to admin channel embed. if user not found.
-
+                    Logger.Write($"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
                     return;
                 }
 

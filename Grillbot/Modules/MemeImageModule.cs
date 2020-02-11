@@ -27,20 +27,9 @@ namespace Grillbot.Modules
         {
             var config = GetMethodConfig<MemeImagesConfig>("", category);
 
-            var path = "";
-            switch (category)
-            {
-                case "Nudes":
-                    path = config.NudesDataPath;
-                    break;
-                case "NotNudes":
-                    path = config.NotNudesDataPath;
-                    break;
-            }
-
             await DoAsync(async () =>
             {
-                var files = Directory.GetFiles(path)
+                var files = Directory.GetFiles(config.Path)
                     .Where(o => config.AllowedImageTypes.Any(x => x == Path.GetExtension(o)))
                     .ToList();
 
