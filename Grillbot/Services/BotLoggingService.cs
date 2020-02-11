@@ -37,7 +37,7 @@ namespace Grillbot.Services
         {
             var logRoom = config.Log.LogRoomID;
 
-            if(!string.IsNullOrEmpty(logRoom))
+            if (!string.IsNullOrEmpty(logRoom))
             {
                 LogRoom = Convert.ToUInt64(logRoom);
             }
@@ -61,11 +61,19 @@ namespace Grillbot.Services
         {
             if (!IsValidException(message)) return;
 
-            if(message.Exception is CommandException ce && message.Exception.InnerException is ThrowHelpException)
+            if (message.Exception is CommandException ce)
             {
-                string helpCommand = $"grillhelp {ce.Context.Message.Content.Substring(1)}";
-                await Commands.ExecuteAsync(ce.Context, helpCommand, Services).ConfigureAwait(false);
-                return;
+                if (message.Exception.InnerException is ThrowHelpException)
+                {
+                    string helpCommand = $"grillhelp {ce.Context.Message.Content.Substring(1)}";
+                    await Commands.ExecuteAsync(ce.Context, helpCommand, Services).ConfigureAwait(false);
+                    return;
+                }
+                else if (message.Exception.InnerException is ConfigException)
+                {
+                    await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config.").ConfigureAwait(false);
+                    return;
+                }
             }
 
             var exceptionMessage = message.Exception.ToString();

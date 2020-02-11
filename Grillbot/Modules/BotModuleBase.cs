@@ -2,6 +2,7 @@
 using Discord.Addons.Interactive;
 using Discord.WebSocket;
 using Grillbot.Database;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
@@ -46,7 +47,7 @@ namespace Grillbot.Modules
                 var config = repository.Config.FindConfig(Context.Guild.Id, group, command);
 
                 if (config == null)
-                    return default;
+                    throw new ConfigException();
 
                 return config.GetData<TConfig>();
             }

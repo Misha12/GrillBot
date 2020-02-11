@@ -24,12 +24,12 @@ namespace Grillbot.Services.Permissions
                 return Config.IsUserBotAdmin(context.User.Id) ? PermissionsResult.Success : PermissionsResult.PMNotAllowed;
             }
 
-            if (Config.IsUserBotAdmin(context.User.Id))
-                return PermissionsResult.Success;
-
             using (var repository = new GrillBotRepository(Config))
             {
                 var config = repository.Config.FindConfig(context.Guild.Id, command.Module.Group, command.Name);
+
+                if (Config.IsUserBotAdmin(context.User.Id))
+                    return PermissionsResult.Success;
 
                 if (config == null)
                     return PermissionsResult.MethodNotFound;
