@@ -83,6 +83,12 @@ namespace Grillbot.Modules
                 case "unicode":
                     await GetEmoteInfoOnlyUnicode().ConfigureAwait(false);
                     return;
+                case "emoteMergeList":
+                    await GetMergeListAsync().ConfigureAwait(false);
+                    return;
+                case "processEmoteMerge":
+                    await ProcessEmoteMergeAsync().ConfigureAwait(false);
+                    return;
             }
 
             await DoAsync(async () =>
@@ -124,6 +130,40 @@ namespace Grillbot.Modules
                 .WithFields(fields);
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+        }
+
+        [Command("emoteMergeList")]
+        [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
+        public async Task GetMergeListAsync()
+        {
+            await DoAsync(async () =>
+            {
+                var list = EmoteStats.GetMergeList(Context.Guild);
+
+                if (list.Count == 0)
+                    throw new ArgumentException("Aktuálně není nic ke sloučení.");
+
+                var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
+
+                embed.WithFields(list.Select(o => new EmbedFieldBuilder()
+                {
+                    Name = $"Target: \\{o.MergeTo}",
+                    Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
+                }));
+
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
+
+        [Command("processEmoteMerge")]
+        [Summary("Provede sloučení stejných emotů ve statistikách.")]
+        public async Task ProcessEmoteMergeAsync()
+        {
+            await DoAsync(async () =>
+            {
+                await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
+                await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

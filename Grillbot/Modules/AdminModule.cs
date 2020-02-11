@@ -5,10 +5,7 @@ using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Services;
 using Grillbot.Services.Preconditions;
-using Grillbot.Services.Statistics;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,15 +16,6 @@ namespace Grillbot.Modules
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
     {
-        private TeamSearchService TeamSearchService { get; }
-        private EmoteStats EmoteStats { get; }
-
-        public AdminModule(TeamSearchService teamSearchService, EmoteStats emoteStats)
-        {
-            TeamSearchService = teamSearchService;
-            EmoteStats = emoteStats;
-        }
-
         [Command("pinpurge")]
         [Summary("Hromadné odpinování zpráv.")]
         [Remarks("Poslední parametr skipCount je volitelný. Výchozí hodnota je 0.")]
@@ -102,63 +90,16 @@ namespace Grillbot.Modules
         [Summary("Synchronizace serveru s botem.")]
         public async Task SyncGuild()
         {
-            var guild = Context.Guild;
-
             try
             {
-                await guild.DownloadUsersAsync().ConfigureAwait(false);
-
-                if (guild.SyncPromise != null)
-                    await guild.SyncPromise.ConfigureAwait(false);
-
-                if (guild.DownloaderPromise != null)
-                    await guild.DownloaderPromise.ConfigureAwait(false);
-
+                await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
                 await ReplyAsync("Synchronizace dokončena").ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"Synchronizace se nezdařila {ex.Message.PreventMassTags()}").ConfigureAwait(false);
+                await ReplyAsync($"Synchronizace se nezdařila ({ex.Message.PreventMassTags()}).").ConfigureAwait(false);
                 throw;
             }
         }
-
-        #region EmoteManager
-
-        [Command("emoteMergeList")]
-        [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
-        public async Task GetMergeList()
-        {
-            await DoAsync(async () =>
-            {
-                var list = EmoteStats.GetMergeList(Context.Guild);
-
-                if (list.Count == 0)
-                    throw new ArgumentException("Aktuálně není nic ke sloučení.");
-
-                var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
-
-                embed.WithFields(list.Select(o => new EmbedFieldBuilder()
-                {
-                    Name = $"Target: \\{o.MergeTo}",
-                    Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
-                }));
-
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        [Command("ProcessEmoteMerge")]
-        [Summary("Provede sloučení stejných emotů ve statistikách.")]
-        public async Task ProcessEmoteMerge()
-        {
-            await DoAsync(async () =>
-            {
-                await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
-                await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
-            }).ConfigureAwait(false);
-        }
-
-        #endregion
     }
 }
