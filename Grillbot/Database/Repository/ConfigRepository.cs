@@ -4,7 +4,6 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -26,6 +25,9 @@ namespace Grillbot.Database.Repository
 
         public MethodsConfig FindConfig(ulong guildID, string group, string command)
         {
+            if (group == null) group = "";
+            if (command == null) command = "";
+
             var query = GetBaseQuery(true);
             return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
