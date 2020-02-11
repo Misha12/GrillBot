@@ -93,7 +93,7 @@ namespace Grillbot.Services.Math
 
                 using (var repository = new GrillBotRepository(Config))
                 {
-                    var config = repository.Config.FindConfig(user.Guild.Id, "solve", "");
+                    var config = repository.Config.FindConfig(user.Guild.Id, "", "solve");
                     var configData = config.GetData<MathConfig>();
 
                     var appPath = configData.ProcessPath;

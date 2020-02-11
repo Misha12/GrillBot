@@ -141,7 +141,7 @@ namespace Grillbot.Services.Statistics
         {
             using(var repository = new GrillBotRepository(Config))
             {
-                var config = repository.Config.FindConfig(context.Guild.Id, "channelboard", "").GetData<ChannelboardConfig>();
+                var config = repository.Config.FindConfig(context.Guild.Id, "", "channelboard").GetData<ChannelboardConfig>();
 
                 var tokenValidFor = config.GetTokenValidTime();
                 var token = StringHelper.CreateRandomString(TokenLength);
