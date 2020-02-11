@@ -89,6 +89,9 @@ namespace Grillbot.Modules
                 case "processEmoteMerge":
                     await ProcessEmoteMergeAsync().ConfigureAwait(false);
                     return;
+                case "cleanOldEmotes":
+                    await CleanOldEmotes().ConfigureAwait(false);
+                    return;
             }
 
             await DoAsync(async () =>
@@ -164,6 +167,23 @@ namespace Grillbot.Modules
                 await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
                 await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
             }).ConfigureAwait(false);
+        }
+
+        [Command("cleanOldEmotes")]
+        public async Task CleanOldEmotes()
+        {
+           await DoAsync(async () =>
+           {
+               var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
+
+               for(int i = 0; i < Math.Ceiling(clearedEmotes.Count / 10.0); i++)
+               {
+                   var str = string.Join("\n", clearedEmotes.Skip(i * 10).Take(10));
+                   await ReplyAsync(str).ConfigureAwait(false);
+               }
+
+               await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
+           }).ConfigureAwait(false);
         }
     }
 }

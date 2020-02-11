@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
@@ -259,6 +260,33 @@ namespace Grillbot.Services.Statistics
                         Changes.Add(emote.EmoteID);
                     }
                 }
+            }
+        }
+
+        public async Task<List<string>> CleanOldEmotesAsync(SocketGuild guild)
+        {
+            await guild.SyncGuildAsync().ConfigureAwait(false);
+
+            lock (Locker)
+            {
+                var removed = new List<string>();
+
+                using (var repository = new GrillBotRepository(Config))
+                {
+                    foreach (var emote in Counter.Values.Where(o => !o.IsUnicode).ToList())
+                    {
+                        var parsedEmote = Emote.Parse(emote.GetRealId());
+
+                        if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
+                        {
+                            removed.Add($"Mažu starý emote {parsedEmote.Name} ({parsedEmote.Id})");
+                            repository.EmoteStats.RemoveEmote(emote.GetRealId());
+                            Counter.Remove(emote.GetRealId());
+                        }
+                    }
+                }
+
+                return removed;
             }
         }
 
