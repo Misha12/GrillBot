@@ -1,9 +1,12 @@
 # GrillBot
 
 ## Requirements
-- MSSQL server.
-- Microsoft Visual Studio (2017 and later) (or another IDE)
+- MSSQL server 
+  - Instalation: https://www.microsoft.com/en-us/sql-server/sql-server-downloads 
+- Microsoft Visual Studio (2017 and later) (or another IDE supports .NET)
+  - Visual studio instalation: https://docs.microsoft.com/cs-cz/visualstudio/install/install-visual-studio?view=vs-2019
 - .NET Core 2.2 (with ASP\.NET Core 2.2)
+  - https://dotnet.microsoft.com/download/dotnet-core/2.2
 
 ## Continuous integration
 [![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/Misha12.GrillBot?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=8&branchName=master)
@@ -23,6 +26,9 @@
 - Newtonsoft.JSON
 - MathParser.org-mXParser
 
+## Database
+You can create database with scripts in `GrillBot-DB` project. If you're using Visual Studio on Windows, you can create migration script for your SQL Server instance.
+
 ## Config (appsettings.json)
 **Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
@@ -40,7 +46,6 @@
 |EmoteChain_CheckLastCount|int|Count of same emotes before bot send emote.|
 |Discord|[Config.Discord](#Config.Discord)|Service configuration|
 |Log|[Config.Log](#Config.Log)|Logging configuration|
-|MethodsConfig|[Config.MethodsConfig](#Config.MethodsConfig)|Features configuration|
 
 #### Config.Discord
 For properties **Token**, **ClientId**, **ClientSecret** you will need to create your own Discord Application to get a Token for local development.
@@ -54,6 +59,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |ClientId|string|ID of application in discord OAuth Service.|
 |ClientSecret|string|Secret key for authentication in Discord OAuth service.|
 |ServerBoosterRoleId|string|ID of role with Nitro Server Booster role.|
+|AdminChannelID|string|ID of channel for administration purposes.
 
 #### Config.Log
 
@@ -61,131 +67,11 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |---|---|---|
 |LogRoomID|string|ID of channel to send logging data such as errors.
 
-#### Config.MethodsConfig
-
-|Key|Type
-|---|---|
-|Greeting|[Config.MethodsConfig.Greeting](#Config.MethodsConfig.Greeting)|
-|GrillStatus|[Config.MethodsConfig.GrillStatus](#Config.MethodsConfig.GrillStatus)|
-|Help|[Config.MethodsConfig.Help](#Config.MethodsConfig.Help)|
-|Channelboard|[Config.MethodsConfig.Channelboard](#Config.MethodsConfig.Channelboard)|
-|MemeImages|[Config.MethodsConfig.MemeImages](#Config.MethodsConfig.MemeImages)|
-|RoleManager|[Config.MethodsConfig.RoleManager](#Config.MethodsConfig.RoleManager)|
-|Math|[Config.MethodsConfig.Math](#Config.MethodsConfig.Math)|
-|AutoReply|[Config.MethodsConfig.AutoReply](#Config.MethodsConfig.AutoReply)|
-|TeamSearch|[Config.MethodsConfig.TeamSearch](#Config.MethodsConfig.TeamSearch)|
-|EmoteManager|[Config.MethodsConfig.EmoteManager](#Config.MethodsConfig.EmoteManager)|
-|TempUnverify|[Config.MethodsConfig.TempUnverify](#Config.MethodsConfig.TempUnverify)|
-|Admin|[Config.MethodsConfig.Admin](#Config.MethodsConfig.Admin)|
-|CReference|[Config.MethodsConfig.CReference](#Config.MethodsConfig.CReference)|
-|SelfUnverify|[Config.MethodsConfig.SelfUnverify](#Config.MethodsConfig.SelfUnverify)|
-
-#### Config.MethodsConfig.Permissions
-
-|Key|Type|Description|
-|---|---|---|
-|RequireRoles|string[]|List of required roles. User must have at least one of these rolese. Value is role name.|
-|AllowedUsers|string[]|List of users with allowed access to feature. Value is user ID.|
-|BannedUsers|string[]|List of users with disabled access to feature. Value is user ID.|
-|OnlyAdmins|bool|Feature is allowed only for users with Administration permission.|
-
-#### Config.MethodsConfig.Greeting
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|MessageTemplate|string|Bots response.|
-|OutputMode|string|Default output mode. Supported is 'bin', 'text', 'hexa'.|
-
-#### Config.MethodsConfig.GrillStatus
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.Help
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.Channelboard
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|WebTokenValidMinutes|int|Time in minutes, to remove token from memory.
-|WebUrl|string|URL to channelboard site.
-
-#### Config.MethodsConfig.MemeImages
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|NudesDataPath|string|Path to directory of images. Bot take one of these images on nudes command.
-|NotNudesDataPath|string|Path to directory of images. Bot take one of these images on notnudes command.
-|AllowedImageTypes|string[]|List of supported image types.
-
-#### Config.MethodsConfig.RoleManager
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.Math
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|ComputingTime|int|Time in miliseconds to compute. When time is up, computing will be killed. Boosters have double time for computing.|
-|ProcessPath|string|Path to executable dll to computing engine.|
-
-#### Config.MethodsConfig.AutoReply
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.TeamSearch
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|GeneralCategoryID|ulong|ID of category with grouped searches.
-
-#### Config.MethodsConfig.EmoteManager
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.TempUnverify
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-|MainAdminID|string|ID of main administrator. This user will receive all problems with temp unverify.|
-
-#### Config.MethodsConfig.Admin
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.CReference
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-
-#### Config.MethodsConfig.SelfUnverify
-
-|Key|Type|Description|
-|---|---|---|
-|Permissions|[Config.MethodsConfig.Permissions](#Config.MethodsConfig.Permissions)|
-    
 ## GrillBotMath
 To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into appsettings.json (Config.MethodsConfig.Math.ProcessPath)
 
 ## GrillBot-Web
 Readme for GrillBot-Web is [Here](GrillBot-Web)
+
+## Permission system
+Permissions are stored in database in tables `MethodsConfig` and `MethodPerms`. For correct functionality you have to define at lease one administrator in `Config.Administrators`. Then you can use methods `config addMethod` and `config addPermission` to add other methods and permissions. 
