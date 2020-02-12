@@ -41,7 +41,7 @@ You can create database with scripts in `GrillBot-DB` project. If you're using V
 |---|---|---|
 |AllowedHosts|string|Semicollon delimited list of allowed hostnames without port numbers.|
 |CommandPrefix|string|Message content, that must starts to invoke command.|
-|Database|string|Connection string to MSSQL database. **If you don't want to setup DB locally ask [owner](http://github.com/Misha12) for remote connection string.**|
+|Database|string|Connection string to MSSQL database.|
 |Administrators|string[]|List of bot administrators. Can use bot independently of roles. Value is user ID.|
 |EmoteChain_CheckLastCount|int|Count of same emotes before bot send emote.|
 |Discord|[Config.Discord](#Config.Discord)|Service configuration|
