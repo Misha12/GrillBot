@@ -68,7 +68,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |LogRoomID|string|ID of channel to send logging data such as errors.
 
 ## GrillBotMath
-To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into appsettings.json (Config.MethodsConfig.Math.ProcessPath)
+To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
 
 ## GrillBot-Web
 Readme for GrillBot-Web is [Here](GrillBot-Web)
