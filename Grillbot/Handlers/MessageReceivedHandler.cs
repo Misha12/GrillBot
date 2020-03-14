@@ -12,9 +12,9 @@ using Microsoft.Extensions.Options;
 using Grillbot.Services.Config.Models;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
-using Grillbot.Database;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Handlers
 {
@@ -30,10 +30,11 @@ namespace Grillbot.Handlers
         private Statistics Statistics { get; }
         private EmoteStats EmoteStats { get; }
         private Configuration Config { get; }
+        private LogRepository Repository { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
             ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats, Statistics statistics,
-            EmoteStats emoteStats)
+            EmoteStats emoteStats, LogRepository repository)
         {
             Client = client;
             Commands = commands;
@@ -45,6 +46,7 @@ namespace Grillbot.Handlers
             Statistics = statistics;
             EmoteStats = emoteStats;
             Config = config.Value;
+            Repository = repository;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -133,11 +135,8 @@ namespace Grillbot.Handlers
                         commandInfo = validCommandInfo;
                 }
 
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    await repository.Log.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
-                        DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);
-                }
+                await Repository.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
+                    DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);
             }
         }
 

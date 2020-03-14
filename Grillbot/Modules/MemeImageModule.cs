@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Modules
 {
@@ -13,7 +14,8 @@ namespace Grillbot.Modules
     [Name("Nudes a další zajímavé fotky")]
     public class MemeImageModule : BotModuleBase
     {
-        public MemeImageModule(IOptions<Configuration> configuration) : base(configuration)
+        public MemeImageModule(IOptions<Configuration> configuration, ConfigRepository repository) :
+            base(configuration, repository)
         {
         }
 

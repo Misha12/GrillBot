@@ -1,7 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
 using System;
@@ -22,14 +21,11 @@ namespace Grillbot.Services.TempUnverify
             var unverifyTime = ParseUnverifyTime(time);
             var unverifiedPersons = new List<TempUnverifyItem>();
 
-            using (var repository = new GrillBotRepository(Config))
+            foreach (var user in users)
             {
-                foreach (var user in users)
-                {
-                    var person = await RemoveAccessAsync(repository, user, unverifyTime, reason, fromUser, guild, ignoreHigherRoles)
-                        .ConfigureAwait(false);
-                    unverifiedPersons.Add(person);
-                }
+                var person = await RemoveAccessAsync(user, unverifyTime, reason, fromUser, guild, ignoreHigherRoles)
+                    .ConfigureAwait(false);
+                unverifiedPersons.Add(person);
             }
 
             unverifiedPersons.ForEach(o => o.InitTimer(ReturnAccess));
@@ -38,8 +34,8 @@ namespace Grillbot.Services.TempUnverify
             return FormatMessageToChannel(users, unverifiedPersons, reason);
         }
 
-        private async Task<TempUnverifyItem> RemoveAccessAsync(GrillBotRepository repository, SocketGuildUser user,
-            int unverifyTime, string reason, SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
+        private async Task<TempUnverifyItem> RemoveAccessAsync(SocketGuildUser user, int unverifyTime, string reason,
+            SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
         {
             var rolesToRemove = user.Roles
                 .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
@@ -64,7 +60,7 @@ namespace Grillbot.Services.TempUnverify
             };
 
             data.SetUser(user);
-            await repository.TempUnverify.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
+            await Repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
 
             await Logger.WriteAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
                 $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
@@ -84,7 +80,7 @@ namespace Grillbot.Services.TempUnverify
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
-            var unverify = await repository.TempUnverify
+            var unverify = await Repository
                 .AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
                 .ConfigureAwait(false);
 

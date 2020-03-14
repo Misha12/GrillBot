@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
-using Grillbot.Database;
 using Grillbot.Database.Entity.MethodConfig;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
@@ -16,7 +16,7 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public class ConfigModule : BotModuleBase
     {
-        public ConfigModule(IOptions<Configuration> options) : base(options) { }
+        public ConfigModule(IOptions<Configuration> options, ConfigRepository repository) : base(options, repository) { }
 
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]
@@ -31,11 +31,8 @@ namespace Grillbot.Modules
                 var groupAndCommand = commandInfo.Split('/');
                 var adminsOnly = Convert.ToBoolean(onlyAdmins);
 
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    var config = repository.Config.AddConfig(Context.Guild, groupAndCommand[0], groupAndCommand[1], adminsOnly, configJson);
-                    await ReplyAsync($"Konfigurační záznam `{commandInfo},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
-                }
+                var config = ConfigRepository.AddConfig(Context.Guild, groupAndCommand[0], groupAndCommand[1], adminsOnly, configJson);
+                await ReplyAsync($"Konfigurační záznam `{commandInfo},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
             }).ConfigureAwait(false);
         }
 
@@ -47,13 +44,10 @@ namespace Grillbot.Modules
             {
                 var rows = new List<string>() { "ID\tSkupina/Příkaz\tOnlyAdmins" };
 
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    var rowsData = repository.Config.GetAllMethods(Context.Guild)
-                        .Select(o => $"{o.ID}\t{o.Group}/{o.Command}\t{(o.OnlyAdmins ? 1 : 0)}");
+                var rowsData = ConfigRepository.GetAllMethods(Context.Guild)
+                    .Select(o => $"{o.ID}\t{o.Group}/{o.Command}\t{(o.OnlyAdmins ? 1 : 0)}");
 
-                    rows.AddRange(rowsData);
-                }
+                rows.AddRange(rowsData);
 
                 await ReplyAsync($"```{string.Join("\n", rows)}```").ConfigureAwait(false);
             }).ConfigureAwait(false);
@@ -65,11 +59,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    repository.Config.UpdateMethod(Context.Guild, methodID, Convert.ToBoolean(onlyAdmins));
-                }
-
+                ConfigRepository.UpdateMethod(Context.Guild, methodID, Convert.ToBoolean(onlyAdmins));
                 await ReplyAsync("Příkaz byl úspěšně aktualizován.").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -80,11 +70,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using(var repository = new GrillBotRepository(Config))
-                {
-                    repository.Config.UpdateMethod(Context.Guild, methodID, jsonConfig: jsonConfig);
-                }
-
+                ConfigRepository.UpdateMethod(Context.Guild, methodID, jsonConfig: jsonConfig);
                 await ReplyAsync("Metoda byla úspěšně aktualizována").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -110,11 +96,7 @@ namespace Grillbot.Modules
                         break;
                 }
 
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    repository.Config.AddPermission(Context.Guild, methodID, targetID, (PermType)permType, (AllowType)allowType);
-                }
-
+                ConfigRepository.AddPermission(Context.Guild, methodID, targetID, (PermType)permType, (AllowType)allowType);
                 await ReplyAsync("Oprávnění bylo úspěšně přidáno.").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -127,35 +109,32 @@ namespace Grillbot.Modules
 
             await DoAsync(async () =>
             {
-                using (var repository = new GrillBotRepository(Config))
+                var method = ConfigRepository.GetMethod(Context.Guild, methodID);
+                await ReplyAsync($"ID: `{method.ID}`\nSkupina/Příkaz: `{method.Group}/{method.Command}`\nOnlyAdmins: `{method.OnlyAdmins}`").ConfigureAwait(false);
+
+                var rowsData = method.Permissions.Select(o =>
                 {
-                    var method = repository.Config.GetMethod(Context.Guild, methodID);
-                    await ReplyAsync($"ID: `{method.ID}`\nSkupina/Příkaz: `{method.Group}/{method.Command}`\nOnlyAdmins: `{method.OnlyAdmins}`").ConfigureAwait(false);
-
-                    var rowsData = method.Permissions.Select(o =>
+                    switch (o.PermType)
                     {
-                        switch (o.PermType)
-                        {
-                            case PermType.Role:
-                                var role = Context.Guild.GetRole(o.DiscordIDSnowflake);
-                                return $"{o.PermID}\t{role.Name} ({role.Id})\t{o.PermType}\t{o.AllowType}";
-                            case PermType.User:
-                                var user = Context.Guild.GetUserFromGuildAsync(o.DiscordID).Result;
-                                return $"{o.PermID}\t{user.GetFullName()}\t{o.PermType}\t{o.AllowType}";
-                        }
-
-                        return null;
-                    }).Where(o => o != null).ToList();
-
-                    if (rowsData.Count > 0)
-                    {
-                        rowsData.Insert(0, "ID\tUživatel/Role\tTyp práva\tTyp povolení");
-                        await ReplyAsync($"```{string.Join("\n", rowsData)}```").ConfigureAwait(false);
+                        case PermType.Role:
+                            var role = Context.Guild.GetRole(o.DiscordIDSnowflake);
+                            return $"{o.PermID}\t{role.Name} ({role.Id})\t{o.PermType}\t{o.AllowType}";
+                        case PermType.User:
+                            var user = Context.Guild.GetUserFromGuildAsync(o.DiscordID).Result;
+                            return $"{o.PermID}\t{user.GetFullName()}\t{o.PermType}\t{o.AllowType}";
                     }
-                    else
-                    {
-                        await ReplyAsync("Tato metoda nemá nastaveny žádné oprávnění.").ConfigureAwait(false);
-                    }
+
+                    return null;
+                }).Where(o => o != null).ToList();
+
+                if (rowsData.Count > 0)
+                {
+                    rowsData.Insert(0, "ID\tUživatel/Role\tTyp práva\tTyp povolení");
+                    await ReplyAsync($"```{string.Join("\n", rowsData)}```").ConfigureAwait(false);
+                }
+                else
+                {
+                    await ReplyAsync("Tato metoda nemá nastaveny žádné oprávnění.").ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
@@ -166,11 +145,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using(var repository = new GrillBotRepository(Config))
-                {
-                    repository.Config.RemovePermission(Context.Guild, methodID, permID);
-                }
-
+                ConfigRepository.RemovePermission(Context.Guild, methodID, permID);
                 await ReplyAsync("Oprávnění bylo odebráno").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
@@ -180,11 +155,8 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    var config = repository.Config.GetMethod(Context.Guild, methodID);
-                    await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
-                }
+                var config = ConfigRepository.GetMethod(Context.Guild, methodID);
+                await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
     }

@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -21,23 +20,20 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            using (var repository = new GrillBotRepository(Config))
+            var config = ConfigRepository.FindConfig(guild.Id, "unverify", "");
+            var configData = config.GetData<TempUnverifyConfig>();
+
+            var channels = guild.Channels
+                .OfType<SocketTextChannel>()
+                .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()));
+
+            foreach (var channel in channels)
             {
-                var config = repository.Config.FindConfig(guild.Id, "unverify", "");
-                var configData = config.GetData<TempUnverifyConfig>();
+                var canSee = channel.GetUser(user.Id) != null;
+                if (!canSee) return;
 
-                var channels = guild.Channels
-                    .OfType<SocketTextChannel>()
-                    .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()));
-
-                foreach (var channel in channels)
-                {
-                    var canSee = channel.GetUser(user.Id) != null;
-                    if (!canSee) return;
-
-                    var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                    await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
-                }
+                var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
+                await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
             }
         }
 
@@ -45,7 +41,8 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var mutedRole = guild.Roles.FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
+            var mutedRole = guild.Roles
+                .FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
 
             if (mutedRole == null)
                 return; // Mute role not exists on this server.
@@ -70,23 +67,21 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            using (var repository = new GrillBotRepository(Config))
+            var config = ConfigRepository.FindConfig(guild.Id, "unverify", "");
+            var configData = config.GetData<TempUnverifyConfig>();
+
+            var channels = guild.Channels
+                .OfType<SocketTextChannel>()
+                .Where(o =>
+                    configData.PreprocessRemoveAccess.Contains(o.Id.ToString()) &&
+                    !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
+
+            foreach (var channel in channels)
             {
-                var config = repository.Config.FindConfig(guild.Id, "unverify", "");
-                var configData = config.GetData<TempUnverifyConfig>();
+                var overwrites = channel.GetPermissionOverwrite(user);
 
-                var channels = guild.Channels
-                    .OfType<SocketTextChannel>()
-                    .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()))
-                    .Where(o => !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
-
-                foreach (var channel in channels)
-                {
-                    var overwrites = channel.GetPermissionOverwrite(user);
-
-                    if (overwrites != null)
-                        await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
-                }
+                if (overwrites != null)
+                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
             }
         }
 

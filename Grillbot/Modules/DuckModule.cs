@@ -4,6 +4,7 @@ using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Duck;
@@ -22,7 +23,8 @@ namespace Grillbot.Modules
     {
         private BotLoggingService Logger { get; }
 
-        public DuckModule(IOptions<Configuration> config, BotLoggingService logger) : base(config)
+        public DuckModule(IOptions<Configuration> config, BotLoggingService logger,
+            ConfigRepository repository) : base(config, repository)
         {
             Logger = logger;
         }

@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models;
-using Grillbot.Database;
 using Grillbot.Services.Config.Models;
 using System;
 using System.Collections.Generic;
@@ -11,8 +10,8 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
-using Microsoft.Extensions.Options;
 using Grillbot.Services.Initiable;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Services.Statistics
 {
@@ -21,36 +20,31 @@ namespace Grillbot.Services.Statistics
         public const int ChannelboardTakeTop = 10;
         public const int TokenLength = 20;
 
-        private Dictionary<ulong, ChannelStat> Counters { get; }
+        private Dictionary<ulong, ChannelStat> Counters { get; set; }
         private static object Locker { get; } = new object();
 
-        private Configuration Config { get; }
         private Timer DbSyncTimer { get; set; }
         private HashSet<ulong> Changes { get; }
         private List<ChannelboardWebToken> WebTokens { get; }
         private BotLoggingService LoggingService { get; }
+        private ChannelStatsRepository Repository { get; }
+        private ConfigRepository ConfigRepository { get; }
 
-        public ChannelStats(IOptions<Configuration> config, BotLoggingService loggingService)
+        public ChannelStats(BotLoggingService loggingService, ChannelStatsRepository repository,
+            ConfigRepository configRepository)
         {
             Changes = new HashSet<ulong>();
             WebTokens = new List<ChannelboardWebToken>();
             Counters = new Dictionary<ulong, ChannelStat>();
 
             LoggingService = loggingService;
-            Config = config.Value;
+            Repository = repository;
+            ConfigRepository = configRepository;
         }
 
         public void Init()
         {
-            using (var repository = new GrillBotRepository(Config))
-            {
-                var data = repository.ChannelStats.GetChannelStatistics();
-
-                foreach (var stat in data)
-                {
-                    Counters.Add(stat.SnowflakeID, stat);
-                }
-            }
+            Counters = Repository.GetChannelStatistics().ToDictionary(o => o.SnowflakeID, o => o);
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
@@ -66,10 +60,7 @@ namespace Grillbot.Services.Statistics
                 if (Changes.Count == 0) return;
 
                 var itemsForUpdate = Counters.Where(o => Changes.Contains(o.Key)).Select(o => o.Value).ToList();
-                using (var repository = new GrillBotRepository(Config))
-                {
-                    repository.ChannelStats.UpdateChannelboard(itemsForUpdate);
-                }
+                Repository.UpdateChannelboard(itemsForUpdate);
 
                 Changes.Clear();
                 LoggingService.Write($"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
@@ -139,19 +130,16 @@ namespace Grillbot.Services.Statistics
 
         public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
         {
-            using(var repository = new GrillBotRepository(Config))
-            {
-                var config = repository.Config.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
+            var config = ConfigRepository.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
 
-                var tokenValidFor = config.GetTokenValidTime();
-                var token = StringHelper.CreateRandomString(TokenLength);
-                var rawUrl = config.WebUrl;
+            var tokenValidFor = config.GetTokenValidTime();
+            var token = StringHelper.CreateRandomString(TokenLength);
+            var rawUrl = config.WebUrl;
 
-                var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
-                WebTokens.Add(webToken);
+            var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
+            WebTokens.Add(webToken);
 
-                return webToken;
-            }
+            return webToken;
         }
 
         public bool ExistsWebToken(string token) => WebTokens.Any(o => o.Token == token);

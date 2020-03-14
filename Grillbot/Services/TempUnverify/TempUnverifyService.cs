@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Repository;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
@@ -17,13 +17,18 @@ namespace Grillbot.Services.TempUnverify
         private Configuration Config { get; set; }
         private BotLoggingService Logger { get; }
         private DiscordSocketClient Client { get; }
+        private TempUnverifyRepository Repository { get; }
+        private ConfigRepository ConfigRepository { get; }
 
-        public TempUnverifyService(IOptions<Configuration> config, BotLoggingService logger, DiscordSocketClient client)
+        public TempUnverifyService(IOptions<Configuration> config, BotLoggingService logger, DiscordSocketClient client,
+            TempUnverifyRepository repository, ConfigRepository configRepository)
         {
             Data = new List<TempUnverifyItem>();
             Config = config.Value;
             Logger = logger;
             Client = client;
+            Repository = repository;
+            ConfigRepository = configRepository;
         }
 
         public async Task InitAsync()
@@ -37,23 +42,20 @@ namespace Grillbot.Services.TempUnverify
             int processedCount = 0;
             int waitingCount = 0;
 
-            using (var repository = new GrillBotRepository(Config))
-            {
-                var items = await repository.TempUnverify.GetAllItems().ToListAsync().ConfigureAwait(false);
+            var items = await Repository.GetAllItems().ToListAsync().ConfigureAwait(false);
 
-                foreach (var item in items)
+            foreach (var item in items)
+            {
+                if (item.GetEndDatetime() < DateTime.Now)
                 {
-                    if (item.GetEndDatetime() < DateTime.Now)
-                    {
-                        ReturnAccess(item);
-                        processedCount++;
-                    }
-                    else
-                    {
-                        item.InitTimer(ReturnAccess);
-                        Data.Add(item);
-                        waitingCount++;
-                    }
+                    ReturnAccess(item);
+                    processedCount++;
+                }
+                else
+                {
+                    item.InitTimer(ReturnAccess);
+                    Data.Add(item);
+                    waitingCount++;
                 }
             }
 

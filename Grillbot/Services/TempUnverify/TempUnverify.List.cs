@@ -17,15 +17,12 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<List<BotEmbed>> ListPersonsAsync(SocketUser caller)
         {
-            using(var repository = new GrillBotRepository(Config))
-            {
-                var persons = await repository.TempUnverify.GetAllItems().ToListAsync().ConfigureAwait(false);
+            var persons = await Repository.GetAllItems().ToListAsync().ConfigureAwait(false);
 
-                if (persons.Count == 0)
-                    throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
+            if (persons.Count == 0)
+                throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-                return await CreateListsPersonsAsync(persons, caller).ConfigureAwait(false);
-            }
+            return await CreateListsPersonsAsync(persons, caller).ConfigureAwait(false);
         }
 
         private async Task<List<BotEmbed>> CreateListsPersonsAsync(List<TempUnverifyItem> items, SocketUser user)
@@ -51,7 +48,7 @@ namespace Grillbot.Services.TempUnverify
 
             var embeds = new List<BotEmbed>();
             var pages = System.Math.Ceiling(fields.Count / 10.0);
-            for(var i = 0; i < pages; i++)
+            for (var i = 0; i < pages; i++)
             {
                 var partialFields = fields.Skip(Convert.ToInt32(System.Math.Ceiling(i * 10.0))).Take(10).ToList();
 

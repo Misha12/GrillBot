@@ -1,3 +1,4 @@
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
@@ -11,9 +12,14 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public IQueryable<TeamSearch> GetAllSearches()
+        public List<TeamSearch> GetAllSearches(string channelID)
         {
-            return Context.TeamSearch.AsQueryable();
+            var query = Context.TeamSearch.AsQueryable();
+
+            if (!string.IsNullOrEmpty(channelID))
+                query = query.Where(o => o.ChannelId == channelID);
+
+            return query.ToList();
         }
 
         public async Task AddSearchAsync(ulong userID, ulong channelID, ulong messageID)

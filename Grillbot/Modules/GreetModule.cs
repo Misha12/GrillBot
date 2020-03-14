@@ -6,6 +6,7 @@ using Grillbot.Services.Preconditions;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Modules
 {
@@ -13,7 +14,7 @@ namespace Grillbot.Modules
     [Name("Pozdrav bota")]
     public class GreetModule : BotModuleBase
     {
-        public GreetModule(IOptions<Configuration> config) : base(config)
+        public GreetModule(IOptions<Configuration> config, ConfigRepository repository) : base(config, repository)
         {
         }
 

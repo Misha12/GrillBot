@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Handlers;
 using Grillbot.Services;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
@@ -20,6 +19,9 @@ using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.Permissions;
+using Grillbot.Database;
+using Microsoft.EntityFrameworkCore;
+using Grillbot.Database.Repository;
 
 namespace Grillbot
 {
@@ -34,14 +36,26 @@ namespace Grillbot
 
         public void ConfigureServices(IServiceCollection services)
         {
+            services.Configure<Configuration>(Configuration);
+
+            services
+                .AddDbContext<GrillBotContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")), ServiceLifetime.Transient, ServiceLifetime.Transient)
+                .AddTransient<AutoReplyRepository>()
+                .AddTransient<BirthdaysRepository>()
+                .AddTransient<BotDbRepository>()
+                .AddTransient<ConfigRepository>()
+                .AddTransient<EmoteStatsRepository>()
+                .AddTransient<ChannelStatsRepository>()
+                .AddTransient<LogRepository>()
+                .AddTransient<TeamSearchRepository>()
+                .AddTransient<TempUnverifyRepository>();
+
             services
                 .AddCors()
                 .AddMvc()
                 .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
 
             ConfigureDiscord(services);
-
-            services.Configure<Configuration>(Configuration);
 
             services
                 .AddTransient<DcUserAuthorization>();
@@ -84,7 +98,6 @@ namespace Grillbot
                 .AddSingleton<CReferenceService>()
                 .AddSingleton<TempUnverifyService>()
                 .AddSingleton<MathService>()
-                .AddTransient<TeamSearchService>()
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()

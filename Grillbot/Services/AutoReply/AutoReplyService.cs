@@ -13,6 +13,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Initiable;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Modules.AutoReply
 {
@@ -21,30 +22,29 @@ namespace Grillbot.Modules.AutoReply
         private List<AutoReplyItem> Data { get; }
         private BotLoggingService BotLogging { get; }
         private Configuration Config { get; }
+        private AutoReplyRepository Repository { get; }
 
-        public AutoReplyService(IOptions<Configuration> configuration, BotLoggingService botLogging)
+        public AutoReplyService(IOptions<Configuration> configuration, BotLoggingService botLogging,
+            AutoReplyRepository repository)
         {
             Data = new List<AutoReplyItem>();
             BotLogging = botLogging;
             Config = configuration.Value;
+            Repository = repository;
         }
 
         public void Init()
         {
             Data.Clear();
-
-            using(var repository = new GrillBotRepository(Config))
-            {
-                Data.AddRange(repository.AutoReply.GetAllItems());
-                BotLogging.Write($"AutoReply module loaded (loaded {Data.Count} templates)");
-            }
+            Data.AddRange(Repository.GetAllItems());
+            BotLogging.Write($"AutoReply module loaded (loaded {Data.Count} templates)");
         }
 
         public async Task TryReplyAsync(SocketUserMessage message)
         {
             bool replied = false;
 
-            foreach(var item in Data)
+            foreach (var item in Data)
             {
                 if (item.CompareType == AutoReplyCompareTypes.Absolute)
                     replied = await TryReplyWithAbsolute(message, item).ConfigureAwait(false);
@@ -58,10 +58,10 @@ namespace Grillbot.Modules.AutoReply
 
         private async Task<bool> TryReplyWithContains(SocketUserMessage message, AutoReplyItem item)
         {
-            if(!message.Content.Contains(item.MustContains, GetStringComparison(item)))
+            if (!message.Content.Contains(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if(item.CanReply())
+            if (item.CanReply())
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -73,10 +73,10 @@ namespace Grillbot.Modules.AutoReply
 
         private async Task<bool> TryReplyWithAbsolute(SocketUserMessage message, AutoReplyItem item)
         {
-            if(!message.Content.Equals(item.MustContains, GetStringComparison(item)))
+            if (!message.Content.Equals(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if(item.CanReply())
+            if (item.CanReply())
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -94,7 +94,7 @@ namespace Grillbot.Modules.AutoReply
             var embed = new BotEmbed(requestMessage.Author)
                 .WithTitle("Automatické odpovědi");
 
-            foreach(var item in Data)
+            foreach (var item in Data)
             {
                 embed.AddField(field =>
                 {
@@ -123,11 +123,7 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
 
-            using(var repository = new GrillBotRepository(Config))
-            {
-                await repository.AutoReply.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
-            }
-
+            await Repository.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
             if (item.IsDisabled == disabled)
                 throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
 
@@ -148,12 +144,7 @@ namespace Grillbot.Modules.AutoReply
             };
 
             item.SetCompareType(compareType);
-
-            using(var repository = new GrillBotRepository(Config))
-            {
-                await repository.AutoReply.AddItemAsync(item).ConfigureAwait(false);
-            }
-
+            await Repository.AddItemAsync(item).ConfigureAwait(false);
             Data.Add(item);
         }
 
@@ -164,10 +155,7 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
 
-            using(var repository = new GrillBotRepository(Config))
-            {
-                await repository.AutoReply.EditItemAsync(id, mustContains, reply, compareType, caseSensitive).ConfigureAwait(false);
-            }
+            await Repository.EditItemAsync(id, mustContains, reply, compareType, caseSensitive).ConfigureAwait(false);
 
             item.MustContains = mustContains;
             item.ReplyMessage = reply;
@@ -180,11 +168,7 @@ namespace Grillbot.Modules.AutoReply
             if (!Data.Any(o => o.ID == id))
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
 
-            using(var repository = new GrillBotRepository(Config))
-            {
-                await repository.AutoReply.RemoveItemAsync(id).ConfigureAwait(false);
-            }
-
+            await Repository.RemoveItemAsync(id).ConfigureAwait(false);
             Data.RemoveAll(o => o.ID == id);
         }
 

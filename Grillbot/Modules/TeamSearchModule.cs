@@ -8,14 +8,13 @@ using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services;
 using Grillbot.Services.Config.Models;
+using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
-using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
@@ -25,14 +24,17 @@ namespace Grillbot.Modules
     [Name("Hledání týmů")]
     public class TeamSearchModule : BotModuleBase
     {
-        private TeamSearchService Service { get; }
+        private TeamSearchRepository Repository { get; }
+        private IMessageCache MessageCache { get; }
 
         private const uint MaxPageSize = 1980;
         private const uint MaxSearchSize = 1900;
 
-        public TeamSearchModule(TeamSearchService service, IOptions<Configuration> options) : base(options)
+        public TeamSearchModule(TeamSearchRepository repository, IOptions<Configuration> options,
+            ConfigRepository configRepository, IMessageCache cache) : base(options, configRepository)
         {
-            Service = service;
+            Repository = repository;
+            MessageCache = cache;
         }
 
         [Command("add")]
@@ -48,7 +50,7 @@ namespace Grillbot.Modules
 
             try
             {
-                await Service.AddSearchAsync(Context).ConfigureAwait(false);
+                await Repository.AddSearchAsync(Context.User.Id, Context.Channel.Id, Context.Message.Id);
                 await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
             }
             catch
@@ -72,19 +74,19 @@ namespace Grillbot.Modules
             if (category == null)
                 return;
 
-            var query = Service.Repository.TeamSearch.GetAllSearches();
+            var query = Repository.GetAllSearches(null);
             bool isMisc = category == generalCategoryId;
 
             List<TeamSearch> searches;
             if (isMisc)
             {
-                var queryData = await query.ToListAsync().ConfigureAwait(false);
-                searches = queryData.Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
+                searches = query
+                    .Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
                     .ToList();
             }
             else
             {
-                searches = await query.Where(x => x.ChannelId == channelId.ToString()).ToListAsync().ConfigureAwait(false);
+                searches = query.Where(x => x.ChannelId == channelId.ToString()).ToList();
             }
 
             if (searches.Count == 0)
@@ -102,11 +104,11 @@ namespace Grillbot.Modules
                 if (!(Context.Guild.GetChannel(Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
                     continue;
 
-                var message = await Service.GetMessageAsync(channel.Id, Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
+                var message = await MessageCache.GetAsync(channel.Id, search.MessageIDSnowflake);
                 if (message == null)
                 {
                     // If message was deleted, remove it from Db
-                    await Service.Repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                    await Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
                     continue;
                 }
 
@@ -133,7 +135,8 @@ namespace Grillbot.Modules
                 }
             }
 
-            if (stringBuilder.Length != 0) pages.Add(stringBuilder.ToString());
+            if (stringBuilder.Length != 0)
+                pages.Add(stringBuilder.ToString());
 
             // if after filters there are no searches don't print empty embed
             if (pages.Count == 0)
@@ -162,7 +165,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var search = await Service.Repository.TeamSearch.FindSearchByID(rowId).ConfigureAwait(false);
+            var search = await Repository.FindSearchByID(rowId).ConfigureAwait(false);
             if (search == null)
             {
                 await ReplyAsync("Hledaná zpráva neexistuje.").ConfigureAwait(false);
@@ -174,7 +177,7 @@ namespace Grillbot.Modules
 
             if (userId == Context.User.Id)
             {
-                await Service.Repository.TeamSearch.RemoveSearchAsync(rowId).ConfigureAwait(false);
+                await Repository.RemoveSearchAsync(rowId).ConfigureAwait(false);
                 await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
             }
             else
@@ -186,50 +189,43 @@ namespace Grillbot.Modules
         [Command("cleanChannel")]
         public async Task CleanChannelAsync(string channel)
         {
-            var mentionedChannelID = Context.Message.MentionedChannels.First().Id.ToString();
-
-            using (var repository = new GrillBotRepository(Config))
+            await DoAsync(async () =>
             {
-                var searches = await repository.TeamSearch.GetAllSearches().Where(o => o.ChannelId == mentionedChannelID).ToListAsync().ConfigureAwait(false);
+                var mentionedChannelID = Context.Message.MentionedChannels.First().Id.ToString();
+                var searches = Repository.GetAllSearches(mentionedChannelID);
 
                 if (searches.Count == 0)
-                {
-                    await ReplyAsync($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá.").ConfigureAwait(false);
-                    return;
-                }
+                    throw new ArgumentException($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá");
 
                 foreach (var search in searches)
                 {
-                    var message = await Service.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
+                    var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
 
-                    await repository.TeamSearch.RemoveSearchAsync(search.Id).ConfigureAwait(false);
+                    await Repository.RemoveSearchAsync(search.Id);
                     await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetFullName()}** smazáno.").ConfigureAwait(false);
                 }
 
                 await ReplyAsync($"Čištění kanálu {channel.PreventMassTags()} dokončeno.").ConfigureAwait(false);
-            }
+            });
         }
 
         [Command("massRemove")]
         public async Task MassRemoveAsync(params int[] searchIds)
         {
-            using (var repository = new GrillBotRepository(Config))
+            foreach (var id in searchIds)
             {
-                foreach (var id in searchIds)
+                var search = await Repository.FindSearchByID(id).ConfigureAwait(false);
+
+                if (search != null)
                 {
-                    var search = await repository.TeamSearch.FindSearchByID(id).ConfigureAwait(false);
+                    var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
 
-                    if (search != null)
-                    {
-                        var message = await Service.GetMessageAsync(Convert.ToUInt64(search.ChannelId), Convert.ToUInt64(search.MessageId)).ConfigureAwait(false);
+                    if (message == null)
+                        await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
+                    else
+                        await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
 
-                        if (message == null)
-                            await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
-                        else
-                            await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
-
-                        await repository.TeamSearch.RemoveSearchAsync(id).ConfigureAwait(false);
-                    }
+                    await Repository.RemoveSearchAsync(id).ConfigureAwait(false);
                 }
             }
 

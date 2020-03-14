@@ -7,17 +7,8 @@ namespace Grillbot.Database
 {
     public class GrillBotContext : DbContext
     {
-        private string ConnectionString { get; }
-
-        public GrillBotContext(string connectionString)
+        public GrillBotContext(DbContextOptions<GrillBotContext> options) : base(options)
         {
-            ConnectionString = connectionString;
-        }
-
-        protected override void OnConfiguring(DbContextOptionsBuilder optionsBuilder)
-        {
-            base.OnConfiguring(optionsBuilder);
-            optionsBuilder.UseSqlServer(ConnectionString);
         }
 
         protected override void OnModelCreating(ModelBuilder modelBuilder)

@@ -1,11 +1,9 @@
-﻿using Grillbot.Database;
+﻿using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.Options;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -18,17 +16,17 @@ namespace Grillbot.Services
         private ChannelStats ChannelStats { get; }
         private IHostingEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
-        private Configuration Config { get; }
         private Statistics.Statistics Statistics { get; }
+        private BotDbRepository Repository { get; }
 
         public BotStatusService(ChannelStats channelStats, IHostingEnvironment hostingEnvironment, Logger.Logger logger,
-            IOptions<Configuration> config, Statistics.Statistics statistics)
+            Statistics.Statistics statistics, BotDbRepository repository)
         {
             Statistics = statistics;
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
-            Config = config.Value;
             ChannelStats = channelStats;
+            Repository = repository;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -77,10 +75,7 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, int>> GetDbReport()
         {
-            using (var repository = new GrillBotRepository(Config))
-            {
-                return await repository.BotDb.GetTableRowsCount().ConfigureAwait(false);
-            }
+            return await Repository.GetTableRowsCount().ConfigureAwait(false);
         }
     }
 }

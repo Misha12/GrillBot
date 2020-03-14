@@ -8,6 +8,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Modules
 {
@@ -16,8 +17,11 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public class BirthdaysModule : BotModuleBase
     {
-        public BirthdaysModule(IOptions<Configuration> options) : base(options)
+        private BirthdaysRepository Repository { get; }
+
+        public BirthdaysModule(IOptions<Configuration> options, BirthdaysRepository repository) : base(options)
         {
+            Repository = repository;
         }
 
         [Command("")]
@@ -25,24 +29,21 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using(var repository = new GrillBotRepository(Config))
+                var birthdays = await Repository.GetBirthdaysForDayAsync(DateTime.Today, Context.Guild.Id.ToString()).ConfigureAwait(false);
+
+                if (birthdays.Count == 0)
+                    throw new ArgumentException("Dnes nemá nikdo narozeniny.");
+
+                foreach (var birthday in birthdays)
                 {
-                    var birthdays = await repository.Birthdays.GetBirthdaysForDayAsync(DateTime.Today, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    var guild = Context.Client.GetGuild(birthday.GuildIDSnowflake);
+                    var user = await guild.GetUserFromGuildAsync(birthday.ID).ConfigureAwait(false);
+                    var embed = new BotEmbed(Context.User, null, $"Dnes má narozeniny {user.GetFullName()}", user.GetUserAvatarUrl());
 
-                    if (birthdays.Count == 0)
-                        throw new ArgumentException("Dnes nemá nikdo narozeniny.");
+                    if (birthday.AcceptAge)
+                        embed.AddField(o => o.WithName("Věk").WithValue(birthday.ComputeAge()));
 
-                    foreach (var birthday in birthdays)
-                    {
-                        var guild = Context.Client.GetGuild(birthday.GuildIDSnowflake);
-                        var user = await guild.GetUserFromGuildAsync(birthday.ID).ConfigureAwait(false);
-                        var embed = new BotEmbed(Context.User, null, $"Dnes má narozeniny {user.GetFullName()}", user.GetUserAvatarUrl());
-
-                        if (birthday.AcceptAge)
-                            embed.AddField(o => o.WithName("Věk").WithValue(birthday.ComputeAge()));
-
-                        await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-                    }
+                    await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
                 }
             }).ConfigureAwait(false);
         }
@@ -54,29 +55,26 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using(var repository = new GrillBotRepository(Config))
+                var exists = await Repository.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
+
+                if (exists)
+                    throw new ArgumentException("Tento uživatel už má uložené datum narození.");
+
+                if (DateTime.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
                 {
-                    var exists = await repository.Birthdays.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
-
-                    if (exists)
-                        throw new ArgumentException("Tento uživatel už má uložené datum narození.");
-
-                    if (DateTime.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
-                    {
-                        await repository.Birthdays.AddBirthdayAsync(true, dateTime.Date, Context).ConfigureAwait(false);
-                    }
-                    else if (DateTime.TryParseExact(date, "dd/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
-                    {
-                        await repository.Birthdays.AddBirthdayAsync(false, dateTime.Date, Context).ConfigureAwait(false);
-                    }
-                    else
-                    {
-                        throw new ArgumentException("Neplatný formát data a času. Povolené jsou pouze `dd/MM/yyyy`, nebo `dd/MM`");
-                    }
-
-                    await ReplyAsync("Datum narození bylo úspěšně přidáno.").ConfigureAwait(false);
-                    await Context.Message.DeleteAsync(new Discord.RequestOptions() { AuditLogReason = "Add Birthday" }).ConfigureAwait(false);
+                    await Repository.AddBirthdayAsync(true, dateTime.Date, Context).ConfigureAwait(false);
                 }
+                else if (DateTime.TryParseExact(date, "dd/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
+                {
+                    await Repository.AddBirthdayAsync(false, dateTime.Date, Context).ConfigureAwait(false);
+                }
+                else
+                {
+                    throw new ArgumentException("Neplatný formát data a času. Povolené jsou pouze `dd/MM/yyyy`, nebo `dd/MM`");
+                }
+
+                await ReplyAsync("Datum narození bylo úspěšně přidáno.").ConfigureAwait(false);
+                await Context.Message.DeleteAsync(new Discord.RequestOptions() { AuditLogReason = "Add Birthday" }).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
@@ -86,16 +84,13 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                using(var repository = new GrillBotRepository(Config))
-                {
-                    var exists = await repository.Birthdays.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    var exists = await Repository.ExistsUserAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
 
                     if (!exists)
                         throw new ArgumentException("Tento uživatle nemá uložené datum narození.");
 
-                    await repository.Birthdays.RemoveAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
+                    await Repository.RemoveAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
                     await ReplyAsync("Datum narození bylo odebráno.").ConfigureAwait(false);
-                }
             }).ConfigureAwait(false);
         }
     }

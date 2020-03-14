@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Database;
+using Grillbot.Database.Repository;
 using Grillbot.Models;
-using Grillbot.Services.Config;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Options;
@@ -19,11 +18,13 @@ namespace Grillbot.Services.Math
         private List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
         private Configuration Config { get; }
+        private ConfigRepository Repository { get; }
 
-        public MathService(IOptions<Configuration> config)
+        public MathService(IOptions<Configuration> config, ConfigRepository repository)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
+            Repository = repository;
         }
 
         private void InitSessions()
@@ -33,7 +34,7 @@ namespace Grillbot.Services.Math
                 Sessions.Clear();
 
                 const int sessionCount = 10; // 10 computing units (processes) for every group.
-                var calcTime = 10000; // 10 seconds. Booster have double time.
+                const int calcTime = 10000; // 10 seconds. Booster have double time.
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.
             }
@@ -91,35 +92,32 @@ namespace Grillbot.Services.Math
                     };
                 }
 
-                using (var repository = new GrillBotRepository(Config))
+                var config = Repository.FindConfig(user.Guild.Id, "", "solve");
+                var configData = config.GetData<MathConfig>();
+
+                var appPath = configData.ProcessPath;
+                using (var process = new Process())
                 {
-                    var config = repository.Config.FindConfig(user.Guild.Id, "", "solve");
-                    var configData = config.GetData<MathConfig>();
+                    process.StartInfo.FileName = "dotnet";
+                    process.StartInfo.Arguments = $"{appPath} \"{input}\"";
+                    process.StartInfo.UseShellExecute = false;
+                    process.StartInfo.CreateNoWindow = true;
+                    process.StartInfo.RedirectStandardOutput = true;
 
-                    var appPath = configData.ProcessPath;
-                    using (var process = new Process())
+                    process.Start();
+
+                    if (!process.WaitForExit(session.ComputingTime))
                     {
-                        process.StartInfo.FileName = "dotnet";
-                        process.StartInfo.Arguments = $"{appPath} \"{input}\"";
-                        process.StartInfo.UseShellExecute = false;
-                        process.StartInfo.CreateNoWindow = true;
-                        process.StartInfo.RedirectStandardOutput = true;
-
-                        process.Start();
-
-                        if (!process.WaitForExit(session.ComputingTime))
+                        process.Kill();
+                        return new MathCalcResult()
                         {
-                            process.Kill();
-                            return new MathCalcResult()
-                            {
-                                IsTimeout = true,
-                                AssingedComputingTime = session.ComputingTime
-                            };
-                        }
-
-                        var output = process.StandardOutput.ReadToEnd();
-                        return JsonConvert.DeserializeObject<MathCalcResult>(output);
+                            IsTimeout = true,
+                            AssingedComputingTime = session.ComputingTime
+                        };
                     }
+
+                    var output = process.StandardOutput.ReadToEnd();
+                    return JsonConvert.DeserializeObject<MathCalcResult>(output);
                 }
             }
             finally
