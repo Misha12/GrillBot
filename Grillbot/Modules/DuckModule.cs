@@ -20,7 +20,7 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public class DuckModule : BotModuleBase
     {
-        private BotLoggingService Logger { get; set; }
+        private BotLoggingService Logger { get; }
 
         public DuckModule(IOptions<Configuration> config, BotLoggingService logger) : base(config)
         {
@@ -34,19 +34,22 @@ namespace Grillbot.Modules
 
             await DoAsync(async () =>
             {
-                var client = new HttpClient();
-                client.BaseAddress = new Uri(config.IsKachnaOpenApiBase);
+                var client = new HttpClient
+                {
+                    BaseAddress = new Uri(config.IsKachnaOpenApiBase)
+                };
+
                 HttpResponseMessage resp;
-                
+
                 try
                 {
                     resp = await client.GetAsync("api/duck/currentState");
                 }
-                catch
+                catch (Exception ex)
                 {
                     await Logger.WriteAsync(
-                        "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.)",
-                        "DUCK");
+                        "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) " +
+                        ex.ToString(), "DUCK");
 
                     throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
                                                 config.IsKachnaOpenApiBase);
@@ -55,7 +58,7 @@ namespace Grillbot.Modules
                 if (!resp.IsSuccessStatusCode)
                 {
                     await Logger.WriteAsync(
-                        $"Request na IsKachnaOpen skončil špatně (HTTP {(int) resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}",
+                        $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}",
                         "DUCK");
 
                     throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
@@ -64,11 +67,10 @@ namespace Grillbot.Modules
 
                 var dto = await resp.Content.ReadAsAsync<CurrentState>();
                 var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-                var embed = this.MakeEmbed(dto, user, config.EnableBeersOnTap);
-                await this.ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                var embed = MakeEmbed(dto, user, config.EnableBeersOnTap);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
-
 
         private BotEmbed MakeEmbed(CurrentState state, IUser user, bool enableBeers)
         {
@@ -84,7 +86,7 @@ namespace Grillbot.Modules
                     if (state.NextOpeningDateTime.HasValue)
                     {
                         var left = state.NextOpeningDateTime.Value - DateTime.Now;
-                        sb.Append($" Do další otvíračky zbývá {left.ToCzechLongTimeString()}.");
+                        sb.Append(" Do další otvíračky zbývá ").Append(left.ToCzechLongTimeString()).Append('.');
 
                         if (!string.IsNullOrEmpty(state.Note))
                         {
@@ -123,11 +125,11 @@ namespace Grillbot.Modules
                     {
                         var left = state.ExpectedEnd.Value - DateTime.Now;
 
-                        sb.Append($" Do konce zbývá {left.ToCzechLongTimeString()}.");
+                        sb.Append(" Do konce zbývá ").Append(left.ToCzechLongTimeString()).Append('.');
                         embed.AddField("Zavíráme", state.ExpectedEnd.Value.ToString("HH:mm"), true);
                     }
 
-                    if (enableBeers && state.BeersOnTap != null && state.BeersOnTap.Length > 0)
+                    if (enableBeers && state.BeersOnTap?.Length > 0)
                     {
                         var beerSb = new StringBuilder();
                         foreach (var b in state.BeersOnTap)
@@ -145,7 +147,7 @@ namespace Grillbot.Modules
 
                     break;
                 case DuckState.OpenChillzone:
-                    sb.Append($"Kachna je otevřená v režimu chillzóna až do {state.ExpectedEnd.Value:HH:mm}!");
+                    sb.Append("Kachna je otevřená v režimu chillzóna až do ").AppendFormat("{0:HH:mm}", state.ExpectedEnd.Value).Append('!');
                     if (!string.IsNullOrEmpty(state.Note))
                     {
                         embed.AddField("Poznámka", state.Note, false);
@@ -153,7 +155,7 @@ namespace Grillbot.Modules
 
                     break;
                 case DuckState.OpenEvent:
-                    sb.Append($"V Kachně právě probíhá akce „{state.EventName}“.");
+                    sb.Append("V Kachně právě probíhá akce „").Append(state.EventName).Append("“.");
                     break;
                 default:
                     throw new ArgumentOutOfRangeException();
