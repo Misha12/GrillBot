@@ -24,7 +24,7 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id.ToString());
+                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
                 var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time).ConfigureAwait(false);
                 await ReplyAsync(message).ConfigureAwait(false);
             }).ConfigureAwait(false);

@@ -18,17 +18,23 @@ namespace Grillbot.Extensions.Discord
         public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string userId)
         {
             var idOfUser = Convert.ToUInt64(userId);
-            var user = guild.GetUser(idOfUser);
+            return await GetUserFromGuildAsync(guild, idOfUser);
+        }
+
+        public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, ulong userId)
+        {
+            var user = guild.GetUser(userId);
 
             if (user == null)
             {
                 await guild.DownloadUsersAsync().ConfigureAwait(false);
-                user = guild.GetUser(idOfUser);
+                user = guild.GetUser(userId);
             }
 
             return user;
         }
 
+        
         public static async Task SyncGuildAsync(this SocketGuild guild)
         {
             if (guild.SyncPromise != null)
