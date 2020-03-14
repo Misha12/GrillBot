@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 
 namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
@@ -23,7 +24,7 @@ namespace Grillbot.Services.Logger.LoggerMethods.LogEmbed
         public LogEmbedBuilder SetAuthor(IUser user, bool strictFormatAsAuthor = false)
         {
             AddField(strictFormatAsAuthor ? "Autor" : "Uživatel", user?.ToString() ?? "Neznámý");
-            Embed.WithThumbnail(user?.GetDefaultAvatarUrl());
+            Embed.WithThumbnail(user?.GetUserAvatarUrl());
 
             return this;
         }
