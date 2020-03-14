@@ -2,6 +2,7 @@
 using System.Net.Http;
 using System.Text;
 using System.Threading.Tasks;
+using Discord;
 using Discord.Commands;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -62,17 +63,16 @@ namespace Grillbot.Modules
                 }
 
                 var dto = await resp.Content.ReadAsAsync<CurrentState>();
-                var embed = this.MakeEmbed(dto, config.EnableBeersOnTap);
+                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
+                var embed = this.MakeEmbed(dto, user, config.EnableBeersOnTap);
                 await this.ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
 
 
-        private BotEmbed MakeEmbed(CurrentState state, bool enableBeers)
+        private BotEmbed MakeEmbed(CurrentState state, IUser user, bool enableBeers)
         {
-            var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
             var embed = new BotEmbed(user, null, null, user.GetUserAvatarUrl());
-
             var sb = new StringBuilder();
 
             switch (state.State)
