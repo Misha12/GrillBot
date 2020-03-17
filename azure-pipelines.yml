@@ -19,13 +19,6 @@ steps:
   displayName: 'Install Node.js'
 
 - script: |
-    cd GrillBot-Web/
-    npm install -g @angular/cli
-    npm install
-    ng build --prod
-  displayName: 'GrillBot-Web build'
-
-- script: |
     dotnet sln GrillBot.sln remove GrillBot-DB/GrillBot-DB.sqlproj
     dotnet build --configuration $(buildConfiguration)
   displayName: 'dotnet build $(buildConfiguration)'
