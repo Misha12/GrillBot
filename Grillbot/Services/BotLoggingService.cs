@@ -118,14 +118,14 @@ namespace Grillbot.Services
             switch (severity)
             {
                 case LogSeverity.Warning:
-                    Logger.LogWarning(message, source);
+                    Logger.LogWarning($"{source}\t{message}");
                     break;
                 case LogSeverity.Critical:
                 case LogSeverity.Error:
-                    Logger.LogCritical(exception, message, source);
+                    Logger.LogCritical(exception, $"{source}\t{message}");
                     break;
                 default:
-                    Logger.LogInformation(message, source);
+                    Logger.LogInformation($"{source}\t{message}");
                     break;
             }
         }

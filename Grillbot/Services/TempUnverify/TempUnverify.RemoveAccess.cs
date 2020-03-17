@@ -16,7 +16,7 @@ namespace Grillbot.Services.TempUnverify
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            CheckIfCanStartUnverify(users, guild, ignoreHigherRoles);
+            CheckIfCanStartUnverify(users, guild, ignoreHigherRoles, null);
 
             var reason = ParseReason(data);
             var unverifyTime = ParseUnverifyTime(time);
@@ -24,8 +24,7 @@ namespace Grillbot.Services.TempUnverify
 
             foreach (var user in users)
             {
-                var person = await RemoveAccessAsync(user, unverifyTime, reason, fromUser, guild, ignoreHigherRoles)
-                    .ConfigureAwait(false);
+                var person = await RemoveAccessAsync(user, unverifyTime, reason, fromUser, guild, ignoreHigherRoles, null);
                 unverifiedPersons.Add(person);
             }
 
@@ -36,7 +35,7 @@ namespace Grillbot.Services.TempUnverify
         }
 
         private async Task<TempUnverifyItem> RemoveAccessAsync(SocketGuildUser user, int unverifyTime, string reason,
-            SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles)
+            SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
             var rolesToRemove = user.Roles
                 .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
@@ -46,6 +45,11 @@ namespace Grillbot.Services.TempUnverify
             {
                 var botMaxRolePosition = guild.GetUser(Client.CurrentUser.Id).Roles.Max(o => o.Position);
                 rolesToRemove = rolesToRemove.Where(o => o.Position < botMaxRolePosition).ToList();
+            }
+
+            if(subjects != null && subjects.Length > 0)
+            {
+                rolesToRemove = rolesToRemove.Where(role => !subjects.Contains(role.Name.ToLower())).ToList();
             }
 
             var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();

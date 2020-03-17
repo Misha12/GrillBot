@@ -7,15 +7,14 @@ namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
-        public async Task<string> SetSelfUnverify(SocketGuildUser user, SocketGuild guild, string time)
+        public async Task<string> SetSelfUnverify(SocketGuildUser user, SocketGuild guild, string time, string[] subjects)
         {
             const string message = "Self unverify";
 
-            CheckIfCanStartUnverify(new List<SocketGuildUser>() { user }, guild, true);
+            CheckIfCanStartUnverify(new List<SocketGuildUser>() { user }, guild, true, subjects);
 
             var unverifyTime = ParseUnverifyTime(time);
-            TempUnverifyItem unverify = await RemoveAccessAsync(user, unverifyTime, message, user, guild, true)
-                .ConfigureAwait(false);
+            var unverify = await RemoveAccessAsync(user, unverifyTime, message, user, guild, true, subjects);
 
             unverify.InitTimer(ReturnAccess);
             Data.Add(unverify);

@@ -13,7 +13,7 @@ namespace Grillbot.Services.TempUnverify
         /// </param>
         private int ParseUnverifyTime(string time)
         {
-            var timeWithoutSuffix = time.Substring(0, time.Length - 1);
+            var timeWithoutSuffix = time[0..^1];
 
             if (!timeWithoutSuffix.All(o => char.IsDigit(o)))
                 throw new ArgumentException("Neplatný časový formát.");
