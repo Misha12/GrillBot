@@ -22,6 +22,8 @@ using Grillbot.Services.Permissions;
 using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Repository;
+using Microsoft.Extensions.Logging.Console;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot
 {
@@ -39,7 +41,14 @@ namespace Grillbot
             services.Configure<Configuration>(Configuration);
 
             services
-                .AddDbContext<GrillBotContext>(options => options.UseSqlServer(Configuration.GetConnectionString("Default")), ServiceLifetime.Transient, ServiceLifetime.Transient)
+                .AddDbContext<GrillBotContext>(options =>
+                {
+                    options
+                        .EnableSensitiveDataLogging(false)
+                        .UseSqlServer(Configuration.GetConnectionString("Default"));
+                }, ServiceLifetime.Transient, ServiceLifetime.Transient);
+
+            services
                 .AddTransient<AutoReplyRepository>()
                 .AddTransient<BirthdaysRepository>()
                 .AddTransient<BotDbRepository>()
@@ -52,17 +61,8 @@ namespace Grillbot
 
             services
                 .AddCors()
-                .AddMvc()
-                .SetCompatibilityVersion(CompatibilityVersion.Version_2_2);
+                .AddControllers();
 
-            ConfigureDiscord(services);
-
-            services
-                .AddTransient<DcUserAuthorization>();
-        }
-
-        private void ConfigureDiscord(IServiceCollection services)
-        {
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
@@ -108,6 +108,9 @@ namespace Grillbot
                 .AddSingleton<PermissionsManager>();
 
             services.AddHostedService<GrillBotService>();
+
+            services
+                .AddTransient<DcUserAuthorization>();
         }
 
         public void Configure(IApplicationBuilder app)
@@ -117,7 +120,9 @@ namespace Grillbot
             app
                 .UseMiddleware<LogMiddleware>()
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
-                .UseMvc()
+                .UseRouting()
+                .UseAuthorization()
+                .UseEndpoints(endpoints => endpoints.MapControllers())
                 .UseWelcomePage();
 
             serviceProvider.GetRequiredService<InitService>().Init();

@@ -4,6 +4,7 @@ using Grillbot.Models;
 using Grillbot.Models.BotStatus;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.Hosting;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -14,12 +15,12 @@ namespace Grillbot.Services
     public class BotStatusService
     {
         private ChannelStats ChannelStats { get; }
-        private IHostingEnvironment HostingEnvironment { get; }
+        private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
         private Statistics.Statistics Statistics { get; }
         private BotDbRepository Repository { get; }
 
-        public BotStatusService(ChannelStats channelStats, IHostingEnvironment hostingEnvironment, Logger.Logger logger,
+        public BotStatusService(ChannelStats channelStats, IWebHostEnvironment hostingEnvironment, Logger.Logger logger,
             Statistics.Statistics statistics, BotDbRepository repository)
         {
             Statistics = statistics;

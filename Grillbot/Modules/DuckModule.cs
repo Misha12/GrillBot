@@ -13,6 +13,7 @@ using Grillbot.Services;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 
 namespace Grillbot.Modules
 {
@@ -67,7 +68,8 @@ namespace Grillbot.Modules
                                                 config.IsKachnaOpenApiBase);
                 }
 
-                var dto = await resp.Content.ReadAsAsync<CurrentState>();
+                var json = await resp.Content.ReadAsStringAsync();
+                var dto = JsonConvert.DeserializeObject<CurrentState>(json);
                 var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
                 var embed = MakeEmbed(dto, user, config.EnableBeersOnTap);
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
