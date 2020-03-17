@@ -38,5 +38,16 @@ namespace Grillbot.Database.Repository
 
             Context.SaveChanges();
         }
+
+        public void RemoveChannel(string channelID)
+        {
+            var channel = Context.ChannelStats.FirstOrDefault(o => o.ID == channelID);
+
+            if (channel == null)
+                return;
+
+            Context.Remove(channel);
+            Context.SaveChanges();
+        }
     }
 }

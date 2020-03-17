@@ -9,6 +9,8 @@ using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Grillbot.Services.Initiable;
 using Grillbot.Database.Repository;
+using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 
 namespace Grillbot.Services.Statistics
 {
@@ -136,6 +138,30 @@ namespace Grillbot.Services.Statistics
             var channel = client.GetChannel(channelID);
             if (channel == null) return false;
             return channel.Users.Any(o => o.Id == userID);
+        }
+
+        public async Task<List<string>> CleanOldChannels(SocketGuild guild)
+        {
+            await guild.SyncGuildAsync();
+
+            lock(Locker)
+            {
+                var removed = new List<string>();
+
+                foreach(var channel in Counters.Values.ToList())
+                {
+                    var dcChannel = guild.GetChannel(channel.SnowflakeID);
+
+                    if(dcChannel == null)
+                    {
+                        removed.Add($"Kanál {channel.ID} s počtem zpráv {FormatHelper.FormatWithSpaces(channel.Count)} byl smazán.");
+                        Repository.RemoveChannel(channel.ID);
+                        Counters.Remove(channel.SnowflakeID);
+                    }
+                }
+
+                return removed;
+            }
         }
 
         #region IDisposable Support

@@ -103,5 +103,22 @@ namespace Grillbot.Modules
                 await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
             }).ConfigureAwait(false);
         }
+
+        [Command("cleanOldChannels")]
+        public async Task CleanOldChannels()
+        {
+            await DoAsync(async () =>
+            {
+                var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
+
+                for (int i = 0; i < Math.Ceiling(clearedChannels.Count / 10.0); i++)
+                {
+                    var str = string.Join("\n", clearedChannels.Skip(i * 10).Take(10));
+                    await ReplyAsync(str).ConfigureAwait(false);
+                }
+
+                await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
+        }
     }
 }
