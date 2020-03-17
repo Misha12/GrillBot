@@ -39,8 +39,7 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("Počet vláken").WithValue(data.ThreadStatus).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Průměrná doba reakce").WithValue(data.AvgReactTime).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Aktivní CPU čas").WithValue(data.ActiveCpuTime).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Instance").WithValue(data.InstanceType).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet akt. tokenů").WithValue(data.ActiveWebTokensCount).WithIsInline(true)
+                    new EmbedFieldBuilder().WithName("Instance").WithValue(data.InstanceType).WithIsInline(true)
                 );
 
             await ReplyAsync("", embed: embed.Build()).ConfigureAwait(false);

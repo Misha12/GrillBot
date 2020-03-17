@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Extensions;
+using System;
 
 namespace Grillbot.Models
 {

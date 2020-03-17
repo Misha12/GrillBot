@@ -1,47 +1,52 @@
-﻿using System.Linq;
+﻿using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models;
+using Grillbot.Services.Channelboard;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers
 {
-    [Route("api/[controller]")]
-    [ApiController]
-    public class ChannelboardController : ControllerBase
+    [Route("channelboard")]
+    public class ChannelboardController : Controller
     {
         private ChannelStats ChannelStats { get; }
-        private DiscordSocketClient DiscordClient { get; }
+        private DiscordSocketClient Client { get; }
+        private ChannelboardWeb ChannelboardWeb { get; }
 
-        public ChannelboardController(ChannelStats channelStats, DiscordSocketClient discordClient)
+        public ChannelboardController(ChannelStats stats, DiscordSocketClient client, ChannelboardWeb channelboardWeb)
         {
-            ChannelStats = channelStats;
-            DiscordClient = discordClient;
+            ChannelStats = stats;
+            Client = client;
+            ChannelboardWeb = channelboardWeb;
         }
 
-        public IActionResult Index() => NoContent();
-
-        [HttpGet("[action]")]
-        public IActionResult GetChannelboardData(string token)
+        public async Task<IActionResult> Index([FromQuery] string key)
         {
-            if (string.IsNullOrEmpty(token))
-                return BadRequest(new { Error = "Missing token", Code = ChannelboardErrors.MissingWebToken });
+            var item = ChannelboardWeb.GetItem(key);
+            if (item == null)
+                return View(new Channelboard() { Error = ChannelboardErrors.InvalidKey });
 
-            if (!ChannelStats.ExistsWebToken(token))
-                return BadRequest(new { Error = "Invalid token", Code = ChannelboardErrors.InvalidWebToken });
+            var guild = Client.GetGuild(item.GuildID);
+            if (guild == null)
+                return View(new Channelboard() { Error = ChannelboardErrors.InvalidGuild });
 
-            var channelboardData = ChannelStats.GetChannelboardData(token, DiscordClient, out ChannelboardWebToken webToken);
-            var guild = DiscordClient.Guilds.First();
-            var guildUser = guild.GetUser(webToken.UserID);
+            var user = await guild.GetUserFromGuildAsync(item.UserID);
 
-            var data = new Channelboard()
+            if (user == null)
+                return View(new Channelboard() { Error = ChannelboardErrors.UserAtGuildNotFound });
+
+            var data = ChannelStats.GetChannelboardData(Client, guild, user);
+
+            var channelboard = new Channelboard()
             {
-                Items = channelboardData,
                 Guild = GuildInfo.Create(guild),
-                User = GuildUser.Create(guildUser)
+                Items = data,
+                User = GuildUser.Create(user)
             };
 
-            return Ok(data);
+            return View(channelboard);
         }
     }
 }

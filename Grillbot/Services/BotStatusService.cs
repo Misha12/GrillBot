@@ -37,7 +37,6 @@ namespace Grillbot.Services
             return new SimpleBotStatus()
             {
                 RamUsage = FormatHelper.FormatAsSize(process.WorkingSet64),
-                ActiveWebTokensCount = ChannelStats.GetActiveWebTokensCount(),
                 InstanceType = GetInstanceType(),
                 StartTime = process.StartTime,
                 ThreadStatus = GetThreadStatus(process),

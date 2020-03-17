@@ -27,5 +27,6 @@ namespace Grillbot.Database
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
         public virtual DbSet<Birthday> Birthdays { get; set; }
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
+        public virtual DbSet<MethodPerm> MethodPerms { get; set; }
     }
 }

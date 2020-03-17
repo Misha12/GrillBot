@@ -1,4 +1,5 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
 
@@ -12,13 +13,16 @@ namespace Grillbot.Database.Repository
 
         public async Task<Dictionary<string, int>> GetTableRowsCount()
         {
-            var autoReplyCount = await Context.AutoReply.CountAsync().ConfigureAwait(false);
-            var emoteStatsCount = await Context.EmoteStats.CountAsync().ConfigureAwait(false);
-            var channelStatsCount = await Context.ChannelStats.CountAsync().ConfigureAwait(false);
-            var teamSearchCount = await Context.TeamSearch.CountAsync().ConfigureAwait(false);
-            var tempUnverifyCount = await Context.TempUnverify.CountAsync().ConfigureAwait(false);
-            var unverifyLogCount = await Context.UnverifyLog.CountAsync().ConfigureAwait(false);
-            var commandLogCount = await Context.CommandLog.CountAsync().ConfigureAwait(false);
+            var autoReplyCount = await GetRowCount(Context.AutoReply);
+            var emoteStatsCount = await GetRowCount(Context.EmoteStats);
+            var channelStatsCount = await GetRowCount(Context.ChannelStats);
+            var teamSearchCount = await GetRowCount(Context.TeamSearch);
+            var tempUnverifyCount = await GetRowCount(Context.TempUnverify);
+            var unverifyLogCount = await GetRowCount(Context.UnverifyLog);
+            var commandLogCount = await GetRowCount(Context.CommandLog);
+            var birthdayCount = await GetRowCount(Context.Birthdays);
+            var methodsConfigCount = await GetRowCount(Context.MethodsConfig);
+            var methodPermsCount = await GetRowCount(Context.MethodPerms);
 
             return new Dictionary<string, int>()
             {
@@ -28,8 +32,13 @@ namespace Grillbot.Database.Repository
                 { "TeamSearch", teamSearchCount },
                 { "TempUnverify", tempUnverifyCount },
                 { "UnverifyLog", unverifyLogCount },
-                { "CommandLog", commandLogCount }
+                { "CommandLog", commandLogCount },
+                { "Birthdays", birthdayCount },
+                { "MethodsConfig", methodsConfigCount },
+                { "MethodPerms", methodPermsCount }
             };
         }
+
+        private async Task<int> GetRowCount<T>(IQueryable<T> table) => await table.CountAsync();
     }
 }

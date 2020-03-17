@@ -8,7 +8,6 @@ using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
-using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Discord.Addons.Interactive;
@@ -22,8 +21,7 @@ using Grillbot.Services.Permissions;
 using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Repository;
-using Microsoft.Extensions.Logging.Console;
-using Microsoft.Extensions.Logging;
+using Grillbot.Services.Channelboard;
 
 namespace Grillbot
 {
@@ -60,8 +58,15 @@ namespace Grillbot
                 .AddTransient<TempUnverifyRepository>();
 
             services
+                .AddMemoryCache()
                 .AddCors()
-                .AddControllers();
+                .AddControllersWithViews();
+
+            var pages = services.AddRazorPages();
+
+#if DEBUG
+            pages.AddRazorRuntimeCompilation();
+#endif
 
             var config = new DiscordSocketConfig()
             {
@@ -105,7 +110,8 @@ namespace Grillbot
                 .AddSingleton<InitService>()
                 .AddSingleton<ChannelStats>()
                 .AddSingleton<EmoteStats>()
-                .AddSingleton<PermissionsManager>();
+                .AddSingleton<PermissionsManager>()
+                .AddTransient<ChannelboardWeb>();
 
             services.AddHostedService<GrillBotService>();
 
@@ -122,8 +128,12 @@ namespace Grillbot
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
                 .UseAuthorization()
-                .UseEndpoints(endpoints => endpoints.MapControllers())
-                .UseWelcomePage();
+                .UseStaticFiles()
+                .UseEndpoints(endpoints =>
+                {
+                    endpoints.MapControllers();
+                    endpoints.MapRazorPages();
+                });
 
             serviceProvider.GetRequiredService<InitService>().Init();
         }

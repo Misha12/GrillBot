@@ -8,6 +8,7 @@ namespace Grillbot.Models
         public List<ChannelboardItem> Items { get; set; }
         public GuildInfo Guild { get; set; }
         public GuildUser User { get; set; }
+        public ChannelboardErrors Error { get; set; }
 
         public Channelboard()
         {

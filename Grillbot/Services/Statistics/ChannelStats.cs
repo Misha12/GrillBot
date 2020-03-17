@@ -1,9 +1,6 @@
 ﻿using Discord;
-using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Helpers;
 using Grillbot.Models;
-using Grillbot.Services.Config.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,21 +22,16 @@ namespace Grillbot.Services.Statistics
 
         private Timer DbSyncTimer { get; set; }
         private HashSet<ulong> Changes { get; }
-        private List<ChannelboardWebToken> WebTokens { get; }
         private BotLoggingService LoggingService { get; }
         private ChannelStatsRepository Repository { get; }
-        private ConfigRepository ConfigRepository { get; }
 
-        public ChannelStats(BotLoggingService loggingService, ChannelStatsRepository repository,
-            ConfigRepository configRepository)
+        public ChannelStats(BotLoggingService loggingService, ChannelStatsRepository repository)
         {
             Changes = new HashSet<ulong>();
-            WebTokens = new List<ChannelboardWebToken>();
             Counters = new Dictionary<ulong, ChannelStat>();
 
             LoggingService = loggingService;
             Repository = repository;
-            ConfigRepository = configRepository;
         }
 
         public void Init()
@@ -55,8 +47,6 @@ namespace Grillbot.Services.Statistics
         {
             lock (Locker)
             {
-                CleanInvalidWebTokens();
-
                 if (Changes.Count == 0) return;
 
                 var itemsForUpdate = Counters.Where(o => Changes.Contains(o.Key)).Select(o => o.Value).ToList();
@@ -65,14 +55,6 @@ namespace Grillbot.Services.Statistics
                 Changes.Clear();
                 LoggingService.Write(LogSeverity.Info, $"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
             }
-        }
-
-        private void CleanInvalidWebTokens()
-        {
-            if (WebTokens.Count == 0) return;
-
-            WebTokens.RemoveAll(o => !o.IsValid());
-            LoggingService.Write(LogSeverity.Info, "Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)
@@ -128,29 +110,10 @@ namespace Grillbot.Services.Statistics
             return new Tuple<int, long, DateTime>(position, channel.Count, channel.LastMessageAt);
         }
 
-        public ChannelboardWebToken CreateWebToken(SocketCommandContext context)
+        public List<ChannelboardItem> GetChannelboardData(DiscordSocketClient client, SocketGuild guild, SocketGuildUser user)
         {
-            var config = ConfigRepository.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
-
-            var tokenValidFor = config.GetTokenValidTime();
-            var token = StringHelper.CreateRandomString(TokenLength);
-            var rawUrl = config.WebUrl;
-
-            var webToken = new ChannelboardWebToken(token, context.Message.Author.Id, tokenValidFor, rawUrl);
-            WebTokens.Add(webToken);
-
-            return webToken;
-        }
-
-        public bool ExistsWebToken(string token) => WebTokens.Any(o => o.Token == token);
-
-        public List<ChannelboardItem> GetChannelboardData(string token, DiscordSocketClient client, out ChannelboardWebToken webToken)
-        {
-            var tokenData = WebTokens.Find(o => o.Token == token);
-
-            webToken = tokenData;
             return Counters
-                .Where(o => CanUserToChannel(client, o.Key, tokenData.UserID))
+                .Where(o => CanUserToChannel(client, o.Key, user.Id))
                 .Select(o => GetChannelboardItem(o, client))
                 .OrderByDescending(o => o.Count)
                 .ToList();
@@ -174,8 +137,6 @@ namespace Grillbot.Services.Statistics
             if (channel == null) return false;
             return channel.Users.Any(o => o.Id == userID);
         }
-
-        public int GetActiveWebTokensCount() => WebTokens.Count(o => o.IsValid());
 
         #region IDisposable Support
 

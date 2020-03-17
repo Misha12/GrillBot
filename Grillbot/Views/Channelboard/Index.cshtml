@@ -1,0 +1,133 @@
+﻿@model Grillbot.Models.Channelboard;
+
+<link rel="stylesheet" href="~/css/channelboard.css" />
+
+@if (Model.Error == ChannelboardErrors.Success)
+{
+    <div id="channelboard" class="block">
+        <header>
+            <div class="header-container">
+                <div class="server-info">
+                    <img class="profile-picture" src="@Model.Guild.AvatarUrl"
+                         alt="@Model.Guild.Name">
+                    <div>
+                        <h2>@Model.Guild.Name</h2>
+
+                        @if (Model.Guild.UsersCount == 1)
+                        {
+                            <p>1 uživatel</p>
+                        }
+                        else if (Model.Guild.UsersCount > 1 && Model.Guild.UsersCount < 5)
+                        {
+                            <p>@Model.Guild.UsersCount uživatelé</p>
+                        }
+                        else
+                        {
+                            <p>@FormatHelper.FormatWithSpaces(Model.Guild.UsersCount) uživatelů</p>
+                        }
+                    </div>
+                </div>
+
+                <div class="user-info">
+                    @switch (Model.User.Status)
+                    {
+                        case GuildUserStatus.DoNotDisturb:
+                            <img class="profile-picture status-donotdisturb" src="@Model.User.AvatarUrl" alt="@Model.User.Name">
+                            break;
+                        case GuildUserStatus.Idle:
+                            <img class="profile-picture status-idle" src="@Model.User.AvatarUrl" alt="@Model.User.Name">
+                            break;
+                        case GuildUserStatus.Online:
+                            <img class="profile-picture status-online" src="@Model.User.AvatarUrl" alt="@Model.User.Name">
+                            break;
+                        case GuildUserStatus.Spotify:
+                            <img class="profile-picture status-spotify" src="@Model.User.AvatarUrl" alt="@Model.User.Name">
+                            break;
+                        default:
+                            <img class="profile-picture" src="@Model.User.AvatarUrl" alt="@Model.User.Name">
+                            break;
+                    }
+
+                    <div>
+                        @if (string.IsNullOrEmpty(Model.User.Nickname))
+                        {
+                            <h2>@Model.User.Name</h2>
+                        }
+                        else
+                        {
+                            <h2 *ngIf="channelboard.user.nickname">@Model.User.Nickname (@Model.User.Name)</h2>
+                        }
+
+                        <p>#@Model.User.Discriminator</p>
+                    </div>
+                </div>
+            </div>
+        </header>
+
+        <section class="body-content">
+            <div class="body-content-content">
+                <div class="items-container">
+                    @for (int i = 0; i < Model.Items.Count; i++)
+                    {
+                        <div class="container-item">
+                            <div class="container-item-order">@(i + 1)</div>
+                            <div class="container-item-columns">
+                                <div class="container-item-name">@Model.Items[i].ChannelName</div>
+                                <div class="container-item-count">
+                                    @if (Model.Items[i].Count == 1)
+                                    {
+                                        <text>1 zpráva</text>
+                                    }
+                                    else if (Model.Items[i].Count > 1 && Model.Items[i].Count < 5)
+                                    {
+                                        <text>@Model.Items[i].Count zprávy</text>
+                                    }
+                                    else
+                                    {
+                                        <text>@FormatHelper.FormatWithSpaces(Model.Items[i].Count) zpráv</text>
+                                    }
+                                </div>
+                                <div class="container-item-lastMessageAt">@Model.Items[i].LastMessageAt.ToLocaleDatetime()</div>
+                            </div>
+                        </div>
+                    }
+                </div>
+            </div>
+        </section>
+    </div>
+}
+else
+{
+    <section *ngIf="errorMessage" class="block" id="errorMessage">
+        <div class="body-content">
+            <div class="body-content-content">
+                <div class="items-container">
+                    <div class="container-item flex-on-columns">
+                        <span class="container-item-headericon far fa-frown"></span>
+                        <h1 class="container-item-header">Při načítání dat došlo k chybě</h1>
+                        <div class="container-item-text">
+                            @if (Model.Error == ChannelboardErrors.InvalidGuild)
+                            {
+                                <text>Požadovaný server nebyl nalezen. Pokud máš bota na serveru, tak zavolej příkaz channelboardweb.</text>
+                            }
+                            else if (Model.Error == ChannelboardErrors.UserAtGuildNotFound)
+                            {
+                                <text>Uživatel nebyl na serveru nalezen.</text>
+                            }
+                            else if (Model.Error == ChannelboardErrors.InvalidKey)
+                            {
+                                <text>Nebyl zadán platný klíč. Zkus vygenerovat nový příkazem channelboardweb</text>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </div>
+    </section>
+
+}
+
+<h1>TODO</h1>
+
+<h3>@Model.Error</h3>
+

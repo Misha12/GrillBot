@@ -2,7 +2,9 @@
 {
     public enum ChannelboardErrors
     {
-        InvalidWebToken = 1,
-        MissingWebToken
+        Success,
+        InvalidKey,
+        InvalidGuild,
+        UserAtGuildNotFound
     }
 }

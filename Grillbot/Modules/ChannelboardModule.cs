@@ -11,6 +11,7 @@ using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Newtonsoft.Json;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Channelboard;
 
 namespace Grillbot.Modules
 {
@@ -19,10 +20,12 @@ namespace Grillbot.Modules
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }
+        private ChannelboardWeb ChannelboardWeb { get; }
 
-        public ChannelboardModule(ChannelStats channelStats)
+        public ChannelboardModule(ChannelStats channelStats, ChannelboardWeb channelboardWeb)
         {
             Stats = channelStats;
+            ChannelboardWeb = channelboardWeb;
         }
 
         [Command("channelboard")]
@@ -67,9 +70,9 @@ namespace Grillbot.Modules
         [Summary("Webový leaderboard.")]
         public async Task ChannelboardWebAsync()
         {
-            var token = Stats.CreateWebToken(Context);
+            var url = ChannelboardWeb.GetWebUrl(Context);
 
-            var message = $"Tady máš odkaz na channelboard serveru **{Context.Guild.Name}**: {token.Url}. Odkaz platí do *{token.GetExpirationDate()}*";
+            var message = $"Tady máš odkaz na channelboard serveru **{Context.Guild.Name}**: {url}.";
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
         }
 
