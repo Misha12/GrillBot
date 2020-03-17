@@ -23,7 +23,7 @@ namespace Grillbot.Services.Channelboard
             var random = new Random();
             var config = ConfigRepository.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
             
-            var key = StringHelper.CreateRandomString(random.Next(0, 50));
+            var key = StringHelper.CreateRandomString(random.Next(10, 50));
             var item = new ChannelboardWebItem() { GuildID = context.Guild.Id, UserID = context.User.Id };
 
             Cache.Set(key, item, DateTimeOffset.Now.AddHours(1));
