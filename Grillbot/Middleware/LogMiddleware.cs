@@ -1,4 +1,5 @@
-﻿using Grillbot.Services;
+﻿using Discord;
+using Grillbot.Services;
 using Microsoft.AspNetCore.Http;
 using System;
 using System.Threading.Tasks;
@@ -18,18 +19,19 @@ namespace Grillbot.Middleware
 
         public async Task InvokeAsync(HttpContext context)
         {
+            var url = GetUrl(context);
+
             try
             {
                 await Next(context).ConfigureAwait(false);
             }
             catch (Exception ex)
             {
-                await LoggingService.WriteAsync(ex.ToString(), "REST API").ConfigureAwait(false);
+                LoggingService.Write(LogSeverity.Error, url, "", ex);
             }
             finally
             {
-                var url = GetUrl(context);
-                await LoggingService.WriteAsync(url, "REST API").ConfigureAwait(false);
+                LoggingService.Write(LogSeverity.Info, url, "");
             }
         }
 

@@ -50,9 +50,7 @@ namespace Grillbot.Modules
                 }
                 catch (Exception ex)
                 {
-                    await Logger.WriteAsync(
-                        "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) " +
-                        ex.ToString(), "DUCK");
+                    Logger.Write(LogSeverity.Error, "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) ", exception: ex);
 
                     throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
                                                 config.IsKachnaOpenApiBase);
@@ -60,9 +58,7 @@ namespace Grillbot.Modules
 
                 if (!resp.IsSuccessStatusCode)
                 {
-                    await Logger.WriteAsync(
-                        $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}",
-                        "DUCK");
+                    Logger.Write(LogSeverity.Warning, $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}");
 
                     throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
                                                 config.IsKachnaOpenApiBase);

@@ -6,6 +6,7 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
+using Discord;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -21,7 +22,7 @@ namespace Grillbot.Services.TempUnverify
                 var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
                 if (user == null)
                 {
-                    Logger.Write($"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
+                    Logger.Write(LogSeverity.Info, $"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
                     return;
                 }
 
@@ -50,9 +51,15 @@ namespace Grillbot.Services.TempUnverify
                     .Where(o => o.channel != null)
                     .ToList();
 
-                Logger.Write($"ReturnAccess User: {user.GetFullName()} ({user.Id}) Roles: {string.Join(", ", rolesToReturn)} " +
-                    $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))}");
+                var consoleLogData = JsonConvert.SerializeObject(new
+                {
+                    OperationName = "ReturnAccess",
+                    Target = $"{user.GetFullName()} ({user.Id})",
+                    Roles = string.Join(", ", rolesToReturn),
+                    ExtraChannels = string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))
+                });
 
+                Logger.Write(LogSeverity.Info, consoleLogData);
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach (var channelOverride in overrides)

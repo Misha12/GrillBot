@@ -48,7 +48,7 @@ namespace Grillbot.Services.Statistics
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
-            LoggingService.Write($"Channel statistics loaded from database. (Rows: {Counters.Count})");
+            LoggingService.Write(LogSeverity.Info, $"Channel statistics loaded from database. (Rows: {Counters.Count})");
         }
 
         private void SyncTimerCallback(object _)
@@ -63,7 +63,7 @@ namespace Grillbot.Services.Statistics
                 Repository.UpdateChannelboard(itemsForUpdate);
 
                 Changes.Clear();
-                LoggingService.Write($"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
+                LoggingService.Write(LogSeverity.Info, $"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
             }
         }
 
@@ -72,7 +72,7 @@ namespace Grillbot.Services.Statistics
             if (WebTokens.Count == 0) return;
 
             WebTokens.RemoveAll(o => !o.IsValid());
-            LoggingService.Write("Cleared invalid web tokens.");
+            LoggingService.Write(LogSeverity.Info, "Cleared invalid web tokens.");
         }
 
         public async Task IncrementCounterAsync(ISocketMessageChannel channel)

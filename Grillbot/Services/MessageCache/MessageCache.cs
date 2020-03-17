@@ -47,7 +47,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                await LoggingService.WriteAsync($"Cannot load channel {channel.Name} ({channel.Id}) to cache. {ex}").ConfigureAwait(false);
+                LoggingService.Write(LogSeverity.Error, $"Cannot load channel {channel.Name} ({channel.Id}) to cache.", exception: ex);
             }
         }
 

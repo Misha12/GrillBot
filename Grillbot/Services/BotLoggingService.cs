@@ -10,6 +10,7 @@ using Discord.Net;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Services
 {
@@ -20,13 +21,15 @@ namespace Grillbot.Services
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
+        private ILogger<BotLoggingService> Logger { get; }
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services, ILogger<BotLoggingService> logger)
         {
             Client = client;
             Commands = commands;
+            Logger = logger;
             Init(config.Value);
             Services = services;
             Client.Log += OnLogAsync;
@@ -46,7 +49,7 @@ namespace Grillbot.Services
         private async Task OnLogAsync(LogMessage message)
         {
             await PostException(message).ConfigureAwait(false);
-            await WriteAsync($"{message.Severity}\t{message.Message}", message.Source).ConfigureAwait(false);
+            Write(message.Severity, message.Message, message.Source, message.Exception);
         }
 
         private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
@@ -110,14 +113,21 @@ namespace Grillbot.Services
             Commands.Log -= OnLogAsync;
         }
 
-        public void Write(string message, string source = "BOT")
+        public void Write(LogSeverity severity, string message, string source = "", Exception exception = null)
         {
-            WriteAsync(message, source).GetAwaiter().GetResult();
-        }
-
-        public async Task WriteAsync(string message, string source = "BOT")
-        {
-            await Console.Out.WriteLineAsync($"{DateTime.Now} {source}\t{message}").ConfigureAwait(false);
+            switch (severity)
+            {
+                case LogSeverity.Warning:
+                    Logger.LogWarning(message, source);
+                    break;
+                case LogSeverity.Critical:
+                case LogSeverity.Error:
+                    Logger.LogCritical(exception, message, source);
+                    break;
+                default:
+                    Logger.LogInformation(message, source);
+                    break;
+            }
         }
     }
 }

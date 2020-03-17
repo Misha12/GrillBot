@@ -75,7 +75,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
             }
             catch (Exception ex)
             {
-                await LoggingService.WriteAsync(ex.ToString()).ConfigureAwait(false);
+                LoggingService.Write(LogSeverity.Error, "", nameof(MessageDeleted), exception: ex);
                 return new List<RestAuditLogEntry>();
             }
         }

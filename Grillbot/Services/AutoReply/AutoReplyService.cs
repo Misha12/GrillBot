@@ -37,7 +37,7 @@ namespace Grillbot.Modules.AutoReply
         {
             Data.Clear();
             Data.AddRange(Repository.GetAllItems());
-            BotLogging.Write($"AutoReply module loaded (loaded {Data.Count} templates)");
+            BotLogging.Write(LogSeverity.Info, $"AutoReply module loaded (loaded {Data.Count} templates)");
         }
 
         public async Task TryReplyAsync(SocketUserMessage message)

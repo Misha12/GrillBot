@@ -7,6 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Newtonsoft.Json;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -62,9 +63,17 @@ namespace Grillbot.Services.TempUnverify
             data.SetUser(user);
             await Repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
 
-            await Logger.WriteAsync($"RemoveAccess {unverifyTime} secs (Roles: {string.Join(", ", rolesToRemoveNames)}, " +
-                $"ExtraChannels: {string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}"))}), " +
-                $"{user.GetFullName()} ({user.Id}) Reason: {reason}").ConfigureAwait(false);
+            var consoleLogData = JsonConvert.SerializeObject(new
+            {
+                Operation = "RemoveAccess",
+                unverifyTime,
+                Roles = string.Join(", ", rolesToRemoveNames),
+                ExtraChannels = string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}")),
+                Target = $"{user.GetFullName()} ({user.Id})",
+                reason
+            });
+
+            Logger.Write(LogSeverity.Info, consoleLogData, "Unverify");
 
             await FindAndToggleMutedRole(user, guild, true).ConfigureAwait(false);
 

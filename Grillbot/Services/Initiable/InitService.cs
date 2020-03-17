@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Discord;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -34,7 +35,7 @@ namespace Grillbot.Services.Initiable
                 service.Init();
                 stopwatch.Stop();
 
-                BotLoggingService.Write($"Initialized service {service.GetType().Name}. Time: {stopwatch.Elapsed}", "INIT_SYNC");
+                BotLoggingService.Write(LogSeverity.Info, $"Initialized service {service.GetType().Name}. Time: {stopwatch.Elapsed}", "INIT_SYNC");
                 stopwatch.Reset();
             }
         }
@@ -49,7 +50,7 @@ namespace Grillbot.Services.Initiable
                 await service.InitAsync().ConfigureAwait(false);
                 stopwatch.Stop();
 
-                await BotLoggingService.WriteAsync($"Initialized service {service.GetType().Name}. Time: {stopwatch.Elapsed}", "INIT_ASYNC").ConfigureAwait(false);
+                BotLoggingService.Write(LogSeverity.Info, $"Initialized service {service.GetType().Name}. Time: {stopwatch.Elapsed}", "INIT_ASYNC");
                 stopwatch.Reset();
             }
         }

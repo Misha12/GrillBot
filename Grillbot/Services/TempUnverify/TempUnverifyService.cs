@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Services.Config.Models;
@@ -59,7 +60,7 @@ namespace Grillbot.Services.TempUnverify
                 }
             }
 
-            await Logger.WriteAsync($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}").ConfigureAwait(false);
+            Logger.Write(LogSeverity.Info, $"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}");
         }
 
         public void Init() { }

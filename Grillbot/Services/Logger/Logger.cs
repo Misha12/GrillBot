@@ -77,6 +77,8 @@ namespace Grillbot.Services.Logger
 
         private void IncrementEventHandle(string name)
         {
+            LoggingService.Write(LogSeverity.Info, $"Logger event {name} triggered");
+
             if (!Counters.ContainsKey(name))
                 Counters.Add(name, 1);
             else
