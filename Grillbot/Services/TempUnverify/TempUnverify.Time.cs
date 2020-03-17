@@ -18,7 +18,15 @@ namespace Grillbot.Services.TempUnverify
             if (!timeWithoutSuffix.All(o => char.IsDigit(o)))
                 throw new ArgumentException("Neplatný časový formát.");
 
-            var convertedTime = Convert.ToInt32(timeWithoutSuffix);
+            int convertedTime;
+            try
+            {
+                convertedTime = Convert.ToInt32(timeWithoutSuffix);
+            }
+            catch (FormatException)
+            {
+                throw new ArgumentException("Neplatný časový formát.");
+            }
 
             if (time.EndsWith("m"))
             {
