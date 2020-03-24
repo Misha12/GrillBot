@@ -10,7 +10,9 @@
         <tr>
             <th>Skupina</th>
             <th>Příkaz</th>
-            <th>Počet volání</th>
+            <th class="bold-right-border">Počet volání</th>
+            <th>Konfigurace</th>
+            <th>Počet oprávnění</th>
         </tr>
     </thead>
     <tbody>
@@ -19,7 +21,9 @@
             <tr>
                 <td>@item.Group</td>
                 <td>@item.Command</td>
-                <td>@FormatHelper.FormatWithSpaces(item.Count)</td>
+                <td class="bold-right-border">@FormatHelper.FormatWithSpaces(item.Count)</td>
+                <td>@(item.Methods.Count == 0 ? "Nenastaveno" : string.Join("\n", item.Methods.Select(o => $"{o.Key} ({o.Value})")))</td>
+                <td>@(item.Methods.Count == 0 ? "-" : FormatHelper.FormatWithSpaces(item.PermissionsCount))</td>
             </tr>
         }
     </tbody>

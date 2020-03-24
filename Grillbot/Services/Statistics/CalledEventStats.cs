@@ -1,6 +1,8 @@
-﻿using Grillbot.Database.Entity.Views;
+﻿using Discord.WebSocket;
+using Grillbot.Database.Entity.Views;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -11,11 +13,13 @@ namespace Grillbot.Services.Statistics
         public Dictionary<string, ulong> Data { get; }
 
         private LogRepository LogRepository { get; }
+        private DiscordSocketClient Client { get; }
 
-        public CalledEventStats(LogRepository logRepository)
+        public CalledEventStats(LogRepository logRepository, DiscordSocketClient client)
         {
             Data = new Dictionary<string, ulong>();
             LogRepository = logRepository;
+            Client = client;
         }
 
         public void Increment(string eventName)
@@ -34,6 +38,20 @@ namespace Grillbot.Services.Statistics
                 .ToDictionary(o => o.Key, o => FormatHelper.FormatWithSpaces(o.Value));
         }
 
-        public List<SummarizedCommandLog> GetSummarizedStats() => LogRepository.GetSummarizedCommandLog();
+        public List<SummarizedCommandLog> GetSummarizedStats()
+        {
+            var data = LogRepository.GetSummarizedCommandLog();
+
+            foreach (var item in data)
+            {
+                item.Methods = item.Methods.ToDictionary(o => o.Key, o =>
+                {
+                    var guild = Client.GetGuild(Convert.ToUInt64(o.Value));
+                    return guild != null ? guild.Name : o.Value;
+                });
+            }
+
+            return data;
+        }
     }
 }
