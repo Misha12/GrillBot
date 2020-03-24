@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Services.Statistics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
@@ -21,6 +22,7 @@ namespace Grillbot.Controllers.Api
             EmoteStats = emoteStats;
         }
 
+        [AllowAnonymous]
         [HttpGet("getAll/{guildID}")]
         public async Task<IActionResult> GetAll(ulong guildID, [FromQuery] int limit = 25, bool withUnicode = false)
         {
