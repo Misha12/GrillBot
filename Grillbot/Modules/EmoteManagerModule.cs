@@ -72,25 +72,25 @@ namespace Grillbot.Modules
             switch (emote)
             {
                 case "all":
-                    await GetCompleteEmoteInfoListAsync().ConfigureAwait(false);
+                    await GetCompleteEmoteInfoListAsync();
                     return;
                 case "asc":
-                    await GetTopUsedEmotesAscending().ConfigureAwait(false);
+                    await GetTopUsedEmotesAscending();
                     return;
                 case "desc":
-                    await GetTopUsedEmotes().ConfigureAwait(false);
+                    await GetTopUsedEmotes();
                     return;
                 case "unicode":
-                    await GetEmoteInfoOnlyUnicode().ConfigureAwait(false);
+                    await GetEmoteInfoOnlyUnicode();
                     return;
                 case "emoteMergeList":
-                    await GetMergeListAsync().ConfigureAwait(false);
+                    await GetMergeListAsync();
                     return;
                 case "processEmoteMerge":
-                    await ProcessEmoteMergeAsync().ConfigureAwait(false);
+                    await ProcessEmoteMergeAsync();
                     return;
                 case "cleanOldEmotes":
-                    await CleanOldEmotes().ConfigureAwait(false);
+                    await CleanOldEmotes();
                     return;
             }
 
@@ -172,18 +172,13 @@ namespace Grillbot.Modules
         [Command("cleanOldEmotes")]
         public async Task CleanOldEmotes()
         {
-           await DoAsync(async () =>
-           {
-               var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
+            await DoAsync(async () =>
+            {
+                var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
-               for(int i = 0; i < Math.Ceiling(clearedEmotes.Count / 10.0); i++)
-               {
-                   var str = string.Join("\n", clearedEmotes.Skip(i * 10).Take(10));
-                   await ReplyAsync(str).ConfigureAwait(false);
-               }
-
-               await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
-           }).ConfigureAwait(false);
+                await ReplyChunkedAsync(clearedEmotes, 10);
+                await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
+            }).ConfigureAwait(false);
         }
     }
 }

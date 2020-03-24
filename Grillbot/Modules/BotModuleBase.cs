@@ -1,13 +1,11 @@
-﻿using Discord;
-using Discord.Addons.Interactive;
-using Discord.WebSocket;
-using Grillbot.Database;
+﻿using Discord.Addons.Interactive;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using System;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -42,6 +40,27 @@ namespace Grillbot.Modules
 
             var config = ConfigRepository.FindConfig(Context.Guild.Id, group, command);
             return config?.GetData<TConfig>() ?? throw new ConfigException();
+        }
+
+        protected async Task ReplyChunkedAsync(string message, int chunkSize, char separator = '\n')
+        {
+            var fields = message.Split(separator);
+            await ReplyChunkedAsync(fields, chunkSize, separator);
+        }
+
+        protected async Task ReplyChunkedAsync(IEnumerable<string> fields, int chunkSize, char separator = '\n')
+        {
+            var chunks = fields.SplitInParts(chunkSize);
+            await ReplyChunkedAsync(chunks, separator);
+        }
+
+        protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<string>> chunkGroups, char separator = '\n')
+        {
+            foreach(var group in chunkGroups)
+            {
+                var message = string.Join(separator, group);
+                await ReplyAsync(message);
+            }
         }
     }
 }
