@@ -33,5 +33,13 @@ namespace Grillbot.Controllers
 
             return View(data);
         }
+
+        [Route("callStats")]
+        public async Task<IActionResult> CallStats()
+        {
+            var data = CalledEventStats.GetSummarizedStats();
+
+            return View(data);
+        }
     }
 }

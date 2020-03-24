@@ -3,8 +3,8 @@ using System;
 using Discord;
 using System.Threading.Tasks;
 using System.Linq;
-using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.Views;
 
 namespace Grillbot.Database.Repository
 {
@@ -31,17 +31,18 @@ namespace Grillbot.Database.Repository
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task<List<CommandLog>> GetCommandLogsAsync(int topCount)
+        public List<SummarizedCommandLog> GetSummarizedCommandLog()
         {
-            return await Context.CommandLog
-                .OrderByDescending(o => o.ID)
-                .Take(topCount)
-                .ToListAsync().ConfigureAwait(false);
-        }
-
-        public async Task<CommandLog> GetCommandLogDetailAsync(long id)
-        {
-            return await Context.CommandLog.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
+            return Context.CommandLog
+                .GroupBy(o => new { o.Group, o.Command })
+                .OrderByDescending(o => o.Count())
+                .Select(o => new SummarizedCommandLog()
+                {
+                    Command = o.Key.Command,
+                    Count = o.Count(),
+                    Group = o.Key.Group
+                })
+                .ToList();
         }
     }
 }

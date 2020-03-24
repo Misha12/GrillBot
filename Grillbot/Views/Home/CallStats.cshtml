@@ -1,0 +1,25 @@
+﻿@model List<Grillbot.Database.Entity.Views.SummarizedCommandLog>;
+
+@{
+    ViewData["Title"] = "Kompletní statistiky volání";
+}
+
+<table class="top-space">
+    <thead>
+        <tr>
+            <th>Skupina</th>
+            <th>Příkaz</th>
+            <th>Počet volání</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach(var item in Model)
+        {
+            <tr>
+                <td>@item.Group</td>
+                <td>@item.Command</td>
+                <td>@FormatHelper.FormatWithSpaces(item.Count)</td>
+            </tr>
+        }
+    </tbody>
+</table>

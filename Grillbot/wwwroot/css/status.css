@@ -2,22 +2,6 @@
     margin: 5px !important;
 }
 
-div {
-    display: inline-block;
-    margin: 0px 20px;
-}
-
-table {
-    width: 800px;
-    border-collapse: collapse;
-}
-
 h2 {
     margin-top: 20px;
-}
-
-table tr td, table tr th {
-    border: 1px solid;
-    padding: 5px;
-    text-align: left;
 }

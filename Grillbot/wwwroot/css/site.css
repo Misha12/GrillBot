@@ -16,3 +16,23 @@
 .body-content {
     flex-grow: 1
 }
+
+div {
+    display: inline-block;
+    margin: 0px 20px;
+}
+
+table {
+    width: 800px;
+    border-collapse: collapse;
+}
+
+    table.top-space {
+        margin-top: 20px;
+    }
+
+    table tr td, table tr th {
+        border: 1px solid;
+        padding: 5px;
+        text-align: left;
+    }

@@ -1,4 +1,6 @@
-﻿using Grillbot.Helpers;
+﻿using Grillbot.Database.Entity.Views;
+using Grillbot.Database.Repository;
+using Grillbot.Helpers;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -8,9 +10,12 @@ namespace Grillbot.Services.Statistics
     {
         public Dictionary<string, ulong> Data { get; }
 
-        public CalledEventStats()
+        private LogRepository LogRepository { get; }
+
+        public CalledEventStats(LogRepository logRepository)
         {
             Data = new Dictionary<string, ulong>();
+            LogRepository = logRepository;
         }
 
         public void Increment(string eventName)
@@ -28,5 +33,7 @@ namespace Grillbot.Services.Statistics
                 .ThenByDescending(o => o.Key)
                 .ToDictionary(o => o.Key, o => FormatHelper.FormatWithSpaces(o.Value));
         }
+
+        public List<SummarizedCommandLog> GetSummarizedStats() => LogRepository.GetSummarizedCommandLog();
     }
 }
