@@ -2,10 +2,12 @@
 using Grillbot.Models.BotStatus;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers
 {
+    [Authorize]
     [Route("/")]
     public class HomeController : Controller
     {
@@ -37,9 +39,7 @@ namespace Grillbot.Controllers
         [Route("callStats")]
         public async Task<IActionResult> CallStats()
         {
-            var data = CalledEventStats.GetSummarizedStats();
-
-            return View(data);
+            return View(CalledEventStats.GetSummarizedStats());
         }
     }
 }

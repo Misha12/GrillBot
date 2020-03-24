@@ -4,10 +4,12 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Statistics;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers
 {
+    [Authorize]
     [Route("channelboard")]
     public class ChannelboardController : Controller
     {
@@ -22,6 +24,7 @@ namespace Grillbot.Controllers
             ChannelboardWeb = channelboardWeb;
         }
 
+        [AllowAnonymous]
         public async Task<IActionResult> Index([FromQuery] string key)
         {
             var item = ChannelboardWeb.GetItem(key);

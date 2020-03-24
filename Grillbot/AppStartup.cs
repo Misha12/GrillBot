@@ -22,6 +22,8 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Repository;
 using Grillbot.Services.Channelboard;
+using Microsoft.AspNetCore.Authentication;
+using Grillbot.Handlers.HttpHandlers;
 
 namespace Grillbot
 {
@@ -56,6 +58,10 @@ namespace Grillbot
                 .AddTransient<LogRepository>()
                 .AddTransient<TeamSearchRepository>()
                 .AddTransient<TempUnverifyRepository>();
+
+            services
+                .AddAuthentication("BasicAuthentication")
+                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
 
             services
                 .AddMemoryCache()
@@ -127,6 +133,7 @@ namespace Grillbot
                 .UseMiddleware<LogMiddleware>()
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
+                .UseAuthentication()
                 .UseAuthorization()
                 .UseStaticFiles()
                 .UseEndpoints(endpoints =>
