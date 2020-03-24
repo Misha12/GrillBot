@@ -1,4 +1,5 @@
 ﻿using Grillbot.Extensions;
+using Grillbot.Helpers;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -60,7 +61,7 @@ namespace Grillbot.Database.Entity
         public string GetFormatedInfo()
         {
             return new StringBuilder()
-                .Append("Počet použití: ").AppendLine(Count.ToString())
+                .Append("Počet použití: ").AppendLine(FormatHelper.FormatWithSpaces(Count))
                 .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime())
                 .ToString();
         }
