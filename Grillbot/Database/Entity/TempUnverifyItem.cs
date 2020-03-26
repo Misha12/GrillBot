@@ -33,6 +33,13 @@ namespace Grillbot.Database.Entity
         [StringLength(30)]
         public string UserID { get; set; }
 
+        [NotMapped]
+        public ulong UserIDSnowflake
+        {
+            get => Convert.ToUInt64(UserID);
+            set => UserID = value.ToString();
+        }
+
         [Column]
         [Required]
         public int TimeFor { get; set; }

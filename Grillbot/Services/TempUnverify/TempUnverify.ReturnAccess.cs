@@ -6,7 +6,8 @@ using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
+using Microsoft.Extensions.Logging;
+using Grillbot.Extensions;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -16,13 +17,15 @@ namespace Grillbot.Services.TempUnverify
         {
             if (item is TempUnverifyItem unverify)
             {
+                var helper = Factories.GetHelper();
+
                 var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
 
                 var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
                 if (user == null)
                 {
-                    Logger.Write(LogSeverity.Info, $"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
+                    Logger.LogWarning($"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
                     return;
                 }
 
@@ -59,7 +62,7 @@ namespace Grillbot.Services.TempUnverify
                     ExtraChannels = string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))
                 });
 
-                Logger.Write(LogSeverity.Info, consoleLogData);
+                Logger.LogInformation(consoleLogData);
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach (var channelOverride in overrides)
@@ -70,7 +73,7 @@ namespace Grillbot.Services.TempUnverify
                         .GetResult();
                 }
 
-                FindAndToggleMutedRole(user, guild, false).GetAwaiter().GetResult();
+                helper.FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
                 RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
 
                 Repository.RemoveItem(unverify.ID);

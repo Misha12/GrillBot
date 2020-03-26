@@ -8,6 +8,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -16,7 +17,13 @@ namespace Grillbot.Services.TempUnverify
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            CheckIfCanStartUnverify(users, guild, ignoreHigherRoles, null);
+            var checker = Factories.GetChecker();
+            var currentUnverified = GetCurrentUnverifiedUserIDs();
+
+            foreach (var user in users)
+            {
+                checker.Validate(user, guild, false, null, currentUnverified);
+            }
 
             var reason = ParseReason(data);
             var unverifyTime = ParseUnverifyTime(time);
@@ -37,6 +44,8 @@ namespace Grillbot.Services.TempUnverify
         private async Task<TempUnverifyItem> RemoveAccessAsync(SocketGuildUser user, int unverifyTime, string reason,
             SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
+            var helper = Factories.GetHelper();
+
             var rolesToRemove = user.Roles
                 .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
                 .ToList(); // Ignore Muted roles.
@@ -47,7 +56,7 @@ namespace Grillbot.Services.TempUnverify
                 rolesToRemove = rolesToRemove.Where(o => o.Position < botMaxRolePosition).ToList();
             }
 
-            if(subjects != null && subjects.Length > 0)
+            if (subjects != null && subjects.Length > 0)
             {
                 rolesToRemove = rolesToRemove.Where(role => !subjects.Contains(role.Name.ToLower())).ToList();
             }
@@ -77,9 +86,10 @@ namespace Grillbot.Services.TempUnverify
                 reason
             });
 
-            Logger.Write(LogSeverity.Info, consoleLogData, "Unverify");
+            Logger.LogInformation(consoleLogData);
 
-            await FindAndToggleMutedRole(user, guild, true).ConfigureAwait(false);
+            if (subjects == null || subjects.Length == 0)
+                await helper.FindAndToggleMutedRoleAsync(user, guild, true);
 
             await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false); // Set SendMessage: Deny for extra channels.
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false); // Remove all roles for user.

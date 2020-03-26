@@ -5,9 +5,11 @@ using Grillbot.Database.Repository;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.TempUnverify
@@ -16,13 +18,14 @@ namespace Grillbot.Services.TempUnverify
     {
         private List<TempUnverifyItem> Data { get; }
         private Configuration Config { get; set; }
-        private BotLoggingService Logger { get; }
+        private ILogger<TempUnverifyService> Logger { get; }
         private DiscordSocketClient Client { get; }
         private TempUnverifyRepository Repository { get; }
         private ConfigRepository ConfigRepository { get; }
+        private TempUnverifyFactories Factories { get; }
 
-        public TempUnverifyService(IOptions<Configuration> config, BotLoggingService logger, DiscordSocketClient client,
-            TempUnverifyRepository repository, ConfigRepository configRepository)
+        public TempUnverifyService(IOptions<Configuration> config, DiscordSocketClient client, TempUnverifyRepository repository,
+            ConfigRepository configRepository, TempUnverifyFactories factories, ILogger<TempUnverifyService> logger)
         {
             Data = new List<TempUnverifyItem>();
             Config = config.Value;
@@ -30,6 +33,7 @@ namespace Grillbot.Services.TempUnverify
             Client = client;
             Repository = repository;
             ConfigRepository = configRepository;
+            Factories = factories;
         }
 
         public async Task InitAsync()
@@ -60,9 +64,11 @@ namespace Grillbot.Services.TempUnverify
                 }
             }
 
-            Logger.Write(LogSeverity.Info, $"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}");
+            Logger.LogInformation($"TempUnverify loaded. ReturnedAccessCount: {processedCount}, WaitingCount: {waitingCount}");
         }
 
         public void Init() { }
+
+        private List<ulong> GetCurrentUnverifiedUserIDs() => Data.Select(o => o.UserIDSnowflake).ToList();
     }
 }

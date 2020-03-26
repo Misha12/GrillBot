@@ -107,7 +107,6 @@ namespace Grillbot
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<InteractiveService>()
                 .AddSingleton<CReferenceService>()
-                .AddSingleton<TempUnverifyService>()
                 .AddSingleton<MathService>()
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
@@ -118,6 +117,9 @@ namespace Grillbot
                 .AddSingleton<EmoteStats>()
                 .AddSingleton<PermissionsManager>()
                 .AddTransient<ChannelboardWeb>();
+
+            services
+                .AddTempUnverify();
 
             services.AddHostedService<GrillBotService>();
 

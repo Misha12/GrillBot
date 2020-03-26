@@ -4,7 +4,6 @@ using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Config.Models;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,22 +34,6 @@ namespace Grillbot.Services.TempUnverify
                 var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
                 await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
             }
-        }
-
-        private async Task FindAndToggleMutedRole(SocketGuildUser user, SocketGuild guild, bool set)
-        {
-            await guild.SyncGuildAsync().ConfigureAwait(false);
-
-            var mutedRole = guild.Roles
-                .FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
-
-            if (mutedRole == null)
-                return; // Mute role not exists on this server.
-
-            if (set)
-                await user.AddRoleAsync(mutedRole).ConfigureAwait(false);
-            else
-                await user.RemoveRoleAsync(mutedRole).ConfigureAwait(false);
         }
 
         private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)
