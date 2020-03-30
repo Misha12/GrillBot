@@ -3,10 +3,12 @@ using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
+using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;
@@ -18,6 +20,8 @@ namespace Grillbot.Modules
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
     {
+        public AdminModule(ConfigRepository config) : base(configRepository: config) { }
+
         [Command("pinpurge")]
         [Summary("Hromadné odpinování zpráv.")]
         [Remarks("Poslední parametr skipCount je volitelný. Výchozí hodnota je 0.")]
@@ -132,11 +136,23 @@ namespace Grillbot.Modules
                     }
                 }
 
+                UserInfoConfig config = null;
+                try { config = GetMethodConfig<UserInfoConfig>("", "userinfo"); }
+                catch (ConfigException) { /* There is config optional. */ }
+
                 if (user == null)
                     throw new ArgumentException("Takový uživatel na serveru není.");
 
-                var userTopRole = user.FindHighestRole();
+                var userTopRole = user.FindHighestRoleWithColor();
+                var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id.ToString() == config.BotRole) : null;
                 var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
+
+                string botRoleText = "Ne";
+                if(botRole != null)
+                {
+                    var botRoleMessage = botRole != null ? "Ano (i když discord tvrdí něco jinýho)" : "Ne";
+                    botRoleText = user.IsUser() ? botRoleMessage : "Ano";
+                }
 
                 var embed = new BotEmbed(Context.User, userTopRole?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
                     .WithFields(
@@ -145,7 +161,7 @@ namespace Grillbot.Modules
                         new EmbedFieldBuilder().WithName("Stav").WithValue(user.Status.ToString()).WithIsInline(true),
                         new EmbedFieldBuilder().WithName("Účet založen").WithValue(user.CreatedAt.DateTime.ToLocaleDatetime()).WithIsInline(true),
                         new EmbedFieldBuilder().WithName("Připojen").WithValue(user.JoinedAt.Value.DateTime.ToLocaleDatetime()).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Bot").WithValue(!user.IsUser() ? "Ano" : "Ne").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Bot").WithValue(botRoleText).WithIsInline(true),
                         new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
                         new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
                         new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),

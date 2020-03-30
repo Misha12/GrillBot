@@ -2,6 +2,7 @@
 using Grillbot.Extensions.Discord;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Models.Embed
 {
@@ -33,7 +34,7 @@ namespace Grillbot.Models.Embed
 
         public BotEmbed WithFields(params EmbedFieldBuilder[] fields)
         {
-            foreach (var field in fields)
+            foreach (var field in fields.Where(o => o != null))
             {
                 AddField(field.Name, field.Value?.ToString(), field.IsInline);
             }
