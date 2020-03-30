@@ -12,9 +12,7 @@ namespace Grillbot
             Host.CreateDefaultBuilder(args)
                 .ConfigureWebHostDefaults(config =>
                 {
-                    config
-                        .ConfigureLogging(logging => logging.SetMinimumLevel(LogLevel.Information))
-                        .UseStartup<AppStartup>();
+                    config.UseStartup<AppStartup>();
                 })
                 .Build().Run();
         }

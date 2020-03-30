@@ -24,6 +24,8 @@ using Grillbot.Database.Repository;
 using Grillbot.Services.Channelboard;
 using Microsoft.AspNetCore.Authentication;
 using Grillbot.Handlers.HttpHandlers;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging.Console;
 
 namespace Grillbot
 {
@@ -66,7 +68,19 @@ namespace Grillbot
             services
                 .AddMemoryCache()
                 .AddCors()
-                .AddControllersWithViews();
+                .AddLogging(opt =>
+                {
+                    opt
+                        .SetMinimumLevel(LogLevel.Information)
+                        .AddConsole(consoleConfig =>
+                        {
+                            consoleConfig.Format = ConsoleLoggerFormat.Systemd;
+                            consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
+                            consoleConfig.IncludeScopes = true;
+                        });
+                });
+
+            services.AddControllersWithViews();
 
             var pages = services.AddRazorPages();
 
