@@ -2,8 +2,10 @@
 using Discord.Commands;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
 using System;
@@ -100,6 +102,58 @@ namespace Grillbot.Modules
                 await ReplyAsync($"Synchronizace se nezdařila ({ex.Message.PreventMassTags()}).").ConfigureAwait(false);
                 throw;
             }
+        }
+
+        [Command("userinfo")]
+        [Summary("Informace o uživateli.")]
+        [Remarks("Jako identifikace uživatele může posloužit tag, ID, nebo globální identifikace (User#1234).")]
+        public async Task UserInfo(string identification)
+        {
+            await DoAsync(async () =>
+            {
+                SocketGuildUser user = null;
+
+                if (Context.Message.MentionedUsers.Count > 0)
+                    user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().First();
+                else
+                {
+                    if (identification.Contains("#"))
+                    {
+                        var nameParts = identification.Split('#');
+                        user = await Context.Guild.GetUserFromGuildAsync(nameParts[0], nameParts[1]);
+                    }
+                    else
+                    {
+                        try
+                        {
+                            user = await Context.Guild.GetUserFromGuildAsync(identification);
+                        }
+                        catch (FormatException) { return; } // Cannot parse user ID.
+                    }
+                }
+
+                if (user == null)
+                    throw new ArgumentException("Takový uživatel na serveru není.");
+
+                var userTopRole = user.FindHighestRole();
+                var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
+
+                var embed = new BotEmbed(Context.User, userTopRole?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
+                    .WithFields(
+                        new EmbedFieldBuilder().WithName("ID").WithValue(user.Id).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Jméno").WithValue(user.GetFullName()).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Stav").WithValue(user.Status.ToString()).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Účet založen").WithValue(user.CreatedAt.DateTime.ToLocaleDatetime()).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Připojen").WithValue(user.JoinedAt.Value.DateTime.ToLocaleDatetime()).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Bot").WithValue(!user.IsUser() ? "Ano" : "Ne").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
+                        new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles))
+                    );
+
+                await ReplyAsync(embed: embed.Build());
+            });
         }
     }
 }

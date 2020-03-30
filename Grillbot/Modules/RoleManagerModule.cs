@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
 using System;
@@ -79,19 +80,6 @@ namespace Grillbot.Modules
             }).ConfigureAwait(false);
         }
 
-        public List<string> GetPermissionNames(GuildPermissions permissions)
-        {
-            if (permissions.Administrator)
-                return new List<string>() { "Administrator" };
-
-            var permissionItems = permissions.GetType().GetProperties()
-                .Where(p => p.PropertyType == typeof(bool) && (bool)p.GetValue(permissions, null))
-                .Select(o => o.Name)
-                .ToList();
-
-            return permissionItems.Count == 0 ? new List<string>() { "-" } : permissionItems;
-        }
-
         private string CreateRoleInfo(SocketRole role, bool includePermissions)
         {
             var roleInfo = new StringBuilder()
@@ -99,7 +87,7 @@ namespace Grillbot.Modules
                 .Append("Tagovatelná role: ").AppendLine(role.IsMentionable ? "Ano" : "Ne");
 
             if (includePermissions)
-                roleInfo.Append("Oprávnění: ").AppendLine(string.Join(", ", GetPermissionNames(role.Permissions)));
+                roleInfo.Append("Oprávnění: ").AppendLine(string.Join(", ", role.Permissions.GetPermissionsNames()));
 
             return roleInfo.ToString();
         }
