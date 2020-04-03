@@ -1,133 +1,160 @@
 ﻿@model Grillbot.Models.BotStatus.WebStatus;
 
-@{ 
+@{
     ViewData["Title"] = "Stav bota";
+    ViewData["Admin"] = true;
 }
 
-<link rel="stylesheet" href="~/css/status.css" />
+<link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
 
-<div>
-    <h2>Obecné</h2>
-    <table class="table">
-        <tr>
-            <td>Větev:</td>
-            <td>@Model.Simple.InstanceType</td>
-        </tr>
+<section class="card-group mb-3">
+    <div class="card">
+        <div class="card-header">
+            <h2>Obecné</h2>
+        </div>
 
-        <tr>
-            <td>Aktivní CPU čas: </td>
-            <td>@Model.Simple.ActiveCpuTime</td>
-        </tr>
+        <div class="card-body">
+            <div class="row">
+                <div class="col-4 font-weight-bold">Větev:</div>
+                <div class="col">@Model.Simple.InstanceType</div>
+            </div>
 
-        <tr>
-            <td>Průměrná doba reakce:</td>
-            <td>@Model.Simple.AvgReactTime ms</td>
-        </tr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Aktivní CPU čas:</div>
+                <div class="col">@Model.Simple.ActiveCpuTime</div>
+            </div>
 
-        <tr>
-            <td>Uptime:</td>
-            <td>@(DateTime.Now - Model.Simple.StartTime)</td>
-        </tr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Průměrná doba reakce:</div>
+                <div class="col">@Model.Simple.AvgReactTime</div>
+            </div>
 
-        <tr>
-            <td>Využití RAM:</td>
-            <td>@Model.Simple.RamUsage</td>
-        </tr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Uptime:</div>
+                <div class="col">@(DateTime.Now - Model.Simple.StartTime)</div>
+            </div>
 
-        <tr>
-            <td>Spuštěno v:</td>
-            <td>@Model.Simple.StartTime</td>
-        </tr>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Využití RAM:</div>
+                <div class="col">@Model.Simple.RamUsage</div>
+            </div>
 
-        <tr>
-            <td>Počet vláken:</td>
-            <td>@Model.Simple.ThreadStatus</td>
-        </tr>
-    </table>
-</div>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Spuštěno v:</div>
+                <div class="col">@Model.Simple.StartTime</div>
+            </div>
 
-<div>
-    <h2>Volání příkazů</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Příkaz</th>
-                <th>Počet volání</th>
-                <th>Průměrný čas</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var statItem in Model.CallStats)
-            {
-                <tr>
-                    <td>@statItem.Command</td>
-                    <td>@FormatHelper.FormatWithSpaces(statItem.CallsCount)</td>
-                    <td>@statItem.AverageTime ms</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+            <div class="row">
+                <div class="col-4 font-weight-bold">Počet vláken:</div>
+                <div class="col">@Model.Simple.ThreadStatus</div>
+            </div>
+        </div>
+    </div>
 
-<div>
-    <h2>Logger</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Událost</th>
-                <th>Počet</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.LoggerStats)
-            {
-                <tr>
-                    <td>@item.Key</td>
-                    <td>@FormatHelper.FormatWithSpaces(item.Value)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <div class="card">
+        <div class="card-header">
+            <h2>Volání příkazů</h2>
+        </div>
 
-<div>
-    <h2>Události</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Událost</th>
-                <th>Počet</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var item in Model.CalledEventStats)
-            {
-                <tr>
-                    <td>@item.Key</td>
-                    <td>@item.Value</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Příkaz</th>
+                        <th>Počet volání</th>
+                        <th>Průměrný čas</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var statItem in Model.CallStats)
+                    {
+                        <tr>
+                            <td>@statItem.Command</td>
+                            <td>@FormatHelper.FormatWithSpaces(statItem.CallsCount)</td>
+                            <td>@statItem.AverageTime ms</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
 
-<div>
-    <h2>Databáze</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Tabulka</th>
-                <th>Počet záznamů</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach (var table in Model.DBStatus)
-            {
-                <tr>
-                    <td>@table.Key</td>
-                    <td>@FormatHelper.FormatWithSpaces(table.Value)</td>
-                </tr>
-            }
-        </tbody>
-    </table>
-</div>
+    <div class="card">
+        <div class="card-header">
+            <h2>Logger</h2>
+        </div>
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Událost</th>
+                        <th>Počet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.LoggerStats)
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@FormatHelper.FormatWithSpaces(item.Value)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>
+
+<section class="card-group">
+    <div class="card">
+        <div class="card-header">
+            <h2>Události</h2>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Událost</th>
+                        <th>Počet</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var item in Model.CalledEventStats)
+                    {
+                        <tr>
+                            <td>@item.Key</td>
+                            <td>@item.Value</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+
+    <div class="card">
+        <div class="card-header">
+            <h2>Databáze</h2>
+        </div>
+        
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Tabulka</th>
+                        <th>Počet záznamů</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var table in Model.DBStatus)
+                    {
+                        <tr>
+                            <td>@table.Key</td>
+                            <td>@FormatHelper.FormatWithSpaces(table.Value)</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</section>

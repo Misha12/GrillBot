@@ -74,7 +74,6 @@ namespace Grillbot
                         .SetMinimumLevel(LogLevel.Information)
                         .AddConsole(consoleConfig =>
                         {
-                            consoleConfig.Format = ConsoleLoggerFormat.Systemd;
                             consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
                             consoleConfig.IncludeScopes = true;
                         });

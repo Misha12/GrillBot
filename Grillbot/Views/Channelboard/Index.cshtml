@@ -1,5 +1,9 @@
 ﻿@model Grillbot.Models.Channelboard;
 
+@{ 
+    ViewData["Admin"] = false;
+}
+
 <link rel="stylesheet" href="~/css/channelboard.css" />
 
 @if (Model.Error == ChannelboardErrors.Success)

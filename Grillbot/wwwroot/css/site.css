@@ -1,6 +1,6 @@
 ﻿@import url('https://fonts.googleapis.com/css?family=Red+Hat+Text&display=swap');
 
-* {
+html, body {
     font-family: 'Red Hat Text', sans-serif;
     box-sizing: border-box;
     margin: 0;
@@ -17,21 +17,12 @@
     flex-grow: 1
 }
 
-.table {
-    width: 1000px;
-    border-collapse: collapse;
+h2 {
+    font-size: 1.5rem !important;
+    margin-bottom: 0px;
 }
 
-    .table.top-space {
-        margin-top: 20px;
-    }
-
-    .table tr td, .table tr th {
-        border: 1px solid;
-        padding: 5px;
-        text-align: left;
-    }
-
-    .table tr .bold-right-border {
-        border-right-width: 4px;
-    }
+.body-block h1 {
+    margin: 0;
+    padding-left: 30px;
+}
