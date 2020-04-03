@@ -11,6 +11,7 @@ using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
+using Grillbot.Messages;
 
 namespace Grillbot.Services
 {
@@ -52,29 +53,22 @@ namespace Grillbot.Services
             Write(message.Severity, message.Message, message.Source, message.Exception);
         }
 
-        private async Task SendLogMessageAsync(string[] parts, IMessageChannel channel)
-        {
-            for (var i = 0; i < parts.Length; i++)
-            {
-                await channel?.SendMessageAsync($"```{parts[i]}```");
-            }
-        }
-
         private async Task PostException(LogMessage message)
         {
-            if (!IsValidException(message)) return;
+            if (!CanSendExceptionToDiscord(message)) return;
 
-            if (message.Exception is CommandException ce)
+            if(message.Exception is CommandException ce)
             {
-                if (message.Exception.InnerException is ThrowHelpException)
+                if (IsThrowHelpException(ce))
                 {
                     string helpCommand = $"grillhelp {ce.Context.Message.Content.Substring(1)}";
                     await Commands.ExecuteAsync(ce.Context, helpCommand, Services).ConfigureAwait(false);
                     return;
                 }
-                else if (message.Exception.InnerException is ConfigException)
+
+                if(IsConfigException(ce))
                 {
-                    await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config.").ConfigureAwait(false);
+                    await ce.Context.Channel.SendMessageAsync(BotLoggingServiceMessages.ConfigIsNotDefined).ConfigureAwait(false);
                     return;
                 }
             }
@@ -84,7 +78,10 @@ namespace Grillbot.Services
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {
-                await SendLogMessageAsync(parts, channel).ConfigureAwait(false);
+                foreach(var part in parts)
+                {
+                    await channel.SendMessageAsync($"```{part}```");
+                }
             }
         }
 
@@ -93,18 +90,22 @@ namespace Grillbot.Services
             Init(newConfig);
         }
 
+        private bool CanSendExceptionToDiscord(LogMessage message)
+        {
+            return message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);
+        }
+
+        private bool IsSupressedException(Exception exception)
+        {
+            if (IsWebSocketException(exception)) return true;
+            if (exception.InnerException == null && exception.Message.StartsWith("Server requested a reconnect", StringComparison.InvariantCultureIgnoreCase)) return true;
+
+            return false;
+        }
+
         private bool IsWebSocketException(Exception ex)
         {
             return ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
-        }
-
-        private bool IsValidException(LogMessage message)
-        {
-            var haveException = message.Exception != null;
-            var haveLogRoom = LogRoom != null;
-            var isWebSocketException = haveException && IsWebSocketException(message.Exception);
-
-            return haveException && haveLogRoom && !isWebSocketException;
         }
 
         public void Dispose()
@@ -115,7 +116,7 @@ namespace Grillbot.Services
 
         public void Write(LogSeverity severity, string message, string source = "", Exception exception = null)
         {
-            if (IsThrowHelpException(exception)) return;
+            if (exception is CommandException ce && IsThrowHelpException(ce)) return;
 
             switch (severity)
             {
@@ -132,9 +133,14 @@ namespace Grillbot.Services
             }
         }
 
-        private bool IsThrowHelpException(Exception exception)
+        private bool IsThrowHelpException(CommandException exception)
         {
-            return exception != null && exception is CommandException && exception.InnerException != null && exception.InnerException is ThrowHelpException;
+            return exception != null && exception.InnerException != null && exception.InnerException is ThrowHelpException;
+        }
+
+        private bool IsConfigException(CommandException exception)
+        {
+            return exception != null && exception.InnerException != null && exception.InnerException is ConfigException;
         }
     }
 }
