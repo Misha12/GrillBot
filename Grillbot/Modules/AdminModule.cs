@@ -7,6 +7,7 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Grillbot.Messages.Modules;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
@@ -61,35 +62,44 @@ namespace Grillbot.Modules
         }
 
         [Command("guildStatus")]
-        [Summary("Stav serveru")]
-        public async Task GuildStatusAsync()
+        [Summary(AdminModuleMessages.GetGuildInfoAsyncSummary)]
+        [Remarks(AdminModuleMessages.GetGuildInfoAsyncRemarks)]
+        public async Task GuildStatusAsync(ulong guildID = default)
         {
-            var guild = Context.Guild;
+            await DoAsync(async () =>
+            {
+                var guild = Context.Guild ?? Context.Client.GetGuild(guildID);
 
-            var embed = new BotEmbed(Context.Message.Author, title: guild.Name)
-                .WithThumbnail(guild.IconUrl)
-                .WithFields(
-                    new EmbedFieldBuilder().WithName("CategoryChannelsCount").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("ChannelsCount").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("CreatedAt").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("HasAllMembers").WithValue($"**{guild.HasAllMembers}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("IsEmbeddable").WithValue($"**{guild.IsEmbeddable}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("IsSynced").WithValue($"**{guild.IsSynced}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("MemberCount").WithValue($"**{guild.MemberCount}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("CachedUsersCount").WithValue($"**{guild.Users.Count}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("RolesCount").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("OwnerID").WithValue($"**{guild.OwnerId}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("SplashID").WithValue($"**{guild.SplashId?.ToString() ?? "null"}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("IconID").WithValue($"**{guild.IconId}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("VerificationLevel").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("VoiceRegionID").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("MfaLevel").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("ExplicitContentFilter").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("SystemChannel").WithValue($"**{guild.SystemChannel?.Name ?? "None"}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("DefaultMessageNotifications").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
-                );
+                if (guild == null)
+                {
+                    if (guildID == default)
+                        throw new ThrowHelpException();
 
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                    throw new ArgumentException(AdminModuleMessages.CannotFindGuild);
+                }
+
+                var color = guild.Roles.OrderByDescending(o => o.Position).FirstOrDefault()?.Color;
+                var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
+                    .WithThumbnail(guild.IconUrl)
+                    .WithFields(
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.CategoryChannelsCount).WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.ChannelsCount).WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.RolesCount).WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.CreatedAt).WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.Owner).WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.SystemChannel).WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.HasAllMembers).WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.IsSynced).WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.MemberCount).WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.VerificationLevel).WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.VoiceRegionID).WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.MfaLevel).WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.ExplicitContentFilter).WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName(AdminModuleMessages.DefaultMessageNotifications).WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
+                    );
+
+                await ReplyAsync(embed: embed.Build());
+            });
         }
 
         [Command("syncGuild")]
@@ -108,6 +118,7 @@ namespace Grillbot.Modules
             }
         }
 
+        [DisabledPM]
         [Command("userinfo")]
         [Summary("Informace o uživateli.")]
         [Remarks("Jako identifikace uživatele může posloužit tag, ID, nebo globální identifikace (User#1234).")]
@@ -118,7 +129,7 @@ namespace Grillbot.Modules
                 SocketGuildUser user = null;
 
                 if (Context.Message.MentionedUsers.Count > 0)
-                    user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().First();
+                    user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
                 else
                 {
                     if (identification.Contains("#"))
@@ -148,7 +159,7 @@ namespace Grillbot.Modules
                 var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
 
                 string botRoleText = "Ne";
-                if(botRole != null)
+                if (botRole != null)
                 {
                     var botRoleMessage = botRole != null ? "Ano (i když discord tvrdí něco jinýho)" : "Ne";
                     botRoleText = user.IsUser() ? botRoleMessage : "Ano";

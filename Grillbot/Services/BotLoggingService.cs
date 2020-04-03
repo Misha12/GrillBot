@@ -115,6 +115,8 @@ namespace Grillbot.Services
 
         public void Write(LogSeverity severity, string message, string source = "", Exception exception = null)
         {
+            if (IsThrowHelpException(exception)) return;
+
             switch (severity)
             {
                 case LogSeverity.Warning:
@@ -128,6 +130,11 @@ namespace Grillbot.Services
                     Logger.LogInformation($"{source}\t{message}");
                     break;
             }
+        }
+
+        private bool IsThrowHelpException(Exception exception)
+        {
+            return exception != null && exception is CommandException && exception.InnerException != null && exception.InnerException is ThrowHelpException;
         }
     }
 }

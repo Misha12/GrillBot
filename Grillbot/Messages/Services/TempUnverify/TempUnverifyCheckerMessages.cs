@@ -1,6 +1,6 @@
-﻿namespace Grillbot.Messages
+﻿namespace Grillbot.Messages.Services.TempUnverify
 {
-    public class UnverifyMessages
+    public class TempUnverifyCheckerMessages
     {
         public const string SubjectsOverMaximum = "Je možné si ponechat maximálně {0} rolí.";
         public const string InvalidSubjectRole = "`{0}` není předmětová role.";

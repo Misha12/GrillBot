@@ -1,7 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Messages;
+using Grillbot.Messages.Services.TempUnverify;
 using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using System;
@@ -28,20 +28,20 @@ namespace Grillbot.Services.TempUnverify
                 var config = Repository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
 
                 if (subjects.Count > config.MaxSubjectsCount)
-                    throw new ArgumentException(string.Format(UnverifyMessages.SubjectsOverMaximum, config.MaxSubjectsCount));
+                    throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.SubjectsOverMaximum, config.MaxSubjectsCount));
 
                 foreach(var subject in subjects.Select(o => o.ToLower()))
                 {
                     if (!config.Subjects.Contains(subject))
-                        throw new ArgumentException(string.Format(UnverifyMessages.InvalidSubjectRole, subject));
+                        throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.InvalidSubjectRole, subject));
                 }
             }
 
             if (user.Id == guild.OwnerId)
-                throw new ArgumentException(UnverifyMessages.ServerOwner);
+                throw new ArgumentException(TempUnverifyCheckerMessages.ServerOwner);
 
             if (currentUnverifiedPersons.Any(o => o == user.Id))
-                throw new ArgumentException(string.Format(UnverifyMessages.UserHaveUnverify, user.GetFullName()));
+                throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.UserHaveUnverify, user.GetFullName()));
 
             var botRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
             var userMaxRolePosition = user.Roles.Max(o => o.Position);
@@ -51,11 +51,11 @@ namespace Grillbot.Services.TempUnverify
                 var higherRoles = user.Roles.Where(o => o.Position > botRolePosition);
                 var higherRoleNames = string.Join(", ", higherRoles.Select(o => o.Name));
 
-                throw new ArgumentException(string.Format(UnverifyMessages.UserHaveHigherRoles, user.GetFullName(), higherRoleNames));
+                throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.UserHaveHigherRoles, user.GetFullName(), higherRoleNames));
             }
 
             if (Config.IsUserBotAdmin(user.Id) && !selfunverify)
-                throw new ArgumentException(string.Join(UnverifyMessages.BotAdmin, user.GetFullName()));
+                throw new ArgumentException(string.Join(TempUnverifyCheckerMessages.BotAdmin, user.GetFullName()));
         }
     }
 }
