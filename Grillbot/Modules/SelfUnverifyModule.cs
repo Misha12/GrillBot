@@ -27,7 +27,7 @@ namespace Grillbot.Modules
             await DoAsync(async () =>
             {
                 if (subjects != null)
-                    subjects = subjects.Distinct().ToArray();
+                    subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
 
                 var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
                 var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);

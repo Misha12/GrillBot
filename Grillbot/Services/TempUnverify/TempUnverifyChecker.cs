@@ -30,7 +30,7 @@ namespace Grillbot.Services.TempUnverify
                 if (subjects.Count > config.MaxSubjectsCount)
                     throw new ArgumentException(string.Format(UnverifyMessages.SubjectsOverMaximum, config.MaxSubjectsCount));
 
-                foreach(var subject in subjects.Select(o => o.Trim().ToLower()))
+                foreach(var subject in subjects.Select(o => o.ToLower()))
                 {
                     if (!config.Subjects.Contains(subject))
                         throw new ArgumentException(string.Format(UnverifyMessages.InvalidSubjectRole, subject));
