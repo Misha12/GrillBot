@@ -24,7 +24,7 @@ namespace Grillbot.Controllers
             CalledEventStats = calledEventStats;
             LoggerService = loggerService;
         }
-
+        
         public async Task<IActionResult> Index()
         {
             var dbStatus = await StatusService.GetDbReport();
@@ -41,13 +41,13 @@ namespace Grillbot.Controllers
             return View(data);
         }
 
-        [Route("callStats")]
+        [Route("CallStats")]
         public async Task<IActionResult> CallStats()
         {
             return View(CalledEventStats.GetSummarizedStats());
         }
 
-        [Route("logging")]
+        [Route("Logging")]
         public IActionResult Logging(LogLevel minLevel = LogLevel.Information, string section = null)
         {
             var entries = LoggerService.GetLogEntries(minLevel, section);

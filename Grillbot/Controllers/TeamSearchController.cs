@@ -7,7 +7,6 @@ using Microsoft.AspNetCore.Mvc;
 namespace Grillbot.Controllers
 {
     [Authorize]
-    [Route("/TeamSearch")]
     public class TeamSearchController : Controller
     {
         private TeamSearchService TeamSearchService { get; }
@@ -17,6 +16,7 @@ namespace Grillbot.Controllers
             TeamSearchService = teamSearchService;
         }
 
+        [Route("TeamSearch")]
         public async Task<IActionResult> Index()
         {
             var items = await TeamSearchService.GetAllItemsAsync();

@@ -104,6 +104,7 @@ namespace Grillbot.Services.Statistics
             lock (Locker)
             {
                 if (!(reaction.Channel is SocketGuildChannel channel)) return;
+                if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
                 var serverEmotes = channel.Guild.Emotes;
 
@@ -126,6 +127,7 @@ namespace Grillbot.Services.Statistics
             lock (Locker)
             {
                 if (!(reaction.Channel is SocketGuildChannel channel)) return;
+                if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
                 if (reaction.Emote is Emoji emoji)
                 {
