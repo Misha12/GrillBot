@@ -25,7 +25,7 @@ using Grillbot.Services.Channelboard;
 using Microsoft.AspNetCore.Authentication;
 using Grillbot.Handlers.HttpHandlers;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Logging.Console;
+using Grillbot.Services.InMemoryLogger;
 
 namespace Grillbot
 {
@@ -129,7 +129,8 @@ namespace Grillbot
                 .AddSingleton<ChannelStats>()
                 .AddSingleton<EmoteStats>()
                 .AddSingleton<PermissionsManager>()
-                .AddTransient<ChannelboardWeb>();
+                .AddTransient<ChannelboardWeb>()
+                .AddTransient<InMemoryLoggerService>();
 
             services
                 .AddTempUnverify();
@@ -140,9 +141,12 @@ namespace Grillbot
                 .AddTransient<DcUserAuthorization>();
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
         {
             var serviceProvider = app.ApplicationServices;
+
+            loggerFactory
+                .AddMemory(LogLevel.Information, InMemoryLogFormatter.Format);
 
             app
                 .UseMiddleware<LogMiddleware>()
@@ -159,5 +163,5 @@ namespace Grillbot
 
             serviceProvider.GetRequiredService<InitService>().Init();
         }
-    }
+        }
 }

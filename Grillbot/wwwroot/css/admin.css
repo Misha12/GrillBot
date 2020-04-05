@@ -3,3 +3,9 @@
     margin-left: 10px;
     margin-right: 10px;
 }
+
+.logging .data {
+    height: 80vh;
+    margin-top: 20px;
+    padding: 0px;
+}

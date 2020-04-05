@@ -1,9 +1,12 @@
 ﻿using System.Threading.Tasks;
 using Grillbot.Models.BotStatus;
+using Grillbot.Models.InMemoryLogger;
 using Grillbot.Services;
+using Grillbot.Services.InMemoryLogger;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Controllers
 {
@@ -13,11 +16,13 @@ namespace Grillbot.Controllers
     {
         private BotStatusService StatusService { get; }
         private CalledEventStats CalledEventStats { get; }
+        private InMemoryLoggerService LoggerService { get; }
 
-        public HomeController(BotStatusService service, CalledEventStats calledEventStats)
+        public HomeController(BotStatusService service, CalledEventStats calledEventStats, InMemoryLoggerService loggerService)
         {
             StatusService = service;
             CalledEventStats = calledEventStats;
+            LoggerService = loggerService;
         }
 
         public async Task<IActionResult> Index()
@@ -40,6 +45,13 @@ namespace Grillbot.Controllers
         public async Task<IActionResult> CallStats()
         {
             return View(CalledEventStats.GetSummarizedStats());
+        }
+
+        [Route("logging")]
+        public IActionResult Logging(LogLevel minLevel = LogLevel.Information, string section = null)
+        {
+            var entries = LoggerService.GetLogEntries(minLevel, section);
+            return View(new LoggingViewModel(entries, minLevel, section));
         }
     }
 }

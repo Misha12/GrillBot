@@ -1,0 +1,66 @@
+﻿@model Grillbot.Models.InMemoryLogger.LoggingViewModel;
+
+@{
+    ViewData["Title"] = "Logování";
+    ViewData["Admin"] = true;
+}
+
+<link rel="stylesheet" href="~/css/admin.css" asp-append-version="true" />
+
+<section class="logging mt-4">
+    <form method="get" class="ml-2">
+        <div class="form-row">
+            <div class="form-group col-xl-1 col-md-3 col-sm-6">
+                <label>Minimální úroveň</label>
+                <select name="minLevel" asp-for="SelectedLevel" class="form-control" asp-items="Html.GetEnumSelectList<Microsoft.Extensions.Logging.LogLevel>()">
+                </select>
+            </div>
+
+            <div class="form-group col-xl-2 col-md-6 col-sm-9">
+                <label>Sekce</label>
+                <input class="form-control" name="section" asp-for="Section" />
+            </div>
+
+            <div class="form-group ml-3">
+                <label>&nbsp;</label>
+                <button type="submit" class="form-control btn btn-dark">Potvrdit</button>
+            </div>
+
+            <div class="form-group ml-3">
+                <label>&nbsp;</label>
+                <a href="@Html.ViewContext.HttpContext.Request.Path" class="btn btn-secondary form-control">Reset</a>
+            </div>
+        </div>
+    </form>
+
+    <table class="table table-sm">
+        <thead>
+            <tr>
+                <th style="width: auto">#</th>
+                <th style="width: 10%">Datum a čas</th>
+                <th style="width: 10%">Úroveň</th>
+                <th>Sekce</th>
+                <th>Data</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach (var entry in Model.Entries)
+            {
+                <tr>
+                    <td>@entry.ID</td>
+                    <td>@entry.DateTime</td>
+                    <td>@entry.Level</td>
+                    <td>@entry.LogName</td>
+                    <td>
+                        @entry.Message
+                        @if (entry.Exception != null)
+                        {
+                            <br><text>@entry.Exception.ToString()</text>
+                        }
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+
