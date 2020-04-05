@@ -12,13 +12,13 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("/")]
-    public class HomeController : Controller
+    public class AdminController : Controller
     {
         private BotStatusService StatusService { get; }
         private CalledEventStats CalledEventStats { get; }
         private InMemoryLoggerService LoggerService { get; }
 
-        public HomeController(BotStatusService service, CalledEventStats calledEventStats, InMemoryLoggerService loggerService)
+        public AdminController(BotStatusService service, CalledEventStats calledEventStats, InMemoryLoggerService loggerService)
         {
             StatusService = service;
             CalledEventStats = calledEventStats;
