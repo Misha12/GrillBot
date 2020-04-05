@@ -26,6 +26,7 @@ using Microsoft.AspNetCore.Authentication;
 using Grillbot.Handlers.HttpHandlers;
 using Microsoft.Extensions.Logging;
 using Grillbot.Services.InMemoryLogger;
+using Grillbot.Services.TeamSearch;
 
 namespace Grillbot
 {
@@ -58,7 +59,6 @@ namespace Grillbot
                 .AddTransient<EmoteStatsRepository>()
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<LogRepository>()
-                .AddTransient<TeamSearchRepository>()
                 .AddTransient<TempUnverifyRepository>();
 
             services
@@ -133,7 +133,8 @@ namespace Grillbot
                 .AddTransient<InMemoryLoggerService>();
 
             services
-                .AddTempUnverify();
+                .AddTempUnverify()
+                .AddTeamSearch();
 
             services.AddHostedService<GrillBotService>();
 

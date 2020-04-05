@@ -1,0 +1,37 @@
+﻿@model Grillbot.Models.TeamSearch.TeamSearchViewModel;
+
+@{
+    ViewData["Title"] = "Hledání týmů";
+    ViewData["Admin"] = true;
+}
+
+<section>
+    <table class="table table-sm mt-3">
+        <thead>
+            <tr>
+                <th>#</th>
+                <th>Uživatel</th>
+                <th>Server</th>
+                <th>Kanál</th>
+                <th>Zpráva</th>
+                <th>&nbsp;</th>
+            </tr>
+        </thead>
+        <tbody>
+            @foreach(var item in Model.Items)
+            {
+                <tr>
+                    <td>@item.ID</td>
+                    <td>@item.FullUsername</td>
+                    <td>@item.GuildName</td>
+                    <td>#@item.ChannelName</td>
+                    <td>@item.Message</td>
+                    <td>
+                        <a class="btn btn-primary btn-sm text-white" href="@item.MessageLink" target="_blank">Přejít na zprávu</a>
+                    </td>
+                </tr>
+            }
+        </tbody>
+    </table>
+</section>
+

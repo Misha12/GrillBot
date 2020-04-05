@@ -2,6 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
+using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -15,7 +16,9 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Services.Config.Models;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
+using ModuleMessages = Grillbot.Messages.Modules.TeamSearchModule;
 
 namespace Grillbot.Modules
 {
@@ -26,15 +29,17 @@ namespace Grillbot.Modules
     {
         private TeamSearchRepository Repository { get; }
         private IMessageCache MessageCache { get; }
+        private TeamSearchService TeamSearchService { get; }
 
         private const uint MaxPageSize = 1980;
         private const uint MaxSearchSize = 1900;
 
         public TeamSearchModule(TeamSearchRepository repository, IOptions<Configuration> options,
-            ConfigRepository configRepository, IMessageCache cache) : base(options, configRepository)
+            ConfigRepository configRepository, IMessageCache cache, TeamSearchService teamSearchService) : base(options, configRepository)
         {
             Repository = repository;
             MessageCache = cache;
+            TeamSearchService = teamSearchService;
         }
 
         [Command("add")]
@@ -61,99 +66,48 @@ namespace Grillbot.Modules
         }
 
         [Command("")]
-        [Summary("Vypíše informace o hledání")]
+        [Summary(ModuleMessages.TeamSearchInfoAsync_Summary)]
         public async Task TeamSearchInfoAsync()
         {
-            var config = GetMethodConfig<TeamSearchConfig>("hledam", "");
-            ulong channelId = Context.Channel.Id;
-
-            ulong generalCategoryId = config.GeneralCategoryID;
-            var category = (Context.Channel as SocketTextChannel)?.Category?.Id;
-
-            // for now returning if the channel isn't categorized
-            if (category == null)
-                return;
-
-            var query = Repository.GetAllSearches(null);
-            bool isMisc = category == generalCategoryId;
-
-            List<TeamSearch> searches;
-            if (isMisc)
+            await DoAsync(async () =>
             {
-                searches = query
-                    .Where(o => (Context.Guild.GetChannel(Convert.ToUInt64(o.ChannelId)) as SocketTextChannel)?.CategoryId == generalCategoryId)
-                    .ToList();
-            }
-            else
-            {
-                searches = query.Where(x => x.ChannelId == channelId.ToString()).ToList();
-            }
+                var searches = await TeamSearchService.GetItemsAsync(Context.Channel.Id.ToString());
 
-            if (searches.Count == 0)
-            {
-                await ReplyAsync("Zatím nikdo nic nehledá.").ConfigureAwait(false);
-                return;
-            }
+                if (searches.Count == 0)
+                    throw new ArgumentException(ModuleMessages.NobodyLookingFor);
 
-            var pages = new List<string>();
-            var stringBuilder = new StringBuilder();
+                var pages = new List<string>();
+                var pageBuilder = new StringBuilder();
 
-            foreach (var search in searches)
-            {
-                // Trying to get the message and checking if it was deleted
-                if (!(Context.Guild.GetChannel(Convert.ToUInt64(search.ChannelId)) is ISocketMessageChannel channel))
-                    continue;
-
-                var message = await MessageCache.GetAsync(channel.Id, search.MessageIDSnowflake);
-                if (message == null)
+                foreach (var search in searches)
                 {
-                    // If message was deleted, remove it from Db
-                    await Repository.RemoveSearchAsync(search.Id).ConfigureAwait(false);
-                    continue;
-                }
+                    string message = string.Format(ModuleMessages.SearchMessageFormat, search.ID, search.ShortUsername, search.ChannelName, search.Message, search.MessageLink);
 
-                var user = Context.Guild.Users.FirstOrDefault(o => o.Id == message.Author.Id);
-                if (user != null)
-                {
-                    // removes the "!hledam add"
-                    string messageContent = message.Content.Remove(0, 12);
-
-                    string userName = user.Nickname ?? user.Username;
-
-                    string mess =
-                        $"ID: **{search.Id}** - **{userName}** v" +
-                        $" **{channel.Name}** hledá : \"{messageContent}\" [Jump]({message.GetJumpUrl()})";
-
-                    // So the message doesnt overlap across several pages, that limits the message size, but that shouldn't be an issue
-                    if (stringBuilder.Length + mess.Length > MaxPageSize)
+                    if (pageBuilder.Length + message.Length > MaxPageSize)
                     {
-                        pages.Add(stringBuilder.ToString());
-                        stringBuilder.Clear();
+                        pages.Add(pageBuilder.ToString());
+                        pageBuilder.Clear();
                     }
 
-                    stringBuilder.AppendLine(mess);
+                    pageBuilder.AppendLine(message);
                 }
-            }
 
-            if (stringBuilder.Length != 0)
-                pages.Add(stringBuilder.ToString());
+                if (pageBuilder.Length != 0)
+                    pages.Add(pageBuilder.ToString());
 
-            // if after filters there are no searches don't print empty embed
-            if (pages.Count == 0)
-            {
-                await ReplyAsync("Zatím nikdo nic nehledá.").ConfigureAwait(false);
-                return;
-            }
+                var paginated = new PaginatedMessage()
+                {
+                    Pages = pages,
+                    Color = Color.Blue,
+                    Title = $"Hledání v {Context.Channel.Name}",
+                    Options = new PaginatedAppearanceOptions()
+                    {
+                        DisplayInformationIcon = false
+                    }
+                };
 
-            var pagedMessage = new PaginatedMessage()
-            {
-                Pages = pages,
-                Color = Color.Blue,
-                Title = isMisc ? "Hledání různě mimo předmětové roomky" : $"Hledání v {Context.Channel.Name}",
-                Options = new PaginatedAppearanceOptions() { DisplayInformationIcon = false }
-            };
-
-            await PagedReplyAsync(pagedMessage).ConfigureAwait(false);
+                await PagedReplyAsync(paginated);
+            });
         }
 
         [Command("remove")]
@@ -165,7 +119,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var search = await Repository.FindSearchByID(rowId).ConfigureAwait(false);
+            var search = await Repository.FindSearchByIDAsync(rowId).ConfigureAwait(false);
             if (search == null)
             {
                 await ReplyAsync("Hledaná zpráva neexistuje.").ConfigureAwait(false);
@@ -214,7 +168,7 @@ namespace Grillbot.Modules
         {
             foreach (var id in searchIds)
             {
-                var search = await Repository.FindSearchByID(id).ConfigureAwait(false);
+                var search = await Repository.FindSearchByIDAsync(id).ConfigureAwait(false);
 
                 if (search != null)
                 {

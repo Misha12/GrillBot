@@ -3,6 +3,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Schema;
 
 namespace Grillbot.Database.Repository
 {
@@ -37,7 +38,7 @@ namespace Grillbot.Database.Repository
 
         public async Task RemoveSearchAsync(int id)
         {
-            var row = await FindSearchByID(id).ConfigureAwait(false);
+            var row = await FindSearchByIDAsync(id).ConfigureAwait(false);
 
             if (row == null)
                 return;
@@ -46,9 +47,23 @@ namespace Grillbot.Database.Repository
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task<TeamSearch> FindSearchByID(int id)
+        public void RemoveSearch(int id)
+        {
+            var entity = FindSearchByID(id);
+            if (entity == null) return;
+
+            Context.TeamSearch.Remove(entity);
+            Context.SaveChanges();
+        }
+
+        public async Task<TeamSearch> FindSearchByIDAsync(int id)
         {
             return await Context.TeamSearch.FirstOrDefaultAsync(o => o.Id == id).ConfigureAwait(false);
+        }
+
+        public TeamSearch FindSearchByID(int id)
+        {
+            return Context.TeamSearch.FirstOrDefault(o => o.Id == id);
         }
     }
 }
