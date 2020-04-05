@@ -23,17 +23,18 @@ namespace Grillbot.Database.Repository
             return query.ToList();
         }
 
-        public async Task AddSearchAsync(ulong userID, ulong channelID, ulong messageID)
+        public void AddSearch(ulong guildID, ulong userID, ulong channelID, ulong messageID)
         {
             var entity = new TeamSearch()
             {
-                UserId = userID.ToString(),
-                MessageId = messageID.ToString(),
-                ChannelId = channelID.ToString()
+                ChannelIDSnowflake = channelID,
+                GuildIDSnowflake = guildID,
+                MessageIDSnowflake = messageID,
+                UserIDSnowflake = userID
             };
 
-            await Context.TeamSearch.AddAsync(entity).ConfigureAwait(false);
-            await Context.SaveChangesAsync().ConfigureAwait(false);
+            Context.TeamSearch.Add(entity);
+            Context.SaveChanges();
         }
 
         public async Task RemoveSearchAsync(int id)

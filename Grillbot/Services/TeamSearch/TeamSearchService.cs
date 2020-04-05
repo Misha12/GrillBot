@@ -5,6 +5,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore.Internal;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,6 +17,8 @@ namespace Grillbot.Services.TeamSearch
         private TeamSearchRepository Repository { get; }
         private DiscordSocketClient DiscordClient { get; }
         private IMessageCache MessageCache { get; }
+
+        private const int MaxSearchSize = 1900;
 
         public TeamSearchService(TeamSearchRepository repository, DiscordSocketClient discordClient, IMessageCache messageCache)
         {
@@ -47,10 +50,17 @@ namespace Grillbot.Services.TeamSearch
 
         private async Task<TeamSearchItem> TransformItemAsync(Database.Entity.TeamSearch dbItem)
         {
-            // TODO: Refactor. Issue #83.
-            if (!(DiscordClient.Guilds
-                .FirstOrDefault(o => o.Channels.Any(x => x.Id == dbItem.ChannelIDSnowflake))
-                .Channels.FirstOrDefault(o => o.Id == dbItem.ChannelIDSnowflake) is SocketGuildChannel channel))
+            var guild = DiscordClient.GetGuild(dbItem.GuildIDSnowflake);
+
+            if(guild == null)
+            {
+                Repository.RemoveSearch(dbItem.Id);
+                return null;
+            }
+
+            var channel = guild.GetChannel(dbItem.ChannelIDSnowflake);
+
+            if(channel == null)
             {
                 Repository.RemoveSearch(dbItem.Id);
                 return null;
@@ -74,6 +84,14 @@ namespace Grillbot.Services.TeamSearch
                 ChannelName = channel.Name,
                 GuildName = channel.Guild.Name
             };
+        }
+
+        public void CreateSearch(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
+        {
+            if (message.Content.Length > MaxSearchSize)
+                throw new ArgumentException("Zpráva je příliš dlouhá.");
+
+            Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
         }
     }
 }

@@ -2,14 +2,11 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Reflection;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
-using Discord.WebSocket;
-using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -18,7 +15,6 @@ using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
-using ModuleMessages = Grillbot.Messages.Modules.TeamSearchModule;
 
 namespace Grillbot.Modules
 {
@@ -32,7 +28,6 @@ namespace Grillbot.Modules
         private TeamSearchService TeamSearchService { get; }
 
         private const uint MaxPageSize = 1980;
-        private const uint MaxSearchSize = 1900;
 
         public TeamSearchModule(TeamSearchRepository repository, IOptions<Configuration> options,
             ConfigRepository configRepository, IMessageCache cache, TeamSearchService teamSearchService) : base(options, configRepository)
@@ -47,26 +42,23 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
         {
-            if (messageToAdd.Length > MaxSearchSize)
+            await DoAsync(async () =>
             {
-                await ReplyAsync("Zpráva je příliš dlouhá.").ConfigureAwait(false);
-                return;
-            }
-
-            try
-            {
-                await Repository.AddSearchAsync(Context.User.Id, Context.Channel.Id, Context.Message.Id);
-                await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
-            }
-            catch
-            {
-                await Context.Message.AddReactionAsync(new Emoji("❌")).ConfigureAwait(false);
-                throw;
-            }
+                try
+                {
+                    TeamSearchService.CreateSearch(Context.Guild, Context.User, Context.Channel, Context.Message);
+                    await Context.Message.AddReactionAsync(new Emoji("✅"));
+                }
+                catch
+                {
+                    await Context.Message.AddReactionAsync(new Emoji("❌"));
+                    throw;
+                }
+            });
         }
 
         [Command("")]
-        [Summary(ModuleMessages.TeamSearchInfoAsync_Summary)]
+        [Summary("Vypíše seznam hledání.")]
         public async Task TeamSearchInfoAsync()
         {
             await DoAsync(async () =>
@@ -74,14 +66,15 @@ namespace Grillbot.Modules
                 var searches = await TeamSearchService.GetItemsAsync(Context.Channel.Id.ToString());
 
                 if (searches.Count == 0)
-                    throw new ArgumentException(ModuleMessages.NobodyLookingFor);
+                    throw new ArgumentException("Zatím nikdo nic nehledá.");
 
                 var pages = new List<string>();
                 var pageBuilder = new StringBuilder();
 
                 foreach (var search in searches)
                 {
-                    string message = string.Format(ModuleMessages.SearchMessageFormat, search.ID, search.ShortUsername, search.ChannelName, search.Message, search.MessageLink);
+                    string message = string.Format("ID: **{0}** - **{1}** v **{2}** hledá: \"{3}\" [Jump]({4})",
+                        search.ID, search.ShortUsername, search.ChannelName, search.Message, search.MessageLink);
 
                     if (pageBuilder.Length + message.Length > MaxPageSize)
                     {
