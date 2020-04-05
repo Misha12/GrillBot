@@ -7,10 +7,10 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
-using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
+using Grillbot.Models.Config;
 
 namespace Grillbot.Modules
 {

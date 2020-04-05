@@ -1,7 +1,6 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using System.Collections.Generic;
 
-namespace Grillbot.Services.Config.Models
+namespace Grillbot.Models.Config
 {
     public class TempUnverifyConfig
     {

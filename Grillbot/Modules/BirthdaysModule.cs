@@ -2,13 +2,13 @@
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Database;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Grillbot.Database.Repository;
+using Grillbot.Models.Config;
 
 namespace Grillbot.Modules
 {

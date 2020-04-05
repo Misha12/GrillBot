@@ -1,8 +1,10 @@
-﻿using Discord.Addons.Interactive;
+﻿using Discord;
+using Discord.Addons.Interactive;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
+using Grillbot.Models.Embed;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -48,10 +50,28 @@ namespace Grillbot.Modules
             await ReplyChunkedAsync(fields, chunkSize, separator);
         }
 
+        protected async Task ReplyChunkedAsync(IEnumerable<EmbedFieldBuilder> fields, BotEmbed embedTemplate, int chunkSize)
+        {
+            var chunks = fields.SplitInParts(chunkSize);
+            await ReplyChunkedAsync(chunks, embedTemplate);
+        }
+
         protected async Task ReplyChunkedAsync(IEnumerable<string> fields, int chunkSize, char separator = '\n')
         {
             var chunks = fields.SplitInParts(chunkSize);
             await ReplyChunkedAsync(chunks, separator);
+        }
+
+        protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<EmbedFieldBuilder>> fieldChunkGroups, BotEmbed embedTemplate)
+        {
+            foreach(var group in fieldChunkGroups)
+            {
+                embedTemplate
+                    .ClearFields()
+                    .WithFields(group);
+
+                await ReplyAsync(embed: embedTemplate.Build());
+            }
         }
 
         protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<string>> chunkGroups, char separator = '\n')

@@ -29,20 +29,20 @@ namespace Grillbot.Controllers
         {
             var item = ChannelboardWeb.GetItem(key);
             if (item == null)
-                return View(new Channelboard() { Error = ChannelboardErrors.InvalidKey });
+                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.InvalidKey });
 
             var guild = Client.GetGuild(item.GuildID);
             if (guild == null)
-                return View(new Channelboard() { Error = ChannelboardErrors.InvalidGuild });
+                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.InvalidGuild });
 
             var user = await guild.GetUserFromGuildAsync(item.UserID);
 
             if (user == null)
-                return View(new Channelboard() { Error = ChannelboardErrors.UserAtGuildNotFound });
+                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.UserAtGuildNotFound });
 
             var data = ChannelStats.GetChannelboardData(Client, guild, user);
 
-            var channelboard = new Channelboard()
+            var channelboard = new ChannelboardViewModel()
             {
                 Guild = GuildInfo.Create(guild),
                 Items = data,

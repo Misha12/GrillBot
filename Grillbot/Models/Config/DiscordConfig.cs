@@ -4,7 +4,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Grillbot.Services.Config.Models
+namespace Grillbot.Models.Config
 {
     public class DiscordConfig
     {
@@ -16,6 +16,7 @@ namespace Grillbot.Services.Config.Models
         public string LoggerRoomID { get; set; }
         public string ServerBoosterRoleId { get; set; }
         public string AdminChannelID { get; set; }
+        public string ErrorLogChannelID { get; set; }
 
         [JsonIgnore]
         public ulong ServerBoosterRoleIdSnowflake
@@ -24,9 +25,23 @@ namespace Grillbot.Services.Config.Models
             set => ServerBoosterRoleId = value.ToString();
         }
 
-        public bool IsBooster(IReadOnlyCollection<SocketRole> roles) => roles.Any(o => o.Id == ServerBoosterRoleIdSnowflake);
+        public bool IsBooster(IReadOnlyCollection<SocketRole> roles)
+        {
+            return roles.Any(o => o.Id == ServerBoosterRoleIdSnowflake);
+        }
 
         [JsonIgnore]
-        public ulong AdminChannelSnowflakeID => Convert.ToUInt64(AdminChannelID);
+        public ulong AdminChannelSnowflakeID
+        {
+            get => Convert.ToUInt64(AdminChannelID);
+            set => AdminChannelID = value.ToString();
+        }
+
+        [JsonIgnore]
+        public ulong? ErrorLogChannelIDSnowflake
+        {
+            get => Convert.ToUInt64(ErrorLogChannelID);
+            set => ErrorLogChannelID = value?.ToString();
+        }
     }
 }

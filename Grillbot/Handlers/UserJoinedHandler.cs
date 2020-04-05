@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
@@ -15,19 +15,19 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private Configuration Config { get; }
         private Logger Logger { get; }
-        private CalledEventStats CalledEventStats { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public UserJoinedHandler(DiscordSocketClient client, IOptions<Configuration> config, Logger logger, CalledEventStats calledEventStats)
+        public UserJoinedHandler(DiscordSocketClient client, IOptions<Configuration> config, Logger logger, InternalStatistics internalStatistics)
         {
             Client = client;
             Logger = logger;
-            CalledEventStats = calledEventStats;
+            InternalStatistics = internalStatistics;
             Config = config.Value;
         }
 
         private async Task OnUserJoinedOnServerAsync(SocketGuildUser user)
         {
-            CalledEventStats.Increment("UserJoined");
+            InternalStatistics.IncrementEvent("UserJoined");
             var message = Config.Discord.UserJoinedMessage;
 
             if (!string.IsNullOrEmpty(message))

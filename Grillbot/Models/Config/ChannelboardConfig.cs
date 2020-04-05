@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Grillbot.Services.Config.Models
+﻿namespace Grillbot.Models.Config
 {
     public class ChannelboardConfig
     {

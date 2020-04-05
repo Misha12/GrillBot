@@ -23,11 +23,6 @@
             </div>
 
             <div class="row">
-                <div class="col-4 font-weight-bold">Průměrná doba reakce:</div>
-                <div class="col">@Model.Simple.AvgReactTime</div>
-            </div>
-
-            <div class="row">
                 <div class="col-4 font-weight-bold">Uptime:</div>
                 <div class="col">@(DateTime.Now - Model.Simple.StartTime)</div>
             </div>
@@ -60,16 +55,14 @@
                     <tr>
                         <th>Příkaz</th>
                         <th>Počet volání</th>
-                        <th>Průměrný čas</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var statItem in Model.CallStats)
+                    @foreach (var statItem in Model.ExecutedCommands)
                     {
                         <tr>
-                            <td>@statItem.Command</td>
-                            <td>@FormatHelper.FormatWithSpaces(statItem.CallsCount)</td>
-                            <td>@statItem.AverageTime ms</td>
+                            <td>@statItem.Key</td>
+                            <td>@FormatHelper.FormatWithSpaces(statItem.Value)</td>
                         </tr>
                     }
                 </tbody>
@@ -118,11 +111,11 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model.CalledEventStats)
+                    @foreach (var item in Model.TriggeredEvents)
                     {
                         <tr>
                             <td>@item.Key</td>
-                            <td>@item.Value</td>
+                            <td>@FormatHelper.FormatWithSpaces(item.Value)</td>
                         </tr>
                     }
                 </tbody>

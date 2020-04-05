@@ -8,9 +8,9 @@ using Grillbot.Exceptions;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
 using Microsoft.Extensions.Options;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Initiable;
+using Grillbot.Models.Config;
 
 namespace Grillbot
 {
@@ -22,17 +22,17 @@ namespace Grillbot
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private Configuration Config { get; }
-        private CalledEventStats CalledEventStats { get; }
         private InitService InitService { get; }
+        private InternalStatistics InternalStatistics { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            CalledEventStats calledEventStats, InitService initService)
+            InternalStatistics internalStatistics, InitService initService)
         {
             Services = services;
             Client = client;
             Commands = commands;
             Config = config.Value;
-            CalledEventStats = calledEventStats;
+            InternalStatistics = internalStatistics;
             InitService = initService;
 
             Client.Ready += OnClientReadyAsync;
@@ -40,7 +40,7 @@ namespace Grillbot
 
         private async Task OnClientReadyAsync()
         {
-            CalledEventStats.Increment("Ready");
+            InternalStatistics.IncrementEvent("Ready");
             await InitService.InitAsync().ConfigureAwait(false);
         }
 

@@ -17,7 +17,7 @@ namespace Grillbot.Services.InMemoryLogger
             var entry = new LogEntry()
             {
                 DateTime = DateTime.Now,
-                Exception = exception,
+                Exception = exception?.ToString(),
                 Level = level,
                 LogName = logName,
                 Message = message,

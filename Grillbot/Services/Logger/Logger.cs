@@ -1,8 +1,9 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -17,16 +18,16 @@ namespace Grillbot.Services.Logger
         private DiscordSocketClient Client { get; }
         private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
-        private BotLoggingService LoggingService { get; }
+        private ILogger<Logger> AppLogger { get; }
 
         public Dictionary<string, uint> Counters { get; }
 
-        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, BotLoggingService loggingService)
+        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, ILogger<Logger> logger)
         {
             Client = client;
             Config = config.Value;
             MessageCache = messageCache;
-            LoggingService = loggingService;
+            AppLogger = logger;
 
             Counters = new Dictionary<string, uint>();
 
@@ -44,7 +45,7 @@ namespace Grillbot.Services.Logger
 
         public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, LoggingService);
+            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, AppLogger);
             await method.ProcessAsync(message, channel).ConfigureAwait(false);
 
             IncrementEventHandle("MessageDeleted");
@@ -77,7 +78,7 @@ namespace Grillbot.Services.Logger
 
         private void IncrementEventHandle(string name)
         {
-            LoggingService.Write(LogSeverity.Info, $"Logger event {name} triggered");
+            AppLogger.LogInformation($"Logger event {name} triggered.");
 
             if (!Counters.ContainsKey(name))
                 Counters.Add(name, 1);

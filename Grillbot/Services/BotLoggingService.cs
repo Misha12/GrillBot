@@ -7,11 +7,10 @@ using System.Threading.Tasks;
 using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
-using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
-using Grillbot.Messages;
+using Grillbot.Models.Config;
 
 namespace Grillbot.Services
 {
@@ -39,12 +38,7 @@ namespace Grillbot.Services
 
         private void Init(Configuration config)
         {
-            var logRoom = config.Log.LogRoomID;
-
-            if (!string.IsNullOrEmpty(logRoom))
-            {
-                LogRoom = Convert.ToUInt64(logRoom);
-            }
+            LogRoom = config.Discord.ErrorLogChannelIDSnowflake;
         }
 
         private async Task OnLogAsync(LogMessage message)
@@ -68,7 +62,7 @@ namespace Grillbot.Services
 
                 if(IsConfigException(ce))
                 {
-                    await ce.Context.Channel.SendMessageAsync(BotLoggingServiceMessages.ConfigIsNotDefined).ConfigureAwait(false);
+                    await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config");
                     return;
                 }
             }

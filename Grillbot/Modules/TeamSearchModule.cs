@@ -10,7 +10,7 @@ using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TeamSearch;

@@ -1,5 +1,4 @@
 ﻿using Discord.Commands;
-using Grillbot.Messages.Services.Preconditions;
 using System;
 using System.Threading.Tasks;
 
@@ -10,7 +9,7 @@ namespace Grillbot.Services.Preconditions
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             if (context.Guild == null)
-                return Task.FromResult(PreconditionResult.FromError(DisabledPMAttributeMessages.Disabled));
+                return Task.FromResult(PreconditionResult.FromError("Tato metoda je v soukromých konverzacích vypnuta."));
             else
                 return Task.FromResult(PreconditionResult.FromSuccess());
         }

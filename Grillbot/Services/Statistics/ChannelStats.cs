@@ -11,6 +11,7 @@ using Grillbot.Services.Initiable;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Services.Statistics
 {
@@ -24,15 +25,15 @@ namespace Grillbot.Services.Statistics
 
         private Timer DbSyncTimer { get; set; }
         private HashSet<ulong> Changes { get; }
-        private BotLoggingService LoggingService { get; }
+        private ILogger<ChannelStats> Logger { get; }
         private ChannelStatsRepository Repository { get; }
 
-        public ChannelStats(BotLoggingService loggingService, ChannelStatsRepository repository)
+        public ChannelStats(ChannelStatsRepository repository, ILogger<ChannelStats> logger)
         {
             Changes = new HashSet<ulong>();
             Counters = new Dictionary<ulong, ChannelStat>();
 
-            LoggingService = loggingService;
+            Logger = logger;
             Repository = repository;
         }
 
@@ -42,7 +43,7 @@ namespace Grillbot.Services.Statistics
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
             DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
-            LoggingService.Write(LogSeverity.Info, $"Channel statistics loaded from database. (Rows: {Counters.Count})");
+            Logger.LogInformation($"Channel statistics loaded from database. (Rows: {Counters.Count})");
         }
 
         private void SyncTimerCallback(object _)
@@ -55,7 +56,7 @@ namespace Grillbot.Services.Statistics
                 Repository.UpdateChannelboard(itemsForUpdate);
 
                 Changes.Clear();
-                LoggingService.Write(LogSeverity.Info, $"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records)");
+                Logger.LogInformation($"Channel statistics was synchronized with database. (Updated {itemsForUpdate.Count} records.)");
             }
         }
 

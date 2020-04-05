@@ -17,13 +17,13 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public class GetBotStatusModule : BotModuleBase
     {
-        private CalledEventStats CalledEventStats { get; }
         private BotStatusService BotStatusService { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public GetBotStatusModule(CalledEventStats calledEventStats, BotStatusService botStatusService)
+        public GetBotStatusModule(BotStatusService botStatusService, InternalStatistics internalStatistics)
         {
-            CalledEventStats = calledEventStats;
             BotStatusService = botStatusService;
+            InternalStatistics = internalStatistics;
         }
 
         [Command("")]
@@ -37,7 +37,6 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("Využití RAM").WithValue(data.RamUsage).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Běží od").WithValue(data.StartTime.ToLocaleDatetime()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Počet vláken").WithValue(data.ThreadStatus).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Průměrná doba reakce").WithValue(data.AvgReactTime).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Aktivní CPU čas").WithValue(data.ActiveCpuTime).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Instance").WithValue(data.InstanceType).WithIsInline(true)
                 );
@@ -48,21 +47,19 @@ namespace Grillbot.Modules
         [Command("call")]
         public async Task PrintCallStatsAsync()
         {
-            var data = BotStatusService.GetCallStats();
+            var data = InternalStatistics.Commands;
 
             if (data.Count == 0)
                 return;
 
             var embed = new BotEmbed(Context.Message.Author, title: "Statistika příkazů")
                 .WithFields(
-                    new EmbedFieldBuilder().WithName("Příkaz").WithValue(string.Join("\n", data.Select(o => o.Command))).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Příkaz").WithValue(string.Join("\n", data.Select(o => o.Key))).WithIsInline(true),
 
                     new EmbedFieldBuilder()
                         .WithName("Počet volání")
-                        .WithValue(string.Join("\n", data.Select(o => FormatHelper.FormatWithSpaces(o.CallsCount))))
-                        .WithIsInline(true),
-
-                    new EmbedFieldBuilder().WithName("Průměrná doba").WithValue(string.Join("\n", data.Select(o => $"{o.AverageTime}ms"))).WithIsInline(true)
+                        .WithValue(string.Join("\n", data.Select(o => FormatHelper.FormatWithSpaces(o.Value))))
+                        .WithIsInline(true)
                 );
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
@@ -93,15 +90,18 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var data = CalledEventStats.ToFormatedDictionary();
+                var events = InternalStatistics.Events
+                    .OrderByDescending(o => o.Value)
+                    .ThenByDescending(o => o.Key)
+                    .ToDictionary(o => o.Key, o => FormatHelper.FormatWithSpaces(o.Value));
 
-                if (data.Count == 0)
+                if (events.Count == 0)
                     throw new ArgumentException("Ještě nebyla zavolána žádná událost.");
 
                 var embed = new BotEmbed(Context.Message.Author, title: "Statistika zavolaných událostí")
                     .WithFields(
-                        new EmbedFieldBuilder().WithName("Událost").WithValue(string.Join("\n", data.Select(o => o.Key))).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Počet").WithValue(string.Join("\n", data.Select(o => o.Value))).WithIsInline(true)
+                        new EmbedFieldBuilder().WithName("Událost").WithValue(string.Join("\n", events.Select(o => o.Key))).WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet").WithValue(string.Join("\n", events.Select(o => o.Value))).WithIsInline(true)
                     );
 
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);

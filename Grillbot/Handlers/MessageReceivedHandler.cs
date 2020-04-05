@@ -9,12 +9,12 @@ using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using System.Linq;
 using Microsoft.Extensions.Options;
-using Grillbot.Services.Config.Models;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Database.Repository;
+using Grillbot.Models.Config;
 
 namespace Grillbot.Handlers
 {
@@ -26,14 +26,13 @@ namespace Grillbot.Handlers
         private ChannelStats ChannelStats { get; }
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
-        private CalledEventStats CalledEventStats { get; }
-        private Statistics Statistics { get; }
+        private InternalStatistics InternalStatistics { get; }
         private EmoteStats EmoteStats { get; }
         private Configuration Config { get; }
         private LogRepository Repository { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, CalledEventStats calledEventStats, Statistics statistics,
+            ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics,
             EmoteStats emoteStats, LogRepository repository)
         {
             Client = client;
@@ -42,8 +41,7 @@ namespace Grillbot.Handlers
             ChannelStats = channelStats;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
-            CalledEventStats = calledEventStats;
-            Statistics = statistics;
+            InternalStatistics = internalStatistics;
             EmoteStats = emoteStats;
             Config = config.Value;
             Repository = repository;
@@ -51,62 +49,46 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
-            CalledEventStats.Increment("MessageReceived");
+            InternalStatistics.IncrementEvent("MessageReceived");
 
-            var messageStopwatch = new Stopwatch();
-            messageStopwatch.Start();
+            if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
 
-            try
+            var context = new SocketCommandContext(Client, userMessage);
+            if (message.Channel is IPrivateChannel && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
+
+            int argPos = 0;
+            if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
+                await LogCommandAsync(userMessage, context, argPos).ConfigureAwait(false);
+                var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
 
-                var commandStopwatch = new Stopwatch();
-                var context = new SocketCommandContext(Client, userMessage);
-
-                if (message.Channel is IPrivateChannel && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
-
-                int argPos = 0;
-                if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
+                if (!result.IsSuccess && result.Error != null)
                 {
-                    await LogCommandAsync(userMessage, context, argPos).ConfigureAwait(false);
-
-                    commandStopwatch.Start();
-                    var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
-                    commandStopwatch.Stop();
-
-                    if (!result.IsSuccess && result.Error != null)
+                    switch (result.Error.Value)
                     {
-                        switch (result.Error.Value)
-                        {
-                            case CommandError.UnknownCommand: return;
-                            case CommandError.UnmetPrecondition:
-                            case CommandError.ParseFailed:
-                                await context.Channel.SendMessageAsync(result.ErrorReason.PreventMassTags()).ConfigureAwait(false);
-                                break;
-                            case CommandError.BadArgCount:
-                                await SendCommandHelp(context, argPos).ConfigureAwait(false);
-                                break;
-                            default:
-                                throw new BotException(result);
-                        }
+                        case CommandError.UnknownCommand: return;
+                        case CommandError.UnmetPrecondition:
+                        case CommandError.ParseFailed:
+                            await context.Channel.SendMessageAsync(result.ErrorReason.PreventMassTags()).ConfigureAwait(false);
+                            break;
+                        case CommandError.BadArgCount:
+                            await SendCommandHelp(context, argPos).ConfigureAwait(false);
+                            break;
+                        default:
+                            throw new BotException(result);
                     }
+                }
 
-                    var command = message.Content.Split(' ')[0];
-                    Statistics.LogCall(command, commandStopwatch.ElapsedMilliseconds);
-                    await EmoteChain.CleanupAsync(context.Channel, true).ConfigureAwait(false);
-                }
-                else
-                {
-                    await ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
-                    await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
-                    await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
-                    await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
-                }
+                var commandName = GetCommand(context, argPos, out var _);
+                InternalStatistics.IncrementCommand(commandName);
+                await EmoteChain.CleanupAsync(context.Channel, true).ConfigureAwait(false);
             }
-            finally
+            else
             {
-                messageStopwatch.Stop();
-                Statistics.ComputeAvgReact(messageStopwatch.ElapsedMilliseconds);
+                await ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
+                await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
+                await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
+                await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
             }
         }
 
@@ -118,7 +100,18 @@ namespace Grillbot.Handlers
 
         private async Task LogCommandAsync(SocketUserMessage message, SocketCommandContext context, int argPos)
         {
-            var substringed = message.Content.Substring(argPos);
+            var commandName = GetCommand(context, argPos, out CommandMatch command);
+
+            if (commandName != null)
+            {
+                await Repository.InsertItem(command.Command.Module.Group, command.Command.Name, message.Author,
+                    DateTime.Now, context.Message.Content, context.Guild, context.Channel);
+            }
+        }
+
+        private string GetCommand(SocketCommandContext context, int argPos, out CommandMatch command)
+        {
+            var substringed = context.Message.Content.Substring(argPos);
             var searchResult = Commands.Search(context, substringed);
 
             if (searchResult.IsSuccess)
@@ -135,9 +128,12 @@ namespace Grillbot.Handlers
                         commandInfo = validCommandInfo;
                 }
 
-                await Repository.InsertItem(commandInfo.Command.Module.Group, commandInfo.Command.Name, message.Author,
-                    DateTime.Now, context.Message.Content, context.Guild, context.Channel).ConfigureAwait(false);
+                command = commandInfo;
+                return $"{commandInfo.Command.Module.Group} {commandInfo.Command.Name}".Trim();
             }
+
+            command = default;
+            return null;
         }
 
         private bool TryParseMessage(SocketMessage message, out SocketUserMessage socketUserMessage)

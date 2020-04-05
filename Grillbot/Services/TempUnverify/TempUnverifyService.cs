@@ -2,7 +2,7 @@
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -69,6 +69,9 @@ namespace Grillbot.Services.TempUnverify
 
         public void Init() { }
 
-        private List<ulong> GetCurrentUnverifiedUserIDs() => Data.Select(o => o.UserIDSnowflake).ToList();
+        private List<ulong> GetCurrentUnverifiedUserIDs()
+        {
+            return Data.Select(o => o.UserIDSnowflake).ToList();
+        }
     }
 }

@@ -1,15 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Initiable;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,16 +20,13 @@ namespace Grillbot.Services.Statistics
     {
         private Dictionary<string, EmoteStat> Counter { get; set; }
         private HashSet<string> Changes { get; }
-        private Configuration Config { get; }
         private Timer DbSyncTimer { get; }
         private BotLoggingService LoggingService { get; }
         private static object Locker { get; } = new object();
         private EmoteStatsRepository Repository { get; }
 
-        public EmoteStats(IOptions<Configuration> config, BotLoggingService loggingService, EmoteStatsRepository repository)
+        public EmoteStats(BotLoggingService loggingService, EmoteStatsRepository repository)
         {
-            Config = config.Value;
-
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
 

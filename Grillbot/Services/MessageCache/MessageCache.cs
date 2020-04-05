@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,13 +12,13 @@ namespace Grillbot.Services.MessageCache
     {
         private Dictionary<ulong, IMessage> Data { get; set; }
         private DiscordSocketClient Client { get; }
-        private BotLoggingService LoggingService { get; }
+        private ILogger<MessageCache> Logger { get; }
 
-        public MessageCache(DiscordSocketClient client, BotLoggingService loggingService)
+        public MessageCache(DiscordSocketClient client, ILogger<MessageCache> logger)
         {
             Data = new Dictionary<ulong, IMessage>();
             Client = client;
-            LoggingService = loggingService;
+            Logger = logger;
         }
 
         public async Task InitAsync()
@@ -47,7 +48,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                LoggingService.Write(LogSeverity.Error, $"Cannot load channel {channel.Name} ({channel.Id}) to cache.", exception: ex);
+                Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) to cache.");
             }
         }
 

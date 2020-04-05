@@ -1,7 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Models;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -96,29 +96,28 @@ namespace Grillbot.Services.Math
                 var configData = config.GetData<MathConfig>();
 
                 var appPath = configData.ProcessPath;
-                using (var process = new Process())
+                using var process = new Process();
+                
+                process.StartInfo.FileName = "dotnet";
+                process.StartInfo.Arguments = $"{appPath} \"{input}\"";
+                process.StartInfo.UseShellExecute = false;
+                process.StartInfo.CreateNoWindow = true;
+                process.StartInfo.RedirectStandardOutput = true;
+
+                process.Start();
+
+                if (!process.WaitForExit(session.ComputingTime))
                 {
-                    process.StartInfo.FileName = "dotnet";
-                    process.StartInfo.Arguments = $"{appPath} \"{input}\"";
-                    process.StartInfo.UseShellExecute = false;
-                    process.StartInfo.CreateNoWindow = true;
-                    process.StartInfo.RedirectStandardOutput = true;
-
-                    process.Start();
-
-                    if (!process.WaitForExit(session.ComputingTime))
+                    process.Kill();
+                    return new MathCalcResult()
                     {
-                        process.Kill();
-                        return new MathCalcResult()
-                        {
-                            IsTimeout = true,
-                            AssingedComputingTime = session.ComputingTime
-                        };
-                    }
-
-                    var output = process.StandardOutput.ReadToEnd();
-                    return JsonConvert.DeserializeObject<MathCalcResult>(output);
+                        IsTimeout = true,
+                        AssingedComputingTime = session.ComputingTime
+                    };
                 }
+
+                var output = process.StandardOutput.ReadToEnd();
+                return JsonConvert.DeserializeObject<MathCalcResult>(output);
             }
             finally
             {

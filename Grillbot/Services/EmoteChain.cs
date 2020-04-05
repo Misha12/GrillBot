@@ -1,7 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;

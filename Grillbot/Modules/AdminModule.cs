@@ -6,10 +6,8 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Helpers;
-using Grillbot.Messages.Modules;
+using Grillbot.Models.Config;
 using Grillbot.Models.Embed;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;
@@ -62,8 +60,8 @@ namespace Grillbot.Modules
         }
 
         [Command("guildStatus")]
-        [Summary(AdminModuleMessages.GetGuildInfoAsyncSummary)]
-        [Remarks(AdminModuleMessages.GetGuildInfoAsyncRemarks)]
+        [Summary("Informace o serveru.")]
+        [Remarks("Parametr guildID je povinný v případě volání v soukromé konverzaci.")]
         public async Task GuildStatusAsync(ulong guildID = default)
         {
             await DoAsync(async () =>
@@ -75,27 +73,27 @@ namespace Grillbot.Modules
                     if (guildID == default)
                         throw new ThrowHelpException();
 
-                    throw new ArgumentException(AdminModuleMessages.CannotFindGuild);
+                    throw new ArgumentException("Požadovaný server nebyl nalezen.");
                 }
 
                 var color = guild.Roles.OrderByDescending(o => o.Position).FirstOrDefault()?.Color;
                 var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
                     .WithThumbnail(guild.IconUrl)
                     .WithFields(
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.CategoryChannelsCount).WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.ChannelsCount).WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.RolesCount).WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.CreatedAt).WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.Owner).WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.SystemChannel).WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.HasAllMembers).WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.IsSynced).WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.MemberCount).WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.VerificationLevel).WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.VoiceRegionID).WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.MfaLevel).WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.ExplicitContentFilter).WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName(AdminModuleMessages.DefaultMessageNotifications).WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
+                        new EmbedFieldBuilder().WithName("Počet kategorií").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet kanálů").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet rolí").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Vytvořen").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Vlastník").WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
+                        new EmbedFieldBuilder().WithName("Systémový kanál").WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
+                        new EmbedFieldBuilder().WithName("Uživatelé synchronizováni").WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Synchronizován").WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Počet uživatelů (v paměti)").WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Úroveň ověření").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("ID oblasti (Hovory)").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Úroveň MFA").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Filtr explicitního obsahu").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
+                        new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
                     );
 
                 await ReplyAsync(embed: embed.Build());
@@ -155,7 +153,7 @@ namespace Grillbot.Modules
                     throw new ArgumentException("Takový uživatel na serveru není.");
 
                 var userTopRole = user.FindHighestRoleWithColor();
-                var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id.ToString() == config.BotRole) : null;
+                var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id == config.BotRole) : null;
                 var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
 
                 string botRoleText = "Ne";

@@ -136,5 +136,11 @@ namespace Grillbot.Models.Embed
             Builder.WithFooter(o => o.WithText(footer).WithIconUrl(iconUrl));
             return this;
         }
+
+        public BotEmbed ClearFields()
+        {
+            Builder.Fields.Clear();
+            return this;
+        }
     }
 }

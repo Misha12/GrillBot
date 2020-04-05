@@ -1,6 +1,6 @@
 ﻿using Newtonsoft.Json;
 
-namespace Grillbot.Services.Config.Models
+namespace Grillbot.Models.Config
 {
     public class DuckConfig
     {

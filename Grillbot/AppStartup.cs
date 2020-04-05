@@ -3,7 +3,6 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Handlers;
 using Grillbot.Services;
-using Grillbot.Services.Config.Models;
 using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
@@ -22,11 +21,11 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Repository;
 using Grillbot.Services.Channelboard;
-using Microsoft.AspNetCore.Authentication;
-using Grillbot.Handlers.HttpHandlers;
 using Microsoft.Extensions.Logging;
 using Grillbot.Services.InMemoryLogger;
 using Grillbot.Services.TeamSearch;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Grillbot.Models.Config;
 
 namespace Grillbot
 {
@@ -62,8 +61,13 @@ namespace Grillbot
                 .AddTransient<TempUnverifyRepository>();
 
             services
-                .AddAuthentication("BasicAuthentication")
-                .AddScheme<AuthenticationSchemeOptions, BasicAuthenticationHandler>("BasicAuthentication", null);
+                .AddSingleton<WebAuthenticationService>()
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(opt =>
+                {
+                    opt.LoginPath = "/Login";
+                    opt.LogoutPath = "/Logout";
+                });
 
             services
                 .AddMemoryCache()
@@ -113,7 +117,6 @@ namespace Grillbot
             services
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
-                .AddSingleton<Statistics>()
                 .AddSingleton<BotLoggingService>()
                 .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
@@ -124,7 +127,6 @@ namespace Grillbot
                 .AddTransient<BotStatusService>()
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
-                .AddSingleton<CalledEventStats>()
                 .AddSingleton<InitService>()
                 .AddSingleton<ChannelStats>()
                 .AddSingleton<EmoteStats>()
@@ -134,7 +136,8 @@ namespace Grillbot
 
             services
                 .AddTempUnverify()
-                .AddTeamSearch();
+                .AddTeamSearch()
+                .AddStatistics();
 
             services.AddHostedService<GrillBotService>();
 

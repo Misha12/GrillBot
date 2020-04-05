@@ -13,19 +13,18 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
-        private CalledEventStats CalledEventStats { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public MessageEditedHandler(DiscordSocketClient client, Logger logger, CalledEventStats calledEventStats)
+        public MessageEditedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics)
         {
             Client = client;
             Logger = logger;
-            CalledEventStats = calledEventStats;
+            InternalStatistics = internalStatistics;
         }
 
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
-            CalledEventStats.Increment("MessageUpdated");
-
+            InternalStatistics.IncrementEvent("MessageUpdated");
             if (!messageAfter.Author.IsUser()) return;
 
             await Logger.OnMessageEdited(messageBefore, messageAfter, channel).ConfigureAwait(false);

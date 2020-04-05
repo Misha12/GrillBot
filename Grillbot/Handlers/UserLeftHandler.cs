@@ -11,18 +11,18 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
-        private CalledEventStats CalledEventStats { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public UserLeftHandler(DiscordSocketClient client, Logger logger, CalledEventStats calledEventStats)
+        public UserLeftHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics)
         {
             Client = client;
             Logger = logger;
-            CalledEventStats = calledEventStats;
+            InternalStatistics = internalStatistics;
         }
 
         private async Task OnUserLeftAsync(SocketGuildUser user)
         {
-            CalledEventStats.Increment("UserLeft");
+            InternalStatistics.IncrementEvent("UserLeft");
             await Logger.OnUserLeft(user).ConfigureAwait(false);
         }
 

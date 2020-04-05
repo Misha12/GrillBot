@@ -1,7 +1,8 @@
 ﻿using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Channelboard;
+using Grillbot.Models.Config;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 
@@ -30,6 +31,12 @@ namespace Grillbot.Services.Channelboard
             return string.Format(config.WebUrl, $"?key={key}");
         }
 
-        public ChannelboardWebItem GetItem(string key) => !string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebItem item) ? item : null;
+        public ChannelboardWebItem GetItem(string key)
+        {
+            if (string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebItem item))
+                return item;
+
+            return null;
+        }
     }
 }

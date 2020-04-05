@@ -1,64 +1,46 @@
-﻿using Discord;
-using Discord.WebSocket;
-using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
-using Grillbot.Models.Embed;
-using Grillbot.Database;
+﻿using Grillbot.Extensions.Discord;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
+using Grillbot.Models.TempUnverify;
 
 namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
-        public async Task<List<BotEmbed>> ListPersonsAsync(SocketUser caller)
+        public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync()
         {
-            var persons = await Repository.GetAllItems().ToListAsync().ConfigureAwait(false);
+            var persons = await Repository.GetAllItems().ToListAsync();
 
             if (persons.Count == 0)
                 throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
 
-            return await CreateListsPersonsAsync(persons, caller).ConfigureAwait(false);
+            return await CreateListsPersonsAsync(persons).ConfigureAwait(false);
         }
 
-        private async Task<List<BotEmbed>> CreateListsPersonsAsync(List<TempUnverifyItem> items, SocketUser user)
+        private async Task<List<CurrentUnverifiedUser>> CreateListsPersonsAsync(List<TempUnverifyItem> items)
         {
-            var fields = new List<EmbedFieldBuilder>();
+            var users = new List<CurrentUnverifiedUser>();
 
             foreach (var person in items)
             {
                 var guild = Client.GetGuild(person.GuildIDSnowflake);
 
-                var desc = string.Join("\n", new[]
+                var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserID);
+                users.Add(new CurrentUnverifiedUser()
                 {
-                    $"ID: {person.ID}",
-                    $"Do kdy: {person.GetEndDatetime().ToLocaleDatetime()}",
-                    $"Role: {string.Join(", ", person.DeserializedRolesToReturn)}",
-                    $"Extra kanály: {BuildChannelOverrideList(person.DeserializedChannelOverrides, guild)}",
-                    $"Důvod: {person.Reason}"
+                    ChannelOverrideList = BuildChannelOverrideList(person.DeserializedChannelOverrides, guild),
+                    EndDateTime = person.GetEndDatetime(),
+                    ID = person.ID,
+                    Reason = person.Reason,
+                    Roles = person.DeserializedRolesToReturn,
+                    Username = unverifiedUser.GetFullName()
                 });
-
-                var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserID).ConfigureAwait(false);
-                fields.Add(new EmbedFieldBuilder().WithName(unverifiedUser.GetFullName()).WithValue(desc));
             }
 
-            var embeds = new List<BotEmbed>();
-            var pages = System.Math.Ceiling(fields.Count / 10.0);
-            for (var i = 0; i < pages; i++)
-            {
-                var partialFields = fields.Skip(Convert.ToInt32(System.Math.Ceiling(i * 10.0))).Take(10).ToList();
-
-                var embed = new BotEmbed(user, title: "Seznam osob s odebraným přístupem", thumbnail: Client.CurrentUser.GetUserAvatarUrl());
-                embed.WithFields(partialFields);
-
-                embeds.Add(embed);
-            }
-
-            return embeds;
+            return users;
         }
     }
 }

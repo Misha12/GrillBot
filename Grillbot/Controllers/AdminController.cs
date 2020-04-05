@@ -1,4 +1,6 @@
 ﻿using System.Threading.Tasks;
+using Discord.WebSocket;
+using Grillbot.Database.Repository;
 using Grillbot.Models.BotStatus;
 using Grillbot.Models.InMemoryLogger;
 using Grillbot.Services;
@@ -15,14 +17,19 @@ namespace Grillbot.Controllers
     public class AdminController : Controller
     {
         private BotStatusService StatusService { get; }
-        private CalledEventStats CalledEventStats { get; }
         private InMemoryLoggerService LoggerService { get; }
+        private InternalStatistics InternalStatistics { get; }
+        private LogRepository LogRepository { get; }
+        private DiscordSocketClient DiscordClient { get; }
 
-        public AdminController(BotStatusService service, CalledEventStats calledEventStats, InMemoryLoggerService loggerService)
+        public AdminController(BotStatusService service, InMemoryLoggerService loggerService,
+            InternalStatistics internalStatistics, LogRepository logRepository, DiscordSocketClient discordSocket)
         {
             StatusService = service;
-            CalledEventStats = calledEventStats;
             LoggerService = loggerService;
+            InternalStatistics = internalStatistics;
+            LogRepository = logRepository;
+            DiscordClient = discordSocket;
         }
         
         public async Task<IActionResult> Index()
@@ -32,19 +39,26 @@ namespace Grillbot.Controllers
             var data = new WebStatus()
             {
                 Simple = StatusService.GetSimpleStatus(),
-                CallStats = StatusService.GetCallStats(),
+                ExecutedCommands = InternalStatistics.Commands,
                 DBStatus = dbStatus,
                 LoggerStats = StatusService.GetLoggerStats(),
-                CalledEventStats = CalledEventStats.ToFormatedDictionary()
+                TriggeredEvents = InternalStatistics.Events
             };
 
             return View(data);
         }
 
         [Route("CallStats")]
-        public async Task<IActionResult> CallStats()
+        public IActionResult CallStats()
         {
-            return View(CalledEventStats.GetSummarizedStats());
+            var data = LogRepository.GetSummarizedCommandLog();
+
+            foreach(var item in data)
+            {
+                item.ReplaceGuildNames(DiscordClient);
+            }
+
+            return View(data);
         }
 
         [Route("Logging")]

@@ -1,8 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Messages.Services.TempUnverify;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -28,20 +27,20 @@ namespace Grillbot.Services.TempUnverify
                 var config = Repository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
 
                 if (subjects.Count > config.MaxSubjectsCount)
-                    throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.SubjectsOverMaximum, config.MaxSubjectsCount));
+                    throw new ArgumentException($"Je možné si ponechat maximálně {config.MaxSubjectsCount} rolí.");
 
                 foreach(var subject in subjects.Select(o => o.ToLower()))
                 {
                     if (!config.Subjects.Contains(subject))
-                        throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.InvalidSubjectRole, subject));
+                        throw new ArgumentException($"`{subject}` není předmětová role.");
                 }
             }
 
             if (user.Id == guild.OwnerId)
-                throw new ArgumentException(TempUnverifyCheckerMessages.ServerOwner);
+                throw new ArgumentException("Nelze provést odebrání přístupu, protože se mezi uživateli nachází vlastník serveru.");
 
             if (currentUnverifiedPersons.Any(o => o == user.Id))
-                throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.UserHaveUnverify, user.GetFullName()));
+                throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
 
             var botRolePosition = guild.CurrentUser.Roles.Max(o => o.Position);
             var userMaxRolePosition = user.Roles.Max(o => o.Position);
@@ -51,11 +50,11 @@ namespace Grillbot.Services.TempUnverify
                 var higherRoles = user.Roles.Where(o => o.Position > botRolePosition);
                 var higherRoleNames = string.Join(", ", higherRoles.Select(o => o.Name));
 
-                throw new ArgumentException(string.Format(TempUnverifyCheckerMessages.UserHaveHigherRoles, user.GetFullName(), higherRoleNames));
+                throw new ArgumentException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetFullName()}** má vyšší role. **({higherRoleNames})**");
             }
 
             if (Config.IsUserBotAdmin(user.Id) && !selfunverify)
-                throw new ArgumentException(string.Join(TempUnverifyCheckerMessages.BotAdmin, user.GetFullName()));
+                throw new ArgumentException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je administrátor bota.");
         }
     }
 }

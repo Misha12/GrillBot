@@ -3,41 +3,36 @@ using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
-using Grillbot.Database;
 using Grillbot.Database.Entity;
-using Grillbot.Services;
-using Grillbot.Services.Config.Models;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Database.Repository;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Modules.AutoReply
 {
     public class AutoReplyService : IInitiable
     {
         private List<AutoReplyItem> Data { get; }
-        private BotLoggingService BotLogging { get; }
-        private Configuration Config { get; }
+        private ILogger<AutoReplyService> Logger { get; }
         private AutoReplyRepository Repository { get; }
 
-        public AutoReplyService(IOptions<Configuration> configuration, BotLoggingService botLogging,
-            AutoReplyRepository repository)
+        public AutoReplyService(ILogger<AutoReplyService> logger, AutoReplyRepository repository)
         {
             Data = new List<AutoReplyItem>();
-            BotLogging = botLogging;
-            Config = configuration.Value;
             Repository = repository;
+            Logger = logger;
         }
 
         public void Init()
         {
             Data.Clear();
             Data.AddRange(Repository.GetAllItems());
-            BotLogging.Write(LogSeverity.Info, $"AutoReply module loaded (loaded {Data.Count} templates)");
+
+            Logger.LogInformation($"AutoReply module loaded (loaded {Data.Count} templates)");
         }
 
         public async Task TryReplyAsync(SocketUserMessage message)

@@ -11,21 +11,20 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
-        private CalledEventStats CalledEventStats { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public GuildMemberUpdatedHandler(DiscordSocketClient client, Logger logger, CalledEventStats calledEventStats)
+        public GuildMemberUpdatedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics)
         {
             Logger = logger;
             Client = client;
-            CalledEventStats = calledEventStats;
+            InternalStatistics = internalStatistics;
 
             Client.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
         }
 
         private async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            CalledEventStats.Increment("GuildMemberUpdated");
-
+            InternalStatistics.IncrementEvent("GuildMemberUpdated");
             await Logger.OnGuildMemberUpdatedAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
         }
 

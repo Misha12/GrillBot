@@ -2,7 +2,7 @@
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
 using System;

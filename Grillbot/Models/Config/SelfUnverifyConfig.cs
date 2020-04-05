@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Grillbot.Services.Config.Models
+namespace Grillbot.Models.Config
 {
     public class SelfUnverifyConfig
     {

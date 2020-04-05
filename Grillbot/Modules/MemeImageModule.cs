@@ -4,9 +4,9 @@ using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
-using Grillbot.Services.Config.Models;
 using Microsoft.Extensions.Options;
 using Grillbot.Database.Repository;
+using Grillbot.Models.Config;
 
 namespace Grillbot.Modules
 {

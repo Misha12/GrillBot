@@ -10,6 +10,6 @@ namespace Grillbot.Models.InMemoryLogger
         public LogLevel Level { get; set; }
         public string LogName { get; set; }
         public string Message { get; set; }
-        public Exception Exception { get; set; }
+        public string Exception { get; set; }
     }
 }

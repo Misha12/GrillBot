@@ -1,9 +1,14 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
+using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -80,12 +85,30 @@ namespace Grillbot.Modules
         {
             await DoAsync(async () =>
             {
-                var embeds = await UnverifyService.ListPersonsAsync(Context.Message.Author).ConfigureAwait(false);
+                var users = await UnverifyService.ListPersonsAsync();
+                
+                var template = new BotEmbed(Context.Message.Author, title: "Seznam osob s odebraným přístupem", thumbnail: Context.Client.CurrentUser.GetUserAvatarUrl());
+                var fields = new List<EmbedFieldBuilder>();
 
-                foreach (var embed in embeds)
+                foreach(var user in users)
                 {
-                    await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                    var desc = string.Join("\n", new[]
+                    {
+                        $"ID: {user.ID}",
+                        $"Do kdy: {user.EndDateTime.ToLocaleDatetime()}",
+                        $"Role: {string.Join(", ", user.Roles)}",
+                        $"Extra kanály: {user.ChannelOverrideList}",
+                        $"Důvod: {user.Reason}"
+                    });
+
+                    var field = new EmbedFieldBuilder()
+                        .WithName(user.Username)
+                        .WithValue(desc);
+
+                    fields.Add(field);
                 }
+
+                await ReplyChunkedAsync(fields, template, 10);
             }).ConfigureAwait(false);
         }
 

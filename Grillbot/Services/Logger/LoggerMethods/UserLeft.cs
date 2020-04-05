@@ -1,6 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
-using Grillbot.Services.Config.Models;
+using Grillbot.Models.Config;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 
 namespace Grillbot.Services.Logger.LoggerMethods
