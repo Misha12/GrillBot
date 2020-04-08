@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Database.Entity.MethodConfig
+﻿namespace Grillbot.Database.Enums
 {
     public enum PermType : byte
     {

@@ -60,14 +60,7 @@ namespace Grillbot
                 .AddTransient<LogRepository>()
                 .AddTransient<TempUnverifyRepository>();
 
-            services
-                .AddSingleton<WebAuthenticationService>()
-                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
-                .AddCookie(opt =>
-                {
-                    opt.LoginPath = "/Login";
-                    opt.LogoutPath = "/Logout";
-                });
+            services.AddWebAuthentication();
 
             services
                 .AddMemoryCache()

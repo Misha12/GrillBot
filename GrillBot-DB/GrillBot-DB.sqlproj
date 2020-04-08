@@ -70,6 +70,7 @@
     <Build Include="Tables\Birthdays.sql" />
     <Build Include="Tables\MethodsConfig.sql" />
     <Build Include="Tables\MethodPerms.sql" />
+    <Build Include="Tables\WebAuthPerm.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />

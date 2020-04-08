@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Grillbot.Database.Entity.MethodConfig;
+using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config;

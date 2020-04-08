@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Database.Enums;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 

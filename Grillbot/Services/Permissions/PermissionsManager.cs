@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
+using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config;
 using Microsoft.Extensions.Options;

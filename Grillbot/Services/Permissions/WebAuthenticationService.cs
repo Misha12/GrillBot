@@ -1,9 +1,8 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -14,13 +13,14 @@ namespace Grillbot.Services.Permissions
     {
         private ILogger<WebAuthenticationService> Logger { get; }
         private DiscordSocketClient DiscordClient { get; }
-        private Configuration Config { get; }
+        private WebAuthRepository WebAuthRepository { get; }
 
-        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client, IOptions<Configuration> options)
+        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client,
+            WebAuthRepository webAuthRepository)
         {
             Logger = logger;
             DiscordClient = client;
-            Config = options.Value;
+            WebAuthRepository = webAuthRepository;
         }
 
         public async Task<ClaimsIdentity> Authorize(string username, string password, ulong guildID)
@@ -34,19 +34,21 @@ namespace Grillbot.Services.Permissions
                 var guild = DiscordClient.GetGuild(guildID);
 
                 if (guild == null)
-                    return null;
+                    return null; // Bot is not in guild.
 
                 var usernameFields = username.Split('#');
                 if (usernameFields.Length != 2)
-                    return null;
+                    return null; // Invalid username format.
 
                 user = await guild.GetUserFromGuildAsync(usernameFields[0], usernameFields[1]);
 
-                if (user == null || user.Id.ToString() != password)
-                    return null;
+                if (user == null)
+                    return null; // User not found in guild.
 
-                if (!Config.IsUserBotAdmin(user.Id))
-                    return null;
+                var perm = WebAuthRepository.FindPermById(guild, user);
+
+                if (perm == null || !perm.IsValidPassword(password))
+                    return null; // Ban invalid password or undefined permission.
 
                 var claims = new[]
                 {
