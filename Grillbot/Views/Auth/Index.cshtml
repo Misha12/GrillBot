@@ -1,4 +1,5 @@
-﻿
+﻿@model Grillbot.Models.Auth.AuthViewModel;
+
 @{
     Layout = null;
 }
@@ -9,12 +10,76 @@
 <head>
     <meta name="viewport" content="width=device-width" />
     <title>Login</title>
+    <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.3.1/css/bootstrap.min.css" integrity="sha384-ggOyR0iXCbMQv3Xipma34MD+dH/1fQ784/j6cY/iJTQUOhcWr7x9JvoRxT2MZw1T" crossorigin="anonymous">
 </head>
-<body>
-    <form method="post">
-        <input name="username" />
-        <input name="password" />
-        <button type="submit">Send</button>
-    </form>
+<body class="bg-light">
+    <div class="d-flex flex-column mh-100">
+        <main>
+            <div class="container">
+                <div class="row justify-content-center">
+                    <div class="col-lg-5">
+                        <div class="card shadow-lg border-0 rounded-lg mt-5">
+                            <div class="card-header"><h3 class="text-center font-weight-light my-4">GrillBot Admin</h3></div>
+                            <div class="card-body">
+                                <form method="post">
+                                    <div class="form-group">
+                                        <label class="small mb-1">Server</label>
+                                        <select class="form-control" name="guild">
+                                            @if (Model.Guilds != null)
+                                            {
+                                                @foreach (var guild in Model.Guilds)
+                                                {
+                                                    <option value="@guild.Id">@guild.Name</option>
+                                                }
+                                            }
+                                        </select>
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="small mb-1">Globální Discord nick (např.: User#1234)</label>
+                                        <input name="username" class="form-control py-4">
+                                    </div>
+
+                                    <div class="form-group">
+                                        <label class="small mb-1">Heslo</label>
+                                        <input class="form-control py-4" name="password" type="password">
+                                    </div>
+
+                                    <div class="form-group d-flex align-items-center justify-content-end mt-4 mb-0">
+                                        @if (Model.Guilds == null || Model.Guilds.Count == 0)
+                                        {
+                                            <button type="submit" class="btn btn-dark" disabled>Přihlásit se</button>
+                                        }
+                                        else
+                                        {
+                                            <button type="submit" class="btn btn-dark">Přihlásit se</button>
+                                        }
+                                    </div>
+                                </form>
+                            </div>
+                            @if (Model.Guilds == null || Model.Guilds.Count == 0)
+                            {
+                                <div class="card-footer text-center">
+                                    <div class="small text-danger">
+                                        Nelze provést přihlášení.<br />
+                                        Bot musí být na nějakém serveru.
+                                    </div>
+                                </div>
+                            }
+                            else if (Model.InvalidLogin)
+                            {
+                                <div class="card-footer text-center">
+                                    <div class="small text-danger">
+                                        Nelze provést přihlášení.<br />
+                                        Neplatné přihlašovací údaje nebo nedostatečná práva.
+                                    </div>
+                                </div>
+                            }
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </main>
+    </div>
 </body>
 </html>

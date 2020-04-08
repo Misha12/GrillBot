@@ -5,7 +5,6 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using System;
-using System.Linq;
 using System.Security.Claims;
 using System.Threading.Tasks;
 
@@ -24,26 +23,26 @@ namespace Grillbot.Services.Permissions
             Config = options.Value;
         }
 
-        public async Task<ClaimsIdentity> Authorize(string username, string password)
+        public async Task<ClaimsIdentity> Authorize(string username, string password, ulong guildID)
         {
-            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password))
+            if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || guildID == default)
                 return null;
 
             SocketGuildUser user;
             try
             {
-                var guild = DiscordClient.Guilds.FirstOrDefault(o => o.Name == username);
+                var guild = DiscordClient.GetGuild(guildID);
 
                 if (guild == null)
                     return null;
 
-                var usernameFields = password.Split('#');
+                var usernameFields = username.Split('#');
                 if (usernameFields.Length != 2)
                     return null;
 
                 user = await guild.GetUserFromGuildAsync(usernameFields[0], usernameFields[1]);
 
-                if (user == null)
+                if (user == null || user.Id.ToString() != password)
                     return null;
 
                 if (!Config.IsUserBotAdmin(user.Id))
