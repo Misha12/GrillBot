@@ -7,6 +7,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Services.Initiable;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,16 +22,16 @@ namespace Grillbot.Services.Statistics
         private Dictionary<string, EmoteStat> Counter { get; set; }
         private HashSet<string> Changes { get; }
         private Timer DbSyncTimer { get; }
-        private BotLoggingService LoggingService { get; }
+        private ILogger<EmoteStats> Logger { get; }
         private static object Locker { get; } = new object();
         private EmoteStatsRepository Repository { get; }
 
-        public EmoteStats(BotLoggingService loggingService, EmoteStatsRepository repository)
+        public EmoteStats(EmoteStatsRepository repository, ILogger<EmoteStats> logger)
         {
             Counter = new Dictionary<string, EmoteStat>();
             Changes = new HashSet<string>();
 
-            LoggingService = loggingService;
+            Logger = logger;
             Repository = repository;
 
             var syncPeriod = GrillBotService.DatabaseSyncPeriod;
@@ -39,8 +40,8 @@ namespace Grillbot.Services.Statistics
 
         public void Init()
         {
-            Counter = Repository.GetEmoteStatistics().ToDictionary(o => o.EmoteID, o => o);
-            LoggingService.Write(LogSeverity.Info, $"Emote statistics loaded from database. (Rows: {Counter.Count})");
+            Counter = Repository.GetEmoteStatistics().ToDictionary(o => $"{o.GuildID}|{o.EmoteID}", o => o);
+            Logger.LogInformation($"Emote statistics loaded from database. (Rows: {Counter.Count})");
         }
 
         private void SyncTimerCallback(object _)
@@ -53,7 +54,7 @@ namespace Grillbot.Services.Statistics
                 Repository.UpdateEmoteStatistics(dataForUpdate);
 
                 Changes.Clear();
-                LoggingService.Write(LogSeverity.Info, $"Emote statistics was synchronized with database. (Updated {dataForUpdate.Count} records)");
+                Logger.LogInformation($"Emote statistics was synchronized with database. (Updated {dataForUpdate.Count} records)");
             }
         }
 
@@ -125,7 +126,7 @@ namespace Grillbot.Services.Statistics
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    DecrementCounter(reaction.Emote.Name, true);
+                    DecrementCounter(reaction.Emote.Name, true, channel.Guild);
                 }
                 else
                 {
@@ -133,7 +134,7 @@ namespace Grillbot.Services.Statistics
                     var serverEmotes = channel.Guild.Emotes;
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        DecrementCounter(emoteId, false);
+                        DecrementCounter(emoteId, false, channel.Guild);
                 }
             }
         }
@@ -159,15 +160,17 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            if (!Counter.ContainsKey(emoteId))
-                Counter.Add(emoteId, new EmoteStat(emoteId, isUnicode, guild.Id));
-            else
-                GetValue(emoteId).IncrementAndUpdate();
+            var key = $"{guild.Id}|{emoteId}";
 
-            Changes.Add(emoteId);
+            if (!Counter.ContainsKey(key))
+                Counter.Add(key, new EmoteStat(emoteId, isUnicode, guild.Id));
+            else
+                GetValue(key).IncrementAndUpdate();
+
+            Changes.Add(key);
         }
 
-        private void DecrementCounter(string emoteId, bool isUnicode)
+        private void DecrementCounter(string emoteId, bool isUnicode, SocketGuild guild)
         {
             if (isUnicode)
             {
@@ -175,11 +178,13 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            var value = GetValue(emoteId);
+            var key = $"{guild.Id}|{emoteId}";
+
+            var value = GetValue(key);
             if (value == null || value.Count == 0) return;
 
             value.Decrement();
-            Changes.Add(emoteId);
+            Changes.Add(key);
         }
 
         public EmoteStat GetValue(string emoteId)
@@ -234,10 +239,11 @@ namespace Grillbot.Services.Statistics
             {
                 foreach (var item in GetMergeList(guild))
                 {
-                    if (!Counter.ContainsKey(item.MergeTo))
-                        Counter.Add(item.MergeTo, new EmoteStat() { EmoteID = item.MergeTo, LastOccuredAt = DateTime.Now });
+                    var key = $"{guild.Id}|{item.MergeTo}";
+                    if (!Counter.ContainsKey(key))
+                        Counter.Add(key, new EmoteStat() { EmoteID = item.MergeTo, LastOccuredAt = DateTime.Now });
 
-                    var emote = Counter[item.MergeTo];
+                    var emote = Counter[key];
 
                     foreach (var source in item.Emotes)
                     {
@@ -246,7 +252,7 @@ namespace Grillbot.Services.Statistics
                         Counter.Remove(source.Key);
                     }
 
-                    Changes.Add(emote.EmoteID);
+                    Changes.Add(key);
                 }
             }
         }
@@ -267,7 +273,7 @@ namespace Grillbot.Services.Statistics
                     {
                         removed.Add($"Smazán starý emote {parsedEmote.Name} ({parsedEmote.Id})");
                         Repository.RemoveEmote(emote.GetRealId());
-                        Counter.Remove(emote.GetRealId());
+                        Counter.Remove($"{emote.GuildID}|{emote.GetRealId()}");
                     }
                 }
 
