@@ -17,12 +17,13 @@ namespace Grillbot.Services.TempUnverify
         {
             if (item is TempUnverifyItem unverify)
             {
+                using var repository = Factories.GetUnverifyRepository();
                 var helper = Factories.GetHelper();
 
                 var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
 
-                var user = guild.GetUserFromGuildAsync(unverify.UserID).Result;
+                var user = guild.GetUserFromGuildAsync(unverify.UserIDSnowflake).Result;
                 if (user == null)
                 {
                     Logger.LogWarning($"Invalid unverify. User not found. {JsonConvert.SerializeObject(unverify)}");
@@ -30,10 +31,9 @@ namespace Grillbot.Services.TempUnverify
                 }
 
                 var rolesToReturn = unverify.DeserializedRolesToReturn;
-                var roles = guild.Roles.Where(o => rolesToReturn.Contains(o.Name) && !user.Roles.Any(x => x.Id == o.Id)).ToList();
+                var roles = rolesToReturn.Select(id => guild.GetRole(id)).Where(role => role != null && !user.Roles.Any(x => x.Id == role.Id)).ToList();
 
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
-
                 if (isAutoRemove)
                 {
                     var data = new UnverifyLogRemove()
@@ -44,7 +44,7 @@ namespace Grillbot.Services.TempUnverify
 
                     data.SetUser(user);
 
-                    Repository.LogOperationAsync(UnverifyLogOperation.AutoRemove, Client.CurrentUser, guild, data)
+                    repository.LogOperationAsync(UnverifyLogOperation.AutoRemove, Client.CurrentUser, guild, data)
                         .GetAwaiter()
                         .GetResult();
                 }
@@ -54,15 +54,6 @@ namespace Grillbot.Services.TempUnverify
                     .Where(o => o.channel != null)
                     .ToList();
 
-                var consoleLogData = JsonConvert.SerializeObject(new
-                {
-                    OperationName = "ReturnAccess",
-                    Target = $"{user.GetFullName()} ({user.Id})",
-                    Roles = string.Join(", ", rolesToReturn),
-                    ExtraChannels = string.Join(", ", overrides.Select(o => $"{o.channelOverride.ChannelId}|{o.channelOverride.AllowValue}|{o.channelOverride.DenyValue}"))
-                });
-
-                Logger.LogInformation(consoleLogData);
                 user.AddRolesAsync(roles).GetAwaiter().GetResult();
 
                 foreach (var channelOverride in overrides)
@@ -76,7 +67,7 @@ namespace Grillbot.Services.TempUnverify
                 helper.FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
                 RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
 
-                Repository.RemoveItem(unverify.ID);
+                repository.RemoveItem(unverify.ID);
                 unverify.Dispose();
                 Data.RemoveAll(o => o.ID == unverify.ID);
             }
@@ -84,7 +75,8 @@ namespace Grillbot.Services.TempUnverify
 
         public async Task<string> ReturnAccessAsync(int id, SocketUser fromUser)
         {
-            var item = await Repository.FindItemByIDAsync(id).ConfigureAwait(false);
+            using var repository = Factories.GetUnverifyRepository();
+            var item = await repository.FindItemByIDAsync(id).ConfigureAwait(false);
 
             if (item == null)
                 throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
@@ -102,7 +94,7 @@ namespace Grillbot.Services.TempUnverify
             };
             data.SetUser(user);
 
-            await Repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
+            await repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
 
             ReturnAccess(item);
             return $"Předčasné vrácení přístupu pro uživatele **{user.GetFullName()}** bylo dokončeno.";

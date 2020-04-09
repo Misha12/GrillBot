@@ -7,8 +7,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Newtonsoft.Json;
-using Microsoft.Extensions.Logging;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -61,32 +59,21 @@ namespace Grillbot.Services.TempUnverify
                 rolesToRemove = rolesToRemove.Where(role => !subjects.Contains(role.Name.ToLower())).ToList();
             }
 
-            var rolesToRemoveNames = rolesToRemove.Select(o => o.Name).ToList();
+            var rolesToRemoveIDs = rolesToRemove.Select(o => o.Id).ToList();
             var overrides = GetChannelOverrides(user);
 
             var data = new UnverifyLogSet()
             {
                 Overrides = overrides,
-                Roles = rolesToRemoveNames,
+                Roles = rolesToRemoveIDs,
                 StartAt = DateTime.Now,
                 TimeFor = unverifyTime.ToString(),
                 Reason = reason
             };
 
             data.SetUser(user);
-            await Repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
-
-            var consoleLogData = JsonConvert.SerializeObject(new
-            {
-                Operation = "RemoveAccess",
-                unverifyTime,
-                Roles = string.Join(", ", rolesToRemoveNames),
-                ExtraChannels = string.Join(", ", overrides.Select(o => $"{o.ChannelId} => AllowVal: {o.AllowValue}, DenyVal => {o.DenyValue}")),
-                Target = $"{user.GetFullName()} ({user.Id})",
-                reason
-            });
-
-            Logger.LogInformation(consoleLogData);
+            using var repository = Factories.GetUnverifyRepository();
+            await repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
 
             if (subjects == null || subjects.Length == 0)
                 await helper.FindAndToggleMutedRoleAsync(user, guild, true);
@@ -103,8 +90,8 @@ namespace Grillbot.Services.TempUnverify
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
-            var unverify = await Repository
-                .AddItemAsync(rolesToRemoveNames, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
+            var unverify = await repository
+                .AddItemAsync(rolesToRemoveIDs, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
                 .ConfigureAwait(false);
 
             var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason, false);

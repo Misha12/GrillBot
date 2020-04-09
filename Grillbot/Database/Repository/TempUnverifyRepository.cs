@@ -21,7 +21,7 @@ namespace Grillbot.Database.Repository
             return Context.TempUnverify.AsQueryable();
         }
 
-        public async Task<TempUnverifyItem> AddItemAsync(List<string> roles, ulong userID, ulong guildID, int timeFor,
+        public async Task<TempUnverifyItem> AddItemAsync(List<ulong> roles, ulong userID, ulong guildID, int timeFor,
             List<ChannelOverride> overrides, string reason)
         {
             var entity = new TempUnverifyItem()

@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config;
@@ -20,19 +19,15 @@ namespace Grillbot.Services.TempUnverify
         private Configuration Config { get; set; }
         private ILogger<TempUnverifyService> Logger { get; }
         private DiscordSocketClient Client { get; }
-        private TempUnverifyRepository Repository { get; }
-        private ConfigRepository ConfigRepository { get; }
         private TempUnverifyFactories Factories { get; }
 
-        public TempUnverifyService(IOptions<Configuration> config, DiscordSocketClient client, TempUnverifyRepository repository,
-            ConfigRepository configRepository, TempUnverifyFactories factories, ILogger<TempUnverifyService> logger)
+        public TempUnverifyService(IOptions<Configuration> config, DiscordSocketClient client, TempUnverifyFactories factories,
+            ILogger<TempUnverifyService> logger)
         {
             Data = new List<TempUnverifyItem>();
             Config = config.Value;
             Logger = logger;
             Client = client;
-            Repository = repository;
-            ConfigRepository = configRepository;
             Factories = factories;
         }
 
@@ -47,7 +42,8 @@ namespace Grillbot.Services.TempUnverify
             int processedCount = 0;
             int waitingCount = 0;
 
-            var items = await Repository.GetAllItems().ToListAsync().ConfigureAwait(false);
+            using var repository = Factories.GetUnverifyRepository();
+            var items = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
 
             foreach (var item in items)
             {

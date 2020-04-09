@@ -23,8 +23,9 @@ namespace Grillbot.Services.TempUnverify
             var logData = new UnverifyLogUpdate() { TimeFor = $"{time} ({unverifyTime})" };
             logData.SetUser(user);
 
-            await Repository.LogOperationAsync(UnverifyLogOperation.Update, fromUser, guild, logData).ConfigureAwait(false);
-            await Repository.UpdateTimeAsync(id, unverifyTime).ConfigureAwait(false);
+            using var repository = Factories.GetUnverifyRepository();
+            await repository.LogOperationAsync(UnverifyLogOperation.Update, fromUser, guild, logData).ConfigureAwait(false);
+            await repository.UpdateTimeAsync(id, unverifyTime).ConfigureAwait(false);
 
             item.TimeFor = unverifyTime;
             item.StartAt = DateTime.Now;

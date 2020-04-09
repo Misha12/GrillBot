@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+﻿using Grillbot.Database.Repository;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -7,6 +8,7 @@ namespace Grillbot.Services.TempUnverify
         public static IServiceCollection AddTempUnverify(this IServiceCollection services)
         {
             services
+                .AddTransient<TempUnverifyRepository>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<TempUnverifyFactories>()
                 .AddTransient<TempUnverifyChecker>()

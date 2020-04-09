@@ -55,8 +55,7 @@ namespace Grillbot
                 .AddTransient<ConfigRepository>()
                 .AddTransient<EmoteStatsRepository>()
                 .AddTransient<ChannelStatsRepository>()
-                .AddTransient<LogRepository>()
-                .AddTransient<TempUnverifyRepository>();
+                .AddTransient<LogRepository>();
 
             services.AddWebAuthentication();
 

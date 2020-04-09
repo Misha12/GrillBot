@@ -63,12 +63,12 @@ namespace Grillbot.Database.Entity
         public string Reason { get; set; }
 
         [NotMapped]
-        public List<string> DeserializedRolesToReturn
+        public List<ulong> DeserializedRolesToReturn
         {
             get
             {
-                if (string.IsNullOrEmpty(RolesToReturn)) return new List<string>();
-                return JsonConvert.DeserializeObject<List<string>>(RolesToReturn);
+                if (string.IsNullOrEmpty(RolesToReturn)) return new List<ulong>();
+                return JsonConvert.DeserializeObject<List<ulong>>(RolesToReturn);
             }
             set => RolesToReturn = JsonConvert.SerializeObject(value);
         }

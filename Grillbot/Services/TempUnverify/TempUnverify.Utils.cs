@@ -19,8 +19,7 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var config = ConfigRepository.FindConfig(guild.Id, "unverify", "");
-            var configData = config.GetData<TempUnverifyConfig>();
+            var configData = Factories.GetConfig(guild.Id);
 
             var channels = guild.Channels
                 .OfType<SocketTextChannel>()
@@ -50,8 +49,7 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var config = ConfigRepository.FindConfig(guild.Id, "unverify", "");
-            var configData = config.GetData<TempUnverifyConfig>();
+            var configData = Factories.GetConfig(guild.Id);
 
             var channels = guild.Channels
                 .OfType<SocketTextChannel>()

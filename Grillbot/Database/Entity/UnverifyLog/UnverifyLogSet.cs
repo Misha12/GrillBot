@@ -7,7 +7,7 @@ namespace Grillbot.Database.Entity.UnverifyLog
     {
         public string TimeFor { get; set; }
         public DateTime StartAt { get; set; }
-        public List<string> Roles { get; set; }
+        public List<ulong> Roles { get; set; }
         public List<ChannelOverride> Overrides { get; set; }
         public string Reason { get; set; }
     }

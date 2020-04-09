@@ -5,6 +5,7 @@ using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grillbot.Models.TempUnverify;
+using System.Linq;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -12,7 +13,8 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync()
         {
-            var persons = await Repository.GetAllItems().ToListAsync();
+            using var repository = Factories.GetUnverifyRepository();
+            var persons = await repository.GetAllItems().ToListAsync();
 
             if (persons.Count == 0)
                 throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
@@ -35,7 +37,7 @@ namespace Grillbot.Services.TempUnverify
                     EndDateTime = person.GetEndDatetime(),
                     ID = person.ID,
                     Reason = person.Reason,
-                    Roles = person.DeserializedRolesToReturn,
+                    Roles = person.DeserializedRolesToReturn.Select(id => guild.GetRole(id)?.Name).Where(role => role != null).ToList(),
                     Username = unverifiedUser.GetFullName()
                 });
             }
