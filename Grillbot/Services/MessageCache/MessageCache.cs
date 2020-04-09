@@ -23,27 +23,31 @@ namespace Grillbot.Services.MessageCache
 
         public async Task InitAsync()
         {
-            if (Data.Count > 0)
-                Data.Clear();
-
             var textChannels = Client.Guilds.SelectMany(o => o.Channels).OfType<SocketTextChannel>().ToList();
             var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 15000 };
+            var messages = new Dictionary<ulong, IMessage>();
 
             foreach (var channel in textChannels)
             {
-                await InitChannel(channel, options).ConfigureAwait(false);
+                await InitChannel(messages, channel, options).ConfigureAwait(false);
             }
+
+            if (Data.Count > 0)
+                Data.Clear();
+
+            Data = messages;
         }
 
-        private async Task InitChannel(SocketTextChannel channel, RequestOptions options = null)
+        private async Task InitChannel(Dictionary<ulong, IMessage> messages, SocketTextChannel channel, RequestOptions options = null)
         {
             try
             {
-                var messages = (await channel.GetMessagesAsync(options: options).FlattenAsync().ConfigureAwait(false)).ToList();
+                var messagesFromApi = (await channel.GetMessagesAsync(options: options).FlattenAsync().ConfigureAwait(false)).ToList();
 
-                foreach (var message in messages)
+                foreach (var message in messagesFromApi)
                 {
-                    Data.Add(message.Id, message);
+                    if (!messages.ContainsKey(message.Id))
+                        messages.Add(message.Id, message);
                 }
             }
             catch (Exception ex)
