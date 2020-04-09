@@ -24,7 +24,6 @@ using Grillbot.Services.Channelboard;
 using Microsoft.Extensions.Logging;
 using Grillbot.Services.InMemoryLogger;
 using Grillbot.Services.TeamSearch;
-using Microsoft.AspNetCore.Authentication.Cookies;
 using Grillbot.Models.Config;
 
 namespace Grillbot
@@ -46,7 +45,6 @@ namespace Grillbot
                 .AddDbContext<GrillBotContext>(options =>
                 {
                     options
-                        .EnableSensitiveDataLogging(false)
                         .UseSqlServer(Configuration.GetConnectionString("Default"));
                 }, ServiceLifetime.Transient, ServiceLifetime.Transient);
 
@@ -69,6 +67,8 @@ namespace Grillbot
                 {
                     opt
                         .SetMinimumLevel(LogLevel.Information)
+                        .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
+                        .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
                         .AddConsole(consoleConfig =>
                         {
                             consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
@@ -146,7 +146,6 @@ namespace Grillbot
                 .AddMemory(LogLevel.Information, InMemoryLogFormatter.Format);
 
             app
-                .UseMiddleware<LogMiddleware>()
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
                 .UseAuthentication()
