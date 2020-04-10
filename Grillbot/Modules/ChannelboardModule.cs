@@ -12,6 +12,7 @@ using Grillbot.Exceptions;
 using Newtonsoft.Json;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
+using System.Diagnostics.CodeAnalysis;
 
 namespace Grillbot.Modules
 {
@@ -35,35 +36,27 @@ namespace Grillbot.Modules
         [Remarks("Možnost zvolit TOP N kanálů.")]
         public async Task ChannelboardAsync(int takeTop)
         {
-            var channelboardData = Stats.GetAllValues()
-                .Where(o => CanAuthorToChannel(o.SnowflakeID))
-                .Take(takeTop)
-                .ToList();
+            var data = await Stats.GetChannelboardDataAsync(Context.Guild, Context.User);
+
+            if (data.Count == 0)
+                await Context.Message.Author.SendPrivateMessageAsync("Ještě nejsou zaznamenány žádné kanály pro tento server.");
 
             var messageBuilder = new StringBuilder()
                 .AppendLine("=======================")
                 .AppendLine("|\tCHANNEL LEADERBOARD\t|")
                 .AppendLine("=======================");
 
+            var channelboardData = data.Take(takeTop).ToList();
             for (int i = 0; i < channelboardData.Count; i++)
             {
                 var channelBoardItem = channelboardData[i];
-                var channel = Context.Client.GetChannel(channelBoardItem.SnowflakeID) as IMessageChannel;
 
                 messageBuilder
-                    .Append(i + 1).Append(": ").Append(channel.Name)
+                    .Append(i + 1).Append(": ").Append(channelBoardItem.ChannelName)
                     .Append(" - ").AppendLine(FormatHelper.FormatWithSpaces(channelBoardItem.Count));
             }
 
-            await Context.Message.Author.SendPrivateMessageAsync(messageBuilder.ToString()).ConfigureAwait(false);
-        }
-
-        private bool CanAuthorToChannel(ulong channelID)
-        {
-            var channel = Context.Client.GetChannel(channelID);
-            if (channel is IPrivateChannel) return false;
-
-            return channel?.Users.Any(o => o.Id == Context.Message.Author.Id) ?? false;
+            await Context.Message.Author.SendPrivateMessageAsync(messageBuilder.ToString());
         }
 
         [Command("channelboardweb")]
@@ -76,9 +69,10 @@ namespace Grillbot.Modules
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
         }
 
-        [Command("channelboard")]
+        [DisabledPM]
+        [Command("channelboard", true)]
         [Summary("Počet zpráv v místnosti.")]
-        public async Task ChannelboardForRoomAsync(string roomMention)
+        public async Task ChannelboardForRoomAsync()
         {
             await DoAsync(async () =>
             {
@@ -92,10 +86,11 @@ namespace Grillbot.Modules
                 if (!(channelMention.Value is ISocketMessageChannel channel))
                     throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
 
-                if (!CanAuthorToChannel(channel.Id))
+                var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
+
+                if(value == null)
                     throw new ArgumentException("Do této místnosti nemáš dostatečná práva.");
 
-                var value = Stats.GetValue(channel.Id);
                 var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
                 var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
 

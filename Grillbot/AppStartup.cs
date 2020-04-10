@@ -54,7 +54,6 @@ namespace Grillbot
                 .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
                 .AddTransient<EmoteStatsRepository>()
-                .AddTransient<ChannelStatsRepository>()
                 .AddTransient<LogRepository>();
 
             services.AddWebAuthentication();
@@ -110,7 +109,6 @@ namespace Grillbot
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<BotLoggingService>()
-                .AddSingleton<GrillBotService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
                 .AddSingleton<InteractiveService>()
@@ -127,6 +125,7 @@ namespace Grillbot
                 .AddTransient<InMemoryLoggerService>();
 
             services
+                .AddChannelboard()
                 .AddTempUnverify()
                 .AddTeamSearch()
                 .AddStatistics();

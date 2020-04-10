@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Channelboard;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
@@ -29,7 +30,7 @@ namespace Grillbot.Handlers
         {
             foreach (var message in messages)
             {
-                await OnMessageDeletedAsync(message, channel).ConfigureAwait(false);
+                await OnMessageDeletedAsync(message, channel);
             }
         }
 
@@ -38,8 +39,8 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("MessageDeleted");
             if (message.HasValue && !message.Value.Author.IsUser()) return;
 
-            if (message.Value is SocketUserMessage)
-                await Statistics.DecrementCounterAsync(channel).ConfigureAwait(false);
+            if (message.Value is SocketUserMessage && channel is SocketGuildChannel socketGuildChannel)
+                await Statistics.DecrementCounterAsync(socketGuildChannel);
 
             await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);
         }

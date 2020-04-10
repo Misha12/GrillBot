@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
-using System.Diagnostics;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
 using Grillbot.Services.Statistics;
@@ -15,6 +14,7 @@ using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config;
+using Grillbot.Services.Channelboard;
 
 namespace Grillbot.Handlers
 {
@@ -85,7 +85,9 @@ namespace Grillbot.Handlers
             }
             else
             {
-                await ChannelStats.IncrementCounterAsync(userMessage.Channel).ConfigureAwait(false);
+                if (context.Guild != null)
+                    await ChannelStats.IncrementCounterAsync((SocketGuildChannel)userMessage.Channel);
+
                 await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
                 await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);

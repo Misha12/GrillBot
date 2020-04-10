@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Services.Statistics
+﻿namespace Grillbot.Models.Channelboard
 {
     public enum ChannelboardErrors
     {

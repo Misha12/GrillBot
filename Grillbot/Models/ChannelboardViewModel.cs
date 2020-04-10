@@ -1,4 +1,4 @@
-﻿using Grillbot.Services.Statistics;
+﻿using Grillbot.Models.Channelboard;
 using System.Collections.Generic;
 
 namespace Grillbot.Models

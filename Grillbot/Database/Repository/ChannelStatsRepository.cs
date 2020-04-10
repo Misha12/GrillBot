@@ -1,5 +1,6 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
+using Discord.WebSocket;
 using Grillbot.Database.Entity;
 
 namespace Grillbot.Database.Repository
@@ -10,13 +11,24 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public List<ChannelStat> GetChannelStatistics() => Context.ChannelStats.ToList();
+        public List<ChannelStat> GetChannelStatistics(SocketGuild guild)
+        {
+            var query = Context.ChannelStats.AsQueryable();
+
+            if (guild == null)
+                return query.ToList();
+
+            var guildID = guild.Id.ToString();
+            return query
+                .Where(o => o.GuildID == guildID)
+                .ToList();
+        }
 
         public void UpdateChannelboard(List<ChannelStat> updatedItems)
         {
             foreach(var item in updatedItems)
             {
-                var entity = Context.ChannelStats.FirstOrDefault(o => o.ID == item.ID);
+                var entity = Context.ChannelStats.FirstOrDefault(o => o.GuildID == item.GuildID && o.ID == item.ID);
 
                 if(entity == null)
                 {
@@ -24,7 +36,8 @@ namespace Grillbot.Database.Repository
                     {
                         Count = item.Count,
                         ID = item.ID,
-                        LastMessageAt = item.LastMessageAt
+                        LastMessageAt = item.LastMessageAt,
+                        GuildID = item.GuildID
                     };
 
                     Context.Set<ChannelStat>().Add(entity);
@@ -39,14 +52,14 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
         }
 
-        public void RemoveChannel(string channelID)
+        public void RemoveChannel(ChannelStat channelStat)
         {
-            var channel = Context.ChannelStats.FirstOrDefault(o => o.ID == channelID);
+            var entity = Context.ChannelStats.FirstOrDefault(o => o.GuildID == channelStat.GuildID && o.ID == channelStat.ID);
 
-            if (channel == null)
+            if (entity == null)
                 return;
 
-            Context.Remove(channel);
+            Context.Remove(entity);
             Context.SaveChanges();
         }
     }

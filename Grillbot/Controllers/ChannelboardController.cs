@@ -2,8 +2,8 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
+using Grillbot.Models.Channelboard;
 using Grillbot.Services.Channelboard;
-using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 
@@ -40,7 +40,7 @@ namespace Grillbot.Controllers
             if (user == null)
                 return View(new ChannelboardViewModel() { Error = ChannelboardErrors.UserAtGuildNotFound });
 
-            var data = ChannelStats.GetChannelboardData(Client, guild, user);
+            var data = await ChannelStats.GetChannelboardDataAsync(guild, user);
 
             var channelboard = new ChannelboardViewModel()
             {
