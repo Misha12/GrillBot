@@ -37,6 +37,8 @@ namespace Grillbot.Modules.AutoReply
 
         public async Task TryReplyAsync(SocketUserMessage message)
         {
+            if (message.Channel is IPrivateChannel) return;
+
             bool replied = false;
 
             foreach (var item in Data)
