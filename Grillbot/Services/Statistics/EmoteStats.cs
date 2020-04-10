@@ -241,7 +241,14 @@ namespace Grillbot.Services.Statistics
                 {
                     var key = $"{guild.Id}|{item.MergeTo}";
                     if (!Counter.ContainsKey(key))
-                        Counter.Add(key, new EmoteStat() { EmoteID = item.MergeTo, LastOccuredAt = DateTime.Now });
+                    {
+                        var stat = new EmoteStat(item.MergeTo, false, guild.Id)
+                        {
+                            Count = 0
+                        };
+
+                        Counter.Add(key, stat);
+                    }
 
                     var emote = Counter[key];
 
@@ -249,7 +256,7 @@ namespace Grillbot.Services.Statistics
                     {
                         emote.Count += source.Value;
                         Repository.RemoveEmote(source.Key);
-                        Counter.Remove(source.Key);
+                        Counter.Remove($"{guild.Id}|{source.Key}");
                     }
 
                     Changes.Add(key);
