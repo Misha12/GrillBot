@@ -33,7 +33,7 @@ namespace Grillbot.Services.Channelboard
 
         public ChannelboardWebItem GetItem(string key)
         {
-            if (string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebItem item))
+            if (!string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebItem item))
                 return item;
 
             return null;

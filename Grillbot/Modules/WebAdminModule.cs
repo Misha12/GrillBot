@@ -10,6 +10,7 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("webadmin")]
+    [RequirePermissions]
     [Name("Sprava webove administrace")]
     public class WebAdminModule : BotModuleBase
     {
