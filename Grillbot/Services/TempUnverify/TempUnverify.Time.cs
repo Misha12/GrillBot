@@ -11,7 +11,7 @@ namespace Grillbot.Services.TempUnverify
         /// <param name="time">
         /// Supported time units: m, h, d
         /// </param>
-        private int ParseUnverifyTime(string time)
+        private int ParseUnverifyTime(string time, int minimumMinutes = 30, int minimumHours = 1, int minimumDays = 1)
         {
             var timeWithoutSuffix = time[0..^1];
 
@@ -31,24 +31,24 @@ namespace Grillbot.Services.TempUnverify
             if (time.EndsWith("m"))
             {
                 // Minutes
-                if (convertedTime < 30)
-                    throw new ArgumentException("Minimální čas pro unverify v minutách je 30 minut.");
+                if (convertedTime < minimumMinutes)
+                    throw new ArgumentException($"Minimální čas pro unverify v minutách je {minimumMinutes}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromMinutes(convertedTime));
             }
             else if (time.EndsWith("h"))
             {
                 // Hours
-                if (convertedTime <= 0)
-                    throw new ArgumentException("Minimální čas pro unverify v hodinách je 1 hodina.");
+                if (convertedTime <= minimumHours)
+                    throw new ArgumentException($"Minimální čas pro unverify v hodinách je {minimumHours}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromHours(convertedTime));
             }
             else if (time.EndsWith("d"))
             {
                 // Days
-                if (convertedTime <= 0)
-                    throw new ArgumentException("Minimální čas pro unverify ve dnech je 1 den.");
+                if (convertedTime <= minimumDays)
+                    throw new ArgumentException($"Minimální čas pro unverify ve dnech je {minimumDays}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromDays(convertedTime));
             }
