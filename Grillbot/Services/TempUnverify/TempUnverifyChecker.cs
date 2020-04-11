@@ -1,7 +1,8 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.Config.Dynamic;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -22,7 +23,7 @@ namespace Grillbot.Services.TempUnverify
 
         public void Validate(SocketGuildUser user, SocketGuild guild, bool selfunverify, List<string> subjects, List<ulong> currentUnverifiedPersons)
         {
-            if(selfunverify && subjects != null && subjects.Count > 0)
+            if(selfunverify && subjects?.Count > 0)
             {
                 var config = Repository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
 

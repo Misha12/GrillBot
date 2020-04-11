@@ -1,7 +1,7 @@
 ﻿using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
-namespace Grillbot.Models.Config
+namespace Grillbot.Models.Config.Dynamic
 {
     public class GreetingConfig
     {

@@ -2,7 +2,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;

@@ -2,7 +2,7 @@
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Channelboard;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.Dynamic;
 using Microsoft.Extensions.Caching.Memory;
 using System;
 

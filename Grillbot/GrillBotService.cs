@@ -10,7 +10,7 @@ using System.Threading;
 using Microsoft.Extensions.Options;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Initiable;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot
 {

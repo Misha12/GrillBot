@@ -1,14 +1,13 @@
 ﻿using Discord.Commands;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Database;
 using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot.Modules
 {

@@ -13,8 +13,8 @@ using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Config;
 using Grillbot.Services.Channelboard;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot.Handlers
 {

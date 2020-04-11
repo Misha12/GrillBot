@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;

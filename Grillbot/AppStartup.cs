@@ -10,7 +10,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Discord.Addons.Interactive;
-using Grillbot.Middleware;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Middleware.DiscordUserAuthorization;
@@ -24,7 +23,7 @@ using Grillbot.Services.Channelboard;
 using Microsoft.Extensions.Logging;
 using Grillbot.Services.InMemoryLogger;
 using Grillbot.Services.TeamSearch;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot
 {

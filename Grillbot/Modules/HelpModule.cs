@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot.Modules
 {

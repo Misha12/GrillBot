@@ -1,7 +1,8 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Models;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;

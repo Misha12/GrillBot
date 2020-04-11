@@ -1,7 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Linq;
 
-namespace Grillbot.Models.Config
+namespace Grillbot.Models.Config.AppSettings
 {
     public class Configuration
     {

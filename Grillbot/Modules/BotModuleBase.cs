@@ -3,7 +3,7 @@ using Discord.Addons.Interactive;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed;
 using Microsoft.Extensions.Options;
 using System;

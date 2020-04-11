@@ -6,7 +6,8 @@ using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.Config.Dynamic;
 
 namespace Grillbot.Modules
 {

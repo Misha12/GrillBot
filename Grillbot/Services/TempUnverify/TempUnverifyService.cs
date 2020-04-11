@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Repository;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;

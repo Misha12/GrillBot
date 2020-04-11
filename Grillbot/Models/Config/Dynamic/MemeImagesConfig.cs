@@ -1,6 +1,6 @@
 ﻿using System.Collections.Generic;
 
-namespace Grillbot.Models.Config
+namespace Grillbot.Models.Config.Dynamic
 {
     public class MemeImagesConfig
     {

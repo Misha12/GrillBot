@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Models.Config
+﻿namespace Grillbot.Models.Config.Dynamic
 {
     public enum GreetingOutputModes
     {

@@ -6,7 +6,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
 using System;
@@ -127,7 +127,9 @@ namespace Grillbot.Modules
                 SocketGuildUser user = null;
 
                 if (Context.Message.MentionedUsers.Count > 0)
+                {
                     user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
+                }
                 else
                 {
                     if (identification.Contains("#"))

@@ -10,7 +10,7 @@ using Discord.Net;
 using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot.Services
 {
@@ -129,12 +129,12 @@ namespace Grillbot.Services
 
         private bool IsThrowHelpException(CommandException exception)
         {
-            return exception != null && exception.InnerException != null && exception.InnerException is ThrowHelpException;
+            return exception?.InnerException != null && exception.InnerException is ThrowHelpException;
         }
 
         private bool IsConfigException(CommandException exception)
         {
-            return exception != null && exception.InnerException != null && exception.InnerException is ConfigException;
+            return exception?.InnerException != null && exception.InnerException is ConfigException;
         }
     }
 }

@@ -1,5 +1,5 @@
 ﻿using Grillbot.Database.Repository;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.Dynamic;
 using System;
 
 namespace Grillbot.Services.TempUnverify
@@ -31,7 +31,7 @@ namespace Grillbot.Services.TempUnverify
         public TempUnverifyConfig GetConfig(ulong guildID)
         {
             using var repository = GetService<ConfigRepository>();
-            
+
             var config = repository.FindConfig(guildID, "unverify", "");
             return config.GetData<TempUnverifyConfig>();
         }

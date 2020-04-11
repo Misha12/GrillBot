@@ -3,7 +3,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
+using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
