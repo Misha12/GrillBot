@@ -11,7 +11,7 @@ namespace Grillbot.Services.Channelboard
     public class ChannelboardWeb
     {
         private ConfigRepository ConfigRepository { get; }
-        private IMemoryCache Cache { get; set; }
+        private IMemoryCache Cache { get; }
 
         public ChannelboardWeb(ConfigRepository repository, IMemoryCache cache)
         {
@@ -23,17 +23,17 @@ namespace Grillbot.Services.Channelboard
         {
             var random = new Random();
             var config = ConfigRepository.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
-            
+
             var key = StringHelper.CreateRandomString(random.Next(10, 50));
-            var item = new ChannelboardWebItem() { GuildID = context.Guild.Id, UserID = context.User.Id };
+            var item = new ChannelboardWebCacheItem() { GuildID = context.Guild.Id, UserID = context.User.Id };
 
             Cache.Set(key, item, DateTimeOffset.Now.AddHours(1));
             return string.Format(config.WebUrl, $"?key={key}");
         }
 
-        public ChannelboardWebItem GetItem(string key)
+        public ChannelboardWebCacheItem GetItem(string key)
         {
-            if (!string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebItem item))
+            if (!string.IsNullOrEmpty(key) && Cache.TryGetValue(key, out ChannelboardWebCacheItem item))
                 return item;
 
             return null;

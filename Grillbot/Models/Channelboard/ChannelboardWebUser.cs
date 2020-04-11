@@ -4,9 +4,9 @@ using Grillbot.Extensions.Discord;
 using System;
 using System.Linq;
 
-namespace Grillbot.Models
+namespace Grillbot.Models.Channelboard
 {
-    public class GuildUser
+    public class ChannelboardWebUser
     {
         public string Name { get; set; }
         public string Nickname { get; set; }
@@ -14,9 +14,9 @@ namespace Grillbot.Models
         public string AvatarUrl { get; set; }
         public GuildUserStatus Status { get; set; } = GuildUserStatus.Other;
 
-        public static GuildUser Create(SocketGuildUser user)
+        public static ChannelboardWebUser Create(SocketGuildUser user)
         {
-            var guildUser = new GuildUser()
+            var guildUser = new ChannelboardWebUser()
             {
                 AvatarUrl = user.GetUserAvatarUrl(),
                 Discriminator = user.Discriminator,

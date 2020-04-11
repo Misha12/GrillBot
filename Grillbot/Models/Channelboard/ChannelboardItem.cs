@@ -1,7 +1,6 @@
-﻿using Grillbot.Extensions;
-using System;
+﻿using System;
 
-namespace Grillbot.Models
+namespace Grillbot.Models.Channelboard
 {
     public class ChannelboardItem
     {

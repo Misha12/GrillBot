@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Models
+﻿namespace Grillbot.Models.Channelboard
 {
     public enum GuildUserStatus
     {

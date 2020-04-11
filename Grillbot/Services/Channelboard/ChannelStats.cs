@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Models;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -13,6 +12,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Models.Channelboard;
 
 namespace Grillbot.Services.Channelboard
 {

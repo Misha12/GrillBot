@@ -1,16 +1,16 @@
 ﻿using Discord.WebSocket;
 
-namespace Grillbot.Models
+namespace Grillbot.Models.Channelboard
 {
-    public class GuildInfo
+    public class ChannelboardWebGuild
     {
         public string Name { get; set; }
         public string AvatarUrl { get; set; }
         public int UsersCount { get; set; }
 
-        public static GuildInfo Create(SocketGuild guild)
+        public static ChannelboardWebGuild Create(SocketGuild guild)
         {
-            return new GuildInfo()
+            return new ChannelboardWebGuild()
             {
                 AvatarUrl = guild.IconUrl,
                 Name = guild.Name,

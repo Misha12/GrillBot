@@ -1,7 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models;
 using Grillbot.Models.Channelboard;
 using Grillbot.Services.Channelboard;
 using Microsoft.AspNetCore.Authorization;
@@ -29,27 +28,19 @@ namespace Grillbot.Controllers
         {
             var item = ChannelboardWeb.GetItem(key);
             if (item == null)
-                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.InvalidKey });
+                return View(new ChannelboardViewModel(ChannelboardErrors.InvalidKey));
 
             var guild = Client.GetGuild(item.GuildID);
             if (guild == null)
-                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.InvalidGuild });
+                return View(new ChannelboardViewModel(ChannelboardErrors.InvalidGuild));
 
             var user = await guild.GetUserFromGuildAsync(item.UserID);
 
             if (user == null)
-                return View(new ChannelboardViewModel() { Error = ChannelboardErrors.UserAtGuildNotFound });
+                return View(new ChannelboardViewModel(ChannelboardErrors.UserAtGuildNotFound));
 
             var data = await ChannelStats.GetChannelboardDataAsync(guild, user);
-
-            var channelboard = new ChannelboardViewModel()
-            {
-                Guild = GuildInfo.Create(guild),
-                Items = data,
-                User = GuildUser.Create(user)
-            };
-
-            return View(channelboard);
+            return View(new ChannelboardViewModel(guild, user, data));
         }
     }
 }
