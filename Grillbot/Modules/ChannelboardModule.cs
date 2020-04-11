@@ -5,14 +5,13 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
-using Grillbot.Services.Statistics;
 using Grillbot.Services.Preconditions;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Newtonsoft.Json;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
-using System.Diagnostics.CodeAnalysis;
+using Grillbot.Models.Embed;
 
 namespace Grillbot.Modules
 {
@@ -30,33 +29,27 @@ namespace Grillbot.Modules
         }
 
         [Command("channelboard")]
-        public async Task ChannelboardAsync() => await ChannelboardAsync(ChannelStats.ChannelboardTakeTop).ConfigureAwait(false);
-
-        [Command("channelboard")]
-        [Remarks("Možnost zvolit TOP N kanálů.")]
-        public async Task ChannelboardAsync(int takeTop)
+        public async Task ChannelboardAsync()
         {
-            var data = await Stats.GetChannelboardDataAsync(Context.Guild, Context.User);
+            var data = await Stats.GetChannelboardDataAsync(Context.Guild, Context.User, ChannelStats.ChannelboardTakeTop);
 
             if (data.Count == 0)
                 await Context.Message.Author.SendPrivateMessageAsync("Ještě nejsou zaznamenány žádné kanály pro tento server.");
 
-            var messageBuilder = new StringBuilder()
-                .AppendLine("=======================")
-                .AppendLine("|\tCHANNEL LEADERBOARD\t|")
-                .AppendLine("=======================");
+            var embed = new BotEmbed(Context.User, null, "Channel leaderboard");
 
-            var channelboardData = data.Take(takeTop).ToList();
-            for (int i = 0; i < channelboardData.Count; i++)
+            var messageBuilder = new StringBuilder();
+            for (int i = 0; i < data.Count; i++)
             {
-                var channelBoardItem = channelboardData[i];
+                var channelBoardItem = data[i];
 
                 messageBuilder
                     .Append(i + 1).Append(": ").Append(channelBoardItem.ChannelName)
                     .Append(" - ").AppendLine(FormatHelper.FormatWithSpaces(channelBoardItem.Count));
             }
 
-            await Context.Message.Author.SendPrivateMessageAsync(messageBuilder.ToString());
+            embed.AddField("=======================", messageBuilder.ToString(), false);
+            await Context.Message.Author.SendPrivateMessageAsync(embedBuilder: embed.GetBuilder());
         }
 
         [Command("channelboardweb")]

@@ -112,6 +112,7 @@ namespace Grillbot.Models.Embed
         }
 
         public Discord.Embed Build() => Builder.Build();
+        public Discord.EmbedBuilder GetBuilder() => Builder;
 
         public BotEmbed PrependFooter(string footer)
         {

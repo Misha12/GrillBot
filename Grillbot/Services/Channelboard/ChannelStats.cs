@@ -19,7 +19,6 @@ namespace Grillbot.Services.Channelboard
     public class ChannelStats : IDisposable, IInitiable
     {
         public const int ChannelboardTakeTop = 10;
-        public const int TokenLength = 20;
 
         private Dictionary<string, ChannelStat> Counters { get; set; }
         private static object Locker { get; } = new object();
@@ -145,11 +144,11 @@ namespace Grillbot.Services.Channelboard
             return new Tuple<int, long, DateTime>(position, channel.Count, channel.LastMessageAt);
         }
 
-        public async Task<List<ChannelboardItem>> GetChannelboardDataAsync(SocketGuild guild, SocketUser user)
+        public async Task<List<ChannelboardItem>> GetChannelboardDataAsync(SocketGuild guild, SocketUser user, int? limit = null)
         {
             var result = new List<ChannelboardItem>();
 
-            foreach(var stat in Counters.Values.Where(o => o.GuildIDSnowflake == guild.Id))
+            foreach (var stat in Counters.Values.Where(o => o.GuildIDSnowflake == guild.Id))
             {
                 if (!(await CanUserToChannelAsync(stat.GuildIDSnowflake, stat.SnowflakeID, user.Id)))
                     continue;
@@ -162,10 +161,15 @@ namespace Grillbot.Services.Channelboard
                 result.Add(item);
             }
 
-            return result
+            var resultData = result
                 .OrderByDescending(o => o.Count)
                 .ThenByDescending(o => o.LastMessageAt)
-                .ToList();
+                .AsEnumerable();
+
+            if (limit != null)
+                resultData = resultData.Take(limit.Value);
+
+            return resultData.ToList();
         }
 
         private ChannelboardItem GetChannelboardItem(ChannelStat channelStat)
