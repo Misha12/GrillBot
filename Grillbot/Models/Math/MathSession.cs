@@ -1,6 +1,4 @@
-﻿using System;
-
-namespace Grillbot.Services.Math
+﻿namespace Grillbot.Models.Math
 {
     public class MathSession
     {
@@ -9,6 +7,8 @@ namespace Grillbot.Services.Math
         public bool IsUsed => !string.IsNullOrEmpty(Expression);
         public bool ForBooster { get; set; }
         public int ComputingTime { get; set; }
+        public MathCalcResult LastResult { get; set; }
+        public int UsedCount { get; set; }
 
         public MathSession(int id, int computingTime, bool forBooster)
         {
@@ -22,12 +22,14 @@ namespace Grillbot.Services.Math
 
         public void Use(string expression)
         {
+            UsedCount++;
             Expression = expression;
         }
 
-        public void Release()
+        public void Release(MathCalcResult lastResult)
         {
             Expression = null;
+            LastResult = lastResult;
         }
     }
 }

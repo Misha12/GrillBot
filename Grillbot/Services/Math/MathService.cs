@@ -1,8 +1,8 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Database.Repository;
-using Grillbot.Models;
+using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Models.Math;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -16,16 +16,16 @@ namespace Grillbot.Services.Math
 {
     public class MathService : IInitiable
     {
-        private List<MathSession> Sessions { get; }
+        public List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
         private Configuration Config { get; }
-        private ConfigRepository Repository { get; }
+        private IServiceProvider ServiceProvider { get; }
 
-        public MathService(IOptions<Configuration> config, ConfigRepository repository)
+        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
-            Repository = repository;
+            ServiceProvider = serviceProvider;
         }
 
         private void InitSessions()
@@ -55,19 +55,20 @@ namespace Grillbot.Services.Math
             }
         }
 
-        private void ReleaseSession(MathSession session)
+        private void ReleaseSession(MathSession session, MathCalcResult result)
         {
             if (session == null) return;
 
             lock (Locker)
             {
-                session.Release();
+                session.Release(result);
             }
         }
 
         public MathCalcResult Solve(string input, SocketUserMessage message)
         {
             MathSession session = null;
+            MathCalcResult result = null;
 
             try
             {
@@ -93,12 +94,13 @@ namespace Grillbot.Services.Math
                     };
                 }
 
-                var config = Repository.FindConfig(user.Guild.Id, "", "solve");
+                using var repository = ServiceProvider.GetConfigRepository();
+                var config = repository.FindConfig(user.Guild.Id, "", "solve");
                 var configData = config.GetData<MathConfig>();
 
                 var appPath = configData.ProcessPath;
                 using var process = new Process();
-                
+
                 process.StartInfo.FileName = "dotnet";
                 process.StartInfo.Arguments = $"{appPath} \"{input}\"";
                 process.StartInfo.UseShellExecute = false;
@@ -110,19 +112,25 @@ namespace Grillbot.Services.Math
                 if (!process.WaitForExit(session.ComputingTime))
                 {
                     process.Kill();
-                    return new MathCalcResult()
+
+                    result = new MathCalcResult()
                     {
                         IsTimeout = true,
                         AssingedComputingTime = session.ComputingTime
                     };
-                }
 
-                var output = process.StandardOutput.ReadToEnd();
-                return JsonConvert.DeserializeObject<MathCalcResult>(output);
+                    return result;
+                }
+                else
+                {
+                    var output = process.StandardOutput.ReadToEnd();
+                    result = JsonConvert.DeserializeObject<MathCalcResult>(output);
+                    return result;
+                }
             }
             finally
             {
-                ReleaseSession(session);
+                ReleaseSession(session, result);
             }
         }
 

@@ -1,0 +1,58 @@
+﻿@model Grillbot.Models.Math.MathSession;
+
+<div class="card mb-4" style="width: 300px">
+    <h6 class="card-header @(Model.IsUsed ? "bg-success text-white" : "")">
+        #@Model.ID
+    </h6>
+    <div class="card-body">
+        <div class="text-muted">Výpočetní čas</div>
+        <div>@TimeSpan.FromMilliseconds(Model.ComputingTime)</div>
+
+        <div class="text-muted mt-2">Výraz</div>
+        @if (Model.IsUsed)
+        {
+            <code>@Model.Expression</code>
+        }
+        else
+        {
+            <text>-</text>
+        }
+
+        <div class="text-muted mt-2">Počet použití</div>
+        <div>@FormatHelper.FormatWithSpaces(Model.UsedCount)</div>
+    </div>
+
+    <div class="card-footer">
+        <small class="text-muted">Poslední výpočet</small>
+
+        @if (Model.LastResult == null)
+        {
+            <div>Ještě neproběhl</div>
+        }
+        else
+        {
+            if (Model.LastResult.IsTimeout)
+            {
+                <div>Timeout</div>
+            }
+            else
+            {
+                if (Model.LastResult.IsValid)
+                {
+                    if (Model.LastResult.ComputingTime < 1000)
+                    {
+                        <div>OK (@Model.LastResult.ComputingTime ms)</div>
+                    }
+                    else
+                    {
+                        <div>OK (@TimeSpan.FromMilliseconds(Model.LastResult.ComputingTime))</div>
+                    }
+                }
+                else
+                {
+                    <pre class="pb-0 mb-0">@Model.LastResult.ErrorMessage</pre>
+                }
+            }
+        }
+    </div>
+</div>

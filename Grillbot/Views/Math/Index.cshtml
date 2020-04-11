@@ -1,0 +1,24 @@
+﻿@model Grillbot.Models.Math.MathViewModel;
+
+@{
+    ViewData["Title"] = "Výpočetní jednotky";
+    ViewData["Admin"] = true;
+}
+
+<section class="mt-4 col-xl-11">
+    <h3>Server Boosters</h3>
+    <div class="d-flex flex-wrap justify-content-between">
+        @foreach (var session in Model.Sessions.Where(o => o.ForBooster))
+        {
+            <partial name="MathSessionPartial" model="session" />
+        }
+    </div>
+
+    <h3 class="mt-5">Běžní uživatelé</h3>
+    <div class="d-flex flex-wrap justify-content-between">
+        @foreach (var session in Model.Sessions.Where(o => !o.ForBooster))
+        {
+            <partial name="MathSessionPartial" model="session" />
+        }
+    </div>
+</section>

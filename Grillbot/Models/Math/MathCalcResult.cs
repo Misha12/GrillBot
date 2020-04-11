@@ -1,5 +1,5 @@
 ﻿
-namespace Grillbot.Models
+namespace Grillbot.Models.Math
 {
     public class MathCalcResult
     {
