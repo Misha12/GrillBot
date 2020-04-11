@@ -39,10 +39,10 @@ namespace Grillbot.Controllers
             var data = new WebStatus()
             {
                 Simple = StatusService.GetSimpleStatus(),
-                ExecutedCommands = InternalStatistics.Commands,
+                ExecutedCommands = InternalStatistics.GetCommands(),
                 DBStatus = dbStatus,
                 LoggerStats = StatusService.GetLoggerStats(),
-                TriggeredEvents = InternalStatistics.Events
+                TriggeredEvents = InternalStatistics.GetEvents()
             };
 
             return View(data);

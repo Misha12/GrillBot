@@ -13,18 +13,19 @@ namespace Grillbot.Database.Repository
 
         public async Task<Dictionary<string, int>> GetTableRowsCount()
         {
-            var autoReplyCount = await GetRowCount(Context.AutoReply);
-            var emoteStatsCount = await GetRowCount(Context.EmoteStats);
-            var channelStatsCount = await GetRowCount(Context.ChannelStats);
-            var teamSearchCount = await GetRowCount(Context.TeamSearch);
-            var tempUnverifyCount = await GetRowCount(Context.TempUnverify);
-            var unverifyLogCount = await GetRowCount(Context.UnverifyLog);
-            var commandLogCount = await GetRowCount(Context.CommandLog);
-            var birthdayCount = await GetRowCount(Context.Birthdays);
-            var methodsConfigCount = await GetRowCount(Context.MethodsConfig);
-            var methodPermsCount = await GetRowCount(Context.MethodPerms);
+            var autoReplyCount = await GetRowCountAsync(Context.AutoReply);
+            var emoteStatsCount = await GetRowCountAsync(Context.EmoteStats);
+            var channelStatsCount = await GetRowCountAsync(Context.ChannelStats);
+            var teamSearchCount = await GetRowCountAsync(Context.TeamSearch);
+            var tempUnverifyCount = await GetRowCountAsync(Context.TempUnverify);
+            var unverifyLogCount = await GetRowCountAsync(Context.UnverifyLog);
+            var commandLogCount = await GetRowCountAsync(Context.CommandLog);
+            var birthdayCount = await GetRowCountAsync(Context.Birthdays);
+            var methodsConfigCount = await GetRowCountAsync(Context.MethodsConfig);
+            var methodPermsCount = await GetRowCountAsync(Context.MethodPerms);
+            var webAuthPermCount = await GetRowCountAsync(Context.WebAdminPerms);
 
-            return new Dictionary<string, int>()
+            var counters = new Dictionary<string, int>()
             {
                 { "AutoReply", autoReplyCount },
                 { "EmoteStats", emoteStatsCount },
@@ -35,10 +36,16 @@ namespace Grillbot.Database.Repository
                 { "CommandLog", commandLogCount },
                 { "Birthdays", birthdayCount },
                 { "MethodsConfig", methodsConfigCount },
-                { "MethodPerms", methodPermsCount }
+                { "MethodPerms", methodPermsCount },
+                { "WebAuthPerm", webAuthPermCount }
             };
+
+            return counters
+                .OrderBy(o => o.Key)
+                .ThenBy(o => o.Value)
+                .ToDictionary(o => o.Key, o => o.Value);
         }
 
-        private async Task<int> GetRowCount<T>(IQueryable<T> table) => await table.CountAsync();
+        private async Task<int> GetRowCountAsync<T>(IQueryable<T> table) => await table.CountAsync();
     }
 }

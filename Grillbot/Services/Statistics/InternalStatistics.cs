@@ -1,11 +1,12 @@
 ﻿using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Services.Statistics
 {
     public class InternalStatistics
     {
-        public Dictionary<string, ulong> Events { get; }
-        public Dictionary<string, ulong> Commands { get; }
+        private Dictionary<string, ulong> Events { get; }
+        private Dictionary<string, ulong> Commands { get; }
 
         public InternalStatistics()
         {
@@ -29,6 +30,22 @@ namespace Grillbot.Services.Statistics
                 counter.Add(name, 1);
             else
                 counter[name]++;
+        }
+
+        public Dictionary<string, ulong> GetEvents()
+        {
+            return Events
+                .OrderByDescending(o => o.Value)
+                .ThenBy(o => o.Key)
+                .ToDictionary(o => o.Key, o => o.Value);
+        }
+
+        public Dictionary<string, ulong> GetCommands()
+        {
+            return Commands
+                .OrderByDescending(o => o.Value)
+                .ThenBy(o => o.Key)
+                .ToDictionary(o => o.Key, o => o.Value);
         }
     }
 }
