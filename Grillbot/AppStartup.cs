@@ -21,7 +21,6 @@ using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Repository;
 using Grillbot.Services.Channelboard;
 using Microsoft.Extensions.Logging;
-using Grillbot.Services.InMemoryLogger;
 using Grillbot.Services.TeamSearch;
 using Grillbot.Models.Config.AppSettings;
 
@@ -120,8 +119,7 @@ namespace Grillbot
                 .AddSingleton<ChannelStats>()
                 .AddSingleton<EmoteStats>()
                 .AddSingleton<PermissionsManager>()
-                .AddTransient<ChannelboardWeb>()
-                .AddTransient<InMemoryLoggerService>();
+                .AddTransient<ChannelboardWeb>();
 
             services
                 .AddChannelboard()
@@ -135,12 +133,9 @@ namespace Grillbot
                 .AddTransient<DcUserAuthorization>();
         }
 
-        public void Configure(IApplicationBuilder app, ILoggerFactory loggerFactory)
+        public void Configure(IApplicationBuilder app)
         {
             var serviceProvider = app.ApplicationServices;
-
-            loggerFactory
-                .AddMemory(LogLevel.Information, InMemoryLogFormatter.Format);
 
             app
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
