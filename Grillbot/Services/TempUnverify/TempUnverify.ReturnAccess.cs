@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Entity.UnverifyLog;
 using Newtonsoft.Json;
 using System;
 using System.Linq;
@@ -36,17 +35,8 @@ namespace Grillbot.Services.TempUnverify
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
                 if (isAutoRemove)
                 {
-                    var data = new UnverifyLogRemove()
-                    {
-                        Overrides = unverify.DeserializedChannelOverrides,
-                        Roles = unverify.DeserializedRolesToReturn
-                    };
-
-                    data.SetUser(user);
-
-                    repository.LogOperationAsync(UnverifyLogOperation.AutoRemove, Client.CurrentUser, guild, data)
-                        .GetAwaiter()
-                        .GetResult();
+                    using var logService = Factories.GetLogService();
+                    logService.LogAutoRemove(unverify, user, guild);
                 }
 
                 var overrides = unverify.DeserializedChannelOverrides
@@ -87,14 +77,8 @@ namespace Grillbot.Services.TempUnverify
             if (user == null)
                 throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-            var data = new UnverifyLogRemove()
-            {
-                Overrides = item.DeserializedChannelOverrides,
-                Roles = item.DeserializedRolesToReturn
-            };
-            data.SetUser(user);
-
-            await repository.LogOperationAsync(UnverifyLogOperation.Remove, fromUser, guild, data).ConfigureAwait(false);
+            using var logService = Factories.GetLogService();
+            logService.LogRemove(item, user, fromUser, guild);
 
             ReturnAccess(item);
             return $"Předčasné vrácení přístupu pro uživatele **{user.GetFullName()}** bylo dokončeno.";

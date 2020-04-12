@@ -1,7 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Database.Entity.UnverifyLog;
 using System;
 using System.Threading.Tasks;
 
@@ -20,11 +19,10 @@ namespace Grillbot.Services.TempUnverify
             var guild = Client.GetGuild(item.GuildIDSnowflake);
             var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
-            var logData = new UnverifyLogUpdate() { TimeFor = $"{time} ({unverifyTime})" };
-            logData.SetUser(user);
+            using var logService = Factories.GetLogService();
+            logService.LogUpdate(unverifyTime, fromUser, user, guild);
 
             using var repository = Factories.GetUnverifyRepository();
-            await repository.LogOperationAsync(UnverifyLogOperation.Update, fromUser, guild, logData).ConfigureAwait(false);
             await repository.UpdateTimeAsync(id, unverifyTime).ConfigureAwait(false);
 
             item.TimeFor = unverifyTime;

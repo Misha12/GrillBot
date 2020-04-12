@@ -40,5 +40,10 @@ namespace Grillbot.Services.TempUnverify
         {
             return GetService<TempUnverifyRepository>();
         }
+
+        public TempUnverifyLogService GetLogService()
+        {
+            return GetService<TempUnverifyLogService>();
+        }
     }
 }

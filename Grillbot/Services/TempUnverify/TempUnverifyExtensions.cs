@@ -8,6 +8,7 @@ namespace Grillbot.Services.TempUnverify
         public static IServiceCollection AddTempUnverify(this IServiceCollection services)
         {
             services
+                .AddTransient<TempUnverifyLogService>()
                 .AddTransient<TempUnverifyRepository>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<TempUnverifyFactories>()

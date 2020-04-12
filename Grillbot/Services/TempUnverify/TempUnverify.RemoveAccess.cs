@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Entity.UnverifyLog;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -62,18 +61,8 @@ namespace Grillbot.Services.TempUnverify
             var rolesToRemoveIDs = rolesToRemove.Select(o => o.Id).ToList();
             var overrides = GetChannelOverrides(user);
 
-            var data = new UnverifyLogSet()
-            {
-                Overrides = overrides,
-                Roles = rolesToRemoveIDs,
-                StartAt = DateTime.Now,
-                TimeFor = unverifyTime.ToString(),
-                Reason = reason
-            };
-
-            data.SetUser(user);
-            using var repository = Factories.GetUnverifyRepository();
-            await repository.LogOperationAsync(UnverifyLogOperation.Set, fromUser, guild, data).ConfigureAwait(false);
+            using var logService = Factories.GetLogService();
+            logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, DateTime.Now, user, fromUser, guild);
 
             if (subjects == null || subjects.Length == 0)
                 await helper.FindAndToggleMutedRoleAsync(user, guild, true);
@@ -90,6 +79,7 @@ namespace Grillbot.Services.TempUnverify
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
+            using var repository = Factories.GetUnverifyRepository();
             var unverify = await repository
                 .AddItemAsync(rolesToRemoveIDs, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
                 .ConfigureAwait(false);

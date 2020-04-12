@@ -87,7 +87,7 @@ namespace Grillbot.Database.Repository
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public async Task LogOperationAsync(UnverifyLogOperation operation, IUser fromUser, IGuild guild, UnverifyLogDataBase data)
+        public void LogOperation(UnverifyLogOperation operation, IUser fromUser, IGuild guild, UnverifyLogDataBase data)
         {
             var entity = new UnverifyLog()
             {
@@ -98,8 +98,8 @@ namespace Grillbot.Database.Repository
                 FromUserID = fromUser.Id.ToString()
             };
 
-            await Context.UnverifyLog.AddAsync(entity).ConfigureAwait(false);
-            await Context.SaveChangesAsync().ConfigureAwait(false);
+            Context.UnverifyLog.Add(entity);
+            Context.SaveChanges();
         }
     }
 }
