@@ -14,6 +14,7 @@ namespace Grillbot.Modules
 {
     [Group("config")]
     [RequirePermissions]
+    [Name("Konfigurace bota")]
     public class ConfigModule : BotModuleBase
     {
         public ConfigModule(IOptions<Configuration> options, ConfigRepository repository) : base(options, repository) { }

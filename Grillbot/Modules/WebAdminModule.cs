@@ -11,7 +11,7 @@ namespace Grillbot.Modules
 {
     [Group("webadmin")]
     [RequirePermissions]
-    [Name("Sprava webove administrace")]
+    [Name("Správa webové administrace")]
     public class WebAdminModule : BotModuleBase
     {
         private WebAuthRepository Repository { get; }
@@ -42,7 +42,7 @@ namespace Grillbot.Modules
         [Command("remove")]
         [Summary("Odebrání uživatele z webové administrace.")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
-        public async Task RemoveUser(string userID)
+        public async Task RemoveUser(string userMention)
         {
             await DoAsync(async () =>
             {
@@ -58,7 +58,7 @@ namespace Grillbot.Modules
         [Summary("Reset hesla do administrace.")]
         [Remarks("Heslo je volitelné. Pokud nebude zadáno, tak bude vygenerováno ")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
-        public async Task ResetPassword(string userID, string password = null)
+        public async Task ResetPassword(string userMention, string password = null)
         {
             await DoAsync(async () =>
             {

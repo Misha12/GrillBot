@@ -10,6 +10,11 @@ namespace Grillbot.Models.Embed
     {
         private EmbedBuilder Builder { get; }
 
+        public bool FieldsEmpty
+        {
+            get => Builder.Fields.Count == 0;
+        }
+
         public BotEmbed(IUser responseFor = null, Color? color = null, string title = null, string thumbnail = null)
         {
             Builder = new EmbedBuilder()
@@ -141,6 +146,12 @@ namespace Grillbot.Models.Embed
         public BotEmbed ClearFields()
         {
             Builder.Fields.Clear();
+            return this;
+        }
+
+        public BotEmbed WithDescription(string description)
+        {
+            Builder.WithDescription(description);
             return this;
         }
     }

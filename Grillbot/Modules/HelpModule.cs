@@ -11,11 +11,14 @@ using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
+using Discord.Addons.Interactive;
+using Grillbot.Models.Embed;
 
 namespace Grillbot.Modules
 {
     [Name("Nápověda")]
     [Group("grillhelp")]
+    [Alias("help")]
     [RequirePermissions]
     public class HelpModule : BotModuleBase
     {
@@ -33,8 +36,7 @@ namespace Grillbot.Modules
         {
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
-            var embedFields = new List<EmbedFieldBuilder>();
-
+            var pages = new List<string>();
             foreach (var module in CommandService.Modules)
             {
                 var descBuilder = new StringBuilder();
@@ -62,33 +64,24 @@ namespace Grillbot.Modules
                 }
 
                 if (descBuilder.Length > 0)
-                    embedFields.Add(new EmbedFieldBuilder().WithName(module.Name).WithValue(descBuilder.ToString()));
+                {
+                    descBuilder.Insert(0, $"**{module.Name}**:\n");
+                    pages.Add(descBuilder.ToString());
+                }
             }
 
-            for (var i = 0; i < Math.Ceiling(embedFields.Count / (double)EmbedBuilder.MaxFieldCount); i++)
-            {
-                var fields = embedFields.Skip(i * EmbedBuilder.MaxFieldCount).Take(EmbedBuilder.MaxFieldCount).ToList();
-                var embed = CreateEmbed(fields, user, i + 1);
-
-                await ReplyAsync(embed: embed).ConfigureAwait(false);
-            }
-        }
-
-        private Embed CreateEmbed(List<EmbedFieldBuilder> fields, SocketUser user, int pageNumber)
-        {
-            var builder = new EmbedBuilder()
+            var paginated = new PaginatedMessage()
             {
                 Color = Color.Blue,
+                Pages = pages,
                 Title = $"Nápověda pro uživatele {user.GetFullName()} ({GetBotBestPermissions(user)})",
-                Fields = fields,
-                ThumbnailUrl = Context.Client.CurrentUser.GetUserAvatarUrl()
+                Options = new PaginatedAppearanceOptions()
+                {
+                    DisplayInformationIcon = false
+                }
             };
 
-            builder
-                .WithFooter($"Odpověď pro {user.GetShortName()} | Strana {pageNumber}", user.GetUserAvatarUrl())
-                .WithCurrentTimestamp();
-
-            return builder.Build();
+            await PagedReplyAsync(paginated);
         }
 
         [Command("")]
@@ -111,11 +104,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var embedBuilder = new EmbedBuilder()
-            {
-                Color = Color.Blue,
-                Title = $"Tady máš různé varianty příkazů na **{command.PreventMassTags()}**"
-            };
+            var embed = new BotEmbed(Context.User, title: $"Tady máš různé varianty příkazů na **{command.PreventMassTags()}**");
 
             foreach (var cmd in result.Commands.Select(o => o.Command))
             {
@@ -139,7 +128,7 @@ namespace Grillbot.Modules
                         valueBuilder.Append("Poznámka: ").AppendLine(cmd.Remarks.Replace("{prefix}", Config.CommandPrefix));
 
                     string commandDesc = valueBuilder.ToString();
-                    embedBuilder.AddField(x =>
+                    embed.AddField(x =>
                     {
                         x.WithValue(string.IsNullOrEmpty(commandDesc) ? "Bez parametrů a popisu" : commandDesc)
                          .WithName(string.Join(", ", cmd.Aliases));
@@ -147,14 +136,10 @@ namespace Grillbot.Modules
                 }
             }
 
-            if (embedBuilder.Fields.Count == 0)
-                embedBuilder.Description = $"Na metodu **{command.PreventMassTags()}** nemáš potřebná oprávnění";
+            if (embed.FieldsEmpty)
+                embed.WithDescription($"Na metodu **{command.PreventMassTags()}** nemáš potřebná oprávnění.");
 
-            embedBuilder
-                .WithCurrentTimestamp()
-                .WithFooter($"Odpoveď pro {Context.Message.Author.GetShortName()}");
-
-            await ReplyAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build());
         }
 
         private string GetBotBestPermissions(SocketUser user)

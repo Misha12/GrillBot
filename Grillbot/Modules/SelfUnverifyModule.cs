@@ -9,6 +9,7 @@ namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Group("selfunverify")]
+    [Name("Odebrání přístupu sobě sama:")]
     public class SelfUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }

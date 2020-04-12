@@ -16,7 +16,7 @@ namespace Grillbot.Modules
 {
     [Group("unverify")]
     [RequirePermissions]
-    [Name("Odebrání přístupu.")]
+    [Name("Odebrání přístupu")]
     public class TempUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }
