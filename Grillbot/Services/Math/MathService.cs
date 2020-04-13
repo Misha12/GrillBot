@@ -101,8 +101,8 @@ namespace Grillbot.Services.Math
                 var appPath = configData.ProcessPath;
                 using var process = new Process();
 
-                process.StartInfo.FileName = "dotnet";
-                process.StartInfo.Arguments = $"{appPath} \"{input}\"";
+                process.StartInfo.FileName = appPath;
+                process.StartInfo.Arguments = $"\"{input}\"";
                 process.StartInfo.UseShellExecute = false;
                 process.StartInfo.CreateNoWindow = true;
                 process.StartInfo.RedirectStandardOutput = true;
