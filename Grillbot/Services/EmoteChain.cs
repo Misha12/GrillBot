@@ -6,107 +6,99 @@ using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
     public class EmoteChain
     {
-        // Dictionary<ChannelID, List<UserID, Message>>
-        private Dictionary<ulong, List<Tuple<ulong, string>>> LastMessages { get; }
+        // Dictionary<GuildID|ChannelID, List<UserID, Message>>
+        private Dictionary<string, List<Tuple<ulong, string>>> LastMessages { get; }
         private int ReactLimit { get; }
-        private SemaphoreSlim Semaphore { get; }
+
+        private readonly object Locker = new object();
 
         public EmoteChain(IOptions<Configuration> configuration)
         {
             ReactLimit = configuration.Value.EmoteChain_CheckLastCount;
-            LastMessages = new Dictionary<ulong, List<Tuple<ulong, string>>>();
-            Semaphore = new SemaphoreSlim(1, 1);
+            LastMessages = new Dictionary<string, List<Tuple<ulong, string>>>();
         }
 
-        public async Task CleanupAsync(ISocketMessageChannel channel, bool @lock = false)
+        public void CleanupAsync(SocketGuildChannel channel)
         {
-            if (@lock)
-                await Semaphore.WaitAsync().ConfigureAwait(false);
-
-            try
+            lock (Locker)
             {
-                if (!LastMessages.ContainsKey(channel.Id)) return;
-                LastMessages[channel.Id].Clear();
+                CleanupNoLockAsync(channel);
             }
-            finally
+        }
+
+        public void CleanupNoLockAsync(SocketGuildChannel channel)
+        {
+            var key = GetKey(channel);
+
+            if (LastMessages.ContainsKey(key))
             {
-                if (@lock)
-                    Semaphore.Release();
+                LastMessages[key].Clear();
             }
         }
 
         public async Task ProcessChainAsync(SocketCommandContext context)
         {
-            await Semaphore.WaitAsync().ConfigureAwait(false);
+            if (!(context.Channel is SocketTextChannel channel)) return;
 
-            try
+            var author = context.Message.Author;
+            var content = context.Message.Content;
+            var key = GetKey(channel);
+
+            if (!LastMessages.ContainsKey(key))
+                LastMessages.Add(key, new List<Tuple<ulong, string>>(ReactLimit));
+
+            if (!IsValidMessage(context.Message, context.Guild, channel))
             {
-                var author = context.Message.Author;
-                var content = context.Message.Content;
-                var channel = context.Channel;
-
-                if (!LastMessages.ContainsKey(channel.Id))
-                    LastMessages.Add(channel.Id, new List<Tuple<ulong, string>>(ReactLimit));
-
-                if (!IsValidMessage(context))
-                {
-                    await CleanupAsync(channel).ConfigureAwait(false);
-                    return;
-                }
-
-                if (!LastMessages[channel.Id].Any(o => o.Item1 == author.Id))
-                {
-                    LastMessages[channel.Id].Add(new Tuple<ulong, string>(author.Id, content));
-                }
-
-                await TryReactAsync(channel).ConfigureAwait(false);
+                CleanupNoLockAsync(channel);
+                return;
             }
-            finally
+
+            var group = LastMessages[key];
+
+            if (!group.Any(o => o.Item1 == author.Id))
+                group.Add(new Tuple<ulong, string>(author.Id, content));
+
+            if (group.Count == ReactLimit)
             {
-                Semaphore.Release();
+                await channel.SendMessageAsync(group[0].Item2);
+                CleanupNoLockAsync(channel);
             }
         }
 
-        private async Task TryReactAsync(ISocketMessageChannel channel)
+        private bool IsValidWithWithFirstInChannel(SocketGuildChannel channel, string content)
         {
-            if(LastMessages[channel.Id].Count == ReactLimit)
-            {
-                await channel.SendMessageAsync(LastMessages[channel.Id][0].Item2).ConfigureAwait(false);
-                await CleanupAsync(channel).ConfigureAwait(false);
-            }
-        }
+            var key = GetKey(channel);
+            var group = LastMessages[key];
 
-        private bool IsValidWithWithFirstInChannel(SocketCommandContext context)
-        {
-            var channel = LastMessages[context.Channel.Id];
-
-            if (channel.Count == 0)
+            if (group.Count == 0)
                 return true;
 
-            return context.Message.Content == channel[0].Item2;
+            return content == group[0].Item2;
         }
 
-        private bool IsValidMessage(SocketCommandContext context)
+        private bool IsValidMessage(SocketUserMessage message, SocketGuild guild, SocketGuildChannel channel)
         {
-            var emotes = context.Message.Tags
-               .Where(o => o.Type == TagType.Emoji && context.Guild.Emotes.Any(x => x.Id == o.Key))
+            var emotes = message.Tags
+               .Where(o => o.Type == TagType.Emoji && guild.Emotes.Any(x => x.Id == o.Key))
                .ToList();
 
-            var isUTFEmoji = NeoSmart.Unicode.Emoji.IsEmoji(context.Message.Content);
-
+            var isUTFEmoji = NeoSmart.Unicode.Emoji.IsEmoji(message.Content);
             if (emotes.Count == 0 && !isUTFEmoji) return false;
 
-            if (!IsValidWithWithFirstInChannel(context)) return false;
-
+            if (!IsValidWithWithFirstInChannel(channel, message.Content)) return false;
             var emoteTemplate = string.Join(" ", emotes.Select(o => o.Value.ToString()));
-            return emoteTemplate == context.Message.Content || isUTFEmoji;
+            return emoteTemplate == message.Content || isUTFEmoji;
+        }
+
+        private string GetKey(SocketGuildChannel channel)
+        {
+            return $"{channel.Guild.Id}|{channel.Id}";
         }
     }
 }

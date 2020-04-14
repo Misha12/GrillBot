@@ -81,7 +81,9 @@ namespace Grillbot.Handlers
 
                 var commandName = GetCommand(context, argPos, out var _);
                 InternalStatistics.IncrementCommand(commandName);
-                await EmoteChain.CleanupAsync(context.Channel, true).ConfigureAwait(false);
+
+                if(context.Guild != null)
+                    EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
             }
             else
             {
