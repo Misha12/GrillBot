@@ -12,8 +12,7 @@ namespace Grillbot.Services.TempUnverify
                 .AddTransient<TempUnverifyRepository>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<TempUnverifyFactories>()
-                .AddTransient<TempUnverifyChecker>()
-                .AddTransient<TempUnverifyHelper>();
+                .AddTransient<TempUnverifyChecker>();
 
             return services;
         }

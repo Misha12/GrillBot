@@ -23,11 +23,6 @@ namespace Grillbot.Services.TempUnverify
             return GetService<TempUnverifyChecker>();
         }
 
-        public TempUnverifyHelper GetHelper()
-        {
-            return GetService<TempUnverifyHelper>();
-        }
-
         public TempUnverifyConfig GetConfig(ulong guildID)
         {
             using var repository = GetService<ConfigRepository>();

@@ -17,7 +17,6 @@ namespace Grillbot.Services.TempUnverify
             if (item is TempUnverifyItem unverify)
             {
                 using var repository = Factories.GetUnverifyRepository();
-                var helper = Factories.GetHelper();
 
                 var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
@@ -44,17 +43,15 @@ namespace Grillbot.Services.TempUnverify
                     .Where(o => o.channel != null)
                     .ToList();
 
-                user.AddRolesAsync(roles).GetAwaiter().GetResult();
-
+                user.AddRolesAsync(roles).RunSync();
                 foreach (var channelOverride in overrides)
                 {
                     channelOverride.channel
                         .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions())
-                        .GetAwaiter()
-                        .GetResult();
+                        .RunSync();
                 }
 
-                helper.FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
+                FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
                 RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
 
                 repository.RemoveItem(unverify.ID);

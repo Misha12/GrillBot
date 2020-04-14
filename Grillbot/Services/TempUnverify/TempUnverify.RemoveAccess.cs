@@ -41,8 +41,6 @@ namespace Grillbot.Services.TempUnverify
         private async Task<TempUnverifyItem> RemoveAccessAsync(SocketGuildUser user, int unverifyTime, string reason,
             SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
-            var helper = Factories.GetHelper();
-
             var rolesToRemove = user.Roles
                 .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
                 .ToList(); // Ignore Muted roles.
@@ -65,7 +63,7 @@ namespace Grillbot.Services.TempUnverify
             logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, DateTime.Now, user, fromUser, guild);
 
             if (subjects == null || subjects.Length == 0)
-                await helper.FindAndToggleMutedRoleAsync(user, guild, true);
+                await FindAndToggleMutedRoleAsync(user, guild, true);
 
             await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false); // Set SendMessage: Deny for extra channels.
             await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false); // Remove all roles for user.

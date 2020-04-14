@@ -3,7 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,6 +12,29 @@ namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
+        private async Task FindAndToggleMutedRoleAsync(SocketGuildUser user, SocketGuild guild, bool set)
+        {
+            await guild.SyncGuildAsync();
+
+            var mutedRole = guild.Roles
+                .FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
+
+            if (mutedRole == null)
+                return; // Mute role not exists on this server.
+
+            if (set)
+            {
+                if (user.Roles.Any(o => o.Id == mutedRole.Id))
+                    return; // User now have muted role.
+
+                await user.AddRoleAsync(mutedRole);
+            }
+            else
+            {
+                await user.RemoveRoleAsync(mutedRole);
+            }
+        }
+
         /// <summary>
         /// Remove access to channels where user can't see now, but after unverify can see.
         /// </summary>
