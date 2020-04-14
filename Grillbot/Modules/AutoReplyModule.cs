@@ -1,8 +1,12 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Addons.Interactive;
+using Discord.Commands;
+using Grillbot.Helpers;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AutoReply;
 using Grillbot.Services.Preconditions;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,12 +28,40 @@ namespace Grillbot.Modules
         [Summary("Vypíše všechny možné odpovědi.")]
         public async Task ListItemsAsync()
         {
-            var data = Service.GetList(Context.Message);
+            var data = Service.GetList();
 
-            if (data != null)
-                await ReplyAsync(embed: data).ConfigureAwait(false);
-            else
-                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.").ConfigureAwait(false);
+            if (data.Count == 0)
+            {
+                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
+                return;
+            }
+
+            var pages = new List<string>();
+            foreach (var item in data)
+            {
+                pages.Add(string.Join("\n", new[] {
+                    $"**{item.ID} - {item.MustContains}**",
+                    $"Odpověď: {item.Reply}",
+                    $"Status: {(item.IsActive ? "Aktivní" : "Neaktivní")}",
+                    $"Metoda: {item.CompareType}",
+                    $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
+                    $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}"
+                }));
+            }
+
+            var paginated = new PaginatedMessage()
+            {
+                Pages = pages,
+                Title = "Automatické odpovědi",
+                Color = Color.Blue,
+                Options = new PaginatedAppearanceOptions()
+                {
+                    DisplayInformationIcon = false,
+                    Stop = null
+                }
+            };
+
+            await PagedReplyAsync(paginated);
         }
 
         [Command("disable")]
