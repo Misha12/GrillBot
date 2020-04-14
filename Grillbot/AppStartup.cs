@@ -23,6 +23,7 @@ using Grillbot.Services.Channelboard;
 using Microsoft.Extensions.Logging;
 using Grillbot.Services.TeamSearch;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.MemeImages;
 
 namespace Grillbot
 {
@@ -122,6 +123,7 @@ namespace Grillbot
                 .AddTransient<ChannelboardWeb>();
 
             services
+                .AddMemeImages()
                 .AddChannelboard()
                 .AddTempUnverify()
                 .AddTeamSearch()

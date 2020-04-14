@@ -1,13 +1,7 @@
 ﻿using Discord.Commands;
-using System;
-using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Services.Preconditions;
-using Microsoft.Extensions.Options;
-using Grillbot.Database.Repository;
-using Grillbot.Models.Config.AppSettings;
-using Grillbot.Models.Config.Dynamic;
+using Grillbot.Services.MemeImages;
 
 namespace Grillbot.Modules
 {
@@ -15,9 +9,11 @@ namespace Grillbot.Modules
     [Name("Nudes a další zajímavé fotky")]
     public class MemeImageModule : BotModuleBase
     {
-        public MemeImageModule(IOptions<Configuration> configuration, ConfigRepository repository) :
-            base(configuration, repository)
+        private MemeImagesService Service { get; }
+
+        public MemeImageModule(MemeImagesService service)
         {
+            Service = service;
         }
 
         [Command("nudes")]
@@ -28,22 +24,15 @@ namespace Grillbot.Modules
 
         private async Task SendAsync(string category)
         {
-            var config = GetMethodConfig<MemeImagesConfig>("", category);
+            var file = Service.GetRandomFile(Context.Guild, category);
 
-            await DoAsync(async () =>
+            if(file == null)
             {
-                var files = Directory.GetFiles(config.Path)
-                    .Where(o => config.AllowedImageTypes.Any(x => x == Path.GetExtension(o)))
-                    .ToList();
+                await ReplyAsync("Nemám žádný obrázek.");
+                return;
+            }
 
-                if(files.Count == 0)
-                    throw new ArgumentException("Nemám žádný obrázek.");
-
-                var random = new Random();
-                var randomValue = random.Next(files.Count);
-
-                await Context.Channel.SendFileAsync(files[randomValue]).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await Context.Channel.SendFileAsync(file);
         }
     }
 }
