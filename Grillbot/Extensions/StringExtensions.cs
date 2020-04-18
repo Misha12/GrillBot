@@ -35,7 +35,8 @@ namespace Grillbot.Extensions
 
             var beginning = src.IndexOf(start, 0, StringComparison.Ordinal) + start.Length;
             var end = src.IndexOf(finish, beginning, StringComparison.Ordinal);
-            return src.Substring(beginning, end - beginning);
+
+            return src[beginning..end];
         }
 
         public static string PreventMassTags(this string str)

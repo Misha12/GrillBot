@@ -26,37 +26,34 @@ namespace Grillbot.Modules
         [Remarks("Poslední parametr skipCount je volitelný. Výchozí hodnota je 0.")]
         public async Task PinPurge(string channel, int takeCount, int skipCount = 0)
         {
-            await DoAsync(async () =>
+            var mentionedChannel = Context.Message.MentionedChannels
+                .OfType<SocketTextChannel>()
+                .FirstOrDefault(o => $"<#{o.Id}>" == channel);
+
+            if (mentionedChannel != null)
             {
-                var mentionedChannel = Context.Message.MentionedChannels
-                    .OfType<SocketTextChannel>()
-                    .FirstOrDefault(o => $"<#{o.Id}>" == channel);
+                var pins = await mentionedChannel.GetPinnedMessagesAsync().ConfigureAwait(false);
 
-                if (mentionedChannel != null)
+                if (pins.Count == 0)
+                    throw new BotCommandInfoException($"V kanálu **{mentionedChannel.Mention}** ještě nebylo nic připnuto.");
+
+                var pinsToRemove = pins
+                    .OrderByDescending(o => o.CreatedAt)
+                    .Skip(skipCount).Take(takeCount)
+                    .OfType<RestUserMessage>();
+
+                foreach (var pin in pinsToRemove)
                 {
-                    var pins = await mentionedChannel.GetPinnedMessagesAsync().ConfigureAwait(false);
-
-                    if (pins.Count == 0)
-                        throw new ArgumentException($"V kanálu **{mentionedChannel.Mention}** ještě nebylo nic připnuto.");
-
-                    var pinsToRemove = pins
-                        .OrderByDescending(o => o.CreatedAt)
-                        .Skip(skipCount).Take(takeCount)
-                        .OfType<RestUserMessage>();
-
-                    foreach (var pin in pinsToRemove)
-                    {
-                        await pin.RemoveAllReactionsAsync().ConfigureAwait(false);
-                        await pin.UnpinAsync().ConfigureAwait(false);
-                    }
-
-                    await ReplyAsync($"Úpěšně dokončeno. Počet odepnutých zpráv: **{pinsToRemove.Count()}**").ConfigureAwait(false);
+                    await pin.RemoveAllReactionsAsync().ConfigureAwait(false);
+                    await pin.UnpinAsync().ConfigureAwait(false);
                 }
-                else
-                {
-                    throw new ArgumentException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
-                }
-            }).ConfigureAwait(false);
+
+                await ReplyAsync($"Úpěšně dokončeno. Počet odepnutých zpráv: **{pinsToRemove.Count()}**").ConfigureAwait(false);
+            }
+            else
+            {
+                throw new BotCommandInfoException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
+            }
         }
 
         [Command("guildStatus")]
@@ -64,40 +61,37 @@ namespace Grillbot.Modules
         [Remarks("Parametr guildID je povinný v případě volání v soukromé konverzaci.")]
         public async Task GuildStatusAsync(ulong guildID = default)
         {
-            await DoAsync(async () =>
+            var guild = Context.Guild ?? Context.Client.GetGuild(guildID);
+
+            if (guild == null)
             {
-                var guild = Context.Guild ?? Context.Client.GetGuild(guildID);
+                if (guildID == default)
+                    throw new ThrowHelpException();
 
-                if (guild == null)
-                {
-                    if (guildID == default)
-                        throw new ThrowHelpException();
+                throw new BotCommandInfoException("Požadovaný server nebyl nalezen.");
+            }
 
-                    throw new ArgumentException("Požadovaný server nebyl nalezen.");
-                }
+            var color = guild.Roles.OrderByDescending(o => o.Position).FirstOrDefault()?.Color;
+            var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
+                .WithThumbnail(guild.IconUrl)
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("Počet kategorií").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet kanálů").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet rolí").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Vytvořen").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Vlastník").WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
+                    new EmbedFieldBuilder().WithName("Systémový kanál").WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
+                    new EmbedFieldBuilder().WithName("Uživatelé synchronizováni").WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Synchronizován").WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet uživatelů (v paměti)").WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Úroveň ověření").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("ID oblasti (Hovory)").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Úroveň MFA").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Filtr explicitního obsahu").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
+                );
 
-                var color = guild.Roles.OrderByDescending(o => o.Position).FirstOrDefault()?.Color;
-                var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
-                    .WithThumbnail(guild.IconUrl)
-                    .WithFields(
-                        new EmbedFieldBuilder().WithName("Počet kategorií").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Počet kanálů").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Počet rolí").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Vytvořen").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Vlastník").WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
-                        new EmbedFieldBuilder().WithName("Systémový kanál").WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
-                        new EmbedFieldBuilder().WithName("Uživatelé synchronizováni").WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Synchronizován").WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Počet uživatelů (v paměti)").WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Úroveň ověření").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("ID oblasti (Hovory)").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Úroveň MFA").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Filtr explicitního obsahu").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
-                    );
-
-                await ReplyAsync(embed: embed.Build());
-            });
+            await ReplyAsync(embed: embed.Build());
         }
 
         [Command("syncGuild")]
@@ -106,12 +100,12 @@ namespace Grillbot.Modules
         {
             try
             {
-                await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
-                await ReplyAsync("Synchronizace dokončena").ConfigureAwait(false);
+                await Context.Guild.SyncGuildAsync();
+                await ReplyAsync("Synchronizace dokončena");
             }
             catch (Exception ex)
             {
-                await ReplyAsync($"Synchronizace se nezdařila ({ex.Message.PreventMassTags()}).").ConfigureAwait(false);
+                await ReplyAsync($"Synchronizace se nezdařila ({ex.Message.PreventMassTags()}).");
                 throw;
             }
         }
@@ -122,65 +116,65 @@ namespace Grillbot.Modules
         [Remarks("Jako identifikace uživatele může posloužit tag, ID, nebo globální identifikace (User#1234).")]
         public async Task UserInfo(string identification)
         {
-            await DoAsync(async () =>
-            {
-                SocketGuildUser user = null;
+            SocketGuildUser user = null;
 
-                if (Context.Message.MentionedUsers.Count > 0)
+            if (Context.Message.MentionedUsers.Count > 0)
+            {
+                user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
+            }
+            else
+            {
+                if (identification.Contains("#"))
                 {
-                    user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
+                    var nameParts = identification.Split('#');
+                    user = await Context.Guild.GetUserFromGuildAsync(nameParts[0], nameParts[1]);
                 }
                 else
                 {
-                    if (identification.Contains("#"))
+                    try
                     {
-                        var nameParts = identification.Split('#');
-                        user = await Context.Guild.GetUserFromGuildAsync(nameParts[0], nameParts[1]);
+                        user = await Context.Guild.GetUserFromGuildAsync(identification);
                     }
-                    else
+                    catch (FormatException)
                     {
-                        try
-                        {
-                            user = await Context.Guild.GetUserFromGuildAsync(identification);
-                        }
-                        catch (FormatException) { return; } // Cannot parse user ID.
-                    }
+                        throw new BotCommandInfoException("Neplatný formát jména. Povolené jsou: ID, Tag, Celý nick (User#1234)");
+                    } // Cannot parse user ID.
                 }
+            }
 
-                UserInfoConfig config = null;
-                try { config = GetMethodConfig<UserInfoConfig>("", "userinfo"); }
-                catch (ConfigException) { /* There is config optional. */ }
+            UserInfoConfig config = null;
+            try { config = GetMethodConfig<UserInfoConfig>("", "userinfo"); }
+            catch (ConfigException) { /* There is config optional. */ }
 
-                if (user == null)
-                    throw new ArgumentException("Takový uživatel na serveru není.");
+            if (user == null)
+                throw new BotCommandInfoException("Takový uživatel na serveru není.");
 
-                var userTopRole = user.FindHighestRoleWithColor();
-                var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id == config.BotRole) : null;
-                var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
+            var userTopRole = user.FindHighestRoleWithColor();
+            var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id == config.BotRole) : null;
+            var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
 
-                string botRoleText = "Ne";
-                if (botRole != null)
-                {
-                    var botRoleMessage = botRole != null ? "Ano (i když discord tvrdí něco jinýho)" : "Ne";
-                    botRoleText = user.IsUser() ? botRoleMessage : "Ano";
-                }
+            string botRoleText = "Ne";
+            if (botRole != null)
+            {
+                var botRoleMessage = botRole != null ? "Ano (i když discord tvrdí něco jinýho)" : "Ne";
+                botRoleText = user.IsUser() ? botRoleMessage : "Ano";
+            }
 
-                var embed = new BotEmbed(Context.User, userTopRole?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
-                    .WithFields(
-                        new EmbedFieldBuilder().WithName("ID").WithValue(user.Id).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Jméno").WithValue(user.GetFullName()).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Stav").WithValue(user.Status.ToString()).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Účet založen").WithValue(user.CreatedAt.DateTime.ToLocaleDatetime()).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Připojen").WithValue(user.JoinedAt.Value.DateTime.ToLocaleDatetime()).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Bot").WithValue(botRoleText).WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
-                        new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
-                        new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles))
-                    );
+            var embed = new BotEmbed(Context.User, userTopRole?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
+                .WithFields(
+                    new EmbedFieldBuilder().WithName("ID").WithValue(user.Id).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Jméno").WithValue(user.GetFullName()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Stav").WithValue(user.Status.ToString()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Účet založen").WithValue(user.CreatedAt.DateTime.ToLocaleDatetime()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Připojen").WithValue(user.JoinedAt.Value.DateTime.ToLocaleDatetime()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Bot").WithValue(botRoleText).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
+                    new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles))
+                );
 
-                await ReplyAsync(embed: embed.Build());
-            });
+            await ReplyAsync(embed: embed.Build());
         }
     }
 }

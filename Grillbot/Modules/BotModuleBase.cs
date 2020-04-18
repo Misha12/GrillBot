@@ -23,18 +23,6 @@ namespace Grillbot.Modules
             ConfigRepository = configRepository;
         }
 
-        protected async Task DoAsync(Func<Task> method)
-        {
-            try
-            {
-                await method().ConfigureAwait(false);
-            }
-            catch (ArgumentException ex)
-            {
-                await ReplyAsync(ex.Message.PreventMassTags()).ConfigureAwait(false);
-            }
-        }
-
         protected TConfig GetMethodConfig<TConfig>(string group, string command) where TConfig : class
         {
             if (ConfigRepository == null)

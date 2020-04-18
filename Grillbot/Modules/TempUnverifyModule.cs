@@ -55,72 +55,60 @@ namespace Grillbot.Modules
                     return;
             }
 
-            await DoAsync(async () =>
-            {
-                var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
+            var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
 
-                if (usersToUnverify.Count > 0)
-                {
-                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
-                        reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
-                    await ReplyAsync(message).ConfigureAwait(false);
-                }
-            }).ConfigureAwait(false);
+            if (usersToUnverify.Count > 0)
+            {
+                var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
+                    reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
+            }
         }
 
         [Command("remove")]
         [Summary("Předčasné vrácení rolí.")]
         public async Task RemoveUnverifyAsync(int id)
         {
-            await DoAsync(async () =>
-            {
-                var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
-                await ReplyAsync(message).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
+            await ReplyAsync(message).ConfigureAwait(false);
         }
 
         [Command("list")]
         [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
         public async Task ListUnverifyAsync()
         {
-            await DoAsync(async () =>
+            var users = await UnverifyService.ListPersonsAsync();
+
+            var template = new BotEmbed(Context.Message.Author, title: "Seznam osob s odebraným přístupem", thumbnail: Context.Client.CurrentUser.GetUserAvatarUrl());
+            var fields = new List<EmbedFieldBuilder>();
+
+            foreach (var user in users)
             {
-                var users = await UnverifyService.ListPersonsAsync();
-                
-                var template = new BotEmbed(Context.Message.Author, title: "Seznam osob s odebraným přístupem", thumbnail: Context.Client.CurrentUser.GetUserAvatarUrl());
-                var fields = new List<EmbedFieldBuilder>();
-
-                foreach(var user in users)
+                var desc = string.Join("\n", new[]
                 {
-                    var desc = string.Join("\n", new[]
-                    {
-                        $"ID: {user.ID}",
-                        $"Do kdy: {user.EndDateTime.ToLocaleDatetime()}",
-                        $"Role: {string.Join(", ", user.Roles)}",
-                        $"Extra kanály: {user.ChannelOverrideList}",
-                        $"Důvod: {user.Reason}"
-                    });
+                    $"ID: {user.ID}",
+                    $"Do kdy: {user.EndDateTime.ToLocaleDatetime()}",
+                    $"Role: {string.Join(", ", user.Roles)}",
+                    $"Extra kanály: {user.ChannelOverrideList}",
+                    $"Důvod: {user.Reason}"
+                });
 
-                    var field = new EmbedFieldBuilder()
-                        .WithName(user.Username)
-                        .WithValue(desc);
+                var field = new EmbedFieldBuilder()
+                    .WithName(user.Username)
+                    .WithValue(desc);
 
-                    fields.Add(field);
-                }
+                fields.Add(field);
+            }
 
-                await ReplyChunkedAsync(fields, template, 10);
-            }).ConfigureAwait(false);
+            await ReplyChunkedAsync(fields, template, 10);
         }
 
         [Command("update")]
         [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
         public async Task UpdateUnverifyAsync(int id, string time)
         {
-            await DoAsync(async () =>
-            {
-                var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
-                await ReplyAsync(message).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
+            await ReplyAsync(message).ConfigureAwait(false);
         }
     }
 }

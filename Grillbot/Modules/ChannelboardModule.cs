@@ -1,6 +1,5 @@
 ﻿using Discord;
 using Discord.Commands;
-using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -67,41 +66,35 @@ namespace Grillbot.Modules
         [Summary("Počet zpráv v místnosti.")]
         public async Task ChannelboardForRoomAsync()
         {
-            await DoAsync(async () =>
-            {
-                if (Context.Message.Tags.Count == 0)
-                    throw new ArgumentException("Nic jsi netagnul.");
+            if (Context.Message.Tags.Count == 0)
+                throw new BotCommandInfoException("Nic jsi netagnul.");
 
-                var channelMention = Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention);
-                if (channelMention == null)
-                    throw new ArgumentException("Netagnul jsi žádný kanál");
+            var channelMention = Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention);
+            if (channelMention == null)
+                throw new BotCommandInfoException("Netagnul jsi žádný kanál");
 
-                if (!(channelMention.Value is ISocketMessageChannel channel))
-                    throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo pls. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
+            if (!(channelMention.Value is ISocketMessageChannel channel))
+                throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
 
-                var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
+            var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
 
-                if(value == null)
-                    throw new ArgumentException("Do této místnosti nemáš dostatečná práva.");
+            if (value == null)
+                throw new BotCommandInfoException("Do této místnosti nemáš dostatečná práva.");
 
-                var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
-                var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
+            var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
+            var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
 
-                await Context.Message.Author.SendPrivateMessageAsync(message);
-                await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await Context.Message.Author.SendPrivateMessageAsync(message);
+            await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
         }
 
         [Command("cleanOldChannels")]
         public async Task CleanOldChannels()
         {
-            await DoAsync(async () =>
-            {
-                var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
+            var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
 
-                await ReplyChunkedAsync(clearedChannels, 10);
-                await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ReplyChunkedAsync(clearedChannels, 10);
+            await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
         }
     }
 }

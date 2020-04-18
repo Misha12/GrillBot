@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services.MessageCache;
@@ -87,7 +88,7 @@ namespace Grillbot.Services.TeamSearch
         public void CreateSearch(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
         {
             if (message.Content.Length > MaxSearchSize)
-                throw new ArgumentException("Zpráva je příliš dlouhá.");
+                throw new BotCommandInfoException("Zpráva je příliš dlouhá.");
 
             Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
         }
@@ -97,11 +98,11 @@ namespace Grillbot.Services.TeamSearch
             var search = Repository.FindSearchByID(searchID);
 
             if (search == null)
-                throw new ArgumentException("Hledaná zpráva neexistuje.");
+                throw new BotCommandInfoException("Hledaná zpráva neexistuje.");
 
             var guildPerms = executor.GuildPermissions.Administrator || executor.GuildPermissions.ManageMessages;
             if (!guildPerms && executor.Id != search.UserIDSnowflake)
-                throw new ArgumentException("Na provedení tohoto příkazu nemáš právo.");
+                throw new BotCommandInfoException("Na provedení tohoto příkazu nemáš právo.");
 
             Repository.RemoveSearch(search);
         }

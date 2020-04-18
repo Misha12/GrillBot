@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Grillbot.Exceptions;
 using Grillbot.Helpers;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AutoReply;
@@ -31,10 +32,7 @@ namespace Grillbot.Modules
             var data = Service.GetList();
 
             if (data.Count == 0)
-            {
-                await ReplyAsync("Ještě nejsou uloženy žádné odpověďi.");
-                return;
-            }
+                throw new BotCommandInfoException("Ještě nejsou uloženy žádné odpovědi.");
 
             var pages = new List<string>();
             foreach (var item in data)
@@ -68,22 +66,30 @@ namespace Grillbot.Modules
         [Summary("Deaktivuje automatickou odpověď.")]
         public async Task DisableAsync(int id)
         {
-            await DoAsync(async () =>
+            try
             {
-                await Service.SetActiveStatusAsync(id, true).ConfigureAwait(false);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+                await Service.SetActiveStatusAsync(id, true);
+                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.");
+            }
+            catch (ArgumentException ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         [Command("enable")]
         [Summary("Aktivuje automatickou odpověď.")]
         public async Task EnableAsync(int id)
         {
-            await DoAsync(async () =>
+            try
             {
                 await Service.SetActiveStatusAsync(id, false).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         [Command("add")]
@@ -92,12 +98,12 @@ namespace Grillbot.Modules
             "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat")]
         public async Task AddAsync([Remainder] string data)
         {
-            await DoAsync(async () =>
+            try
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
                 if (fields.Length < 3)
-                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
+                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
 
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
@@ -105,7 +111,11 @@ namespace Grillbot.Modules
 
                 await Service.AddReplyAsync(fields[0], fields[1], fields[2], disabled, caseSensitive).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         [Command("edit")]
@@ -113,30 +123,38 @@ namespace Grillbot.Modules
         [Remarks("Parametry jsou téměř stejné jako u metody Add, jen s tím rozdílem, že je jako první parametr očekáváno ID.")]
         public async Task Edit(int id, [Remainder] string data)
         {
-            await DoAsync(async () =>
+            try
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
                 if (fields.Length < 3)
-                    throw new ArgumentException("Nebyly zadány všechny potřebné parametry.");
+                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry.");
 
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
                 await Service.EditReplyAsync(id, fields[0], fields[1], fields[2], caseSensitive).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }
+            catch (ArgumentException ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         [Command("remove")]
         [Summary("Odebere automatickou odpověď.")]
         public async Task Remove(int id)
         {
-            await DoAsync(async () =>
+            try
             {
                 await Service.RemoveReplyAsync(id).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            }
+            catch (Exception ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
     }
 }

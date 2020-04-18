@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
@@ -66,18 +67,15 @@ namespace Grillbot.Modules
                 return;
             }
 
-            await DoAsync(async () =>
-            {
-                var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
+            var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
 
-                if (role == null)
-                    throw new ArgumentException($"Roli `{roleName}` neznám.");
+            if (role == null)
+                throw new BotCommandInfoException($"Roli `{roleName}` neznám.");
 
-                var embed = new BotEmbed(Context.Message.Author, role.Color)
-                    .WithFields(new EmbedFieldBuilder().WithName(role.Name).WithValue(CreateRoleInfo(role, true)));
+            var embed = new BotEmbed(Context.Message.Author, role.Color)
+                .WithFields(new EmbedFieldBuilder().WithName(role.Name).WithValue(CreateRoleInfo(role, true)));
 
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         private string CreateRoleInfo(SocketRole role, bool includePermissions)

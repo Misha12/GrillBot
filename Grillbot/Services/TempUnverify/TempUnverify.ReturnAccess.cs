@@ -7,6 +7,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Grillbot.Extensions;
+using Grillbot.Exceptions;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -66,13 +67,13 @@ namespace Grillbot.Services.TempUnverify
             var item = await repository.FindItemByIDAsync(id).ConfigureAwait(false);
 
             if (item == null)
-                throw new ArgumentException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
+                throw new BotCommandInfoException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
 
             var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
             var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
             if (user == null)
-                throw new ArgumentException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
+                throw new BotCommandInfoException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
             using var logService = Factories.GetLogService();
             logService.LogRemove(item, user, fromUser, guild);

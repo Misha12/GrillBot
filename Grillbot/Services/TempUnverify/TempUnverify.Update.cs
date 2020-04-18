@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using System;
@@ -14,7 +15,7 @@ namespace Grillbot.Services.TempUnverify
             var item = Data.Find(o => o.ID == id);
 
             if (item == null)
-                throw new ArgumentException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
+                throw new BotCommandInfoException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
             var guild = Client.GetGuild(item.GuildIDSnowflake);
             var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);

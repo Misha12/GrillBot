@@ -1,8 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions;
-using Grillbot.Helpers;
-using Grillbot.Models.Embed;
 using Grillbot.Database.Entity;
 using System;
 using System.Collections.Generic;

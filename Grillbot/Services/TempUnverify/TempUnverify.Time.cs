@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Exceptions;
+using System;
 using System.Linq;
 
 namespace Grillbot.Services.TempUnverify
@@ -16,7 +17,7 @@ namespace Grillbot.Services.TempUnverify
             var timeWithoutSuffix = time[0..^1];
 
             if (!timeWithoutSuffix.All(o => char.IsDigit(o)))
-                throw new ArgumentException("Neplatný časový formát.");
+                throw new BotCommandInfoException("Neplatný časový formát.");
 
             int convertedTime;
             try
@@ -25,22 +26,22 @@ namespace Grillbot.Services.TempUnverify
             }
             catch (FormatException)
             {
-                throw new ArgumentException("Neplatný časový formát.");
+                throw new BotCommandInfoException("Neplatný časový formát.");
             }
 
             if (time.EndsWith("m"))
             {
                 // Minutes
                 if (convertedTime < minimumMinutes)
-                    throw new ArgumentException($"Minimální čas pro unverify v minutách je {minimumMinutes}.");
+                    throw new BotCommandInfoException($"Minimální čas pro unverify v minutách je {minimumMinutes}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromMinutes(convertedTime));
             }
             else if (time.EndsWith("h"))
             {
                 // Hours
-                if (convertedTime <= minimumHours)
-                    throw new ArgumentException($"Minimální čas pro unverify v hodinách je {minimumHours}.");
+                if (convertedTime < minimumHours)
+                    throw new BotCommandInfoException($"Minimální čas pro unverify v hodinách je {minimumHours}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromHours(convertedTime));
             }
@@ -48,13 +49,13 @@ namespace Grillbot.Services.TempUnverify
             {
                 // Days
                 if (convertedTime <= minimumDays)
-                    throw new ArgumentException($"Minimální čas pro unverify ve dnech je {minimumDays}.");
+                    throw new BotCommandInfoException($"Minimální čas pro unverify ve dnech je {minimumDays}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromDays(convertedTime));
             }
             else
             {
-                throw new ArgumentException("Nepodporovaný časový formát.");
+                throw new BotCommandInfoException("Nepodporovaný časový formát.");
             }
         }
 

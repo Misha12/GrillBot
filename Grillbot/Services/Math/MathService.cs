@@ -48,7 +48,7 @@ namespace Grillbot.Services.Math
                 var session = Sessions.Find(o => !o.IsUsed && o.ForBooster == booster);
 
                 if (session == null)
-                    throw new ArgumentException("Aktuálně nejsou volné výpočetní jednotky. Zkus to později.");
+                    throw new InvalidOperationException("Aktuálně nejsou volné výpočetní jednotky. Zkus to později.");
 
                 session.Use(expression);
                 return session;

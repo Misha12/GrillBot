@@ -1,8 +1,10 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Preconditions;
+using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -26,16 +28,13 @@ namespace Grillbot.Modules
         [Summary("Udělení přístupu uživatele do webové administrace.")]
         [Remarks("AllowType znamená typ povolení (Allow=0, Deny=1)\nHeslo je volitelné. Pokud nebude zadáno, tak bude vygenerováno náhodné.")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
-        public async Task AddUser(string user, string password = null)
+        public async Task AddUser(string userMention, string password = null)
         {
-            await DoAsync(async () =>
-            {
-                var user = GetUserFromMention();
-                password = Repository.AddUser(Context.Guild, user, password);
+            var user = GetUserFromMention();
+            password = Repository.AddUser(Context.Guild, user, password);
 
-                await user?.SendPrivateMessageAsync(
-                    $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
-            });
+            await user?.SendPrivateMessageAsync(
+                $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
         }
 
         [DisabledPM]
@@ -44,13 +43,17 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
         public async Task RemoveUser(string userMention)
         {
-            await DoAsync(async () =>
+            try
             {
                 var user = GetUserFromMention();
                 Repository.RemoveUser(Context.Guild, user);
 
                 await ReplyAsync("Přístup byl odebrán.");
-            });
+            }
+            catch (ArgumentException ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         [DisabledPM]
@@ -60,13 +63,17 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
         public async Task ResetPassword(string userMention, string password = null)
         {
-            await DoAsync(async () =>
+            try
             {
                 var user = GetUserFromMention();
                 password = Repository.ResetPassword(Context.Guild, user, password);
 
-                await user?.SendPrivateMessageAsync($"Bylo ti obnoveno heslo.\nNové heslo je `{password}`. Uchovej si ho.");
-            });
+                await user.SendPrivateMessageAsync($"Bylo ti obnoveno heslo.\nNové heslo je `{password}`. Uchovej si ho.");
+            }
+            catch (ArgumentException ex)
+            {
+                throw new BotCommandInfoException(ex.Message);
+            }
         }
 
         private SocketGuildUser GetUserFromMention()

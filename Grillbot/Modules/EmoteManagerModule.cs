@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Grillbot.Exceptions;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
@@ -94,30 +95,27 @@ namespace Grillbot.Modules
                     return;
             }
 
-            await DoAsync(async () =>
+            var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
+            var emoteInfo = EmoteStats.GetValue(emote);
+
+            if (emoteInfo == null)
             {
-                var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
-                var emoteInfo = EmoteStats.GetValue(emote);
+                var bytes = Encoding.Unicode.GetBytes(emote);
+                emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
+            }
 
-                if (emoteInfo == null)
-                {
-                    var bytes = Encoding.Unicode.GetBytes(emote);
-                    emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
-                }
+            if (emoteInfo == null)
+            {
+                if (!existsInGuild)
+                    throw new BotCommandInfoException("Tento emote neexistuje");
 
-                if (emoteInfo == null)
-                {
-                    if (!existsInGuild)
-                        throw new ArgumentException("Tento emote neexistuje");
+                throw new BotCommandInfoException("Tento emote ještě nebyl použit");
+            }
 
-                    throw new ArgumentException("Tento emote ještě nebyl použit");
-                }
+            var embed = new BotEmbed(Context.Message.Author)
+                .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()));
 
-                var embed = new BotEmbed(Context.Message.Author)
-                    .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()));
-
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         [Command("unicode")]
@@ -139,46 +137,37 @@ namespace Grillbot.Modules
         [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
         public async Task GetMergeListAsync()
         {
-            await DoAsync(async () =>
+            var list = EmoteStats.GetMergeList(Context.Guild);
+
+            if (list.Count == 0)
+                throw new BotCommandInfoException("Aktuálně není nic ke sloučení.");
+
+            var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
+
+            embed.WithFields(list.Select(o => new EmbedFieldBuilder()
             {
-                var list = EmoteStats.GetMergeList(Context.Guild);
+                Name = $"Target: \\{o.MergeTo}",
+                Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
+            }));
 
-                if (list.Count == 0)
-                    throw new ArgumentException("Aktuálně není nic ke sloučení.");
-
-                var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
-
-                embed.WithFields(list.Select(o => new EmbedFieldBuilder()
-                {
-                    Name = $"Target: \\{o.MergeTo}",
-                    Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
-                }));
-
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         [Command("processEmoteMerge")]
         [Summary("Provede sloučení stejných emotů ve statistikách.")]
         public async Task ProcessEmoteMergeAsync()
         {
-            await DoAsync(async () =>
-            {
-                await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
-                await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
+            await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
         }
 
         [Command("cleanOldEmotes")]
         public async Task CleanOldEmotes()
         {
-            await DoAsync(async () =>
-            {
-                var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
+            var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
-                await ReplyChunkedAsync(clearedEmotes, 10);
-                await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            await ReplyChunkedAsync(clearedEmotes, 10);
+            await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
         }
     }
 }

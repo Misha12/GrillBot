@@ -1,11 +1,11 @@
 ﻿using Grillbot.Extensions.Discord;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
-using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grillbot.Models.TempUnverify;
 using System.Linq;
+using Grillbot.Exceptions;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -17,7 +17,7 @@ namespace Grillbot.Services.TempUnverify
             var persons = await repository.GetAllItems().ToListAsync();
 
             if (persons.Count == 0)
-                throw new ArgumentException("Nikdo zatím nemá odebraný přístup.");
+                throw new BotCommandInfoException("Nikdo zatím nemá odebraný přístup.");
 
             return await CreateListsPersonsAsync(persons).ConfigureAwait(false);
         }

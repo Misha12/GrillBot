@@ -65,6 +65,12 @@ namespace Grillbot.Services
                     await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config");
                     return;
                 }
+
+                if(IsBotCommandException(ce))
+                {
+                    await ce.Context.Channel.SendMessageAsync(ce.InnerException.Message.PreventMassTags());
+                    return;
+                }
             }
 
             var exceptionMessage = message.Exception.ToString();
@@ -135,6 +141,11 @@ namespace Grillbot.Services
         private bool IsConfigException(CommandException exception)
         {
             return exception?.InnerException != null && exception.InnerException is ConfigException;
+        }
+
+        private bool IsBotCommandException(CommandException exception)
+        {
+            return exception?.InnerException != null && exception.InnerException is BotCommandInfoException;
         }
     }
 }

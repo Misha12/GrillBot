@@ -1,6 +1,5 @@
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 

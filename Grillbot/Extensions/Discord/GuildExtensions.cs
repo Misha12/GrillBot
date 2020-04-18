@@ -34,7 +34,21 @@ namespace Grillbot.Extensions.Discord
             return user;
         }
 
-        
+        public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string username, string discriminator)
+        {
+            bool userFinder(SocketGuildUser user) => user.IsUser() && user.Username == username && user.Discriminator == discriminator;
+
+            var user = guild.Users.FirstOrDefault(userFinder);
+
+            if (user == null)
+            {
+                await guild.DownloadUsersAsync();
+                user = guild.Users.FirstOrDefault(userFinder);
+            }
+
+            return user;
+        }
+
         public static async Task SyncGuildAsync(this SocketGuild guild)
         {
             if (guild.SyncPromise != null)
@@ -44,21 +58,6 @@ namespace Grillbot.Extensions.Discord
 
             if (guild.DownloaderPromise != null)
                 await guild.DownloaderPromise.ConfigureAwait(false);
-        }
-
-        public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string username, string discriminator)
-        {
-            bool userFinder(SocketGuildUser user) => user.IsUser() && user.Username == username && user.Discriminator == discriminator;
-
-            var user = guild.Users.FirstOrDefault(userFinder);
-
-            if(user == null)
-            {
-                await guild.DownloadUsersAsync();
-                user = guild.Users.FirstOrDefault(userFinder);
-            }
-
-            return user;
         }
     }
 }

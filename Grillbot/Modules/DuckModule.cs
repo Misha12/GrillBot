@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
@@ -36,41 +37,34 @@ namespace Grillbot.Modules
         {
             var config = GetMethodConfig<DuckConfig>("kachna", "");
 
-            await DoAsync(async () =>
+            var client = new HttpClient
             {
-                var client = new HttpClient
-                {
-                    BaseAddress = new Uri(config.IsKachnaOpenApiBase)
-                };
+                BaseAddress = new Uri(config.IsKachnaOpenApiBase)
+            };
 
-                HttpResponseMessage resp;
+            HttpResponseMessage resp;
 
-                try
-                {
-                    resp = await client.GetAsync("api/duck/currentState");
-                }
-                catch (Exception ex)
-                {
-                    Logger.Write(LogSeverity.Error, "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) ", exception: ex);
+            try
+            {
+                resp = await client.GetAsync("api/duck/currentState");
+            }
+            catch (Exception ex)
+            {
+                Logger.Write(LogSeverity.Error, "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) ", exception: ex);
+                throw new BotCommandInfoException("Nepodařilo se zjistit stav Kachny. Zkus " + config.IsKachnaOpenApiBase);
+            }
 
-                    throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
-                                                config.IsKachnaOpenApiBase);
-                }
+            if (!resp.IsSuccessStatusCode)
+            {
+                Logger.Write(LogSeverity.Warning, $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}");
+                throw new BotCommandInfoException("Nepodařilo se zjistit stav Kachny. Zkus " + config.IsKachnaOpenApiBase);
+            }
 
-                if (!resp.IsSuccessStatusCode)
-                {
-                    Logger.Write(LogSeverity.Warning, $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}");
-
-                    throw new ArgumentException("Nepodařilo se zjistit stav Kachny. Zkus " +
-                                                config.IsKachnaOpenApiBase);
-                }
-
-                var json = await resp.Content.ReadAsStringAsync();
-                var dto = JsonConvert.DeserializeObject<CurrentState>(json);
-                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-                var embed = MakeEmbed(dto, user, config.EnableBeersOnTap);
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }).ConfigureAwait(false);
+            var json = await resp.Content.ReadAsStringAsync();
+            var dto = JsonConvert.DeserializeObject<CurrentState>(json);
+            var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
+            var embed = MakeEmbed(dto, user, config.EnableBeersOnTap);
+            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
         private BotEmbed MakeEmbed(CurrentState state, IUser user, bool enableBeers)

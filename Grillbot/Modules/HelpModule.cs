@@ -77,7 +77,8 @@ namespace Grillbot.Modules
                 Title = $"Nápověda pro uživatele {user.GetFullName()} ({GetBotBestPermissions(user)})",
                 Options = new PaginatedAppearanceOptions()
                 {
-                    DisplayInformationIcon = false
+                    DisplayInformationIcon = false,
+                    Stop = null
                 }
             };
 

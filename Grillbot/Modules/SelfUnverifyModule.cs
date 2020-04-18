@@ -25,15 +25,12 @@ namespace Grillbot.Modules
             "rolí, které bude možné si během doby odebraného přístupu ponechat.")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
-            await DoAsync(async () =>
-            {
-                if (subjects != null)
-                    subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
+            if (subjects != null)
+                subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
 
-                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-                var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
-                await ReplyAsync(message);
-            }).ConfigureAwait(false);
+            var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
+            var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
+            await ReplyAsync(message);
         }
     }
 }

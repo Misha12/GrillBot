@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Exceptions;
+using System;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -9,12 +10,12 @@ namespace Grillbot.Services.TempUnverify
             const string errorMessage = "Nemůžu bezdůvodně odebrat přístup. Uveď důvod (`unverify {time} {reason} [{tags}]`)";
 
             if (data.StartsWith("<@"))
-                throw new ArgumentException(errorMessage);
+                throw new BotCommandInfoException(errorMessage);
 
             var reason = data.Split("<@", StringSplitOptions.RemoveEmptyEntries)[0].Trim();
 
             if (string.IsNullOrEmpty(reason))
-                throw new ArgumentException(errorMessage);
+                throw new BotCommandInfoException(errorMessage);
 
             return reason;
         }
