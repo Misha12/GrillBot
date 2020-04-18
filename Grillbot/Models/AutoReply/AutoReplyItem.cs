@@ -11,5 +11,6 @@ namespace Grillbot.Models.AutoReply
         public AutoReplyCompareTypes CompareType { get; set; }
         public int CallsCount { get; set; }
         public bool CaseSensitive { get; set; }
+        public string Channel { get; set; }
     }
 }

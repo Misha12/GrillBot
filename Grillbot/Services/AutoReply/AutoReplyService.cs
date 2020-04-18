@@ -65,7 +65,7 @@ namespace Grillbot.Modules.AutoReply
             if (!message.Content.Contains(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if (item.CanReply(guild))
+            if (item.CanReply(guild, message.Channel))
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -80,7 +80,7 @@ namespace Grillbot.Modules.AutoReply
             if (!message.Content.Equals(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if (item.CanReply(guild))
+            if (item.CanReply(guild, message.Channel))
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -95,15 +95,21 @@ namespace Grillbot.Modules.AutoReply
             return Data
                 .Where(o => o.GuildIDSnowflake == guild.Id)
                 .OrderByDescending(o => o.CallsCount)
-                .Select(item => new ReplyModel()
+                .Select(item =>
                 {
-                    CallsCount = item.CallsCount,
-                    CaseSensitive = item.CaseSensitive,
-                    CompareType = item.CompareType,
-                    ID = item.ID,
-                    IsActive = !item.IsDisabled,
-                    MustContains = item.MustContains,
-                    Reply = item.ReplyMessage
+                    var channel = item.ChannelIDSnowflake == null ? null : guild.GetChannel(item.ChannelIDSnowflake.Value)?.Name ?? $"Neznámý ({item.ChannelIDSnowflake})";
+
+                    return new ReplyModel()
+                    {
+                        CallsCount = item.CallsCount,
+                        CaseSensitive = item.CaseSensitive,
+                        CompareType = item.CompareType,
+                        ID = item.ID,
+                        IsActive = !item.IsDisabled,
+                        MustContains = item.MustContains,
+                        Reply = item.ReplyMessage,
+                        Channel = item.ChannelIDSnowflake == null ? "Všude" : channel
+                    };
                 }).ToList();
         }
 
@@ -122,7 +128,7 @@ namespace Grillbot.Modules.AutoReply
             item.IsDisabled = disabled;
         }
 
-        public async Task AddReplyAsync(SocketGuild guild, string mustContains, string reply, string compareType, bool disabled = false, bool caseSensitive = false)
+        public async Task AddReplyAsync(SocketGuild guild, string mustContains, string reply, string compareType, bool disabled, bool caseSensitive, string channel)
         {
             if (Data.Any(o => o.MustContains == mustContains))
                 throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
@@ -133,7 +139,8 @@ namespace Grillbot.Modules.AutoReply
                 IsDisabled = disabled,
                 ReplyMessage = reply,
                 CaseSensitive = caseSensitive,
-                GuildIDSnowflake = guild.Id
+                GuildIDSnowflake = guild.Id,
+                ChannelIDSnowflake = channel == "*" ? (ulong?)null : Convert.ToUInt64(channel)
             };
 
             item.SetCompareType(compareType);
@@ -144,7 +151,7 @@ namespace Grillbot.Modules.AutoReply
             Data.Add(item);
         }
 
-        public async Task EditReplyAsync(SocketGuild guild, int id, string mustContains, string reply, string compareType, bool caseSensitive)
+        public async Task EditReplyAsync(SocketGuild guild, int id, string mustContains, string reply, string compareType, bool caseSensitive, string channel)
         {
             var item = Data.Find(o => o.GuildIDSnowflake == guild.Id && o.ID == id);
 
@@ -158,6 +165,7 @@ namespace Grillbot.Modules.AutoReply
             item.ReplyMessage = reply;
             item.CaseSensitive = caseSensitive;
             item.SetCompareType(compareType);
+            item.ChannelIDSnowflake = channel == "*" ? (ulong?)null : Convert.ToUInt64(channel);
         }
 
         public async Task RemoveReplyAsync(SocketGuild guild, int id)

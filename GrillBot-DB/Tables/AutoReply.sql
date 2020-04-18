@@ -6,5 +6,6 @@
 	[IsDisabled] BIT NOT NULL,
 	[CompareType] INT NOT NULL CONSTRAINT [DF_AutoReply_CompareType] DEFAULT (0),
 	[CaseSensitive] BIT NOT NULL CONSTRAINT [DF_AutoReply_CaseSensitive] DEFAULT (0),
-	[GuildID] VARCHAR(30) NULL
+	[GuildID] VARCHAR(30) NULL,
+	[ChannelID] VARCHAR(30) NULL
 )

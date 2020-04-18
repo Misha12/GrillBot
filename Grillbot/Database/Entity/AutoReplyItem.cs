@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -29,9 +30,13 @@ namespace Grillbot.Database.Entity
         [NotMapped]
         public int CallsCount { get; set; }
 
-        public bool CanReply(SocketGuild guild)
+        public bool CanReply(SocketGuild guild, IChannel channel)
         {
-            return !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled && guild.Id == GuildIDSnowflake;
+            bool validGuild = guild.Id == GuildIDSnowflake;
+            bool haveReply = !string.IsNullOrEmpty(ReplyMessage);
+            bool haveChannel = ChannelIDSnowflake == null || channel.Id == ChannelIDSnowflake;
+
+            return validGuild && !IsDisabled && haveReply && haveChannel;
         }
 
         [Column]
@@ -49,6 +54,16 @@ namespace Grillbot.Database.Entity
         {
             get => Convert.ToUInt64(GuildID);
             set => GuildID = value.ToString();
+        }
+
+        [Column]
+        public string ChannelID { get; set; }
+
+        [NotMapped]
+        public ulong? ChannelIDSnowflake
+        {
+            get => string.IsNullOrEmpty(ChannelID) ? (ulong?)null : Convert.ToUInt64(ChannelID);
+            set => ChannelID = value?.ToString();
         }
 
         public void SetCompareType(string type)

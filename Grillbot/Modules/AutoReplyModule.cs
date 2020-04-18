@@ -44,7 +44,8 @@ namespace Grillbot.Modules
                     $"Status: {(item.IsActive ? "Aktivní" : "Neaktivní")}",
                     $"Metoda: {item.CompareType}",
                     $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
-                    $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}"
+                    $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}",
+                    $"Kanál: {item.Channel}"
                 }));
             }
 
@@ -95,22 +96,23 @@ namespace Grillbot.Modules
 
         [Command("add")]
         [Summary("Přidá novou automatickou odpověď.")]
-        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n[{Příznaky}]\n" +
-            "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat")]
+        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n{Příznaky}\n{ID Kanalu}\n" +
+            "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat.\nPokud se má odpovídat všude, tak se očekává \\*." +
+            "\n\nŠablona:\n{MustContains}\n{ReplyMessage}\n{==/Contains}\n0\n{ChannelID/\\*}")]
         public async Task AddAsync([Remainder] string data)
         {
             try
             {
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
-                if (fields.Length < 3)
-                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání)");
+                if (fields.Length < 5)
+                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání, Příznaky, Kanál)");
 
-                var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
+                var paramsFlags = Convert.ToInt32(fields[3]);
                 var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.AddReplyAsync(Context.Guild, fields[0], fields[1], fields[2], disabled, caseSensitive).ConfigureAwait(false);
+                await Service.AddReplyAsync(Context.Guild, fields[0], fields[1], fields[2], disabled, caseSensitive, fields[4]).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -134,7 +136,7 @@ namespace Grillbot.Modules
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.EditReplyAsync(Context.Guild, id, fields[0], fields[1], fields[2], caseSensitive).ConfigureAwait(false);
+                await Service.EditReplyAsync(Context.Guild, id, fields[0], fields[1], fields[2], caseSensitive, fields[4]).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
