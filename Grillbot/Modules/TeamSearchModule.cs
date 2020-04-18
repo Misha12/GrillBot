@@ -7,11 +7,9 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Addons.Interactive;
 using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
@@ -23,17 +21,13 @@ namespace Grillbot.Modules
     [Name("Hledání týmů")]
     public class TeamSearchModule : BotModuleBase
     {
-        private TeamSearchRepository Repository { get; }
-        private IMessageCache MessageCache { get; }
         private TeamSearchService TeamSearchService { get; }
 
         private const uint MaxPageSize = 1980;
 
-        public TeamSearchModule(TeamSearchRepository repository, IOptions<Configuration> options,
-            ConfigRepository configRepository, IMessageCache cache, TeamSearchService teamSearchService) : base(options, configRepository)
+        public TeamSearchModule(IOptions<Configuration> options, ConfigRepository configRepository, TeamSearchService teamSearchService)
+            : base(options, configRepository)
         {
-            Repository = repository;
-            MessageCache = cache;
             TeamSearchService = teamSearchService;
         }
 
@@ -104,79 +98,39 @@ namespace Grillbot.Modules
         }
 
         [Command("remove")]
-        public async Task RemoveTeamSearchAsync([Remainder] string searchId)
+        public async Task RemoveTeamSearchAsync(int searchId)
         {
-            if (!int.TryParse(searchId, out int rowId))
+            await DoAsync(async () =>
             {
-                await ReplyAsync("Neplatný formát ID hledání.").ConfigureAwait(false);
-                return;
-            }
-
-            var search = await Repository.FindSearchByIDAsync(rowId).ConfigureAwait(false);
-            if (search == null)
-            {
-                await ReplyAsync("Hledaná zpráva neexistuje.").ConfigureAwait(false);
-                return;
-            }
-
-            // should always work if the row state is correct
-            ulong.TryParse(search.UserId, out ulong userId);
-
-            if (userId == Context.User.Id)
-            {
-                await Repository.RemoveSearchAsync(rowId).ConfigureAwait(false);
-                await Context.Message.AddReactionAsync(new Emoji("✅")).ConfigureAwait(false);
-            }
-            else
-            {
-                await ReplyAsync("Na to nemáš právo.").ConfigureAwait(false);
-            }
+                if (Context.User is SocketGuildUser user)
+                {
+                    TeamSearchService.RemoveSearch(searchId, user);
+                    await Context.Message.AddReactionAsync(new Emoji("✅"));
+                }
+            });
         }
 
         [Command("cleanChannel")]
+        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task CleanChannelAsync(string channel)
         {
             await DoAsync(async () =>
             {
-                var mentionedChannelID = Context.Message.MentionedChannels.First().Id.ToString();
-                var searches = Repository.GetAllSearches(mentionedChannelID);
+                var mentionedChannel = Context.Message.MentionedChannels.FirstOrDefault();
 
-                if (searches.Count == 0)
-                    throw new ArgumentException($"V kanálu {channel.PreventMassTags()} nikdo nic nehledá");
+                if (mentionedChannel == null)
+                    throw new ArgumentException("Nebyl tagnut žádný kanál.");
 
-                foreach (var search in searches)
-                {
-                    var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
-
-                    await Repository.RemoveSearchAsync(search.Id);
-                    await ReplyAsync($"Hledání s ID **{search.Id}** od **{message.Author.GetFullName()}** smazáno.").ConfigureAwait(false);
-                }
-
-                await ReplyAsync($"Čištění kanálu {channel.PreventMassTags()} dokončeno.").ConfigureAwait(false);
+                await TeamSearchService.BatchCleanChannelAsync(mentionedChannel.Id, async message => await ReplyAsync(message));
+                await ReplyAsync($"Čištění kanálu `{mentionedChannel.Name}` dokončeno");
             });
         }
 
         [Command("massRemove")]
         public async Task MassRemoveAsync(params int[] searchIds)
         {
-            foreach (var id in searchIds)
-            {
-                var search = await Repository.FindSearchByIDAsync(id).ConfigureAwait(false);
-
-                if (search != null)
-                {
-                    var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
-
-                    if (message == null)
-                        await ReplyAsync($"Úklid neznámého hledání s ID **{id}**.").ConfigureAwait(false);
-                    else
-                        await ReplyAsync($"Úklid hledání s ID **{id}** od **{message.Author.GetFullName()}**.").ConfigureAwait(false);
-
-                    await Repository.RemoveSearchAsync(id).ConfigureAwait(false);
-                }
-            }
-
-            await ReplyAsync($"Úklid hledání s ID **{string.Join(", ", searchIds)}** dokončeno.").ConfigureAwait(false);
+            await TeamSearchService.BatchCleanAsync(searchIds, async message => await ReplyAsync(message));
+            await ReplyAsync("Úklid hledání dokončeno.");
         }
     }
 }

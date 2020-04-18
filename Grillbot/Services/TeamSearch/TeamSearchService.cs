@@ -4,10 +4,8 @@ using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services.MessageCache;
-using Microsoft.EntityFrameworkCore.Internal;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.TeamSearch
@@ -32,7 +30,7 @@ namespace Grillbot.Services.TeamSearch
             var items = Repository.GetAllSearches(channelID);
             var data = new List<TeamSearchItem>();
 
-            foreach(var dbItem in items)
+            foreach (var dbItem in items)
             {
                 var item = await TransformItemAsync(dbItem);
 
@@ -52,7 +50,7 @@ namespace Grillbot.Services.TeamSearch
         {
             var guild = DiscordClient.GetGuild(dbItem.GuildIDSnowflake);
 
-            if(guild == null)
+            if (guild == null)
             {
                 Repository.RemoveSearch(dbItem.Id);
                 return null;
@@ -60,7 +58,7 @@ namespace Grillbot.Services.TeamSearch
 
             var channel = guild.GetChannel(dbItem.ChannelIDSnowflake);
 
-            if(channel == null)
+            if (channel == null)
             {
                 Repository.RemoveSearch(dbItem.Id);
                 return null;
@@ -92,6 +90,47 @@ namespace Grillbot.Services.TeamSearch
                 throw new ArgumentException("Zpráva je příliš dlouhá.");
 
             Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
+        }
+
+        public void RemoveSearch(int searchID, SocketGuildUser executor)
+        {
+            var search = Repository.FindSearchByID(searchID);
+
+            if (search == null)
+                throw new ArgumentException("Hledaná zpráva neexistuje.");
+
+            var guildPerms = executor.GuildPermissions.Administrator || executor.GuildPermissions.ManageMessages;
+            if (!guildPerms && executor.Id != search.UserIDSnowflake)
+                throw new ArgumentException("Na provedení tohoto příkazu nemáš právo.");
+
+            Repository.RemoveSearch(search);
+        }
+
+        public async Task BatchCleanAsync(int[] ids, Func<string, Task> reply)
+        {
+            var searches = Repository.GetSearches(ids);
+            await BatchCleanAsync(searches, reply);
+        }
+
+        private async Task BatchCleanAsync(List<Database.Entity.TeamSearch> searches, Func<string, Task> reply)
+        {
+            foreach (var search in searches)
+            {
+                var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
+
+                if (message == null)
+                    await reply($"Mažu neznámé hledání s ID **{search.Id}**");
+                else
+                    await reply($"Mažu hledání s ID **{search.Id}** od **{message.Author.GetFullName()}**");
+
+                Repository.RemoveSearch(search);
+            }
+        }
+
+        public async Task BatchCleanChannelAsync(ulong channelID, Func<string, Task> reply)
+        {
+            var searches = Repository.GetAllSearches(channelID.ToString());
+            await BatchCleanAsync(searches, reply);
         }
     }
 }

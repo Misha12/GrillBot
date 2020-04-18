@@ -3,7 +3,6 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Schema;
 
 namespace Grillbot.Database.Repository
 {
@@ -11,6 +10,11 @@ namespace Grillbot.Database.Repository
     {
         public TeamSearchRepository(GrillBotContext context) : base(context)
         {
+        }
+
+        public List<TeamSearch> GetSearches(int[] ids)
+        {
+            return Context.TeamSearch.Where(o => ids.Contains(o.Id)).ToList();
         }
 
         public List<TeamSearch> GetAllSearches(string channelID)
@@ -37,29 +41,17 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
         }
 
-        public async Task RemoveSearchAsync(int id)
-        {
-            var row = await FindSearchByIDAsync(id).ConfigureAwait(false);
-
-            if (row == null)
-                return;
-
-            Context.TeamSearch.Remove(row);
-            await Context.SaveChangesAsync().ConfigureAwait(false);
-        }
-
         public void RemoveSearch(int id)
         {
             var entity = FindSearchByID(id);
-            if (entity == null) return;
-
-            Context.TeamSearch.Remove(entity);
-            Context.SaveChanges();
+            RemoveSearch(entity);
         }
 
-        public async Task<TeamSearch> FindSearchByIDAsync(int id)
+        public void RemoveSearch(TeamSearch entity)
         {
-            return await Context.TeamSearch.FirstOrDefaultAsync(o => o.Id == id).ConfigureAwait(false);
+            if (entity == null) return;
+            Context.TeamSearch.Remove(entity);
+            Context.SaveChanges();
         }
 
         public TeamSearch FindSearchByID(int id)
