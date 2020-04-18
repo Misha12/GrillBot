@@ -34,15 +34,17 @@ namespace Grillbot.Services.Statistics
 
         public Dictionary<string, ulong> GetEvents()
         {
-            return Events
-                .OrderByDescending(o => o.Value)
-                .ThenBy(o => o.Key)
-                .ToDictionary(o => o.Key, o => o.Value);
+            return OrderDictionary(Events);
         }
 
         public Dictionary<string, ulong> GetCommands()
         {
-            return Commands
+            return OrderDictionary(Commands);
+        }
+
+        private Dictionary<string, ulong> OrderDictionary(Dictionary<string, ulong> dict)
+        {
+            return dict
                 .OrderByDescending(o => o.Value)
                 .ThenBy(o => o.Key)
                 .ToDictionary(o => o.Key, o => o.Value);
