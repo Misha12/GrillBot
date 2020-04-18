@@ -42,7 +42,7 @@ namespace Grillbot.Modules.AutoReply
             Logger.LogInformation($"AutoReply module loaded (loaded {Data.Count} templates)");
         }
 
-        public async Task TryReplyAsync(SocketUserMessage message)
+        public async Task TryReplyAsync(SocketGuild guild, SocketUserMessage message)
         {
             if (message.Channel is IPrivateChannel) return;
 
@@ -51,21 +51,21 @@ namespace Grillbot.Modules.AutoReply
             foreach (var item in Data)
             {
                 if (item.CompareType == AutoReplyCompareTypes.Absolute)
-                    replied = await TryReplyWithAbsolute(message, item).ConfigureAwait(false);
+                    replied = await TryReplyWithAbsolute(guild, message, item).ConfigureAwait(false);
                 else if (item.CompareType == AutoReplyCompareTypes.Contains)
-                    replied = await TryReplyWithContains(message, item).ConfigureAwait(false);
+                    replied = await TryReplyWithContains(guild, message, item).ConfigureAwait(false);
 
                 if (replied)
                     break;
             }
         }
 
-        private async Task<bool> TryReplyWithContains(SocketUserMessage message, AutoReplyItem item)
+        private async Task<bool> TryReplyWithContains(SocketGuild guild, SocketUserMessage message, AutoReplyItem item)
         {
             if (!message.Content.Contains(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if (item.CanReply())
+            if (item.CanReply(guild))
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -75,12 +75,12 @@ namespace Grillbot.Modules.AutoReply
             return false;
         }
 
-        private async Task<bool> TryReplyWithAbsolute(SocketUserMessage message, AutoReplyItem item)
+        private async Task<bool> TryReplyWithAbsolute(SocketGuild guild, SocketUserMessage message, AutoReplyItem item)
         {
             if (!message.Content.Equals(item.MustContains, GetStringComparison(item)))
                 return false;
 
-            if (item.CanReply())
+            if (item.CanReply(guild))
             {
                 item.CallsCount++;
                 await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
@@ -90,9 +90,10 @@ namespace Grillbot.Modules.AutoReply
             return false;
         }
 
-        public List<ReplyModel> GetList()
+        public List<ReplyModel> GetList(SocketGuild guild)
         {
             return Data
+                .Where(o => o.GuildIDSnowflake == guild.Id)
                 .OrderByDescending(o => o.CallsCount)
                 .Select(item => new ReplyModel()
                 {
@@ -106,9 +107,9 @@ namespace Grillbot.Modules.AutoReply
                 }).ToList();
         }
 
-        public async Task SetActiveStatusAsync(int id, bool disabled)
+        public async Task SetActiveStatusAsync(SocketGuild guild, int id, bool disabled)
         {
-            var item = Data.Find(o => o.ID == id);
+            var item = Data.Find(o => o.GuildIDSnowflake == guild.Id && o.ID == id);
 
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
@@ -121,7 +122,7 @@ namespace Grillbot.Modules.AutoReply
             item.IsDisabled = disabled;
         }
 
-        public async Task AddReplyAsync(string mustContains, string reply, string compareType, bool disabled = false, bool caseSensitive = false)
+        public async Task AddReplyAsync(SocketGuild guild, string mustContains, string reply, string compareType, bool disabled = false, bool caseSensitive = false)
         {
             if (Data.Any(o => o.MustContains == mustContains))
                 throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
@@ -131,7 +132,8 @@ namespace Grillbot.Modules.AutoReply
                 MustContains = mustContains,
                 IsDisabled = disabled,
                 ReplyMessage = reply,
-                CaseSensitive = caseSensitive
+                CaseSensitive = caseSensitive,
+                GuildIDSnowflake = guild.Id
             };
 
             item.SetCompareType(compareType);
@@ -142,9 +144,9 @@ namespace Grillbot.Modules.AutoReply
             Data.Add(item);
         }
 
-        public async Task EditReplyAsync(int id, string mustContains, string reply, string compareType, bool caseSensitive)
+        public async Task EditReplyAsync(SocketGuild guild, int id, string mustContains, string reply, string compareType, bool caseSensitive)
         {
-            var item = Data.Find(o => o.ID == id);
+            var item = Data.Find(o => o.GuildIDSnowflake == guild.Id && o.ID == id);
 
             if (item == null)
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
@@ -158,9 +160,9 @@ namespace Grillbot.Modules.AutoReply
             item.SetCompareType(compareType);
         }
 
-        public async Task RemoveReplyAsync(int id)
+        public async Task RemoveReplyAsync(SocketGuild guild, int id)
         {
-            if (!Data.Any(o => o.ID == id))
+            if (!Data.Any(o => o.GuildIDSnowflake == guild.Id && o.ID == id))
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
 
             using var repository = GetRepository();

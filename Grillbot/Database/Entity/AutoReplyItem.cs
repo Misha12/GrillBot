@@ -1,5 +1,4 @@
-﻿using Grillbot.Extensions;
-using Grillbot.Helpers;
+﻿using Discord.WebSocket;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -30,13 +29,27 @@ namespace Grillbot.Database.Entity
         [NotMapped]
         public int CallsCount { get; set; }
 
-        public bool CanReply() => !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled;
+        public bool CanReply(SocketGuild guild)
+        {
+            return !string.IsNullOrEmpty(ReplyMessage) && !IsDisabled && guild.Id == GuildIDSnowflake;
+        }
 
         [Column]
         public AutoReplyCompareTypes CompareType { get; set; }
 
         [Column]
         public bool CaseSensitive { get; set; }
+
+        [Column]
+        [Required]
+        public string GuildID { get; set; }
+        
+        [NotMapped]
+        public ulong GuildIDSnowflake
+        {
+            get => Convert.ToUInt64(GuildID);
+            set => GuildID = value.ToString();
+        }
 
         public void SetCompareType(string type)
         {

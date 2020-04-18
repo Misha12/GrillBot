@@ -82,15 +82,17 @@ namespace Grillbot.Handlers
                 var commandName = GetCommand(context, argPos, out var _);
                 InternalStatistics.IncrementCommand(commandName);
 
-                if(context.Guild != null)
+                if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
             }
             else
             {
                 if (context.Guild != null)
+                {
                     await ChannelStats.IncrementCounterAsync((SocketGuildChannel)userMessage.Channel);
+                    await AutoReply.TryReplyAsync(context.Guild, userMessage).ConfigureAwait(false);
+                }
 
-                await AutoReply.TryReplyAsync(userMessage).ConfigureAwait(false);
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
                 await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
             }
