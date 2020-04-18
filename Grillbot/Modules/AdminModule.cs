@@ -8,6 +8,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Embed;
+using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
 using System;
 using System.Linq;
@@ -19,7 +20,12 @@ namespace Grillbot.Modules
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
     {
-        public AdminModule(ConfigRepository config) : base(configRepository: config) { }
+        private IMessageCache MessageCache { get; }
+
+        public AdminModule(ConfigRepository config, IMessageCache messageCache) : base(configRepository: config)
+        {
+            MessageCache = messageCache;
+        }
 
         [Command("pinpurge")]
         [Summary("Hromadné odpinování zpráv.")]
@@ -175,6 +181,29 @@ namespace Grillbot.Modules
                 );
 
             await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("clear")]
+        [Summary("Hromadné mazání zpráv.")]
+        public async Task ClearMessagesAsync(int count)
+        {
+            if (Context.Message.Channel is ITextChannel channel)
+            {
+                var messages = await channel.GetMessagesAsync(count).FlattenAsync();
+
+                var olderTwoWeeks = messages.Where(o => (DateTime.UtcNow - o.CreatedAt).TotalDays >= 14.0);
+                var newerTwoWeeks = messages.Where(o => (DateTime.UtcNow - o.CreatedAt).TotalDays < 14.0);
+
+                await channel.DeleteMessagesAsync(newerTwoWeeks);
+
+                foreach(var oldMessage in olderTwoWeeks)
+                {
+                    await oldMessage.DeleteAsync();
+                }
+
+                MessageCache.TryBulkDelete(messages.Select(o => o.Id));
+                await ReplyAndDeleteAsync($"Počet smazaných zpráv: {messages.Count()}", timeout: TimeSpan.FromSeconds(10));
+            }
         }
     }
 }

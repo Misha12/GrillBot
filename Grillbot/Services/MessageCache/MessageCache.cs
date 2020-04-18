@@ -103,5 +103,13 @@ namespace Grillbot.Services.MessageCache
         }
 
         public void Init() { }
+
+        public List<IMessage> TryBulkDelete(IEnumerable<ulong> messageIds)
+        {
+            return messageIds
+                .Select(id => TryRemove(id))
+                .Where(o => o != null)
+                .ToList();
+        }
     }
 }
