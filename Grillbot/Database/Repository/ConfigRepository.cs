@@ -120,9 +120,12 @@ namespace Grillbot.Database.Repository
 
         public void IncrementUsageCounter(SocketGuild guild, string group, string command)
         {
+            if (guild == null)
+                return;
+
             if (group == null) group = "";
             if (command == null) command = "";
-            var guildID = guild.Id.ToString();
+            var guildID = guild?.Id.ToString();
 
             var entity = GetBaseQuery(false).FirstOrDefault(o => o.GuildID == guildID && o.Group == group && o.Command == command);
 

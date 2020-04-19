@@ -60,7 +60,6 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                LogCommandAsync(userMessage, context, argPos);
                 var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
 
                 if (!result.IsSuccess && result.Error != null)
@@ -80,6 +79,7 @@ namespace Grillbot.Handlers
                     }
                 }
 
+                LogCommandAsync(userMessage, context, argPos);
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
             }
