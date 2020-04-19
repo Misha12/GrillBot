@@ -1,7 +1,10 @@
-﻿using System.Threading.Tasks;
+﻿using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Models.BotStatus;
+using Grillbot.Models.CallStats;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Authorization;
@@ -15,17 +18,17 @@ namespace Grillbot.Controllers
     {
         private BotStatusService StatusService { get; }
         private InternalStatistics InternalStatistics { get; }
-        private LogRepository LogRepository { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private ConfigRepository ConfigRepository { get; }
 
-        public AdminController(BotStatusService service, InternalStatistics internalStatistics, LogRepository logRepository, DiscordSocketClient discordSocket)
+        public AdminController(BotStatusService service, InternalStatistics internalStatistics, ConfigRepository configRepository, DiscordSocketClient discordSocket)
         {
             StatusService = service;
             InternalStatistics = internalStatistics;
-            LogRepository = logRepository;
+            ConfigRepository = configRepository;
             DiscordClient = discordSocket;
         }
-        
+
         public async Task<IActionResult> Index()
         {
             var dbStatus = await StatusService.GetDbReport();
@@ -45,14 +48,24 @@ namespace Grillbot.Controllers
         [Route("CallStats")]
         public IActionResult CallStats()
         {
-            var data = LogRepository.GetSummarizedCommandLog();
+            var configs = ConfigRepository.GetAllConfigurations();
+            var commands = new List<CommandStatSummaryItem>();
 
-            foreach(var item in data)
+            foreach (var config in configs)
             {
-                item.ReplaceGuildNames(DiscordClient);
+                var guild = DiscordClient.GetGuild(config.GuildIDSnowflake);
+
+                commands.Add(new CommandStatSummaryItem()
+                {
+                    CallsCount = config.UsedCount,
+                    Command = config.Command,
+                    Group = config.Group,
+                    Guild = guild == null ? $"UnknownGuild ({config.GuildIDSnowflake})" : $"{guild.Name}",
+                    PermissionsCount = config.Permissions.Count
+                });
             }
 
-            return View(data);
+            return View(new CallStatsViewModel(commands));
         }
     }
 }

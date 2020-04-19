@@ -19,7 +19,6 @@ namespace Grillbot.Database.Repository
             var teamSearchCount = await GetRowCountAsync(Context.TeamSearch);
             var tempUnverifyCount = await GetRowCountAsync(Context.TempUnverify);
             var unverifyLogCount = await GetRowCountAsync(Context.UnverifyLog);
-            var commandLogCount = await GetRowCountAsync(Context.CommandLog);
             var birthdayCount = await GetRowCountAsync(Context.Birthdays);
             var methodsConfigCount = await GetRowCountAsync(Context.MethodsConfig);
             var methodPermsCount = await GetRowCountAsync(Context.MethodPerms);
@@ -33,7 +32,6 @@ namespace Grillbot.Database.Repository
                 { "TeamSearch", teamSearchCount },
                 { "TempUnverify", tempUnverifyCount },
                 { "UnverifyLog", unverifyLogCount },
-                { "CommandLog", commandLogCount },
                 { "Birthdays", birthdayCount },
                 { "MethodsConfig", methodsConfigCount },
                 { "MethodPerms", methodPermsCount },

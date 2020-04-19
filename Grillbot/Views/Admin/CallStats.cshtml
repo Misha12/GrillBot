@@ -1,4 +1,4 @@
-﻿@model List<Grillbot.Database.Entity.Views.SummarizedCommandLog>;
+﻿@model Grillbot.Models.CallStats.CallStatsViewModel;
 
 @{
     ViewData["Title"] = "Kompletní statistiky volání";
@@ -13,20 +13,20 @@
                     <tr>
                         <th>Skupina</th>
                         <th>Příkaz</th>
-                        <th class="border-right">Počet volání</th>
-                        <th>Konfigurace</th>
+                        <th>Server</th>
+                        <th>Počet volání</th>
                         <th>Počet oprávnění</th>
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach (var item in Model)
+                    @foreach (var item in Model.Commands)
                     {
                         <tr>
                             <td>@item.Group</td>
                             <td>@item.Command</td>
-                            <td class="border-right">@FormatHelper.FormatWithSpaces(item.Count)</td>
-                            <td>@(item.Methods.Count == 0 ? "Nenastaveno" : string.Join("\n", item.Methods.Select(o => $"{o.Key} ({o.Value})")))</td>
-                            <td>@(item.Methods.Count == 0 ? "-" : FormatHelper.FormatWithSpaces(item.PermissionsCount))</td>
+                            <td>@item.Guild</td>
+                            <td>@FormatHelper.FormatWithSpaces(item.CallsCount)</td>
+                            <td>@FormatHelper.FormatWithSpaces(item.PermissionsCount)</td>
                         </tr>
                     }
                 </tbody>

@@ -23,7 +23,6 @@ namespace Grillbot.Database
         public virtual DbSet<EmoteStat> EmoteStats { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
-        public virtual DbSet<CommandLog> CommandLog { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
         public virtual DbSet<Birthday> Birthdays { get; set; }
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }

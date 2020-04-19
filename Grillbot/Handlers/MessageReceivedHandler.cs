@@ -1,5 +1,4 @@
-﻿using Discord;
-using Discord.Commands;
+﻿using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
@@ -15,6 +14,8 @@ using Grillbot.Modules.AutoReply;
 using Grillbot.Database.Repository;
 using Grillbot.Services.Channelboard;
 using Grillbot.Models.Config.AppSettings;
+using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
@@ -29,11 +30,11 @@ namespace Grillbot.Handlers
         private InternalStatistics InternalStatistics { get; }
         private EmoteStats EmoteStats { get; }
         private Configuration Config { get; }
-        private LogRepository Repository { get; }
+        private ILogger<MessageReceivedHandler> Logger { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
             ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics,
-            EmoteStats emoteStats, LogRepository repository)
+            EmoteStats emoteStats, ILogger<MessageReceivedHandler> logger)
         {
             Client = client;
             Commands = commands;
@@ -44,7 +45,7 @@ namespace Grillbot.Handlers
             InternalStatistics = internalStatistics;
             EmoteStats = emoteStats;
             Config = config.Value;
-            Repository = repository;
+            Logger = logger;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -54,12 +55,12 @@ namespace Grillbot.Handlers
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
 
             var context = new SocketCommandContext(Client, userMessage);
-            if (message.Channel is IPrivateChannel && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
+            if (context.IsPrivate && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
 
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                await LogCommandAsync(userMessage, context, argPos).ConfigureAwait(false);
+                LogCommandAsync(userMessage, context, argPos);
                 var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
 
                 if (!result.IsSuccess && result.Error != null)
@@ -78,9 +79,6 @@ namespace Grillbot.Handlers
                             throw new BotException(result);
                     }
                 }
-
-                var commandName = GetCommand(context, argPos, out var _);
-                InternalStatistics.IncrementCommand(commandName);
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
@@ -104,14 +102,21 @@ namespace Grillbot.Handlers
             await Commands.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
         }
 
-        private async Task LogCommandAsync(SocketUserMessage message, SocketCommandContext context, int argPos)
+        private void LogCommandAsync(SocketUserMessage message, SocketCommandContext context, int argPos)
         {
             var commandName = GetCommand(context, argPos, out CommandMatch command);
 
             if (commandName != null)
             {
-                await Repository.InsertItem(command.Command.Module.Group, command.Command.Name, message.Author,
-                    DateTime.Now, context.Message.Content, context.Guild, context.Channel);
+                var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
+                var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
+                var args = $"{guild}, {channel}, @{context.User}, ({message.Content})";
+
+                Logger.LogInformation("Executing {0}.\t{1}", commandName, args);
+                InternalStatistics.IncrementCommand(commandName);
+
+                using var configRepository = Services.GetService<ConfigRepository>();
+                configRepository.IncrementUsageCounter(context.Guild, command.Command.Module.Group, command.Command.Name);
             }
         }
 

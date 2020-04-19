@@ -52,8 +52,7 @@ namespace Grillbot
                 .AddTransient<BirthdaysRepository>()
                 .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
-                .AddTransient<EmoteStatsRepository>()
-                .AddTransient<LogRepository>();
+                .AddTransient<EmoteStatsRepository>();
 
             services.AddWebAuthentication();
 

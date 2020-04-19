@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
+using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -115,6 +116,26 @@ namespace Grillbot.Database.Repository
 
             item.Permissions.Remove(permission);
             Context.SaveChanges();
+        }
+
+        public void IncrementUsageCounter(SocketGuild guild, string group, string command)
+        {
+            if (group == null) group = "";
+            if (command == null) command = "";
+            var guildID = guild.Id.ToString();
+
+            var entity = GetBaseQuery(false).FirstOrDefault(o => o.GuildID == guildID && o.Group == group && o.Command == command);
+
+            if (entity == null)
+                throw new NotFoundException($"Metoda {guildID}/{group}/{command} nebyla nalezena v konfiguraci.");
+
+            entity.UsedCount++;
+            Context.SaveChanges();
+        }
+
+        public List<MethodsConfig> GetAllConfigurations()
+        {
+            return GetBaseQuery(true).OrderByDescending(o => o.UsedCount).ToList();
         }
     }
 }
