@@ -77,7 +77,7 @@ namespace Grillbot.Modules
                 throw new BotCommandInfoException("Požadovaný server nebyl nalezen.");
             }
 
-            var color = guild.Roles.OrderByDescending(o => o.Position).FirstOrDefault()?.Color;
+            var color = guild.Roles.FindHighestRoleWithColor()?.Color;
             var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
                 .WithThumbnail(guild.IconUrl)
                 .WithFields(
@@ -156,7 +156,7 @@ namespace Grillbot.Modules
             if (user == null)
                 throw new BotCommandInfoException("Takový uživatel na serveru není.");
 
-            var userTopRole = user.FindHighestRoleWithColor();
+            var userTopRole = user.Roles.FindHighestRoleWithColor();
             var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id == config.BotRole) : null;
             var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
 
