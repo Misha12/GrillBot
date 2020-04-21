@@ -82,7 +82,8 @@ namespace Grillbot.Modules
                 .WithThumbnail(guild.IconUrl)
                 .WithFields(
                     new EmbedFieldBuilder().WithName("Počet kategorií").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet kanálů").WithValue($"**{guild.Channels.Count}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet textových kanálů").WithValue($"**{guild.ComputeTextChannelsCount()}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet hlasových kanálů").WithValue($"**{guild.ComputeVoiceChannelsCount()}**").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Počet rolí").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Vytvořen").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Vlastník").WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),

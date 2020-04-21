@@ -59,5 +59,15 @@ namespace Grillbot.Extensions.Discord
             if (guild.DownloaderPromise != null)
                 await guild.DownloaderPromise.ConfigureAwait(false);
         }
+
+        public static int ComputeTextChannelsCount(this SocketGuild guild)
+        {
+            return guild.Channels.OfType<SocketTextChannel>().Count();
+        }
+
+        public static int ComputeVoiceChannelsCount(this SocketGuild guild)
+        {
+            return guild.Channels.OfType<SocketVoiceChannel>().Count();
+        }
     }
 }
