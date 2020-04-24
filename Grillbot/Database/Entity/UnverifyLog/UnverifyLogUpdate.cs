@@ -1,6 +1,6 @@
 ﻿namespace Grillbot.Database.Entity.UnverifyLog
 {
-    public class UnverifyLogUpdate : UnverifyLogDataBase
+    public class UnverifyLogUpdate
     {
         public string TimeFor { get; set; }
     }

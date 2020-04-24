@@ -5,5 +5,6 @@
 	[FromUserID] VARCHAR(30) NOT NULL,
 	[GuildID] VARCHAR(30) NOT NULL,
 	[Datetime] DATETIME NOT NULL CONSTRAINT [DF_UnverifyLog_Datetime] DEFAULT (getdate()),
-	[Data] VARCHAR(MAX) NOT NULL
+	[Data] VARCHAR(MAX) NOT NULL,
+	[DestUserID] VARCHAR(30) NULL
 )

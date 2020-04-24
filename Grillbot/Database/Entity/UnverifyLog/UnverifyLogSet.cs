@@ -3,7 +3,7 @@ using System.Collections.Generic;
 
 namespace Grillbot.Database.Entity.UnverifyLog
 {
-    public class UnverifyLogSet : UnverifyLogDataBase
+    public class UnverifyLogSet
     {
         public string TimeFor { get; set; }
         public DateTime StartAt { get; set; }

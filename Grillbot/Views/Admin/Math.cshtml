@@ -10,7 +10,7 @@
     <div class="d-flex flex-wrap justify-content-between">
         @foreach (var session in Model.Sessions.Where(o => o.ForBooster))
         {
-            <partial name="MathSessionPartial" model="session" />
+            <partial name="Partials/MathSessionPartial" model="session" />
         }
     </div>
 
@@ -18,7 +18,7 @@
     <div class="d-flex flex-wrap justify-content-between">
         @foreach (var session in Model.Sessions.Where(o => !o.ForBooster))
         {
-            <partial name="MathSessionPartial" model="session" />
+            <partial name="Partials/MathSessionPartial" model="session" />
         }
     </div>
 </section>

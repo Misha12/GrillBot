@@ -3,8 +3,12 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
 using Grillbot.Database.Repository;
+using Grillbot.Extensions.Discord;
+using Grillbot.Models.TempUnverify.Admin;
 using System;
 using System.Collections.Generic;
+using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -66,15 +70,33 @@ namespace Grillbot.Services.TempUnverify
             Save(UnverifyLogOperation.Update, fromUser, toUser, guild, data);
         }
 
-        private void Save(UnverifyLogOperation operation, IUser fromUser, IUser toUser, IGuild guild, UnverifyLogDataBase data)
+        private void Save(UnverifyLogOperation operation, IUser fromUser, IUser toUser, IGuild guild, object data)
         {
-            data.SetUser(toUser);
-            Repository.LogOperation(operation, fromUser, guild, data);
+            Repository.LogOperation(operation, fromUser, guild, toUser, data);
         }
 
         public void Dispose()
         {
             Repository.Dispose();
+        }
+
+        public async Task<List<UnverifyAuditItem>> GetAuditLogAsync(UnverifyAuditFilterRequest filter)
+        {
+            var data = Repository.GetOperationsLog(filter.GuildID, filter.FromUserID, filter.DestUserID, filter.Operation,
+                filter.DateTimeFrom, filter.DateTimeTo, 200);
+
+            var result = new List<UnverifyAuditItem>();
+
+            foreach(var item in data)
+            {
+                var auditItem = new UnverifyAuditItem(item, DiscordClient);
+
+                auditItem.FromUser = await auditItem.Guild.GetUserFromGuildAsync(item.FromUserIDSnowflake);
+                auditItem.ToUser = await auditItem.Guild.GetUserFromGuildAsync(item.DestUserIDSnowflake);
+                result.Add(auditItem);
+            }
+
+            return result;
         }
     }
 }

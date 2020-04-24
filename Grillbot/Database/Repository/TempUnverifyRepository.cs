@@ -87,19 +87,49 @@ namespace Grillbot.Database.Repository
             await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
-        public void LogOperation(UnverifyLogOperation operation, IUser fromUser, IGuild guild, UnverifyLogDataBase data)
+        public void LogOperation(UnverifyLogOperation operation, IUser fromUser, IGuild guild, IUser toUser, object data)
         {
             var entity = new UnverifyLog()
             {
                 Data = JsonConvert.SerializeObject(data),
                 DateTime = DateTime.Now,
-                GuildID = guild.Id.ToString(),
+                GuildIDSnowflake = guild.Id,
                 Operation = operation,
-                FromUserID = fromUser.Id.ToString()
+                FromUserIDSnowflake = fromUser.Id,
+                DestUserIDSnowflake = toUser.Id
             };
 
             Context.UnverifyLog.Add(entity);
             Context.SaveChanges();
+        }
+
+        public List<UnverifyLog> GetOperationsLog(ulong? guildID, ulong? fromUserID, ulong? toUserID, UnverifyLogOperation? operation,
+            DateTime? from, DateTime? to, int limit)
+        {
+            var query = Context.UnverifyLog.AsQueryable();
+
+            if (guildID != null)
+                query = query.Where(o => o.GuildID == guildID.Value.ToString());
+
+            if (fromUserID != null)
+                query = query.Where(o => o.FromUserID == fromUserID.Value.ToString());
+
+            if (toUserID != null)
+                query = query.Where(o => o.DestUserID == toUserID.Value.ToString());
+
+            if (operation != null)
+                query = query.Where(o => o.Operation == operation.Value);
+
+            if (from != null)
+                query = query.Where(o => o.DateTime >= from);
+
+            if (to != null)
+                query = query.Where(o => o.DateTime < to);
+
+            return query
+                .OrderByDescending(o => o.DateTime)
+                .Take(limit)
+                .ToList();
         }
     }
 }

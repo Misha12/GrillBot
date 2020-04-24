@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Grillbot.Models.TempUnverify;
 using System.Linq;
 using Grillbot.Exceptions;
+using Grillbot.Models.TempUnverify.Admin;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -43,6 +44,18 @@ namespace Grillbot.Services.TempUnverify
             }
 
             return users;
+        }
+
+        public async Task<List<CurrentUnverifiedUser>> ListPersonsForAdminAsync()
+        {
+            try
+            {
+                return await ListPersonsAsync();
+            }
+            catch(BotCommandInfoException)
+            {
+                return new List<CurrentUnverifiedUser>();
+            }
         }
     }
 }
