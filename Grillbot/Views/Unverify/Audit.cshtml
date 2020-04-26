@@ -61,8 +61,19 @@
                 </div>
             </div>
 
-            <div class="card-footer d-flex justify-content-end">
-                <button type="submit" class="btn btn-primary">Potvrdit</button>
+            <div class="card-footer">
+                <div class="form-row">
+                    <div class="col-md-6">
+                        <div class="custom-control custom-checkbox">
+                            <input type="checkbox" class="custom-control-input" id="ignoreSelfUnverify" asp-for="Request.IgnoreSelfUnverify">
+                            <label class="custom-control-label" for="ignoreSelfUnverify">Ignorovat self unverify</label>
+                        </div>
+                    </div>
+                
+                    <div class="col-md-6 d-flex justify-content-end">
+                        <button type="submit" class="btn btn-primary">Potvrdit</button>
+                    </div>
+                </div>
             </div>
         </form>
 

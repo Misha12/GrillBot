@@ -22,7 +22,7 @@ namespace Grillbot.Models.TempUnverify.Admin
                     var removeData = JsonConvert.DeserializeObject<UnverifyLogRemove>(log.Data);
                     RemoveLogData = new AuditItemRemoveOperation()
                     {
-                        OverridedChannels = removeData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).ToList(),
+                        OverridedChannels = removeData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
                         Roles = removeData.Roles.Select(o => Guild.GetRole(o)).ToList()
                     };
                     break;
@@ -30,7 +30,7 @@ namespace Grillbot.Models.TempUnverify.Admin
                     var setData = JsonConvert.DeserializeObject<UnverifyLogSet>(log.Data);
                     SetLogData = new AuditItemSetOperation()
                     {
-                        OverridedChannels = setData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).ToList(),
+                        OverridedChannels = setData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
                         Roles = setData.Roles.Select(o => Guild.GetRole(o)).ToList(),
                         Reason = setData.Reason,
                         StartAt = setData.StartAt,

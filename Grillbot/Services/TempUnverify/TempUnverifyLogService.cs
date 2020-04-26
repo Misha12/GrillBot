@@ -91,6 +91,10 @@ namespace Grillbot.Services.TempUnverify
             {
                 var auditItem = new UnverifyAuditItem(item, DiscordClient);
 
+                if (filter.IgnoreSelfUnverify && auditItem.Operation == UnverifyLogOperation.Set &&
+                    auditItem.SetLogData.Reason.Equals("self unverify", StringComparison.InvariantCultureIgnoreCase))
+                    continue;
+
                 auditItem.FromUser = await auditItem.Guild.GetUserFromGuildAsync(item.FromUserIDSnowflake);
                 auditItem.ToUser = await auditItem.Guild.GetUserFromGuildAsync(item.DestUserIDSnowflake);
                 result.Add(auditItem);

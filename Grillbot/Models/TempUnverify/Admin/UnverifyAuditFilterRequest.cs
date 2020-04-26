@@ -11,5 +11,6 @@ namespace Grillbot.Models.TempUnverify.Admin
         public UnverifyLogOperation? Operation { get; set; }
         public DateTime? DateTimeFrom { get; set; }
         public DateTime? DateTimeTo { get; set; }
+        public bool IgnoreSelfUnverify { get; set; }
     }
 }
