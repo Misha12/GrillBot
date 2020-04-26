@@ -1,5 +1,9 @@
 ﻿<nav class="navbar navbar-expand-lg navbar-dark bg-dark">
-    <div class="collapse navbar-collapse">
+    <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Menu">
+        <span class="navbar-toggler-icon"></span>
+    </button>
+    
+    <div class="navbar-collapse collapse" id="navbar">
         <ul class="navbar-nav">
             <a asp-controller="Admin" asp-action="Index" class="nav-item nav-link active mr-2">Stav bota</a>
             <a asp-controller="Admin" asp-action="CallStats" class="nav-item nav-link active mr-2">Statistiky volání</a>
@@ -14,10 +18,9 @@
                     <a asp-controller="Unverify" asp-action="Audit" class="dropdown-item">Audit log</a>
                 </div>
             </li>
+            <li class="nav-item nav-link">
+                <a asp-controller="Auth" asp-action="Logout" class="text-white">Odhlásit se</a>
+            </li>
         </ul>
-    </div>
-
-    <div class="form-inline">
-        <a asp-controller="Auth" asp-action="Logout" class="text-white">Odhlásit se</a>
     </div>
 </nav>
