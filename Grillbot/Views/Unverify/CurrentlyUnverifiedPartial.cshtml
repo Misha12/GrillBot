@@ -1,0 +1,46 @@
+﻿@model Grillbot.Models.TempUnverify.CurrentUnverifiedUser;
+
+<div class="card" style="width: 400px">
+    <div class="card-body">
+        <div class="row">
+            <div class="col-4 font-weight-bold">ID</div>
+            <div class="col">@Model.ID</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Uživatel:</div>
+            <div class="col">@Model.Username</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Server:</div>
+            <div class="col">@Model.GuildName</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Konec:</div>
+            <div class="col">@Model.EndDateTime.ToLocaleDatetime()</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Důvod:</div>
+            <div class="col">@Model.Reason</div>
+        </div>
+
+        <div class="row mt-3">
+            <div class="col-4 font-weight-bold">Role:</div>
+            <div class="col">
+                @string.Join(", ", Model.Roles)
+            </div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Kanály:</div>
+            <div class="col">@Model.ChannelOverrideList</div>
+        </div>
+    </div>
+
+    <div class="card-footer">
+        <a class="btn btn-danger" asp-action="RemoveAccess" asp-route-id="@Model.ID">Vrátit přístup</a>
+    </div>
+</div>

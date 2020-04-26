@@ -77,7 +77,7 @@ namespace Grillbot.Modules
         [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
         public async Task ListUnverifyAsync()
         {
-            var users = await UnverifyService.ListPersonsAsync();
+            var users = await UnverifyService.ListPersonsAsync(Context.Guild);
 
             var template = new BotEmbed(Context.Message.Author, title: "Seznam osob s odebraným přístupem", thumbnail: Context.Client.CurrentUser.GetUserAvatarUrl());
             var fields = new List<EmbedFieldBuilder>();

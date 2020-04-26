@@ -38,6 +38,5 @@ namespace Grillbot.Helpers
 
             return nfi;
         }
-
     }
 }

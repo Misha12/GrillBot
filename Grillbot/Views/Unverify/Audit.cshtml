@@ -1,0 +1,119 @@
+﻿@model Grillbot.Models.TempUnverify.Admin.UnverifyAuditViewModel;
+
+@using Grillbot.Database.Entity.UnverifyLog;
+
+@{
+    ViewData["Title"] = "Unverify - Audit log";
+    ViewData["Admin"] = true;
+}
+
+<div class="row mr-0 ml-0">
+    <div class="col-md-12">
+        <form method="post" class="card" style="width: 1100px">
+            <div class="card-body">
+                <div class="form-row">
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.GuildID">Server</label>
+                        <select class="form-control" asp-for="Request.GuildID">
+                            <option value="">Vše</option>
+                            @foreach (var guild in Model.Guilds)
+                            {
+                                <option value="@guild.Id">@guild.Name</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.FromUserID">Volající</label>
+                        <select class="form-control" asp-for="Request.FromUserID">
+                            <option value="">Kdokoliv</option>
+                            @foreach (var user in Model.Users)
+                            {
+                                <option value="@user.Id">@user.GetFullName()</option>
+                            }
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.DestUserID">Cílový uživatel</label>
+                        <select class="form-control" asp-for="Request.DestUserID">
+                            <option value="">Kdokoliv</option>
+                            @foreach (var user in Model.Users)
+                            {
+                                <option value="@user.Id">@user.GetFullName()</option>
+                            }
+                        </select>
+                    </div>
+                </div>
+                <div class="form-row">
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.Operation">Operace</label>
+                        <select class="form-control" asp-for="Request.Operation" asp-items="Html.GetEnumSelectList<UnverifyLogOperation>()">
+                            <option value="">Nezáleží</option>
+                        </select>
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.DateTimeFrom">Datum a čas od</label>
+                        <input type="datetime-local" class="form-control" asp-for="Request.DateTimeFrom">
+                    </div>
+                    <div class="col-md-4 mb-3">
+                        <label for="Request.DateTimeTo">Datum a čas do</label>
+                        <input type="datetime-local" class="form-control" asp-for="Request.DateTimeTo">
+                    </div>
+                </div>
+            </div>
+
+            <div class="card-footer d-flex justify-content-end">
+                <button type="submit" class="btn btn-primary">Potvrdit</button>
+            </div>
+        </form>
+
+        <table class="table table-sm mt-4">
+            <thead>
+                <tr>
+                    <th>ID</th>
+                    <th>Operace</th>
+                    <th>Datum a Čas</th>
+                    <th>Volající</th>
+                    <th>Cílový uživatel</th>
+                    <th>Server</th>
+                    <th>Data</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var item in Model.LogItems)
+                {
+                    <tr>
+                        <td>@item.ID</td>
+                        <td>@item.Operation</td>
+                        <td>@item.DateTime.ToLocaleDatetime()</td>
+                        <td>@item.FromUser.GetFullName()</td>
+                        <td>@item.ToUser.GetFullName()</td>
+                        <td>@item.Guild.Name</td>
+                        <td>
+                            @switch (item.Operation)
+                            {
+                                case UnverifyLogOperation.Update:
+                                    <text>Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.UpdateLogData.Time))</text>
+                                    break;
+                                case UnverifyLogOperation.Set:
+                                    <text>
+                                        Důvod: @item.SetLogData.Reason<br />
+                                        Role: @string.Join(", ", item.SetLogData.Roles.Select(o => o.Name))<br />
+                                        Kanály: @string.Join(", ", item.SetLogData.OverridedChannels.Select(o => o.Name))<br />
+                                        Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.SetLogData.Time))
+                                    </text>
+                                    break;
+                                case UnverifyLogOperation.AutoRemove:
+                                case UnverifyLogOperation.Remove:
+                                    <text>
+                                        Role: @string.Join(", ", item.RemoveLogData.Roles.Select(o => o.Name))<br />
+                                        Kanály: @string.Join(", ", item.RemoveLogData.OverridedChannels.Select(o => o.Name))
+                                    </text>
+                                    break;
+                            }
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

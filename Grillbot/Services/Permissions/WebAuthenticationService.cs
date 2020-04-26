@@ -54,7 +54,8 @@ namespace Grillbot.Services.Permissions
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
                     new Claim(ClaimTypes.Name, user.Username),
-                    new Claim(ClaimTypes.Role, user.FindHighestRole().Name)
+                    new Claim(ClaimTypes.Role, user.FindHighestRole().Name),
+                    new Claim(ClaimTypes.UserData, guild.Id.ToString())
                 };
 
                 return new ClaimsIdentity(claims, CookieAuthenticationDefaults.AuthenticationScheme);

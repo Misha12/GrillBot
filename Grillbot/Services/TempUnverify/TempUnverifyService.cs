@@ -42,7 +42,7 @@ namespace Grillbot.Services.TempUnverify
             int waitingCount = 0;
 
             using var repository = Factories.GetUnverifyRepository();
-            var items = await repository.GetAllItems().ToListAsync().ConfigureAwait(false);
+            var items = await repository.GetAllItems(null).ToListAsync().ConfigureAwait(false);
 
             foreach (var item in items)
             {

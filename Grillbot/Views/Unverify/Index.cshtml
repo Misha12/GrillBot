@@ -1,0 +1,27 @@
+﻿@model Grillbot.Models.TempUnverify.Admin.UnverifyCurrentStatusViewModel;
+
+@{
+    ViewData["Title"] = "Unverify";
+    ViewData["Admin"] = true;
+}
+
+<section class="mt-4">
+    @if (Model.CurrentUnverifiedUsers != null && Model.CurrentUnverifiedUsers.Count > 0)
+    {
+        <div class="card">
+            <h5 class="card-header">Aktuálně odebrané přístupy</h5>
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between">
+                    @foreach (var user in Model.CurrentUnverifiedUsers)
+                    {
+                        <partial name="CurrentlyUnverifiedPartial" model="user" />
+                    }
+                </div>
+            </div>
+        </div>
+    }
+    else
+    {
+        <h2 class="text-center">Momentálně nemá nikdo odebraný přístup.</h2>
+    }
+</section>

@@ -11,5 +11,6 @@ namespace Grillbot.Models.TempUnverify
         public List<string> Roles { get; set; }
         public string ChannelOverrideList { get; set; }
         public string Reason { get; set; }
+        public string GuildName { get; set; }
     }
 }

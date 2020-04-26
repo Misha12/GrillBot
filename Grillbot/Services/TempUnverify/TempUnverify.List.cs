@@ -6,16 +6,16 @@ using System.Threading.Tasks;
 using Grillbot.Models.TempUnverify;
 using System.Linq;
 using Grillbot.Exceptions;
-using Grillbot.Models.TempUnverify.Admin;
+using Discord.WebSocket;
 
 namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
-        public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync()
+        public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync(SocketGuild guild)
         {
             using var repository = Factories.GetUnverifyRepository();
-            var persons = await repository.GetAllItems().ToListAsync();
+            var persons = await repository.GetAllItems(guild).ToListAsync();
 
             if (persons.Count == 0)
                 throw new BotCommandInfoException("Nikdo zatím nemá odebraný přístup.");
@@ -38,8 +38,9 @@ namespace Grillbot.Services.TempUnverify
                     EndDateTime = person.GetEndDatetime(),
                     ID = person.ID,
                     Reason = person.Reason,
-                    Roles = person.DeserializedRolesToReturn.Select(id => guild.GetRole(id)?.Name).Where(role => role != null).ToList(),
-                    Username = unverifiedUser.GetFullName()
+                    Roles = person.DeserializedRolesToReturn.Select(id => guild.GetRole(id)).Where(role => role != null).OrderByDescending(o => o.Position).Select(o => o.Name).ToList(),
+                    Username = unverifiedUser.GetFullName(),
+                    GuildName = guild.Name
                 });
             }
 
@@ -50,7 +51,7 @@ namespace Grillbot.Services.TempUnverify
         {
             try
             {
-                return await ListPersonsAsync();
+                return await ListPersonsAsync(null);
             }
             catch(BotCommandInfoException)
             {

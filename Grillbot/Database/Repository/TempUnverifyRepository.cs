@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
@@ -16,9 +17,14 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public IQueryable<TempUnverifyItem> GetAllItems()
+        public IQueryable<TempUnverifyItem> GetAllItems(SocketGuild guild)
         {
-            return Context.TempUnverify.AsQueryable();
+            var query = Context.TempUnverify.AsQueryable();
+
+            if (guild != null)
+                query = query.Where(o => o.GuildID == guild.ToString());
+
+            return query.AsQueryable();
         }
 
         public async Task<TempUnverifyItem> AddItemAsync(List<ulong> roles, ulong userID, ulong guildID, int timeFor,
@@ -42,14 +48,14 @@ namespace Grillbot.Database.Repository
 
         public async Task<TempUnverifyItem> FindItemByIDAsync(int id)
         {
-            return await GetAllItems().FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
+            return await GetAllItems(null).FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
         }
 
         public async Task<TempUnverifyItem> FindUnverifyByUserID(ulong userId)
         {
             string user = userId.ToString();
 
-            return await GetAllItems().FirstOrDefaultAsync(o => o.UserID == user).ConfigureAwait(false);
+            return await GetAllItems(null).FirstOrDefaultAsync(o => o.UserID == user).ConfigureAwait(false);
         }
 
         public void RemoveItem(int id)
