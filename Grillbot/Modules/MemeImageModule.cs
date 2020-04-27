@@ -26,13 +26,21 @@ namespace Grillbot.Modules
         {
             var file = Service.GetRandomFile(Context.Guild, category);
 
-            if(file == null)
+            if (file == null)
             {
                 await ReplyAsync("Nemám žádný obrázek.");
                 return;
             }
 
             await Context.Channel.SendFileAsync(file);
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                Service.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }

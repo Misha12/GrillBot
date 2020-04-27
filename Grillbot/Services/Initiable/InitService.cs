@@ -37,7 +37,7 @@ namespace Grillbot.Services.Initiable
         {
             foreach(var service in Initiables)
             {
-                await service.InitAsync().ConfigureAwait(false);
+                await service.InitAsync();
                 Logger.LogInformation($"Initialized service {service.GetType().Name} (async).");
             }
         }

@@ -90,5 +90,17 @@ namespace Grillbot.Controllers
         {
             return View(new MathViewModel(MathService.Sessions));
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if(disposing)
+            {
+                StatusService.Dispose();
+                ConfigRepository.Dispose();
+                TeamSearchService.Dispose();
+            }
+
+            base.Dispose(disposing);
+        }
     }
 }

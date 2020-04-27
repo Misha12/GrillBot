@@ -19,10 +19,10 @@ namespace Grillbot.Modules
         {
         }
 
-        [Command("grillhi"), Alias("hojkashi", "hi")]
+        [Command("grillhi"), Alias("hi")]
         public async Task GreetAsync() => await GreetAsync(null).ConfigureAwait(false);
 
-        [Command("grillhi"), Alias("hojkashi", "hi")]
+        [Command("grillhi"), Alias("hi")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         public async Task GreetAsync(string mode)
         {
@@ -54,7 +54,7 @@ namespace Grillbot.Modules
             await ReplyAsync(message).ConfigureAwait(false);
         }
 
-        [Command("grillhi"), Alias("hojkashi", "hi")]
+        [Command("grillhi"), Alias("hi")]
         [Remarks("Možné základy soustav odpovědi jsou 2, 8, 10, nebo 16.")]
         public async Task GreetAsync(int @base)
         {

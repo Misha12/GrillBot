@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    public abstract class BotModuleBase : InteractiveBase
+    public abstract class BotModuleBase : InteractiveBase, IDisposable
     {
         protected Configuration Config { get; }
         protected ConfigRepository ConfigRepository { get; }
@@ -52,7 +52,7 @@ namespace Grillbot.Modules
 
         protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<EmbedFieldBuilder>> fieldChunkGroups, BotEmbed embedTemplate)
         {
-            foreach(var group in fieldChunkGroups)
+            foreach (var group in fieldChunkGroups)
             {
                 embedTemplate
                     .ClearFields()
@@ -64,11 +64,31 @@ namespace Grillbot.Modules
 
         protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<string>> chunkGroups, char separator = '\n')
         {
-            foreach(var group in chunkGroups)
+            foreach (var group in chunkGroups)
             {
                 var message = string.Join(separator, group);
                 await ReplyAsync(message);
             }
         }
+
+        #region IDisposable Support
+        private bool disposedValue = false;
+
+        protected virtual void Dispose(bool disposing)
+        {
+            if (!disposedValue)
+            {
+                if (disposing && ConfigRepository != null)
+                    ConfigRepository.Dispose();
+
+                disposedValue = true;
+            }
+        }
+
+        public void Dispose()
+        {
+            Dispose(true);
+        }
+        #endregion
     }
 }

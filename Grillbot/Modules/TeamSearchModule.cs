@@ -122,5 +122,13 @@ namespace Grillbot.Modules
             await TeamSearchService.BatchCleanAsync(searchIds, async message => await ReplyAsync(message));
             await ReplyAsync("Úklid hledání dokončeno.");
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                TeamSearchService.Dispose();
+
+            base.Dispose(disposing);
+        }
     }
 }

@@ -12,8 +12,8 @@ using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Duck;
 using Grillbot.Models.Embed;
-using Grillbot.Services;
 using Grillbot.Services.Preconditions;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 
@@ -24,10 +24,9 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public class DuckModule : BotModuleBase
     {
-        private BotLoggingService Logger { get; }
+        private ILogger<DuckModule> Logger { get; }
 
-        public DuckModule(IOptions<Configuration> config, BotLoggingService logger,
-            ConfigRepository repository) : base(config, repository)
+        public DuckModule(IOptions<Configuration> config, ILogger<DuckModule> logger, ConfigRepository repository) : base(config, repository)
         {
             Logger = logger;
         }
@@ -50,13 +49,13 @@ namespace Grillbot.Modules
             }
             catch (Exception ex)
             {
-                Logger.Write(LogSeverity.Error, "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) ", exception: ex);
+                Logger.LogError(ex, "Request na IsKachnaOpen skončil špatně (nepodařilo se navázat spojení nebo jiná výjimka.) ");
                 throw new BotCommandInfoException("Nepodařilo se zjistit stav Kachny. Zkus " + config.IsKachnaOpenApiBase);
             }
 
             if (!resp.IsSuccessStatusCode)
             {
-                Logger.Write(LogSeverity.Warning, $"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}");
+                Logger.LogWarning($"Request na IsKachnaOpen skončil špatně (HTTP {(int)resp.StatusCode}).\n{await resp.Content.ReadAsStringAsync()}");
                 throw new BotCommandInfoException("Nepodařilo se zjistit stav Kachny. Zkus " + config.IsKachnaOpenApiBase);
             }
 

@@ -11,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.TeamSearch
 {
-    public class TeamSearchService
+    public class TeamSearchService : IDisposable
     {
         private TeamSearchRepository Repository { get; }
         private DiscordSocketClient DiscordClient { get; }
@@ -132,6 +132,11 @@ namespace Grillbot.Services.TeamSearch
         {
             var searches = Repository.GetAllSearches(channelID.ToString());
             await BatchCleanAsync(searches, reply);
+        }
+
+        public void Dispose()
+        {
+            Repository.Dispose();
         }
     }
 }

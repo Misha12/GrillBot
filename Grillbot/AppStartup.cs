@@ -83,7 +83,7 @@ namespace Grillbot
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 100000
+                MessageCacheSize = 50000
             };
 
             var commandsConfig = new CommandServiceConfig()
@@ -101,7 +101,8 @@ namespace Grillbot
                 .AddSingleton<ReactionAddedHandler>()
                 .AddSingleton<ReactionRemovedHandler>()
                 .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<UserLeftHandler>();
+                .AddSingleton<UserLeftHandler>()
+                .AddSingleton<CommandExecutedHandler>();
 
             services
                 .AddSingleton(new CommandService(commandsConfig))
@@ -116,10 +117,8 @@ namespace Grillbot
                 .AddSingleton<Logger>()
                 .AddSingleton<IMessageCache, MessageCache>()
                 .AddSingleton<InitService>()
-                .AddSingleton<ChannelStats>()
                 .AddSingleton<EmoteStats>()
-                .AddSingleton<PermissionsManager>()
-                .AddTransient<ChannelboardWeb>();
+                .AddSingleton<PermissionsManager>();
 
             services
                 .AddMemeImages()

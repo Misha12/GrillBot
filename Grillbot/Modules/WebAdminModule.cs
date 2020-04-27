@@ -80,5 +80,13 @@ namespace Grillbot.Modules
         {
             return Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                Repository.Dispose();
+
+            base.Dispose(disposing);
+        }
     }
 }

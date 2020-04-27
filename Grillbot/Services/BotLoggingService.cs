@@ -11,10 +11,11 @@ using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Initiable;
 
 namespace Grillbot.Services
 {
-    public class BotLoggingService : IDisposable
+    public class BotLoggingService : IDisposable, IInitiable
     {
         public const int MessageSizeForException = 1980;
 
@@ -30,15 +31,8 @@ namespace Grillbot.Services
             Client = client;
             Commands = commands;
             Logger = logger;
-            Init(config.Value);
+            LogRoom = config.Value.Discord.ErrorLogChannelIDSnowflake;
             Services = services;
-            Client.Log += OnLogAsync;
-            Commands.Log += OnLogAsync;
-        }
-
-        private void Init(Configuration config)
-        {
-            LogRoom = config.Discord.ErrorLogChannelIDSnowflake;
         }
 
         private async Task OnLogAsync(LogMessage message)
@@ -83,11 +77,6 @@ namespace Grillbot.Services
                     await channel.SendMessageAsync($"```{part}```");
                 }
             }
-        }
-
-        public void ConfigChanged(Configuration newConfig)
-        {
-            Init(newConfig);
         }
 
         private bool CanSendExceptionToDiscord(LogMessage message)
@@ -147,5 +136,13 @@ namespace Grillbot.Services
         {
             return exception?.InnerException != null && exception.InnerException is BotCommandInfoException;
         }
+
+        public void Init()
+        {
+            Client.Log += OnLogAsync;
+            Commands.Log += OnLogAsync;
+        }
+
+        public async Task InitAsync() { }
     }
 }

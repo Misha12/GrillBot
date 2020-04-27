@@ -8,7 +8,7 @@ using System;
 
 namespace Grillbot.Services.Channelboard
 {
-    public class ChannelboardWeb
+    public class ChannelboardWeb : IDisposable
     {
         private ConfigRepository ConfigRepository { get; }
         private IMemoryCache Cache { get; }
@@ -37,6 +37,11 @@ namespace Grillbot.Services.Channelboard
                 return item;
 
             return null;
+        }
+
+        public void Dispose()
+        {
+            ConfigRepository.Dispose();
         }
     }
 }

@@ -7,7 +7,7 @@ using System.Linq;
 
 namespace Grillbot.Services.MemeImages
 {
-    public class MemeImagesService
+    public class MemeImagesService : IDisposable
     {
         private ConfigRepository ConfigRepository { get; }
         private Random Random { get; }
@@ -32,6 +32,11 @@ namespace Grillbot.Services.MemeImages
 
             var randomValue = Random.Next(files.Count);
             return files[randomValue];
+        }
+
+        public void Dispose()
+        {
+            ConfigRepository.Dispose();
         }
     }
 }

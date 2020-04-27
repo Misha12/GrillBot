@@ -42,5 +42,13 @@ namespace Grillbot.Controllers
             var data = await ChannelStats.GetChannelboardDataAsync(guild, user);
             return View(new ChannelboardViewModel(guild, user, data));
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                ChannelboardWeb.Dispose();
+
+            base.Dispose(disposing);
+        }
     }
 }

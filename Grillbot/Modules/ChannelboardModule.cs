@@ -96,5 +96,13 @@ namespace Grillbot.Modules
             await ReplyChunkedAsync(clearedChannels, 10);
             await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                ChannelboardWeb.Dispose();
+
+            base.Dispose(disposing);
+        }
     }
 }

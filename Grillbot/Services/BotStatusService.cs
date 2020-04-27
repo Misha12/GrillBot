@@ -3,6 +3,7 @@ using Grillbot.Helpers;
 using Grillbot.Models.BotStatus;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
+using System;
 using System.Collections.Generic;
 using System.Diagnostics;
 using System.Linq;
@@ -10,7 +11,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class BotStatusService
+    public class BotStatusService : IDisposable
     {
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
@@ -66,6 +67,11 @@ namespace Grillbot.Services
         public async Task<Dictionary<string, int>> GetDbReport()
         {
             return await Repository.GetTableRowsCount().ConfigureAwait(false);
+        }
+
+        public void Dispose()
+        {
+            Repository.Dispose();
         }
     }
 }

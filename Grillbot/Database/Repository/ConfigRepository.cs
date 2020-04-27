@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Exceptions;
@@ -118,7 +119,7 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
         }
 
-        public void IncrementUsageCounter(SocketGuild guild, string group, string command)
+        public void IncrementUsageCounter(IGuild guild, string group, string command)
         {
             if (guild == null)
                 return;

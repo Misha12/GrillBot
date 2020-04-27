@@ -84,5 +84,13 @@ namespace Grillbot.Modules
             await Repository.RemoveAsync(Context.User, Context.Guild.Id.ToString()).ConfigureAwait(false);
             await ReplyAsync("Datum narození bylo odebráno.").ConfigureAwait(false);
         }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                Repository.Dispose();
+
+            base.Dispose(disposing);
+        }
     }
 }
