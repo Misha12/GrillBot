@@ -5,8 +5,8 @@
   - Instalation: https://www.microsoft.com/en-us/sql-server/sql-server-downloads 
 - Microsoft Visual Studio (2017 and later) (or another IDE supports .NET)
   - Visual studio instalation: https://docs.microsoft.com/cs-cz/visualstudio/install/install-visual-studio?view=vs-2019
-- .NET Core 2.2 (with ASP\.NET Core 2.2)
-  - https://dotnet.microsoft.com/download/dotnet-core/2.2
+- .NET Core 3.1 (with ASP\.NET Core 3.1)
+  - https://dotnet.microsoft.com/download/dotnet-core/3.1
 
 ## Continuous integration
 [![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/Misha12.GrillBot?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=8&branchName=master)
@@ -14,17 +14,17 @@
 ## Used NuGet packages
 
 ### GrillBot
-- Discord.NET
-- Discord.Addons.Interactive
-- Microsoft.AspNetCore.App
-- Microsoft.AspNetCore.Razor.Design
-- Microsoft.EntityFrameworkCore.SqlServer
-- Microsoft.VisualStudio.CodeGeneration.Design
-- UnicodeEmoji.NET
+- [Discord.NET](https://www.nuget.org/packages/Discord.Net/)
+- [Discord.Addons.Interactive](https://www.nuget.org/packages/Discord.Addons.Interactive/)
+- [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
+- [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
+- [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/5.0.0-preview.3.20207.1)
+- [UnicodeEmoji.NET](https://www.nuget.org/packages/UnicodeEmoji.net/)
+- [BCrypt.Net-Next](https://www.nuget.org/packages/BCrypt.Net-Next/)
 
 ### GrillBotMath
-- Newtonsoft.JSON
-- MathParser.org-mXParser
+- [Newtonsoft.JSON](https://www.nuget.org/packages/Newtonsoft.Json/)
+- [MathParser.org-mXParser](https://www.nuget.org/packages/MathParser.org-mXparser/)
 
 ## Database
 You can create database with scripts in `GrillBot-DB` project. If you're using Visual Studio on Windows, you can create migration script for your SQL Server instance.
@@ -45,7 +45,7 @@ You can create database with scripts in `GrillBot-DB` project. If you're using V
 |Administrators|string[]|List of bot administrators. Can use bot independently of roles. Value is user ID.|
 |EmoteChain_CheckLastCount|int|Count of same emotes before bot send emote.|
 |Discord|[Config.Discord](#Config.Discord)|Service configuration|
-|Log|[Config.Log](#Config.Log)|Logging configuration|
+|ConnectionStrings|KeyValuePair<string, string>|Database connection strings
 
 #### Config.Discord
 For properties **Token**, **ClientId**, **ClientSecret** you will need to create your own Discord Application to get a Token for local development.
@@ -60,12 +60,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 |ClientSecret|string|Secret key for authentication in Discord OAuth service.|
 |ServerBoosterRoleId|string|ID of role with Nitro Server Booster role.|
 |AdminChannelID|string|ID of channel for administration purposes.
-
-#### Config.Log
-
-|Key|Type|Description|
-|---|---|---|
-|LogRoomID|string|ID of channel to send logging data such as errors.
+|ErrorLogChannelID|string|ID of channel for logging errors.
 
 ## GrillBotMath
 To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
