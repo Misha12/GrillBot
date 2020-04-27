@@ -10,9 +10,9 @@ namespace Grillbot.Extensions.Discord
 {
     public static class GuildExtensions
     {
-        public static async Task<List<RestAuditLogEntry>> GetAuditLogDataAsync(this SocketGuild guild, int count = 5)
+        public static async Task<List<RestAuditLogEntry>> GetAuditLogDataAsync(this SocketGuild guild, int count = 5, ActionType? actionType = null)
         {
-            return (await guild.GetAuditLogsAsync(count).FlattenAsync().ConfigureAwait(false)).ToList();
+            return (await guild.GetAuditLogsAsync(count, actionType: actionType).FlattenAsync().ConfigureAwait(false)).ToList();
         }
 
         public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string userId)

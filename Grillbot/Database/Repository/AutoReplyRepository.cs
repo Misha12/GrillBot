@@ -1,5 +1,4 @@
 ﻿using Grillbot.Database.Entity;
-using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -19,7 +18,7 @@ namespace Grillbot.Database.Repository
 
         public async Task SetActiveStatusAsync(int id, bool disabled)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
+            var item = Context.AutoReply.FirstOrDefault(o => o.ID == id);
 
             if (item == null)
                 return;
@@ -36,7 +35,7 @@ namespace Grillbot.Database.Repository
 
         public async Task EditItemAsync(int id, string mustContains, string reply, string compareType, bool caseSensitive)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
+            var item = Context.AutoReply.FirstOrDefault(o => o.ID == id);
 
             if (item == null)
                 return;
@@ -51,7 +50,7 @@ namespace Grillbot.Database.Repository
 
         public async Task RemoveItemAsync(int id)
         {
-            var item = await Context.AutoReply.FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
+            var item = Context.AutoReply.FirstOrDefault(o => o.ID == id);
 
             if (item == null)
                 return;

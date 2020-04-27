@@ -10,7 +10,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.IO;
-using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
 
@@ -56,9 +55,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
             if (channel is SocketGuildChannel socketGuildChannel)
             {
                 var logs = await GetAuditLogDataAsync(socketGuildChannel.Guild).ConfigureAwait(false);
-                var messageDeletedRecords = logs.Where(o => o.Action == ActionType.MessageDeleted).ToList();
 
-                return messageDeletedRecords.Find(o =>
+                return logs.Find(o =>
                 {
                     var data = (MessageDeleteAuditLogData)o.Data;
                     return data.AuthorId == authorID && data.ChannelId == channel.Id;
@@ -72,7 +70,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         {
             try
             {
-                return await guild.GetAuditLogDataAsync().ConfigureAwait(false);
+                return await guild.GetAuditLogDataAsync(actionType: ActionType.MessageDeleted).ConfigureAwait(false);
             }
             catch (Exception ex)
             {

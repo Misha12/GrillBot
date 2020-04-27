@@ -57,11 +57,11 @@ namespace Grillbot.Modules
 
             if (DateTime.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
             {
-                await Repository.AddBirthdayAsync(true, dateTime.Date, Context).ConfigureAwait(false);
+                await Repository.AddBirthdayAsync(true, dateTime.Date, Context.Guild.Id, Context.Message.Author.Id).ConfigureAwait(false);
             }
             else if (DateTime.TryParseExact(date, "dd/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
             {
-                await Repository.AddBirthdayAsync(false, dateTime.Date, Context).ConfigureAwait(false);
+                await Repository.AddBirthdayAsync(false, dateTime.Date, Context.Guild.Id, Context.Message.Author.Id).ConfigureAwait(false);
             }
             else
             {

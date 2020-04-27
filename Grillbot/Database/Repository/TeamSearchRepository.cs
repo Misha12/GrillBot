@@ -13,7 +13,8 @@ namespace Grillbot.Database.Repository
 
         public List<TeamSearch> GetSearches(int[] ids)
         {
-            return Context.TeamSearch.Where(o => ids.Contains(o.Id)).ToList();
+            var query = Queryable.Where(Context.TeamSearch, o => ids.Contains(o.Id));
+            return query.ToList();
         }
 
         public List<TeamSearch> GetAllSearches(string channelID)

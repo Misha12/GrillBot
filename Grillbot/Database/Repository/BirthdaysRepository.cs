@@ -1,7 +1,5 @@
-﻿using Discord.Commands;
-using Discord.WebSocket;
+﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,13 +13,13 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task<Birthday> AddBirthdayAsync(bool acceptAge, DateTime date, SocketCommandContext context)
+        public async Task<Birthday> AddBirthdayAsync(bool acceptAge, DateTime date, ulong guildID, ulong authorID)
         {
             var entity = new Birthday()
             {
                 Date = date.Date,
-                GuildIDSnowflake = context.Guild.Id,
-                IDSnowflake = context.Message.Author.Id,
+                GuildIDSnowflake = guildID,
+                IDSnowflake = authorID,
                 AcceptAge = acceptAge
             };
 
@@ -35,8 +33,8 @@ namespace Grillbot.Database.Repository
         {
             var result = new List<Birthday>();
 
-            var query = Context.Birthdays.Where(o => o.GuildID == guildID);
-            foreach (var birthday in await query.ToListAsync().ConfigureAwait(false))
+            var query = Queryable.Where(Context.Birthdays, o => o.GuildID == guildID);
+            foreach (var birthday in query.ToList())
             {
                 if (birthday.Date.Day == date.Day && birthday.Date.Month == date.Month)
                 {
@@ -50,13 +48,13 @@ namespace Grillbot.Database.Repository
         public async Task<bool> ExistsUserAsync(SocketUser user, string guildID)
         {
             var userID = user.Id.ToString();
-            return await Context.Birthdays.AnyAsync(o => o.GuildID == guildID && o.ID == userID).ConfigureAwait(false);
+            return Context.Birthdays.Any(o => o.GuildID == guildID && o.ID == userID);
         }
 
         public async Task RemoveAsync(SocketUser user, string guildID)
         {
             var userID = user.Id.ToString();
-            var entity = await Context.Birthdays.FirstOrDefaultAsync(o => o.GuildID == guildID && o.ID == userID).ConfigureAwait(false);
+            var entity = Context.Birthdays.FirstOrDefault(o => o.GuildID == guildID && o.ID == userID);
 
             if (entity == null) return;
 

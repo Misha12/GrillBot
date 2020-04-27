@@ -95,7 +95,10 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("ID oblasti (Hovory)").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Úroveň MFA").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Filtr explicitního obsahu").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true)
+                    new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Extra funkce").WithValue(guild.Features.Count == 0 ? "-" : string.Join(", ", guild.Features)),
+                    new EmbedFieldBuilder().WithName("Tier").WithValue(guild.PremiumTier.ToString()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet boosterů").WithValue(guild.PremiumSubscriptionCount).WithIsInline(true)
                 );
 
             await ReplyAsync(embed: embed.Build());
@@ -178,7 +181,9 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
-                    new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles))
+                    new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles)),
+                    new EmbedFieldBuilder().WithName("Boost od").WithValue(!user.PremiumSince.HasValue ? "Boost nenalezen" : user.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()),
+                    new EmbedFieldBuilder().WithName("Aktivní klienti").WithValue(string.Join(", ", user.ActiveClients.Select(o => o.ToString())))
                 );
 
             await ReplyAsync(embed: embed.Build());
