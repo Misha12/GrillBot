@@ -37,30 +37,30 @@ You can create database with scripts in `GrillBot-DB` project. If you're using V
 ### Models
 #### Config
 
-|Key|Type|Description|
-|---|---|---|
-|AllowedHosts|string|Semicollon delimited list of allowed hostnames without port numbers.|
-|CommandPrefix|string|Message content, that must starts to invoke command.|
-|Database|string|Connection string to MSSQL database.|
-|Administrators|string[]|List of bot administrators. Can use bot independently of roles. Value is user ID.|
-|EmoteChain_CheckLastCount|int|Count of same emotes before bot send emote.|
-|Discord|[Config.Discord](#Config.Discord)|Service configuration|
-|ConnectionStrings|KeyValuePair<string, string>|Database connection strings
+| Key                       | Type                              | Description                                                                       |
+| ------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
+| AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.              |
+| CommandPrefix             | string                            | Message content, that must starts to invoke command.                              |
+| Database                  | string                            | Connection string to MSSQL database.                                              |
+| Administrators            | string[]                          | List of bot administrators. Can use bot independently of roles. Value is user ID. |
+| EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                       |
+| Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                             |
+| ConnectionStrings         | KeyValuePair<string, string>      | Database connection strings                                                       |
 
 #### Config.Discord
 For properties **Token**, **ClientId**, **ClientSecret** you will need to create your own Discord Application to get a Token for local development.
 
-|Key|Type|Description|
-|---|---|---|
-|Activity|string|Now playing game info.|
-|Token|string|Login token|
-|UserJoinedMessage|string|Message, that will be sent, when user joined to guild.|
-|LoggerRoomID|string|ID of channel to send logging data (MessageEdited, MessageDeleted, ...).|
-|ClientId|string|ID of application in discord OAuth Service.|
-|ClientSecret|string|Secret key for authentication in Discord OAuth service.|
-|ServerBoosterRoleId|string|ID of role with Nitro Server Booster role.|
-|AdminChannelID|string|ID of channel for administration purposes.
-|ErrorLogChannelID|string|ID of channel for logging errors.
+| Key                 | Type   | Description                                                              |
+| ------------------- | ------ | ------------------------------------------------------------------------ |
+| Activity            | string | Now playing game info.                                                   |
+| Token               | string | Login token                                                              |
+| UserJoinedMessage   | string | Message, that will be sent, when user joined to guild.                   |
+| LoggerRoomID        | string | ID of channel to send logging data (MessageEdited, MessageDeleted, ...). |
+| ClientId            | string | ID of application in discord OAuth Service.                              |
+| ClientSecret        | string | Secret key for authentication in Discord OAuth service.                  |
+| ServerBoosterRoleId | string | ID of role with Nitro Server Booster role.                               |
+| AdminChannelID      | string | ID of channel for administration purposes.                               |
+| ErrorLogChannelID   | string | ID of channel for logging errors.                                        |
 
 ## GrillBotMath
 To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
