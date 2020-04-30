@@ -4,6 +4,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
@@ -17,21 +18,16 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
+        private PaginationService PaginationService { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, ChannelStats channelStats, Logger logger, InternalStatistics internalStatistics)
+        public MessageDeletedHandler(DiscordSocketClient client, ChannelStats channelStats, Logger logger, InternalStatistics internalStatistics,
+            PaginationService paginationService)
         {
             Client = client;
             Statistics = channelStats;
             Logger = logger;
             InternalStatistics = internalStatistics;
-        }
-
-        private async Task OnMessageBulkDeletedAsync(IReadOnlyCollection<Cacheable<IMessage, ulong>> messages, ISocketMessageChannel channel)
-        {
-            foreach (var message in messages)
-            {
-                await OnMessageDeletedAsync(message, channel);
-            }
+            PaginationService = paginationService;
         }
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -43,18 +39,17 @@ namespace Grillbot.Handlers
                 await Statistics.DecrementCounterAsync(socketGuildChannel);
 
             await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);
+            PaginationService.DeleteEmbed(message.Id);
         }
 
         public void Dispose()
         {
             Client.MessageDeleted -= OnMessageDeletedAsync;
-            Client.MessagesBulkDeleted -= OnMessageBulkDeletedAsync;
         }
 
         public void Init()
         {
             Client.MessageDeleted += OnMessageDeletedAsync;
-            Client.MessagesBulkDeleted += OnMessageBulkDeletedAsync;
         }
 
         public async Task InitAsync() { }

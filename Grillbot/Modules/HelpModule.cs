@@ -4,15 +4,15 @@ using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Discord.WebSocket;
 using Grillbot.Services.Preconditions;
 using System.Collections.Generic;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
-using Discord.Addons.Interactive;
 using Grillbot.Models.Embed;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 
 namespace Grillbot.Modules
 {
@@ -25,20 +25,25 @@ namespace Grillbot.Modules
         private CommandService CommandService { get; }
         private IServiceProvider Services { get; }
 
-        public HelpModule(CommandService commandService, IOptions<Configuration> config, IServiceProvider services) : base(config)
+        public HelpModule(CommandService commandService, IOptions<Configuration> config, IServiceProvider services,
+            PaginationService paginationService) : base(config, paginationService: paginationService)
         {
             CommandService = commandService;
             Services = services;
         }
 
         [Command("")]
+        [Summary("Globální nápověda")]
         public async Task HelpAsync()
         {
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
             var pages = new List<string>();
+            var pagesList = new List<PaginatedEmbedPage>();
+
             foreach (var module in CommandService.Modules)
             {
+                var page = new PaginatedEmbedPage($"**{module.Name}**");
                 var descBuilder = new StringBuilder();
 
                 foreach (var cmd in module.Commands)
@@ -56,36 +61,31 @@ namespace Grillbot.Modules
                             .Append(cmd.Name).Append(' ')
                             .Append(string.Join(" ", cmd.Parameters.Select(o => "{" + o.Name + "}")));
 
-                        if (!string.IsNullOrEmpty(cmd.Summary))
-                            descBuilder.Append(" - ").AppendLine(cmd.Summary);
-                        else
-                            descBuilder.AppendLine();
+                        var builder = new EmbedFieldBuilder()
+                            .WithName(descBuilder.ToString())
+                            .WithValue(string.IsNullOrEmpty(cmd.Summary) ? "-" : cmd.Summary);
+
+                        page.AddField(builder);
+                        descBuilder.Clear();
                     }
                 }
 
-                if (descBuilder.Length > 0)
-                {
-                    descBuilder.Insert(0, $"**{module.Name}**:\n");
-                    pages.Add(descBuilder.ToString());
-                }
+                if (page.Fields.Count > 0) pagesList.Add(page);
             }
 
-            var paginated = new PaginatedMessage()
+            var embed = new PaginatedEmbed()
             {
-                Color = Color.Blue,
-                Pages = pages,
-                Title = $"Nápověda pro uživatele {user.GetFullName()} ({GetBotBestPermissions(user)})",
-                Options = new PaginatedAppearanceOptions()
-                {
-                    DisplayInformationIcon = false,
-                    Stop = null
-                }
+                Title = "Nápověda",
+                Pages = pagesList,
+                ResponseFor = Context.User,
+                Thumbnail = Context.Client.CurrentUser.GetUserAvatarUrl()
             };
 
-            await PagedReplyAsync(paginated);
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("")]
+        [Summary("Nápověda k jednomu příkazu.")]
         public async Task HelpAsync([Remainder] string command)
         {
             var result = CommandService.Search(Context, command);
@@ -141,19 +141,6 @@ namespace Grillbot.Modules
                 embed.WithDescription($"Na metodu **{command.PreventMassTags()}** nemáš potřebná oprávnění.");
 
             await ReplyAsync(embed: embed.Build());
-        }
-
-        private string GetBotBestPermissions(SocketUser user)
-        {
-            if (Config.IsUserBotAdmin(user.Id))
-                return "BotAdmin";
-
-            if (user is SocketGuildUser sgUser)
-            {
-                return sgUser.Roles.FirstOrDefault(o => o.Position == sgUser.Roles.Max(x => x.Position))?.Name;
-            }
-
-            return "-";
         }
     }
 }

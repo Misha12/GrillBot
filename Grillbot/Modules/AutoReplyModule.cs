@@ -1,11 +1,13 @@
 ﻿using Discord;
-using Discord.Addons.Interactive;
 using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Helpers;
+using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
+using Grillbot.Services;
 using Grillbot.Services.AutoReply;
 using Grillbot.Services.Preconditions;
+using Microsoft.AspNetCore.Mvc.RazorPages;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +23,7 @@ namespace Grillbot.Modules
     {
         private AutoReplyService Service { get; }
 
-        public AutoReplyModule(AutoReplyService service)
+        public AutoReplyModule(AutoReplyService service, PaginationService paginationService) : base(paginationService: paginationService)
         {
             Service = service;
         }
@@ -35,33 +37,33 @@ namespace Grillbot.Modules
             if (data.Count == 0)
                 throw new BotCommandInfoException("Ještě nejsou uloženy žádné odpovědi.");
 
-            var pages = new List<string>();
+            var pages = new List<PaginatedEmbedPage>();
             foreach (var item in data)
             {
-                pages.Add(string.Join("\n", new[] {
-                    $"**{item.ID} - {item.MustContains}**",
-                    $"Odpověď: {item.Reply}",
-                    $"Status: {(item.IsActive ? "Aktivní" : "Neaktivní")}",
-                    $"Metoda: {item.CompareType}",
-                    $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
-                    $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}",
-                    $"Kanál: {item.Channel}"
-                }));
+                var page = new PaginatedEmbedPage($"**{item.ID} - {item.MustContains}**");
+
+                var builder = new EmbedFieldBuilder()
+                    .WithName($"Odpověď: {item.Reply}")
+                    .WithValue(string.Join("\n", new[] {
+                        $"Status: {(item.IsActive ? "Aktivní" : "Neaktivní")}",
+                        $"Metoda: {item.CompareType}",
+                        $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
+                        $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}",
+                        $"Kanál: {item.Channel}"
+                    }));
+
+                page.AddField(builder);
+                pages.Add(page);
             }
 
-            var paginated = new PaginatedMessage()
+            var embed = new PaginatedEmbed()
             {
-                Pages = pages,
                 Title = "Automatické odpovědi",
-                Color = Color.Blue,
-                Options = new PaginatedAppearanceOptions()
-                {
-                    DisplayInformationIcon = false,
-                    Stop = null
-                }
+                ResponseFor = Context.User,
+                Pages = pages
             };
 
-            await PagedReplyAsync(paginated);
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("disable")]

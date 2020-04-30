@@ -1,10 +1,12 @@
 ﻿using Discord;
-using Discord.Addons.Interactive;
+using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -12,15 +14,17 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    public abstract class BotModuleBase : InteractiveBase, IDisposable
+    public abstract class BotModuleBase : ModuleBase<SocketCommandContext>, IDisposable
     {
         protected Configuration Config { get; }
         protected ConfigRepository ConfigRepository { get; }
+        private PaginationService PaginationService { get; }
 
-        protected BotModuleBase(IOptions<Configuration> config = null, ConfigRepository configRepository = null)
+        protected BotModuleBase(IOptions<Configuration> config = null, ConfigRepository configRepository = null, PaginationService paginationService = null)
         {
             Config = config?.Value;
             ConfigRepository = configRepository;
+            PaginationService = paginationService;
         }
 
         protected TConfig GetMethodConfig<TConfig>(string group, string command) where TConfig : class
@@ -69,6 +73,14 @@ namespace Grillbot.Modules
                 var message = string.Join(separator, group);
                 await ReplyAsync(message);
             }
+        }
+
+        protected async Task SendPaginatedEmbedAsync(PaginatedEmbed embed)
+        {
+            if (PaginationService == null)
+                throw new InvalidOperationException("Paginated embed requires PaginationService");
+
+            await PaginationService.SendPaginatedMessage(embed, async embed => await ReplyAsync(embed: embed));
         }
 
         #region IDisposable Support

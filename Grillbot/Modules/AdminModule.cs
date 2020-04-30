@@ -208,7 +208,10 @@ namespace Grillbot.Modules
                 }
 
                 MessageCache.TryBulkDelete(messages.Select(o => o.Id));
-                await ReplyAndDeleteAsync($"Počet smazaných zpráv: {messages.Count()}", timeout: TimeSpan.FromSeconds(10));
+                
+                var message = await ReplyAsync($"Počet smazaných zpráv: {messages.Count()}");
+                await Task.Delay(TimeSpan.FromSeconds(10));
+                await message.DeleteAsync();
             }
         }
     }

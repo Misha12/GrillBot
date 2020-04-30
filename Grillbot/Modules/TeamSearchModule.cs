@@ -1,16 +1,15 @@
-using System;
 using System.Collections.Generic;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
-using Discord.Addons.Interactive;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
@@ -24,10 +23,9 @@ namespace Grillbot.Modules
     {
         private TeamSearchService TeamSearchService { get; }
 
-        private const uint MaxPageSize = 1980;
-
-        public TeamSearchModule(IOptions<Configuration> options, ConfigRepository configRepository, TeamSearchService teamSearchService)
-            : base(options, configRepository)
+        public TeamSearchModule(IOptions<Configuration> options, ConfigRepository configRepository, TeamSearchService teamSearchService,
+            PaginationService paginationService)
+            : base(options, configRepository, paginationService)
         {
             TeamSearchService = teamSearchService;
         }
@@ -58,39 +56,35 @@ namespace Grillbot.Modules
             if (searches.Count == 0)
                 throw new BotCommandInfoException("Zatím nikdo nic nehledá.");
 
-            var pages = new List<string>();
-            var pageBuilder = new StringBuilder();
+            var pages = new List<PaginatedEmbedPage>();
+            var currentPage = new List<EmbedFieldBuilder>();
 
             foreach (var search in searches)
             {
-                string message = string.Format("ID: **{0}** - **{1}** v **{2}** hledá: \"{3}\" [Jump]({4})",
-                    search.ID, search.ShortUsername, search.ChannelName, search.Message, search.MessageLink);
+                var builder = new EmbedFieldBuilder()
+                    .WithName($"**{search.ID}**  - **{search.ShortUsername}** v **{search.ChannelName}**")
+                    .WithValue($"\"{search.Message}\" [Jump]({search.MessageLink})");
 
-                if (pageBuilder.Length + message.Length > MaxPageSize)
+                currentPage.Add(builder);
+
+                if(currentPage.Count == EmbedBuilder.MaxFieldCount)
                 {
-                    pages.Add(pageBuilder.ToString());
-                    pageBuilder.Clear();
+                    pages.Add(new PaginatedEmbedPage(null, new List<EmbedFieldBuilder>(currentPage)));
+                    currentPage.Clear();
                 }
-
-                pageBuilder.AppendLine(message);
             }
 
-            if (pageBuilder.Length != 0)
-                pages.Add(pageBuilder.ToString());
+            if (currentPage.Count != 0)
+                pages.Add(new PaginatedEmbedPage(null, new List<EmbedFieldBuilder>(currentPage)));
 
-            var paginated = new PaginatedMessage()
+            var embed = new PaginatedEmbed()
             {
                 Pages = pages,
-                Color = Color.Blue,
-                Title = $"Hledání v {Context.Channel.Name}",
-                Options = new PaginatedAppearanceOptions()
-                {
-                    DisplayInformationIcon = false,
-                    Stop = null
-                }
+                ResponseFor = Context.User,
+                Title = $"Hledání v {Context.Channel.Name}"
             };
 
-            await PagedReplyAsync(paginated);
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("remove")]

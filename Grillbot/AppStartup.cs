@@ -9,7 +9,6 @@ using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Discord.Addons.Interactive;
 using Grillbot.Services.Math;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Middleware.DiscordUserAuthorization;
@@ -110,7 +109,6 @@ namespace Grillbot
                 .AddSingleton<BotLoggingService>()
                 .AddSingleton<AutoReplyService>()
                 .AddSingleton<EmoteChain>()
-                .AddSingleton<InteractiveService>()
                 .AddSingleton<CReferenceService>()
                 .AddSingleton<MathService>()
                 .AddTransient<BotStatusService>()
@@ -118,7 +116,8 @@ namespace Grillbot
                 .AddSingleton<IMessageCache, MessageCache>()
                 .AddSingleton<InitService>()
                 .AddSingleton<EmoteStats>()
-                .AddSingleton<PermissionsManager>();
+                .AddSingleton<PermissionsManager>()
+                .AddSingleton<PaginationService>();
 
             services
                 .AddMemeImages()
