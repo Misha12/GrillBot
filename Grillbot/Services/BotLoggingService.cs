@@ -12,6 +12,8 @@ using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
+using System.IO;
+using System.Net.Sockets;
 
 namespace Grillbot.Services
 {
@@ -45,7 +47,7 @@ namespace Grillbot.Services
         {
             if (!CanSendExceptionToDiscord(message)) return;
 
-            if(message.Exception is CommandException ce)
+            if (message.Exception is CommandException ce)
             {
                 if (IsThrowHelpException(ce))
                 {
@@ -54,13 +56,13 @@ namespace Grillbot.Services
                     return;
                 }
 
-                if(IsConfigException(ce))
+                if (IsConfigException(ce))
                 {
                     await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config");
                     return;
                 }
 
-                if(IsBotCommandException(ce))
+                if (IsBotCommandException(ce))
                 {
                     await ce.Context.Channel.SendMessageAsync(ce.InnerException.Message.PreventMassTags());
                     return;
@@ -72,29 +74,22 @@ namespace Grillbot.Services
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
             {
-                foreach(var part in parts)
+                foreach (var part in parts)
                 {
                     await channel.SendMessageAsync($"```{part}```");
                 }
             }
         }
 
-        private bool CanSendExceptionToDiscord(LogMessage message)
-        {
-            return message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);
-        }
+        private bool CanSendExceptionToDiscord(LogMessage message) => message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);
 
         private bool IsSupressedException(Exception exception)
         {
             if (IsWebSocketException(exception)) return true;
             if (exception.InnerException == null && exception.Message.StartsWith("Server requested a reconnect", StringComparison.InvariantCultureIgnoreCase)) return true;
+            if (exception is TaskCanceledException && exception.InnerException is IOException iOException && iOException.InnerException is SocketException) return true;
 
             return false;
-        }
-
-        private bool IsWebSocketException(Exception ex)
-        {
-            return ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
         }
 
         public void Dispose()
@@ -105,7 +100,7 @@ namespace Grillbot.Services
 
         public void Write(LogSeverity severity, string message, string source = "", Exception exception = null)
         {
-            if (exception is CommandException ce && IsThrowHelpException(ce)) return;
+            if (!CanLogException(exception)) return;
 
             switch (severity)
             {
@@ -122,20 +117,24 @@ namespace Grillbot.Services
             }
         }
 
-        private bool IsThrowHelpException(CommandException exception)
+        private bool CanLogException(Exception exception)
         {
-            return exception?.InnerException != null && exception.InnerException is ThrowHelpException;
+            if (exception == null)
+                return true;
+
+            if (exception is CommandException ce)
+            {
+                if (IsThrowHelpException(ce) || IsConfigException(ce) || IsBotCommandException(ce))
+                    return false;
+            }
+
+            return true;
         }
 
-        private bool IsConfigException(CommandException exception)
-        {
-            return exception?.InnerException != null && exception.InnerException is ConfigException;
-        }
-
-        private bool IsBotCommandException(CommandException exception)
-        {
-            return exception?.InnerException != null && exception.InnerException is BotCommandInfoException;
-        }
+        private bool IsThrowHelpException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ThrowHelpException;
+        private bool IsConfigException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ConfigException;
+        private bool IsBotCommandException(CommandException exception) => exception?.InnerException != null && exception.InnerException is BotCommandInfoException;
+        private bool IsWebSocketException(Exception ex) => ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
 
         public void Init()
         {
