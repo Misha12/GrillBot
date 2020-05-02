@@ -10,12 +10,20 @@
             <a asp-controller="Admin" asp-action="TeamSearch" class="nav-item nav-link active mr-2">Hledání týmů</a>
             <a asp-controller="Admin" asp-action="Math" class="nav-item nav-link active mr-2">Výpočty</a>
             <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                <a class="nav-link dropdown-toggle text-white" href="#" id="unverify_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Unverify
                 </a>
-                <div class="dropdown-menu" aria-labelledby="navbarDropdown">
+                <div class="dropdown-menu" aria-labelledby="unverify_navbarDropdown">
                     <a asp-controller="Unverify" asp-action="Index" class="dropdown-item">Aktuální stav</a>
                     <a asp-controller="Unverify" asp-action="Audit" class="dropdown-item">Audit log</a>
+                </div>
+            </li>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" id="users_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Uživatelé
+                </a>
+                <div class="dropdown-menu" aria-labelledby="users_navbarDropdown">
+                    <a asp-controller="Users" asp-action="Index" class="dropdown-item">Webová administrace</a>
                 </div>
             </li>
             <li class="nav-item nav-link">

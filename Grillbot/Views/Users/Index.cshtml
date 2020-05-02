@@ -1,0 +1,27 @@
+﻿@model Grillbot.Models.Users.WebAdminUserListViewModel;
+
+@{
+    ViewData["Title"] = "Uživatelé webové administace";
+}
+
+<section class="mt-3 row d-flex justify-content-center">
+    <div class="col-md-7">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Server</th>
+                    <th>Uživatel</th>
+                </tr>
+            </thead>
+            <tbody>
+                @foreach (var user in Model.Users)
+                {
+                    <tr>
+                        <td>@user.Guild.Name</td>
+                        <td>@user.User.GetFullName()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</section>

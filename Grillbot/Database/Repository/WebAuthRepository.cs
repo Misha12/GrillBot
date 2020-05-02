@@ -1,7 +1,9 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Helpers;
+using Microsoft.EntityFrameworkCore.Internal;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Grillbot.Database.Repository
@@ -14,10 +16,15 @@ namespace Grillbot.Database.Repository
 
         public WebAuthPerm FindPermById(SocketGuild guild, SocketGuildUser user)
         {
-            var guildID = guild.Id.ToString();
-            var userID = user.Id.ToString();
+            return FindPermById(guild.Id, user.Id);
+        }
 
-            return Context.WebAdminPerms.FirstOrDefault(o => o.GuildID == guildID && o.ID == userID);
+        public WebAuthPerm FindPermById(ulong guildID, ulong userID)
+        {
+            var guildId = guildID.ToString();
+            var userId = userID.ToString();
+
+            return Context.WebAdminPerms.FirstOrDefault(o => o.GuildID == guildId && o.ID == userId);
         }
 
         public string AddUser(SocketGuild guild, SocketGuildUser user, string password = null)
@@ -45,13 +52,22 @@ namespace Grillbot.Database.Repository
         {
             CheckUser(user);
 
-            var entity = FindPermById(guild, user);
+            var success = RemoveUser(guild.Id, user.Id);
 
-            if(entity == null)
+            if (!success)
                 throw new ArgumentException("Tento uživatel neměl nikdy přístup.");
+        }
+
+        public bool RemoveUser(ulong guildID, ulong userID)
+        {
+            var entity = FindPermById(guildID, userID);
+
+            if (entity == null)
+                return false;
 
             Context.Remove(entity);
             Context.SaveChanges();
+            return true;
         }
 
         public string ResetPassword(SocketGuild guild, SocketGuildUser user, string password = null)
@@ -76,6 +92,11 @@ namespace Grillbot.Database.Repository
         {
             if (user == null)
                 throw new ArgumentException("Nebyl tagnut žádný uživatel.");
+        }
+
+        public List<WebAuthPerm> GetAllPerms()
+        {
+            return Context.WebAdminPerms.ToList();
         }
     }
 }
