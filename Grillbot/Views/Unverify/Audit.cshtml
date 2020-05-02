@@ -68,7 +68,7 @@
                             <label class="custom-control-label" for="ignoreSelfUnverify">Ignorovat self unverify</label>
                         </div>
                     </div>
-                
+
                     <div class="col-md-6 d-flex justify-content-end">
                         <button type="submit" class="btn btn-primary">Potvrdit</button>
                     </div>
@@ -98,29 +98,35 @@
                         <td>@item.FromUser.GetFullName()</td>
                         <td>@item.ToUser.GetFullName()</td>
                         <td>@item.Guild.Name</td>
-                        <td>
-                            @switch (item.Operation)
-                            {
-                                case UnverifyLogOperation.Update:
-                                    <text>Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.UpdateLogData.Time))</text>
-                                    break;
-                                case UnverifyLogOperation.Set:
-                                    <text>
-                                        Důvod: @item.SetLogData.Reason<br />
-                                        Role: @string.Join(", ", item.SetLogData.Roles.Select(o => o.Name))<br />
-                                        Kanály: @string.Join(", ", item.SetLogData.OverridedChannels.Select(o => o.Name))<br />
-                                        Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.SetLogData.Time))
-                                    </text>
-                                    break;
-                                case UnverifyLogOperation.AutoRemove:
-                                case UnverifyLogOperation.Remove:
-                                    <text>
-                                        Role: @string.Join(", ", item.RemoveLogData.Roles.Select(o => o.Name))<br />
-                                        Kanály: @string.Join(", ", item.RemoveLogData.OverridedChannels.Select(o => o.Name))
-                                    </text>
-                                    break;
-                            }
-                        </td>
+                        @switch (item.Operation)
+                        {
+                            case UnverifyLogOperation.Update:
+                                <td>Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.UpdateLogData.Time))</td>
+                                break;
+                            case UnverifyLogOperation.Set:
+                                <td>
+                                    Důvod: @item.SetLogData.Reason<br />
+
+                                    @if (item.SetLogData.Roles.Count > 0)
+                                    {<text>Role: @string.Join(", ", item.SetLogData.Roles.Select(o => o.Name))</text><br />}
+
+                                    @if (item.SetLogData.OverridedChannels.Count > 0)
+                                    {<text>Kanály: @string.Join(", ", item.SetLogData.OverridedChannels.Select(o => o.Name))<br /></text>}
+
+                                    Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.SetLogData.Time))
+                                </td>
+                                break;
+                            case UnverifyLogOperation.AutoRemove:
+                            case UnverifyLogOperation.Remove:
+                                <td>
+                                    @if (item.RemoveLogData.Roles.Count > 0)
+                                    {<text>Role: @string.Join(", ", item.RemoveLogData.Roles.Select(o => o.Name))<br /></text>}
+
+                                    @if (item.RemoveLogData.OverridedChannels.Count > 0)
+                                    {<text>Kanály: @string.Join(", ", item.RemoveLogData.OverridedChannels.Select(o => o.Name))</text>}
+                                </td>
+                                break;
+                        }
                     </tr>
                 }
             </tbody>
