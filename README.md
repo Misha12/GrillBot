@@ -15,7 +15,6 @@
 
 ### GrillBot
 - [Discord.NET](https://www.nuget.org/packages/Discord.Net/)
-- [Discord.Addons.Interactive](https://www.nuget.org/packages/Discord.Addons.Interactive/)
 - [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
 - [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
 - [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/5.0.0-preview.3.20207.1)
