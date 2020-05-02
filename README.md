@@ -69,4 +69,4 @@ To run the math module in bot, you have to publish GrillBotMath project and set 
 Readme for GrillBot-Web is [Here](GrillBot-Web)
 
 ## Permission system
-Permissions are stored in database in tables `MethodsConfig` and `MethodPerms`. For correct functionality you have to define at lease one administrator in `Config.Administrators`. Then you can use methods `config addMethod` and `config addPermission` to add other methods and permissions. 
+Permission is documented in file [permissions.md](docs/permissions.md).
