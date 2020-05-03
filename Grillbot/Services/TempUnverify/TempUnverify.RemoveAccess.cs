@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.CodeAnalysis;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -47,7 +48,8 @@ namespace Grillbot.Services.TempUnverify
 
             if (ignoreHigherRoles)
             {
-                var botMaxRolePosition = guild.GetUser(Client.CurrentUser.Id).Roles.Max(o => o.Position);
+                var botUser = await guild.GetUserFromGuildAsync(Client.CurrentUser.Id);
+                var botMaxRolePosition = botUser.Roles.Max(o => o.Position);
                 rolesToRemove = rolesToRemove.Where(o => o.Position < botMaxRolePosition).ToList();
             }
 
@@ -60,7 +62,7 @@ namespace Grillbot.Services.TempUnverify
             var overrides = GetChannelOverrides(user);
 
             using var logService = Factories.GetLogService();
-            logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, DateTime.Now, user, fromUser, guild);
+            logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, user, fromUser, guild, ignoreHigherRoles, subjects);
 
             if (subjects == null || subjects.Length == 0)
                 await FindAndToggleMutedRoleAsync(user, guild, true);

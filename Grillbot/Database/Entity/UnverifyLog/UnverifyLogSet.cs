@@ -10,5 +10,7 @@ namespace Grillbot.Database.Entity.UnverifyLog
         public List<ulong> Roles { get; set; }
         public List<ChannelOverride> Overrides { get; set; }
         public string Reason { get; set; }
+        public bool IsSelfUnverify { get; set; }
+        public List<string> Subjects { get; set; }
     }
 }

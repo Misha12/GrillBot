@@ -23,16 +23,18 @@ namespace Grillbot.Services.TempUnverify
             DiscordClient = discordClient;
         }
 
-        public void LogSet(List<ChannelOverride> overrides, List<ulong> roleIDs, int unverifyTime, string reason, DateTime startAt, IUser toUser,
-            IUser fromUser, IGuild guild)
+        public void LogSet(List<ChannelOverride> overrides, List<ulong> roleIDs, int unverifyTime, string reason, IUser toUser, IUser fromUser,
+            IGuild guild, bool isSelfUnverify, string[] subjects)
         {
             var data = new UnverifyLogSet()
             {
                 Overrides = overrides,
                 Reason = reason,
                 Roles = roleIDs,
-                StartAt = startAt,
-                TimeFor = unverifyTime.ToString()
+                StartAt = DateTime.Now,
+                TimeFor = unverifyTime.ToString(),
+                IsSelfUnverify = isSelfUnverify,
+                Subjects = subjects?.ToList() ?? new List<string>()
             };
 
             Save(UnverifyLogOperation.Set, fromUser, toUser, guild, data);
@@ -92,7 +94,7 @@ namespace Grillbot.Services.TempUnverify
                 var auditItem = new UnverifyAuditItem(item, DiscordClient);
 
                 if (filter.IgnoreSelfUnverify && auditItem.Operation == UnverifyLogOperation.Set &&
-                    auditItem.SetLogData.Reason.Equals("self unverify", StringComparison.InvariantCultureIgnoreCase))
+                    auditItem.SetLogData.IsSelfUnverify)
                     continue;
 
                 auditItem.FromUser = await auditItem.Guild.GetUserFromGuildAsync(item.FromUserIDSnowflake);

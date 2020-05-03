@@ -113,7 +113,11 @@
                                     @if (item.SetLogData.OverridedChannels.Count > 0)
                                     {<text>Kanály: @string.Join(", ", item.SetLogData.OverridedChannels.Select(o => o.Name))<br /></text>}
 
-                                    Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.SetLogData.Time))
+                                    @if (item.SetLogData.Subjects.Count > 0)
+                                    {<text>Ponecháno: @string.Join(", ", item.SetLogData.Subjects)</text><br />}
+
+                                    Čas: @TimeSpan.FromSeconds(Convert.ToInt32(item.SetLogData.Time))<br />
+                                    SelfUnverify: @(item.SetLogData.IsSelfUnverify ? "Ano" : "Ne")
                                 </td>
                                 break;
                             case UnverifyLogOperation.AutoRemove:

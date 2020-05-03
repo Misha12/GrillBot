@@ -2,7 +2,9 @@
 using Grillbot.Database.Entity.UnverifyLog;
 using Newtonsoft.Json;
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Runtime.CompilerServices;
 
 namespace Grillbot.Models.TempUnverify.Admin
 {
@@ -34,7 +36,9 @@ namespace Grillbot.Models.TempUnverify.Admin
                         Roles = setData.Roles.Select(o => Guild.GetRole(o)).ToList(),
                         Reason = setData.Reason,
                         StartAt = setData.StartAt,
-                        Time = setData.TimeFor
+                        Time = setData.TimeFor,
+                        IsSelfUnverify = setData.IsSelfUnverify,
+                        Subjects = setData.Subjects ?? new List<string>()
                     };
                     break;
                 case UnverifyLogOperation.Update:
