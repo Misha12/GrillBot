@@ -1,29 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Handlers;
 using Grillbot.Services;
-using Grillbot.Services.Logger;
-using Grillbot.Services.MessageCache;
-using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Grillbot.Services.Math;
-using Grillbot.Services.TempUnverify;
-using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Services.Initiable;
-using Grillbot.Modules.AutoReply;
-using Grillbot.Services.Permissions;
-using Grillbot.Database;
-using Microsoft.EntityFrameworkCore;
-using Grillbot.Database.Repository;
-using Grillbot.Services.Channelboard;
-using Microsoft.Extensions.Logging;
-using Grillbot.Services.TeamSearch;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Services.MemeImages;
-using Grillbot.Services.WebAdmin;
 
 namespace Grillbot
 {
@@ -40,39 +23,19 @@ namespace Grillbot
         {
             services.Configure<Configuration>(Configuration);
 
-            services
-                .AddDbContext<GrillBotContext>(options =>
-                {
-                    options
-                        .UseSqlServer(Configuration.GetConnectionString("Default"));
-                }, ServiceLifetime.Transient, ServiceLifetime.Transient);
+            var connectionString = Configuration.GetConnectionString("Default");
 
             services
-                .AddTransient<AutoReplyRepository>()
-                .AddTransient<BirthdaysRepository>()
-                .AddTransient<BotDbRepository>()
-                .AddTransient<ConfigRepository>()
-                .AddTransient<EmoteStatsRepository>();
-
-            services.AddWebAuthentication();
-
-            services
+                .AddDatabase(connectionString)
+                .AddWebAuthentication()
+                .AddHandlers()
+                .AddLoggers()
                 .AddMemoryCache()
                 .AddCors()
-                .AddLogging(opt =>
-                {
-                    opt
-                        .SetMinimumLevel(LogLevel.Information)
-                        .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
-                        .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
-                        .AddConsole(consoleConfig =>
-                        {
-                            consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
-                            consoleConfig.IncludeScopes = true;
-                        });
-                });
+                .AddMessageCache();
 
-            services.AddControllersWithViews();
+            services
+                .AddControllersWithViews();
 
             var pages = services.AddRazorPages();
 
@@ -94,44 +57,27 @@ namespace Grillbot
             };
 
             services
-                .AddSingleton<GuildMemberUpdatedHandler>()
-                .AddSingleton<MessageDeletedHandler>()
-                .AddSingleton<MessageEditedHandler>()
-                .AddSingleton<MessageReceivedHandler>()
-                .AddSingleton<ReactionAddedHandler>()
-                .AddSingleton<ReactionRemovedHandler>()
-                .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<UserLeftHandler>()
-                .AddSingleton<CommandExecutedHandler>();
-
-            services
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
-                .AddSingleton<BotLoggingService>()
-                .AddSingleton<AutoReplyService>()
-                .AddSingleton<EmoteChain>()
-                .AddSingleton<CReferenceService>()
-                .AddSingleton<MathService>()
-                .AddTransient<BotStatusService>()
-                .AddSingleton<Logger>()
-                .AddSingleton<IMessageCache, MessageCache>()
-                .AddSingleton<InitService>()
-                .AddSingleton<EmoteStats>()
-                .AddSingleton<PermissionsManager>()
-                .AddSingleton<PaginationService>();
+                .AddSingleton<InitService>();
 
             services
+                .AddAutoReply()
+                .AddMath()
+                .AddEmoteChain()
+                .AddCReference()
+                .AddWebAdminServices()
+                .AddStatistics()
+                .AddPermissionsServices()
+                .AddPaginationServices()
                 .AddMemeImages()
                 .AddChannelboard()
                 .AddTempUnverify()
                 .AddTeamSearch()
-                .AddStatistics()
-                .AddWebAdmin();
-
-            services.AddHostedService<GrillBotService>();
+                .AddUserManagement();
 
             services
-                .AddTransient<DcUserAuthorization>();
+                .AddHostedService<GrillBotService>();
         }
 
         public void Configure(IApplicationBuilder app)

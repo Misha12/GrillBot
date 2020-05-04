@@ -42,25 +42,26 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
             switch (allowedAuthType)
             {
                 case DiscordUserAuthorizationType.Everyone:
-                    CheckEveryonePermissions(guild, userId);
+                    await CheckEveryonePermissions(guild, userId);
                     break;
                 case DiscordUserAuthorizationType.OnlyOwner:
                     CheckOwnerPermissions(guild, userId);
                     break;
                 case DiscordUserAuthorizationType.OnlyBot:
-                    CheckBotsPermissions(guild, userId);
+                    await CheckBotsPermissions(guild, userId);
                     break;
                 case DiscordUserAuthorizationType.WithAdministratorPermission:
-                    CheckAdministratorPermissions(guild, userId);
+                    await CheckAdministratorPermissions(guild, userId);
                     break;
             }
 
             return guild;
         }
 
-        private void CheckEveryonePermissions(SocketGuild guild, ulong userID)
+        private async Task CheckEveryonePermissions(SocketGuild guild, ulong userID)
         {
-            if(guild.GetUser(userID) == null)
+            var user = await guild.GetUserFromGuildAsync(userID);
+            if(user == null)
                 throw new ForbiddenAccessException("User defined in authorization header is not on required server.");
         }
 
@@ -70,24 +71,24 @@ namespace Grillbot.Middleware.DiscordUserAuthorization
                 throw new ForbiddenAccessException("This method is allowed only for server owner.");
         }
 
-        private void CheckBotsPermissions(SocketGuild guild, ulong userID)
+        private async Task CheckBotsPermissions(SocketGuild guild, ulong userID)
         {
-            CheckEveryonePermissions(guild, userID);
+            await CheckEveryonePermissions(guild, userID);
 
-            var user = guild.GetUser(userID);
+            var user = await guild.GetUserFromGuildAsync(userID);
 
-            if (!user.IsBot)
+            if (!user.IsUser())
                 throw new ForbiddenAccessException("This method is allowed only for bot users");
         }
 
-        private void CheckAdministratorPermissions(SocketGuild guild, ulong userID)
+        private async Task CheckAdministratorPermissions(SocketGuild guild, ulong userID)
         {
-            CheckEveryonePermissions(guild, userID);
+            await CheckEveryonePermissions(guild, userID);
 
             if (guild.OwnerId == userID)
                 return; // Owner is administrator.
 
-            var user = guild.GetUser(userID);
+            var user = await guild.GetUserFromGuildAsync(userID);
 
             if (!user.Roles.Any(o => o.Permissions.Administrator))
                 throw new ForbiddenAccessException("This method is allowed only for Administrators");

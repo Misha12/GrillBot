@@ -9,23 +9,17 @@ namespace Grillbot.Services.Preconditions
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            var permsManager = (PermissionsManager)services.GetService(typeof(PermissionsManager));
+            using var permsManager = (PermissionsManager)services.GetService(typeof(PermissionsManager));
 
-            switch (permsManager.CheckPermissions(context, command))
+            return (permsManager.CheckPermissions(context, command)) switch
             {
-                case PermissionsResult.MethodNotFound:
-                    return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění."));
-                case PermissionsResult.MissingPermissions:
-                    return Task.FromResult(PreconditionResult.FromError("Na tento příkaz nemáš dostatečnou roli."));
-                case PermissionsResult.OnlyAdmins:
-                    return Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."));
-                case PermissionsResult.PMNotAllowed:
-                    return Task.FromResult(PreconditionResult.FromError("Tento příkaz nelpe provést v soukromé konverzaci."));
-                case PermissionsResult.UserIsBanned:
-                    return Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít."));
-                default:
-                    return Task.FromResult(PreconditionResult.FromSuccess());
-            }
+                PermissionsResult.MethodNotFound => Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění.")),
+                PermissionsResult.MissingPermissions => Task.FromResult(PreconditionResult.FromError("Na tento příkaz nemáš dostatečnou roli.")),
+                PermissionsResult.OnlyAdmins => Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota.")),
+                PermissionsResult.PMNotAllowed => Task.FromResult(PreconditionResult.FromError("Tento příkaz nelpe provést v soukromé konverzaci.")),
+                PermissionsResult.UserIsBanned => Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít.")),
+                _ => Task.FromResult(PreconditionResult.FromSuccess()),
+            };
         }
     }
 }

@@ -18,14 +18,7 @@
                     <a asp-controller="Unverify" asp-action="Audit" class="dropdown-item">Audit log</a>
                 </div>
             </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="users_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Uživatelé
-                </a>
-                <div class="dropdown-menu" aria-labelledby="users_navbarDropdown">
-                    <a asp-controller="Users" asp-action="Index" class="dropdown-item">Webová administrace</a>
-                </div>
-            </li>
+            <a asp-controller="Users" asp-action="Index" class="nav-item nav-link active mr-2">Uživatelé</a>
             <li class="nav-item nav-link">
                 <a asp-controller="Auth" asp-action="Logout" class="text-white">Odhlásit se</a>
             </li>

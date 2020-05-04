@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Logging;
 using System;
@@ -13,14 +14,13 @@ namespace Grillbot.Services.Permissions
     {
         private ILogger<WebAuthenticationService> Logger { get; }
         private DiscordSocketClient DiscordClient { get; }
-        private WebAuthRepository WebAuthRepository { get; }
+        private UserService UserService { get; }
 
-        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client,
-            WebAuthRepository webAuthRepository)
+        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client, UserService userService)
         {
             Logger = logger;
             DiscordClient = client;
-            WebAuthRepository = webAuthRepository;
+            UserService = userService;
         }
 
         public async Task<ClaimsIdentity> Authorize(string username, string password, ulong guildID)
@@ -45,10 +45,8 @@ namespace Grillbot.Services.Permissions
                 if (user == null)
                     return null; // User not found in guild.
 
-                var perm = WebAuthRepository.FindPermById(guild, user);
-
-                if (perm == null || !perm.IsValidPassword(password))
-                    return null; // Ban invalid password or undefined permission.
+                if (!UserService.AuthenticateWebAccess(guild, user, password))
+                    return null; // Invalid password, or unallowed access.
 
                 var claims = new[]
                 {

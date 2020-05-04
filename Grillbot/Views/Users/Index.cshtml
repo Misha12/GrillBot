@@ -1,24 +1,70 @@
-﻿@model Grillbot.Models.Users.WebAdminUserListViewModel;
+﻿@using Grillbot.Models.Users;
+@model WebAdminUserListViewModel;
 
 @{
     ViewData["Title"] = "Uživatelé webové administace";
+
+    var usersSort = new Dictionary<string, string> {
+        { "order", WebAdminUserOrder.Username.ToString() },
+        { "desc", (Model.Order == WebAdminUserOrder.Username && !Model.SortDesc).ToString() }
+    };
+
+    var serverSort = new Dictionary<string, string> {
+        { "order", WebAdminUserOrder.Server.ToString() },
+        { "desc", (Model.Order == WebAdminUserOrder.Server && !Model.SortDesc).ToString() }
+    };
+
+    var pointsSort = new Dictionary<string, string> {
+        { "order", WebAdminUserOrder.Points.ToString() },
+        { "desc", (Model.Order == WebAdminUserOrder.Points && !Model.SortDesc).ToString() }
+    };
+
+    var reactionsCount = new Dictionary<string, string> {
+        { "order", WebAdminUserOrder.Reactions.ToString() },
+        { "desc", (Model.Order == WebAdminUserOrder.Reactions && !Model.SortDesc).ToString() }
+    };
+
+    var messageCount = new Dictionary<string, string> {
+        { "order", WebAdminUserOrder.MessageCount.ToString() },
+        { "desc", (Model.Order == WebAdminUserOrder.MessageCount&& !Model.SortDesc).ToString() }
+    };
 }
 
 <section class="mt-3 row d-flex justify-content-center">
-    <div class="col-md-7">
+    <div class="col-md-9">
         <table class="table table-sm">
             <thead>
                 <tr>
-                    <th>Server</th>
-                    <th>Uživatel</th>
+                    <th><u><a asp-all-route-data="usersSort" class="text-dark">Uživatel</a></u></th>
+                    <th><u><a asp-all-route-data="serverSort" class="text-dark">Server</a></u></th>
+                    <th><u><a asp-all-route-data="pointsSort" class="text-dark">Body</a></u></th>
+                    <th><u><a asp-all-route-data="reactionsCount" class="text-dark">Reakce</a></u></th>
+                    <th><u><a asp-all-route-data="messageCount" class="text-dark">Počet zpráv</a></u></th>
+                    <th>&nbsp;</th>
                 </tr>
             </thead>
             <tbody>
                 @foreach (var user in Model.Users)
                 {
                     <tr>
+                        <td>
+                            @user.User.GetFullName()
+
+                            @if(!user.User.IsUser()) {
+                                <span class="badge badge-secondary">Bot</span>
+                            }
+
+                            @if(user.WebAdminAccess) {
+                                <span class="badge badge-success">WebAdmin</span>
+                            }
+                        </td>
                         <td>@user.Guild.Name</td>
-                        <td>@user.User.GetFullName()</td>
+                        <td>@FormatHelper.FormatWithSpaces(user.Points)</td>
+                        <td>@FormatHelper.FormatWithSpaces(user.GivenReactionsCount) / @FormatHelper.FormatWithSpaces(user.ObtainedReactionsCount)</td>
+                        <td>@FormatHelper.FormatWithSpaces(user.TotalMessageCount)</td>
+                        <td>
+                            <a class="btn btn-sm btn-primary" asp-action="UserInfo" asp-route-userKey="@user.UserKey">Detail</a>
+                        </td>
                     </tr>
                 }
             </tbody>

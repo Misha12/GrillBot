@@ -1,6 +1,7 @@
 ﻿using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.UnverifyLog;
+using Grillbot.Database.Entity.Users;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Database
@@ -16,6 +17,13 @@ namespace Grillbot.Database
             base.OnModelCreating(modelBuilder);
 
             modelBuilder.Entity<MethodsConfig>().HasMany(o => o.Permissions).WithOne(o => o.Method);
+
+            modelBuilder.Entity<DiscordUser>(builder =>
+            {
+                builder
+                    .HasMany(o => o.Channels)
+                    .WithOne(o => o.User);
+            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
@@ -27,6 +35,6 @@ namespace Grillbot.Database
         public virtual DbSet<Birthday> Birthdays { get; set; }
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<MethodPerm> MethodPerms { get; set; }
-        public virtual DbSet<WebAuthPerm> WebAdminPerms { get; set; }
+        public virtual DbSet<DiscordUser> Users { get; set; }
     }
 }

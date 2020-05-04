@@ -1,0 +1,211 @@
+﻿using Grillbot.Database;
+using Grillbot.Database.Repository;
+using Grillbot.Handlers;
+using Grillbot.Middleware.DiscordUserAuthorization;
+using Grillbot.Modules.AutoReply;
+using Grillbot.Services.Channelboard;
+using Grillbot.Services.Math;
+using Grillbot.Services.MemeImages;
+using Grillbot.Services.MessageCache;
+using Grillbot.Services.Permissions;
+using Grillbot.Services.Statistics;
+using Grillbot.Services.TeamSearch;
+using Grillbot.Services.TempUnverify;
+using Grillbot.Services.UserManagement;
+using Microsoft.AspNetCore.Authentication.Cookies;
+using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
+
+namespace Grillbot.Services
+{
+    public static class DependencyInjectionExtensions
+    {
+        public static IServiceCollection AddAutoReply(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<AutoReplyService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
+        {
+            services
+                .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
+                .AddTransient<AutoReplyRepository>()
+                .AddTransient<BirthdaysRepository>()
+                .AddTransient<BotDbRepository>()
+                .AddTransient<ConfigRepository>()
+                .AddTransient<EmoteStatsRepository>()
+                .AddTransient<ChannelStatsRepository>()
+                .AddTransient<TeamSearchRepository>()
+                .AddTransient<TempUnverifyRepository>()
+                .AddTransient<UsersRepository>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddWebAuthentication(this IServiceCollection services)
+        {
+            services
+                .AddTransient<DcUserAuthorization>()
+                .AddTransient<WebAuthenticationService>()
+                .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
+                .AddCookie(opt =>
+                {
+                    opt.LoginPath = "/Login";
+                    opt.LogoutPath = "/Logout";
+                });
+
+            return services;
+        }
+
+        public static IServiceCollection AddHandlers(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<GuildMemberUpdatedHandler>()
+                .AddSingleton<MessageDeletedHandler>()
+                .AddSingleton<MessageEditedHandler>()
+                .AddSingleton<MessageReceivedHandler>()
+                .AddSingleton<ReactionAddedHandler>()
+                .AddSingleton<ReactionRemovedHandler>()
+                .AddSingleton<UserJoinedHandler>()
+                .AddSingleton<UserLeftHandler>()
+                .AddSingleton<CommandExecutedHandler>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMath(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<MathService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddLoggers(this IServiceCollection services)
+        {
+            services.AddLogging(opt =>
+            {
+                opt
+                    .SetMinimumLevel(LogLevel.Information)
+                    .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
+                    .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
+                    .AddConsole(consoleConfig =>
+                    {
+                        consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
+                        consoleConfig.IncludeScopes = true;
+                    });
+            });
+
+            services
+                .AddSingleton<BotLoggingService>()
+                .AddSingleton<Logger.Logger>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddEmoteChain(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<EmoteChain>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddCReference(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<CReferenceService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddWebAdminServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<BotStatusService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMessageCache(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<IMessageCache, MessageCache.MessageCache>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddStatistics(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<EmoteStats>()
+                .AddSingleton<InternalStatistics>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddPermissionsServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<PermissionsManager>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddPaginationServices(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<PaginationService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddMemeImages(this IServiceCollection services)
+        {
+            services
+                .AddTransient<MemeImagesService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddTempUnverify(this IServiceCollection services)
+        {
+            services
+                .AddTransient<TempUnverifyLogService>()
+                .AddSingleton<TempUnverifyService>()
+                .AddTransient<TempUnverifyFactories>()
+                .AddTransient<TempUnverifyChecker>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddTeamSearch(this IServiceCollection services)
+        {
+            services
+                .AddTransient<TeamSearchService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddChannelboard(this IServiceCollection services)
+        {
+            services
+                .AddTransient<ChannelboardWeb>()
+                .AddSingleton<ChannelStats>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddUserManagement(this IServiceCollection services)
+        {
+            services
+                .AddSingleton<UserService>();
+
+            return services;
+        }
+    }
+}

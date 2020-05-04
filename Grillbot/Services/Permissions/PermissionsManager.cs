@@ -4,11 +4,12 @@ using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Microsoft.Extensions.Options;
+using System;
 using System.Linq;
 
 namespace Grillbot.Services.Permissions
 {
-    public class PermissionsManager
+    public class PermissionsManager : IDisposable
     {
         private Configuration Config { get; }
         private ConfigRepository Repository { get; }
@@ -62,6 +63,11 @@ namespace Grillbot.Services.Permissions
             }
 
             return PermissionsResult.MissingPermissions;
+        }
+
+        public void Dispose()
+        {
+            Repository.Dispose();
         }
     }
 }

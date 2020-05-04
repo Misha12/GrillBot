@@ -57,7 +57,6 @@
   <ItemGroup>
     <Folder Include="Properties" />
     <Folder Include="Tables" />
-    <Folder Include="Scripts" />
   </ItemGroup>
   <ItemGroup>
     <Build Include="Tables\Channelstats.sql" />
@@ -70,10 +69,10 @@
     <Build Include="Tables\Birthdays.sql" />
     <Build Include="Tables\MethodsConfig.sql" />
     <Build Include="Tables\MethodPerms.sql" />
-    <Build Include="Tables\WebAuthPerm.sql" />
+    <Build Include="Tables\DiscordUsers.sql" />
+    <Build Include="Tables\UserChannels.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />
-    <None Include="Scripts\CopyDatabase.sql" />
   </ItemGroup>
 </Project>

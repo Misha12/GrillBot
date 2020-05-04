@@ -1,6 +1,0 @@
-﻿CREATE TABLE [dbo].[WebAuthPerm]
-(
-	[ID] VARCHAR(30) NOT NULL PRIMARY KEY,
-	[GuildID] VARCHAR(30) NOT NULL,
-	[Password] VARCHAR(MAX) NOT NULL
-)

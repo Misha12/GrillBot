@@ -4,6 +4,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.UserManagement;
 using System;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
@@ -16,11 +17,11 @@ namespace Grillbot.Modules
     [Name("Správa webové administrace")]
     public class WebAdminModule : BotModuleBase
     {
-        private WebAuthRepository Repository { get; }
+        private UserService UserService { get; }
 
-        public WebAdminModule(WebAuthRepository repository)
+        public WebAdminModule(UserService userService)
         {
-            Repository = repository;
+            UserService = userService;
         }
 
         [DisabledPM]
@@ -31,10 +32,15 @@ namespace Grillbot.Modules
         public async Task AddUser(string userMention, string password = null)
         {
             var user = GetUserFromMention();
-            password = Repository.AddUser(Context.Guild, user, password);
+
+            if (user == null)
+                throw new BotCommandInfoException("Nebyl tagnut žádný uživatel.");
+
+            password = UserService.AddUserToWebAdmin(Context.Guild, user, password);
 
             await user?.SendPrivateMessageAsync(
                 $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
+            await ReplyAsync("Přístup umožněn.");
         }
 
         [DisabledPM]
@@ -46,29 +52,12 @@ namespace Grillbot.Modules
             try
             {
                 var user = GetUserFromMention();
-                Repository.RemoveUser(Context.Guild, user);
 
+                if (user == null)
+                    throw new BotCommandInfoException("Nebyl tagnut žádný uživatel.");
+
+                UserService.RemoveUserFromWebAdmin(Context.Guild, user);
                 await ReplyAsync("Přístup byl odebrán.");
-            }
-            catch (ArgumentException ex)
-            {
-                throw new BotCommandInfoException(ex.Message);
-            }
-        }
-
-        [DisabledPM]
-        [Command("reset")]
-        [Summary("Reset hesla do administrace.")]
-        [Remarks("Heslo je volitelné. Pokud nebude zadáno, tak bude vygenerováno ")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
-        public async Task ResetPassword(string userMention, string password = null)
-        {
-            try
-            {
-                var user = GetUserFromMention();
-                password = Repository.ResetPassword(Context.Guild, user, password);
-
-                await user.SendPrivateMessageAsync($"Bylo ti obnoveno heslo.\nNové heslo je `{password}`. Uchovej si ho.");
             }
             catch (ArgumentException ex)
             {
@@ -79,14 +68,6 @@ namespace Grillbot.Modules
         private SocketGuildUser GetUserFromMention()
         {
             return Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                Repository.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

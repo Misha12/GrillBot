@@ -1,0 +1,10 @@
+﻿CREATE TABLE [dbo].[UserChannels]
+(
+	[ID] BIGINT NOT NULL PRIMARY KEY IDENTITY(1,1),
+	[ChannelID] VARCHAR(30) NOT NULL,
+	[UserID] BIGINT NOT NULL,
+	[Count] BIGINT NOT NULL CONSTRAINT DF_UserChannels_Count DEFAULT (0),
+	[LastMessageAt] DATETIME NULL
+
+	CONSTRAINT FK_UserChannels_UserID FOREIGN KEY ([UserID]) REFERENCES [DiscordUsers]([ID])
+)
