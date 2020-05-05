@@ -21,6 +21,16 @@ namespace Grillbot.Database.Entity.Users
             set => ChannelID = value.ToString();
         }
 
+        [StringLength(30)]
+        public string DiscordUserID { get; set; }
+
+        [NotMapped]
+        public ulong DiscordUserIDSnowflake
+        {
+            get => Convert.ToUInt64(DiscordUserID);
+            set => DiscordUserID = value.ToString();
+        }
+
         public long UserID { get; set; }
 
         [ForeignKey("UserID")]

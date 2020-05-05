@@ -28,7 +28,10 @@ namespace Grillbot.Models.Users
             ObtainedReactionsCount = dbUser.ObtainedReactionsCount;
             WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword);
 
-            Channels = dbUser.Channels.Select(o => new WebAdminUserChannel(guild.GetChannel(o.ChannelIDSnowflake), o)).ToList();
+            Channels = dbUser.Channels
+                .Select(o => new WebAdminUserChannel(guild.GetChannel(o.ChannelIDSnowflake), o))
+                .OrderByDescending(o => o.Count)
+                .ToList();
         }
     }
 }

@@ -64,7 +64,6 @@
     <Build Include="Tables\AutoReply.sql" />
     <Build Include="Tables\TeamSearch.sql" />
     <Build Include="Tables\TempUnverify.sql" />
-    <Build Include="Tables\CommandLog.sql" />
     <Build Include="Tables\UnverifyLog.sql" />
     <Build Include="Tables\Birthdays.sql" />
     <Build Include="Tables\MethodsConfig.sql" />

@@ -234,7 +234,6 @@ namespace Grillbot.Services.Channelboard
 
         public void Dispose()
         {
-            SyncTimerCallback(null);
             DbSyncTimer?.Dispose();
         }
 

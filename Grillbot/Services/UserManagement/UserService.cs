@@ -163,7 +163,8 @@ namespace Grillbot.Services.UserManagement
                         ChannelIDSnowflake = channel.Id,
                         Count = 1,
                         LastMessageAt = DateTime.Now,
-                        UserID = user.ID
+                        UserID = user.ID,
+                        DiscordUserIDSnowflake = guildUser.Id
                     };
 
                     user.Channels.Add(channelEntity);

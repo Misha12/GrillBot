@@ -50,7 +50,7 @@ namespace Grillbot.Database.Repository
 
                     foreach (var channel in user.Channels)
                     {
-                        var channelEntity = entity.Channels.FirstOrDefault(o => o.ChannelID == channel.ChannelID && o.UserID == channel.UserID);
+                        var channelEntity = entity.Channels.FirstOrDefault(o => o.ChannelID == channel.ChannelID && o.DiscordUserID == channel.DiscordUserID);
 
                         if (channelEntity == null)
                         {
@@ -58,7 +58,8 @@ namespace Grillbot.Database.Repository
                             {
                                 Count = channel.Count,
                                 LastMessageAt = channel.LastMessageAt,
-                                ChannelID = channel.ChannelID
+                                ChannelID = channel.ChannelID,
+                                DiscordUserID = channel.DiscordUserID
                             };
 
                             entity.Channels.Add(channelEntity);
