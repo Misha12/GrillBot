@@ -14,6 +14,7 @@ using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
 using System.IO;
 using System.Net.Sockets;
+using System.Net.Http;
 
 namespace Grillbot.Services
 {
@@ -86,8 +87,21 @@ namespace Grillbot.Services
         private bool IsSupressedException(Exception exception)
         {
             if (IsWebSocketException(exception)) return true;
-            if (exception.InnerException == null && exception.Message.StartsWith("Server requested a reconnect", StringComparison.InvariantCultureIgnoreCase)) return true;
-            if (exception is TaskCanceledException && exception.InnerException is IOException iOException && iOException.InnerException is SocketException) return true;
+
+            if (
+                exception.InnerException == null
+                && (
+                    exception.Message.StartsWith("Server requested a reconnect", StringComparison.InvariantCultureIgnoreCase)
+                    || exception.Message.StartsWith("Server missed last heartbeat", StringComparison.InvariantCultureIgnoreCase)
+                )
+            ) return true;
+
+            if (
+                (exception is TaskCanceledException || exception is HttpRequestException)
+                && exception.InnerException is IOException iOException
+                && iOException.InnerException is SocketException socketException
+                && (new[] { SocketError.TimedOut, SocketError.OperationAborted }).Contains(socketException.SocketErrorCode)
+            ) return true;
 
             return false;
         }
