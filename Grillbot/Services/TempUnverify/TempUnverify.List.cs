@@ -31,7 +31,7 @@ namespace Grillbot.Services.TempUnverify
             {
                 var guild = Client.GetGuild(person.GuildIDSnowflake);
 
-                var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserID);
+                var unverifiedUser = await guild.GetUserFromGuildAsync(person.UserIDSnowflake);
                 users.Add(new CurrentUnverifiedUser()
                 {
                     ChannelOverrideList = BuildChannelOverrideList(person.DeserializedChannelOverrides, guild),

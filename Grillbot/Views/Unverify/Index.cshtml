@@ -10,7 +10,7 @@
         <div class="card">
             <h5 class="card-header">Aktuálně odebrané přístupy</h5>
             <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-between">
+                <div class="d-flex flex-wrap justify-content-start">
                     @foreach (var user in Model.CurrentUnverifiedUsers)
                     {
                         <partial name="CurrentlyUnverifiedPartial" model="user" />

@@ -22,7 +22,10 @@ namespace Grillbot.Database.Repository
             var query = Context.TempUnverify.AsQueryable();
 
             if (guild != null)
-                query = query.Where(o => o.GuildID == guild.ToString());
+            {
+                var guildID = guild.Id.ToString();
+                query = query.Where(o => o.GuildID == guildID);
+            }
 
             return query.AsQueryable();
         }
@@ -34,8 +37,8 @@ namespace Grillbot.Database.Repository
             {
                 DeserializedRolesToReturn = roles,
                 TimeFor = timeFor,
-                UserID = userID.ToString(),
-                GuildID = guildID.ToString(),
+                UserIDSnowflake = userID,
+                GuildIDSnowflake = guildID,
                 DeserializedChannelOverrides = overrides,
                 Reason = reason
             };

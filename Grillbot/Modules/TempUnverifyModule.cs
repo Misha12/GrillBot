@@ -5,6 +5,8 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
@@ -21,7 +23,7 @@ namespace Grillbot.Modules
     {
         private TempUnverifyService UnverifyService { get; }
 
-        public TempUnverifyModule(TempUnverifyService unverifyService)
+        public TempUnverifyModule(TempUnverifyService unverifyService, PaginationService paginationService) : base(paginationService: paginationService)
         {
             UnverifyService = unverifyService;
         }
@@ -78,29 +80,30 @@ namespace Grillbot.Modules
         public async Task ListUnverifyAsync()
         {
             var users = await UnverifyService.ListPersonsAsync(Context.Guild);
-
-            var template = new BotEmbed(Context.Message.Author, title: "Seznam osob s odebraným přístupem", thumbnail: Context.Client.CurrentUser.GetUserAvatarUrl());
-            var fields = new List<EmbedFieldBuilder>();
+            var pages = new List<PaginatedEmbedPage>();
 
             foreach (var user in users)
             {
-                var desc = string.Join("\n", new[]
-                {
-                    $"ID: {user.ID}",
-                    $"Do kdy: {user.EndDateTime.ToLocaleDatetime()}",
-                    $"Role: {string.Join(", ", user.Roles)}",
-                    $"Extra kanály: {user.ChannelOverrideList}",
-                    $"Důvod: {user.Reason}"
-                });
+                var page = new PaginatedEmbedPage($"**{user.Username}**");
 
-                var field = new EmbedFieldBuilder()
-                    .WithName(user.Username)
-                    .WithValue(desc);
+                page.AddField(new EmbedFieldBuilder().WithName("ID").WithValue(user.ID));
+                page.AddField(new EmbedFieldBuilder().WithName("Do kdy").WithValue(user.EndDateTime.ToLocaleDatetime()));
+                page.AddField(new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", user.Roles)));
+                page.AddField(new EmbedFieldBuilder().WithName("Extra kanály").WithValue(user.ChannelOverrideList));
+                page.AddField(new EmbedFieldBuilder().WithName("Důvod").WithValue(user.Reason));
 
-                fields.Add(field);
+                pages.Add(page);
             }
 
-            await ReplyChunkedAsync(fields, template, 10);
+            var embed = new PaginatedEmbed()
+            {
+                Title = "Seznam osob s odebraným přístupem",
+                Pages = pages,
+                ResponseFor = Context.User,
+                Thumbnail = Context.Client.CurrentUser.GetUserAvatarUrl()
+            };
+
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("update")]
