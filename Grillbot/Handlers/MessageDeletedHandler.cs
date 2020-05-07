@@ -4,7 +4,6 @@ using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
-using Grillbot.Services.Channelboard;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
@@ -15,7 +14,6 @@ namespace Grillbot.Handlers
 {
     public class MessageDeletedHandler : IDisposable, IInitiable
     {
-        private ChannelStats ChannelStats { get; }
         private DiscordSocketClient Client { get; }
         private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
@@ -23,11 +21,10 @@ namespace Grillbot.Handlers
         private IMessageCache MessageCache { get; }
         private UserService UserService { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, ChannelStats channelStats, Logger logger, InternalStatistics internalStatistics,
+        public MessageDeletedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics,
             PaginationService paginationService, IMessageCache messageCache, UserService userService)
         {
             Client = client;
-            ChannelStats = channelStats;
             Logger = logger;
             InternalStatistics = internalStatistics;
             PaginationService = paginationService;
@@ -40,11 +37,6 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("MessageDeleted");
             if (message.HasValue && !message.Value.Author.IsUser()) return;
 
-            var socketGuildChannel = channel as SocketGuildChannel;
-
-            if (message.Value is SocketUserMessage && socketGuildChannel != null)
-                await ChannelStats.DecrementCounterAsync(socketGuildChannel);
-
             SocketGuildUser user = null;
             if (message.HasValue && message.Value.Author is SocketGuildUser guildUser)
             {
@@ -56,7 +48,7 @@ namespace Grillbot.Handlers
                 user = author is SocketGuildUser socketGuildUser ? socketGuildUser : null;
             }
 
-            if (user != null && socketGuildChannel != null)
+            if (user != null && channel is SocketGuildChannel socketGuildChannel)
                 UserService.DecrementMessage(user, user.Guild, socketGuildChannel);
 
             await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);

@@ -21,7 +21,6 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
-        private ChannelStats ChannelStats { get; }
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
@@ -30,13 +29,11 @@ namespace Grillbot.Handlers
         private UserService UserService { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            ChannelStats channelStats, AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics,
-            EmoteStats emoteStats, UserService userService)
+            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService)
         {
             Client = client;
             Commands = commands;
             Services = services;
-            ChannelStats = channelStats;
             AutoReply = autoReply;
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
@@ -84,7 +81,6 @@ namespace Grillbot.Handlers
                 if (context.Guild != null)
                 {
                     UserService.IncrementMessage(context.User as SocketGuildUser, context.Guild, context.Channel as SocketGuildChannel);
-                    await ChannelStats.IncrementCounterAsync((SocketGuildChannel)userMessage.Channel);
                     await AutoReply.TryReplyAsync(context.Guild, userMessage).ConfigureAwait(false);
                 }
 

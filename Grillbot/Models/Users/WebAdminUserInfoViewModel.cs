@@ -2,9 +2,9 @@
 {
     public class WebAdminUserInfoViewModel
     {
-        public WebAdminUser User { get; set; }
+        public DiscordUser User { get; set; }
 
-        public WebAdminUserInfoViewModel(WebAdminUser user)
+        public WebAdminUserInfoViewModel(DiscordUser user)
         {
             User = user;
         }

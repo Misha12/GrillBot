@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Database.Entity.Users;
+using DBUserChannel = Grillbot.Database.Entity.Users.UserChannel;
+using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
@@ -13,6 +14,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
+using Discord;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -20,7 +22,7 @@ namespace Grillbot.Services.UserManagement
     {
         private ILogger<UserService> Logger { get; }
         private IServiceProvider Services { get; }
-        private Dictionary<string, DiscordUser> Users { get; set; }
+        public Dictionary<string, DBDiscordUser> Users { get; private set; }
         private HashSet<string> Changes { get; set; }
         public Dictionary<string, DateTime> LastPointsCalculatedAt { get; set; }
         private static readonly object locker = new object();
@@ -34,16 +36,16 @@ namespace Grillbot.Services.UserManagement
             Logger = logger;
             Services = services;
             MessageCache = messageCache;
-            Users = new Dictionary<string, DiscordUser>();
+            Users = new Dictionary<string, DBDiscordUser>();
             Changes = new HashSet<string>();
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
             Random = new Random();
             DiscordClient = discordClient;
         }
 
-        public async Task<List<WebAdminUser>> GetUsersList(WebAdminUserOrder order, bool desc)
+        public async Task<List<DiscordUser>> GetUsersList(WebAdminUserOrder order, bool desc)
         {
-            var users = new List<WebAdminUser>();
+            var users = new List<DiscordUser>();
 
             foreach (var user in Users.Values)
             {
@@ -53,7 +55,7 @@ namespace Grillbot.Services.UserManagement
                 var socketUser = await guild.GetUserFromGuildAsync(user.UserIDSnowflake);
                 if (socketUser == null) continue;
 
-                users.Add(new WebAdminUser(guild, socketUser, user));
+                users.Add(new DiscordUser(guild, socketUser, user));
             }
 
             switch (order)
@@ -83,7 +85,7 @@ namespace Grillbot.Services.UserManagement
                 case WebAdminUserOrder.Server:
                     users = (desc ? users.OrderByDescending(o => o.Guild.Id) : users.OrderBy(o => o.Guild.Id)).ToList();
                     break;
-                case WebAdminUserOrder.Username:
+                default:
                     users = (desc ? users.OrderByDescending(o => o.User.Id) : users.OrderBy(o => o.User.Id)).ToList();
                     break;
             }
@@ -91,7 +93,13 @@ namespace Grillbot.Services.UserManagement
             return users;
         }
 
-        public async Task<WebAdminUser> GetUserAsync(string key)
+        public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
+        {
+            var key = GenerateKey(guild, user);
+            return await GetUserAsync(key);
+        }
+
+        public async Task<DiscordUser> GetUserAsync(string key)
         {
             if (!Users.ContainsKey(key))
                 return null;
@@ -107,7 +115,7 @@ namespace Grillbot.Services.UserManagement
             if (socketUser == null)
                 return null;
 
-            return new WebAdminUser(guild, socketUser, user);
+            return new DiscordUser(guild, socketUser, user);
         }
 
         public void Dispose()
@@ -158,7 +166,7 @@ namespace Grillbot.Services.UserManagement
 
                 if (channelEntity == null)
                 {
-                    channelEntity = new UserChannel()
+                    channelEntity = new DBUserChannel()
                     {
                         ChannelIDSnowflake = channel.Id,
                         Count = 1,
@@ -223,13 +231,14 @@ namespace Grillbot.Services.UserManagement
                 return (DateTime.Now - lastMessageAt).TotalMinutes > 1.0;
             }
         }
-        private string GenerateKey(SocketGuild guild, SocketGuildUser user) => $"{user.Id}|{guild.Id}";
+        private string GenerateKey(IGuild guild, IUser user) => GenerateKey(guild.Id, user.Id);
+        private string GenerateKey(ulong guildID, ulong userID) => $"{userID}|{guildID}";
 
         private void CreateUserIfNotExists(SocketGuild guild, SocketGuildUser user, string key)
         {
             if (!Users.ContainsKey(key))
             {
-                Users.Add(key, new DiscordUser()
+                Users.Add(key, new Database.Entity.Users.DiscordUser()
                 {
                     GuildIDSnowflake = guild.Id,
                     UserIDSnowflake = user.Id
@@ -347,7 +356,7 @@ namespace Grillbot.Services.UserManagement
                     throw new ArgumentException("Tento uživatel neměl přístup.");
 
                 userEntity.WebAdminPassword = null;
-                Changes.Add(userEntity.WebAdminPassword);
+                Changes.Add(userKey);
             }
         }
 
@@ -365,6 +374,18 @@ namespace Grillbot.Services.UserManagement
                     return false;
 
                 return BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword);
+            }
+        }
+
+        public void RemoveChannel(string userKey, ulong channelID)
+        {
+            lock (locker)
+            {
+                var user = Users[userKey];
+                var channel = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channelID);
+
+                if (channel != null)
+                    user.Channels.Remove(channel);
             }
         }
     }

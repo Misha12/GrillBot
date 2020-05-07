@@ -2,15 +2,15 @@
 using Grillbot.Database.Entity.Users;
 using System;
 
-namespace Grillbot.Models.Users
+namespace Grillbot.Models.Channelboard
 {
-    public class WebAdminUserChannel
+    public class ChannelStatItem
     {
         public IChannel Channel { get; set; }
         public long Count { get; set; }
         public DateTime LastMessageAt { get; set; }
 
-        public WebAdminUserChannel(IChannel channel, UserChannel userChannel)
+        public ChannelStatItem(IChannel channel, UserChannel userChannel)
         {
             Count = userChannel.Count;
             LastMessageAt = userChannel.LastMessageAt;

@@ -43,7 +43,7 @@ namespace Grillbot.Modules
                 var channelBoardItem = data[i];
 
                 messageBuilder
-                    .Append(i + 1).Append(": ").Append(channelBoardItem.ChannelName)
+                    .Append(i + 1).Append(": ").Append(channelBoardItem.Channel.Name)
                     .Append(" - ").AppendLine(FormatHelper.FormatWithSpaces(channelBoardItem.Count));
             }
 
@@ -92,6 +92,12 @@ namespace Grillbot.Modules
         public async Task CleanOldChannels()
         {
             var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
+
+            if(clearedChannels == null)
+            {
+                await ReplyAsync("Není co čistit.");
+                return;
+            }
 
             await ReplyChunkedAsync(clearedChannels, 10);
             await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);

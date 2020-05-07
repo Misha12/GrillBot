@@ -15,7 +15,6 @@ namespace Grillbot.Database.Repository
         {
             var autoReplyCount = await GetRowCountAsync(Context.AutoReply);
             var emoteStatsCount = await GetRowCountAsync(Context.EmoteStats);
-            var channelStatsCount = await GetRowCountAsync(Context.ChannelStats);
             var teamSearchCount = await GetRowCountAsync(Context.TeamSearch);
             var tempUnverifyCount = await GetRowCountAsync(Context.TempUnverify);
             var unverifyLogCount = await GetRowCountAsync(Context.UnverifyLog);
@@ -29,7 +28,6 @@ namespace Grillbot.Database.Repository
             {
                 { "AutoReply", autoReplyCount },
                 { "EmoteStats", emoteStatsCount },
-                { "ChannelStats", channelStatsCount },
                 { "TeamSearch", teamSearchCount },
                 { "TempUnverify", tempUnverifyCount },
                 { "UnverifyLog", unverifyLogCount },

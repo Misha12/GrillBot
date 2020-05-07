@@ -195,7 +195,7 @@ namespace Grillbot.Services
         {
             services
                 .AddTransient<ChannelboardWeb>()
-                .AddSingleton<ChannelStats>();
+                .AddTransient<ChannelStats>();
 
             return services;
         }
