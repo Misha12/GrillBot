@@ -48,7 +48,7 @@ namespace Grillbot.Services.TempUnverify
             else if (time.EndsWith("d"))
             {
                 // Days
-                if (convertedTime <= minimumDays)
+                if (convertedTime < minimumDays)
                     throw new BotCommandInfoException($"Minimální čas pro unverify ve dnech je {minimumDays}.");
 
                 return ConvertTimeSpanToSeconds(TimeSpan.FromDays(convertedTime));
