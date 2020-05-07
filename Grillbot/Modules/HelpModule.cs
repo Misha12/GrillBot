@@ -38,7 +38,6 @@ namespace Grillbot.Modules
         {
             var user = Context.Guild == null ? Context.User : Context.Guild.GetUser(Context.User.Id);
 
-            var pages = new List<string>();
             var pagesList = new List<PaginatedEmbedPage>();
 
             foreach (var module in CommandService.Modules)
