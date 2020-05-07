@@ -8,17 +8,25 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Extensions.Discord
 {
-    public static class GuildExtensions
+    public static class SocketGuildExtensions
     {
         public static async Task<List<RestAuditLogEntry>> GetAuditLogDataAsync(this SocketGuild guild, int count = 5, ActionType? actionType = null)
         {
             return (await guild.GetAuditLogsAsync(count, actionType: actionType).FlattenAsync().ConfigureAwait(false)).ToList();
         }
 
-        public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string userId)
+        public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, string userIdentification)
         {
-            var idOfUser = Convert.ToUInt64(userId);
-            return await GetUserFromGuildAsync(guild, idOfUser);
+            if (ulong.TryParse(userIdentification, out ulong userID))
+                return await GetUserFromGuildAsync(guild, userID);
+
+            if(userIdentification.Contains("#"))
+            {
+                var parts = userIdentification.Split('#');
+                return await GetUserFromGuildAsync(guild, parts[0], parts[1]);
+            }
+
+            return null;
         }
 
         public static async Task<SocketGuildUser> GetUserFromGuildAsync(this SocketGuild guild, ulong userId)
@@ -68,6 +76,11 @@ namespace Grillbot.Extensions.Discord
         public static int ComputeVoiceChannelsCount(this SocketGuild guild)
         {
             return guild.Channels.OfType<SocketVoiceChannel>().Count();
+        }
+
+        public static SocketRole FindMutedRole(this SocketGuild guild)
+        {
+            return guild.Roles.FirstOrDefault(o => o.IsMutedRole());
         }
     }
 }

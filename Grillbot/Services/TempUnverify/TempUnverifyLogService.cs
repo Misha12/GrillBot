@@ -93,8 +93,7 @@ namespace Grillbot.Services.TempUnverify
             {
                 var auditItem = new UnverifyAuditItem(item, DiscordClient);
 
-                if (filter.IgnoreSelfUnverify && auditItem.Operation == UnverifyLogOperation.Set &&
-                    auditItem.SetLogData.IsSelfUnverify)
+                if (CanIgnoreSelfUnverifyItem(auditItem, filter.IgnoreSelfUnverify))
                     continue;
 
                 auditItem.FromUser = await auditItem.Guild.GetUserFromGuildAsync(item.FromUserIDSnowflake);
@@ -103,6 +102,11 @@ namespace Grillbot.Services.TempUnverify
             }
 
             return result;
+        }
+
+        public bool CanIgnoreSelfUnverifyItem(UnverifyAuditItem item, bool ignoreSelfUnverify)
+        {
+            return ignoreSelfUnverify && item.IsSelfUnverify();
         }
     }
 }

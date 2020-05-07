@@ -35,27 +35,8 @@ namespace Grillbot.Modules
             "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30m Přišel jsi o role @User1#1234 @User2#1354 ...")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
-            // Simply hack, because command routing cannot distinguish between a parameter and a function.
-            switch (time)
-            {
-                case "list":
-                    await ListUnverifyAsync().ConfigureAwait(false);
-                    return;
-                case "remove":
-                    if (string.IsNullOrEmpty(reasonAndUserMentions)) throw new ThrowHelpException();
-                    await RemoveUnverifyAsync(Convert.ToInt32(reasonAndUserMentions.Split(' ')[0])).ConfigureAwait(false);
-                    return;
-                case "update":
-                    if (string.IsNullOrEmpty(reasonAndUserMentions)) throw new ThrowHelpException();
-                    var fields = reasonAndUserMentions.Split(' ');
-                    if (fields.Length < 2)
-                    {
-                        await ReplyAsync("Chybí parametry.").ConfigureAwait(false);
-                        return;
-                    }
-                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
-                    return;
-            }
+            if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
+                return;
 
             var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
 
@@ -65,6 +46,31 @@ namespace Grillbot.Modules
                     reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
                 await ReplyAsync(message).ConfigureAwait(false);
             }
+        }
+
+        private async Task<bool> SetUnverifyRoutingAsync(string route, string parameters)
+        {
+            // Simply hack, because command routing cannot distinguish between a parameter and a function.
+            switch (route)
+            {
+                case "list":
+                    await ListUnverifyAsync();
+                    return true;
+                case "remove":
+                    if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
+                    await RemoveUnverifyAsync(Convert.ToInt32(parameters.Split(' ')[0])).ConfigureAwait(false);
+                    return true;
+                case "update":
+                    if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
+                    var fields = parameters.Split(' ');
+                    if (fields.Length < 2)
+                        throw new BotCommandInfoException("Chybí parametry.");
+                    
+                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
+                    return true;
+            }
+
+            return false;
         }
 
         [Command("remove")]

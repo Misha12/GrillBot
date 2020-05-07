@@ -1,13 +1,12 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Embed;
+using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
 using System;
@@ -21,10 +20,12 @@ namespace Grillbot.Modules
     public class AdminModule : BotModuleBase
     {
         private IMessageCache MessageCache { get; }
+        private PinManagement PinManagement { get; }
 
-        public AdminModule(ConfigRepository config, IMessageCache messageCache) : base(configRepository: config)
+        public AdminModule(ConfigRepository config, IMessageCache messageCache, PinManagement pinManagement) : base(configRepository: config)
         {
             MessageCache = messageCache;
+            PinManagement = pinManagement;
         }
 
         [Command("pinpurge")]
@@ -36,46 +37,18 @@ namespace Grillbot.Modules
                 .OfType<SocketTextChannel>()
                 .FirstOrDefault(o => $"<#{o.Id}>" == channel);
 
-            if (mentionedChannel != null)
-            {
-                var pins = await mentionedChannel.GetPinnedMessagesAsync().ConfigureAwait(false);
+            if(mentionedChannel != null)
+                await PinManagement.PinPurgeAsync(mentionedChannel, takeCount, skipCount);
 
-                if (pins.Count == 0)
-                    throw new BotCommandInfoException($"V kanálu **{mentionedChannel.Mention}** ještě nebylo nic připnuto.");
-
-                var pinsToRemove = pins
-                    .OrderByDescending(o => o.CreatedAt)
-                    .Skip(skipCount).Take(takeCount)
-                    .OfType<RestUserMessage>();
-
-                foreach (var pin in pinsToRemove)
-                {
-                    await pin.RemoveAllReactionsAsync().ConfigureAwait(false);
-                    await pin.UnpinAsync().ConfigureAwait(false);
-                }
-
-                await ReplyAsync($"Úpěšně dokončeno. Počet odepnutých zpráv: **{pinsToRemove.Count()}**").ConfigureAwait(false);
-            }
-            else
-            {
-                throw new BotCommandInfoException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
-            }
+            throw new BotCommandInfoException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
         }
 
+        [DisabledPM]
         [Command("guildStatus")]
         [Summary("Informace o serveru.")]
-        [Remarks("Parametr guildID je povinný v případě volání v soukromé konverzaci.")]
-        public async Task GuildStatusAsync(ulong guildID = default)
+        public async Task GuildStatusAsync()
         {
-            var guild = Context.Guild ?? Context.Client.GetGuild(guildID);
-
-            if (guild == null)
-            {
-                if (guildID == default)
-                    throw new ThrowHelpException();
-
-                throw new BotCommandInfoException("Požadovaný server nebyl nalezen.");
-            }
+            var guild = Context.Guild;
 
             var color = guild.Roles.FindHighestRoleWithColor()?.Color;
             var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
@@ -126,60 +99,26 @@ namespace Grillbot.Modules
         [Remarks("Jako identifikace uživatele může posloužit tag, ID, nebo globální identifikace (User#1234).")]
         public async Task UserInfo(string identification)
         {
-            SocketGuildUser user = null;
+            var user = await Context.ParseGuildUserAsync(identification);
 
-            if (Context.Message.MentionedUsers.Count > 0)
-            {
-                user = Context.Message.MentionedUsers.OfType<SocketGuildUser>().FirstOrDefault();
-            }
-            else
-            {
-                if (identification.Contains("#"))
-                {
-                    var nameParts = identification.Split('#');
-                    user = await Context.Guild.GetUserFromGuildAsync(nameParts[0], nameParts[1]);
-                }
-                else
-                {
-                    try
-                    {
-                        user = await Context.Guild.GetUserFromGuildAsync(identification);
-                    }
-                    catch (FormatException)
-                    {
-                        throw new BotCommandInfoException("Neplatný formát jména. Povolené jsou: ID, Tag, Celý nick (User#1234)");
-                    } // Cannot parse user ID.
-                }
-            }
+            if(user == null)
+                throw new BotCommandInfoException("Neplatné jméno, nebo uživatel na serveru není. Povolené jsou: ID, Tag, Celý nick (User#1234)");
 
-            UserInfoConfig config = null;
-            try { config = GetMethodConfig<UserInfoConfig>("", "userinfo"); }
-            catch (ConfigException) { /* There is config optional. */ }
+            var userTopRoleWithColor = user.Roles.FindHighestRoleWithColor();
+            var roles = user.Roles
+                .Where(o => !o.IsEveryone)
+                .OrderByDescending(o => o.Position)
+                .Select(o => o.Name);
 
-            if (user == null)
-                throw new BotCommandInfoException("Takový uživatel na serveru není.");
-
-            var userTopRole = user.Roles.FindHighestRoleWithColor();
-            var botRole = config != null ? user.Roles.FirstOrDefault(o => o.Id == config.BotRole) : null;
-            var roles = user.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
-
-            string botRoleText = "Ne";
-            if (botRole != null)
-            {
-                var botRoleMessage = botRole != null ? "Ano (i když discord tvrdí něco jinýho)" : "Ne";
-                botRoleText = user.IsUser() ? botRoleMessage : "Ano";
-            }
-
-            var embed = new BotEmbed(Context.User, userTopRole?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
+            var embed = new BotEmbed(Context.User, userTopRoleWithColor?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
                 .WithFields(
                     new EmbedFieldBuilder().WithName("ID").WithValue(user.Id).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Jméno").WithValue(user.GetFullName()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Stav").WithValue(user.Status.ToString()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Účet založen").WithValue(user.CreatedAt.DateTime.ToLocaleDatetime()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Připojen").WithValue(user.JoinedAt.Value.DateTime.ToLocaleDatetime()).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Bot").WithValue(botRoleText).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue(user.IsMuted || user.IsDeafened ? "Ano" : "Ne").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue(user.IsSelfMuted || user.IsSelfDeafened ? "Ano" : "Ne").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Umlčen (Server)").WithValue((user.IsMuted || user.IsDeafened).TranslateToCz()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue((user.IsSelfMuted || user.IsSelfDeafened).TranslateToCz()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
                     new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles)),
                     new EmbedFieldBuilder().WithName("Boost od").WithValue(!user.PremiumSince.HasValue ? "Boost nenalezen" : user.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()),
@@ -202,13 +141,13 @@ namespace Grillbot.Modules
 
                 await channel.DeleteMessagesAsync(newerTwoWeeks);
 
-                foreach(var oldMessage in olderTwoWeeks)
+                foreach (var oldMessage in olderTwoWeeks)
                 {
                     await oldMessage.DeleteAsync();
                 }
 
                 MessageCache.TryBulkDelete(messages.Select(o => o.Id));
-                
+
                 var message = await ReplyAsync($"Počet smazaných zpráv: {messages.Count()}");
                 await Task.Delay(TimeSpan.FromSeconds(10));
                 await message.DeleteAsync();

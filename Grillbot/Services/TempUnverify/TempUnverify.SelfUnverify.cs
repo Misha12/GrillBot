@@ -12,12 +12,13 @@ namespace Grillbot.Services.TempUnverify
         {
             const string message = "Self unverify";
 
-            var checker = Factories.GetChecker();
+            using var checker = Factories.GetChecker();
             var currentUnverified = GetCurrentUnverifiedUserIDs();
 
             checker.Validate(user, guild, true, subjects.ToList(), currentUnverified);
 
-            var unverifyTime = ParseUnverifyTime(time);
+            var timeParser = Factories.GetTimeParser();
+            var unverifyTime = timeParser.Parse(time);
             var unverify = await RemoveAccessAsync(user, unverifyTime, message, user, guild, true, subjects);
 
             unverify.InitTimer(ReturnAccess);

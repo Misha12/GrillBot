@@ -6,7 +6,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Microsoft.CodeAnalysis;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -15,7 +14,7 @@ namespace Grillbot.Services.TempUnverify
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            var checker = Factories.GetChecker();
+            using var checker = Factories.GetChecker();
             var currentUnverified = GetCurrentUnverifiedUserIDs();
 
             foreach (var user in users)
@@ -23,8 +22,8 @@ namespace Grillbot.Services.TempUnverify
                 checker.Validate(user, guild, false, null, currentUnverified);
             }
 
-            var reason = ParseReason(data);
-            var unverifyTime = ParseUnverifyTime(time);
+            var reason = Factories.GetReasonParser().Parse(data);
+            var unverifyTime = Factories.GetTimeParser().Parse(time);
             var unverifiedPersons = new List<TempUnverifyItem>();
 
             foreach (var user in users)
@@ -43,7 +42,7 @@ namespace Grillbot.Services.TempUnverify
             SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
             var rolesToRemove = user.Roles
-                .Where(o => !o.IsEveryone && !o.IsManaged && !string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase))
+                .Where(o => !o.IsEveryone && !o.IsManaged && !o.IsMutedRole())
                 .ToList(); // Ignore Muted roles.
 
             if (ignoreHigherRoles)

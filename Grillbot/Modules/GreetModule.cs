@@ -20,7 +20,10 @@ namespace Grillbot.Modules
         }
 
         [Command("grillhi"), Alias("hi")]
-        public async Task GreetAsync() => await GreetAsync(null).ConfigureAwait(false);
+        public async Task GreetAsync()
+        {
+            await GreetAsync(null).ConfigureAwait(false);
+        }
 
         [Command("grillhi"), Alias("hi")]
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]

@@ -32,7 +32,8 @@ namespace Grillbot
                 .AddLoggers()
                 .AddMemoryCache()
                 .AddCors()
-                .AddMessageCache();
+                .AddMessageCache()
+                .AddHttpClient();
 
             services
                 .AddControllersWithViews();
@@ -74,7 +75,10 @@ namespace Grillbot
                 .AddChannelboard()
                 .AddTempUnverify()
                 .AddTeamSearch()
-                .AddUserManagement();
+                .AddUserManagement()
+                .AddDiscordAdminServices()
+                .AddDuckServices()
+                .AddHelpServices();
 
             services
                 .AddHostedService<GrillBotService>();

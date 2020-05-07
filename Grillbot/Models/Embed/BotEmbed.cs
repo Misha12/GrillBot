@@ -64,6 +64,12 @@ namespace Grillbot.Models.Embed
             var field = new EmbedFieldBuilder();
             action(field);
 
+            AddField(field);
+            return this;
+        }
+
+        public BotEmbed AddField(EmbedFieldBuilder field)
+        {
             AddField(field.Name, field.Value?.ToString(), field.IsInline);
             return this;
         }
@@ -116,8 +122,15 @@ namespace Grillbot.Models.Embed
             return this;
         }
 
-        public Discord.Embed Build() => Builder.Build();
-        public Discord.EmbedBuilder GetBuilder() => Builder;
+        public Discord.Embed Build()
+        {
+            return Builder.Build();
+        }
+
+        public EmbedBuilder GetBuilder()
+        {
+            return Builder;
+        }
 
         public BotEmbed PrependFooter(string footer)
         {

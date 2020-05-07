@@ -3,7 +3,9 @@ using Grillbot.Database.Repository;
 using Grillbot.Handlers;
 using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Modules.AutoReply;
+using Grillbot.Services.AdminServices;
 using Grillbot.Services.Channelboard;
+using Grillbot.Services.Duck;
 using Grillbot.Services.Math;
 using Grillbot.Services.MemeImages;
 using Grillbot.Services.MessageCache;
@@ -178,7 +180,9 @@ namespace Grillbot.Services
                 .AddTransient<TempUnverifyLogService>()
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<TempUnverifyFactories>()
-                .AddTransient<TempUnverifyChecker>();
+                .AddTransient<TempUnverifyChecker>()
+                .AddTransient<TempUnverifyReasonParser>()
+                .AddTransient<TempUnverifyTimeParser>();
 
             return services;
         }
@@ -204,6 +208,31 @@ namespace Grillbot.Services
         {
             services
                 .AddSingleton<UserService>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddDiscordAdminServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<PinManagement>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddDuckServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<DuckDataLoader>()
+                .AddTransient<DuckEmbedRenderer>();
+
+            return services;
+        }
+
+        public static IServiceCollection AddHelpServices(this IServiceCollection services)
+        {
+            services
+                .AddTransient<HelpEmbedRenderer>();
 
             return services;
         }

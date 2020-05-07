@@ -53,7 +53,7 @@ namespace Grillbot.Services.TempUnverify
                 }
 
                 FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
-                RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).GetAwaiter().GetResult();
+                RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).RunSync();
 
                 repository.RemoveItem(unverify.ID);
                 unverify.Dispose();

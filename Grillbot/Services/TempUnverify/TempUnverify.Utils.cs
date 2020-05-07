@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -16,23 +15,14 @@ namespace Grillbot.Services.TempUnverify
         {
             await guild.SyncGuildAsync();
 
-            var mutedRole = guild.Roles
-                .FirstOrDefault(o => string.Equals(o.Name, "muted", StringComparison.InvariantCultureIgnoreCase));
-
+            var mutedRole = guild.FindMutedRole();
             if (mutedRole == null)
                 return; // Mute role not exists on this server.
 
             if (set)
-            {
-                if (user.Roles.Any(o => o.Id == mutedRole.Id))
-                    return; // User now have muted role.
-
-                await user.AddRoleAsync(mutedRole);
-            }
+                await user.SetRoleAsync(mutedRole);
             else
-            {
                 await user.RemoveRoleAsync(mutedRole);
-            }
         }
 
         /// <summary>
@@ -50,8 +40,8 @@ namespace Grillbot.Services.TempUnverify
 
             foreach (var channel in channels)
             {
-                var canSee = channel.GetUser(user.Id) != null;
-                if (!canSee) return;
+                var cantSee = channel.GetUser(user.Id) == null;
+                if (cantSee) return;
 
                 var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
                 await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
@@ -74,18 +64,16 @@ namespace Grillbot.Services.TempUnverify
 
             var configData = Factories.GetConfig(guild.Id);
 
-            var channels = guild.Channels
+            var overwrites = guild.Channels
                 .OfType<SocketTextChannel>()
-                .Where(o =>
-                    configData.PreprocessRemoveAccess.Contains(o.Id.ToString()) &&
-                    !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id));
+                .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()) &&
+                    !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id))
+                .Select(ch => new { channel = ch, overwrite = ch.GetPermissionOverwrite(user) })
+                .Where(o => o.overwrite != null);
 
-            foreach (var channel in channels)
+            foreach (var channel in overwrites)
             {
-                var overwrites = channel.GetPermissionOverwrite(user);
-
-                if (overwrites != null)
-                    await channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
+                await channel.channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
             }
         }
 

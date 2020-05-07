@@ -62,5 +62,10 @@ namespace Grillbot.Models.TempUnverify.Admin
         public AuditItemUpdateOperation UpdateLogData { get; set; }
 
         #endregion
+
+        public bool IsSelfUnverify()
+        {
+            return Operation == UnverifyLogOperation.Set && SetLogData.IsSelfUnverify;
+        }
     }
 }

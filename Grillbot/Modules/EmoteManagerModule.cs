@@ -46,11 +46,17 @@ namespace Grillbot.Modules
 
         [Command("desc")]
         [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
-        public async Task GetTopUsedEmotes() => await GetTopEmoteUsage(true).ConfigureAwait(false);
+        public async Task GetTopUsedEmotes()
+        {
+            await GetTopEmoteUsage(true).ConfigureAwait(false);
+        }
 
         [Command("asc")]
         [Summary("TOP 25 statistika emotů. Seřazeno vzestupně.")]
-        public async Task GetTopUsedEmotesAscending() => await GetTopEmoteUsage(false).ConfigureAwait(false);
+        public async Task GetTopUsedEmotesAscending()
+        {
+            await GetTopEmoteUsage(false).ConfigureAwait(false);
+        }
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
@@ -70,30 +76,8 @@ namespace Grillbot.Modules
         [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]
         public async Task GetEmoteInfoAsync([Remainder] string emote)
         {
-            switch (emote)
-            {
-                case "all":
-                    await GetCompleteEmoteInfoListAsync();
-                    return;
-                case "asc":
-                    await GetTopUsedEmotesAscending();
-                    return;
-                case "desc":
-                    await GetTopUsedEmotes();
-                    return;
-                case "unicode":
-                    await GetEmoteInfoOnlyUnicode();
-                    return;
-                case "emoteMergeList":
-                    await GetMergeListAsync();
-                    return;
-                case "processEmoteMerge":
-                    await ProcessEmoteMergeAsync();
-                    return;
-                case "cleanOldEmotes":
-                    await CleanOldEmotes();
-                    return;
-            }
+            if (await GetEmoteInfoAsyncRouting(emote))
+                return;
 
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
             var emoteInfo = EmoteStats.GetValue(emote);
@@ -116,6 +100,36 @@ namespace Grillbot.Modules
                 .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()));
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+        }
+
+        private async Task<bool> GetEmoteInfoAsyncRouting(string route)
+        {
+            switch (route)
+            {
+                case "all":
+                    await GetCompleteEmoteInfoListAsync();
+                    return true;
+                case "asc":
+                    await GetTopUsedEmotesAscending();
+                    return true;
+                case "desc":
+                    await GetTopUsedEmotes();
+                    return true;
+                case "unicode":
+                    await GetEmoteInfoOnlyUnicode();
+                    return true;
+                case "emoteMergeList":
+                    await GetMergeListAsync();
+                    return true;
+                case "processEmoteMerge":
+                    await ProcessEmoteMergeAsync();
+                    return true;
+                case "cleanOldEmotes":
+                    await CleanOldEmotes();
+                    return true;
+            }
+
+            return false;
         }
 
         [Command("unicode")]

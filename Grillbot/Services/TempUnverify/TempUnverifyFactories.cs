@@ -18,10 +18,7 @@ namespace Grillbot.Services.TempUnverify
             return (TService)Provider.GetService(typeof(TService));
         }
 
-        public TempUnverifyChecker GetChecker()
-        {
-            return GetService<TempUnverifyChecker>();
-        }
+        public TempUnverifyChecker GetChecker() => GetService<TempUnverifyChecker>();
 
         public TempUnverifyConfig GetConfig(ulong guildID)
         {
@@ -39,6 +36,16 @@ namespace Grillbot.Services.TempUnverify
         public TempUnverifyLogService GetLogService()
         {
             return GetService<TempUnverifyLogService>();
+        }
+
+        public TempUnverifyReasonParser GetReasonParser()
+        {
+            return GetService<TempUnverifyReasonParser>();
+        }
+
+        public TempUnverifyTimeParser GetTimeParser()
+        {
+            return GetService<TempUnverifyTimeParser>();
         }
     }
 }

@@ -11,7 +11,8 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<string> UpdateUnverifyAsync(int id, string time, SocketUser fromUser)
         {
-            var unverifyTime = ParseUnverifyTime(time, minimumMinutes: 10);
+            var timeParser = Factories.GetTimeParser();
+            var unverifyTime = timeParser.Parse(time, minimumMinutes: 10);
             var item = Data.Find(o => o.ID == id);
 
             if (item == null)

@@ -17,10 +17,16 @@ namespace Grillbot.Modules
         }
 
         [Command("nudes")]
-        public async Task SendNudeAsync() => await SendAsync("nudes").ConfigureAwait(false);
+        public async Task SendNudeAsync()
+        {
+            await SendAsync("nudes").ConfigureAwait(false);
+        }
 
         [Command("notnudes")]
-        public async Task SendNotNudesAsync() => await SendAsync("notnudes").ConfigureAwait(false);
+        public async Task SendNotNudesAsync()
+        {
+            await SendAsync("notnudes").ConfigureAwait(false);
+        }
 
         private async Task SendAsync(string category)
         {
