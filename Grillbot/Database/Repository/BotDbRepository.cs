@@ -23,6 +23,7 @@ namespace Grillbot.Database.Repository
             var methodsConfigCount = await GetRowCountAsync(Context.MethodsConfig);
             var methodPermsCount = await GetRowCountAsync(Context.MethodPerms);
             var usersCount = await GetRowCountAsync(Context.Users);
+            var userChannelsCount = await GetRowCountAsync(Context.UserChannels);
 
             var counters = new Dictionary<string, int>()
             {
@@ -35,7 +36,8 @@ namespace Grillbot.Database.Repository
                 { "Birthdays", birthdayCount },
                 { "MethodsConfig", methodsConfigCount },
                 { "MethodPerms", methodPermsCount },
-                { "Users", usersCount }
+                { "Users", usersCount },
+                { "UserChannels", userChannelsCount }
             };
 
             return counters

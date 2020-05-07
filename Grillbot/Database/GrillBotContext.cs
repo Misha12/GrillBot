@@ -36,5 +36,6 @@ namespace Grillbot.Database
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<MethodPerm> MethodPerms { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }
+        public virtual DbSet<UserChannel> UserChannels { get; set; }
     }
 }
