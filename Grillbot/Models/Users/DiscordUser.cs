@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Helpers;
 using Grillbot.Models.Channelboard;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,6 +35,14 @@ namespace Grillbot.Models.Users
                 .Where(o => o.Channel != null)
                 .OrderByDescending(o => o.Count)
                 .ToList();
+        }
+
+        public string FormatReactions()
+        {
+            var given = FormatHelper.FormatWithSpaces(GivenReactionsCount);
+            var obtained = FormatHelper.FormatWithSpaces(ObtainedReactionsCount);
+
+            return $"{given} / {obtained}";
         }
     }
 }

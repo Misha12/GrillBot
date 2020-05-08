@@ -5,10 +5,12 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Preconditions;
+using Grillbot.Services.UserManagement;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,11 +23,14 @@ namespace Grillbot.Modules
     {
         private IMessageCache MessageCache { get; }
         private PinManagement PinManagement { get; }
+        private UserService UserService { get; }
 
-        public AdminModule(ConfigRepository config, IMessageCache messageCache, PinManagement pinManagement) : base(configRepository: config)
+        public AdminModule(ConfigRepository config, IMessageCache messageCache, PinManagement pinManagement,
+            UserService userService) : base(configRepository: config)
         {
             MessageCache = messageCache;
             PinManagement = pinManagement;
+            UserService = userService;
         }
 
         [Command("pinpurge")]
@@ -105,10 +110,13 @@ namespace Grillbot.Modules
                 throw new BotCommandInfoException("Neplatné jméno, nebo uživatel na serveru není. Povolené jsou: ID, Tag, Celý nick (User#1234)");
 
             var userTopRoleWithColor = user.Roles.FindHighestRoleWithColor();
+
             var roles = user.Roles
                 .Where(o => !o.IsEveryone)
                 .OrderByDescending(o => o.Position)
                 .Select(o => o.Name);
+
+            var userDetail = await UserService.GetUserAsync(Context.Guild, user);
 
             var embed = new BotEmbed(Context.User, userTopRoleWithColor?.Color, "Informace o uživateli", user.GetUserAvatarUrl())
                 .WithFields(
@@ -121,8 +129,11 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("Umlčen (Klient)").WithValue((user.IsSelfMuted || user.IsSelfDeafened).TranslateToCz()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Práva").WithValue(string.Join(", ", user.GuildPermissions.GetPermissionsNames())),
                     new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles)),
-                    new EmbedFieldBuilder().WithName("Boost od").WithValue(!user.PremiumSince.HasValue ? "Boost nenalezen" : user.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()),
-                    new EmbedFieldBuilder().WithName("Aktivní klienti").WithValue(string.Join(", ", user.ActiveClients.Select(o => o.ToString())))
+                    new EmbedFieldBuilder().WithName("Boost od").WithValue(!user.PremiumSince.HasValue ? "Boost nenalezen" : user.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Aktivní klienti").WithValue(string.Join(", ", user.ActiveClients.Select(o => o.ToString()))).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Body").WithValue(FormatHelper.FormatWithSpaces(userDetail?.Points ?? 0)).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Reakce").WithValue(userDetail?.FormatReactions() ?? "0 / 0").WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Počet zpráv").WithValue(FormatHelper.FormatWithSpaces(userDetail?.TotalMessageCount ?? 0)).WithIsInline(true)
                 );
 
             await ReplyAsync(embed: embed.Build());
