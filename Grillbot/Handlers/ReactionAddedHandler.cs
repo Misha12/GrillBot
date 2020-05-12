@@ -31,7 +31,7 @@ namespace Grillbot.Handlers
         {
             InternalStatistics.IncrementEvent("ReactionAdded");
 
-            await EmoteStats.IncrementFromReaction(reaction);
+            EmoteStats.IncrementFromReaction(reaction);
             await PaginationService.HandleReactionAsync(reaction);
             UserService.IncrementReaction(reaction);
         }

@@ -1,4 +1,5 @@
 ﻿using System;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database
 {
@@ -14,6 +15,11 @@ namespace Grillbot.Database
         public void Dispose()
         {
             Context?.Dispose();
+        }
+
+        public int SaveChanges()
+        {
+            return Context.SaveChanges();
         }
     }
 }

@@ -85,7 +85,7 @@ namespace Grillbot.Handlers
                 }
 
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
-                await EmoteStats.AnylyzeMessageAndIncrementValuesAsync(context).ConfigureAwait(false);
+                EmoteStats.AnylyzeMessageAndIncrementValues(context);
             }
         }
 

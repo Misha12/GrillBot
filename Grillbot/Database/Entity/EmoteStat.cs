@@ -39,25 +39,6 @@ namespace Grillbot.Database.Entity
 
         public EmoteStat() { }
 
-        public EmoteStat(string emoteId, bool isUnicode, ulong guildID)
-        {
-            EmoteID = emoteId;
-            IsUnicode = isUnicode;
-            GuildIDSnowflake = guildID;
-            IncrementAndUpdate();
-        }
-
-        public void IncrementAndUpdate()
-        {
-            LastOccuredAt = DateTime.Now;
-            Count++;
-        }
-
-        public void Decrement()
-        {
-            Count--;
-        }
-
         public string GetFormatedInfo()
         {
             return new StringBuilder()

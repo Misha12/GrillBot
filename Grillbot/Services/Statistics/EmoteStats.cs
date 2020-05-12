@@ -7,6 +7,8 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Services.Initiable;
+using Microsoft.AspNetCore.Razor.Language.Intermediate;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
@@ -17,129 +19,112 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
 {
-    public class EmoteStats : IDisposable, IInitiable
+    public class EmoteStats
     {
         private Dictionary<string, EmoteStat> Counter { get; set; }
-        private HashSet<string> Changes { get; }
-        private Timer DbSyncTimer { get; }
-        private ILogger<EmoteStats> Logger { get; }
         private static object Locker { get; } = new object();
-        private EmoteStatsRepository Repository { get; }
+        private IServiceProvider Provider { get; }
 
-        public EmoteStats(EmoteStatsRepository repository, ILogger<EmoteStats> logger)
+        public EmoteStats(IServiceProvider provider)
         {
-            Counter = new Dictionary<string, EmoteStat>();
-            Changes = new HashSet<string>();
-
-            Logger = logger;
-            Repository = repository;
-
-            var syncPeriod = GrillBotService.DatabaseSyncPeriod;
-            DbSyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
+            Provider = provider;
         }
 
-        public void Init()
+        public void AnylyzeMessageAndIncrementValues(SocketCommandContext context)
         {
-            Counter = Repository.GetEmoteStatistics().ToDictionary(o => $"{o.GuildID}|{o.EmoteID}", o => o);
-            Logger.LogInformation($"Emote statistics loaded from database. (Rows: {Counter.Count})");
-        }
+            if (context.Guild == null) return;
 
-        private void SyncTimerCallback(object _)
-        {
-            lock (Locker)
-            {
-                if (Changes.Count == 0) return;
-
-                var dataForUpdate = Counter.Where(o => Changes.Contains(o.Key)).ToDictionary(o => o.Key, o => o.Value);
-                Repository.UpdateEmoteStatistics(dataForUpdate);
-
-                Changes.Clear();
-                Logger.LogInformation($"Emote statistics was synchronized with database. (Updated {dataForUpdate.Count} records)");
-            }
-        }
-
-        public async Task AnylyzeMessageAndIncrementValuesAsync(SocketCommandContext context)
-        {
-            lock (Locker)
-            {
-                if (context.Guild == null) return;
-
-                var mentionedEmotes = context.Message.Tags
+            var mentionedEmotes = context.Message.Tags
                     .Where(o => o.Type == TagType.Emoji)
                     .Select(o => o.Value)
                     .DistinctBy(o => o.ToString())
                     .ToList();
 
+            lock (Locker)
+            {
+                using var repository = Provider.GetService<EmoteStatsRepository>();
+
                 if (mentionedEmotes.Count == 0)
                 {
-                    TryIncrementUnicodeFromMessage(context.Message.Content, context.Guild);
+                    TryIncrementUnicodeFromMessage(context.Message.Content, context.Guild, repository);
+                    repository.SaveChanges();
                     return;
                 }
 
+                var serverEmotes = context.Guild.Emotes;
                 foreach (var emote in mentionedEmotes)
                 {
                     if (emote is Emoji emoji)
                     {
-                        IncrementCounter(emoji.Name, true, context.Guild);
+                        IncrementCounter(emoji.Name, true, context.Guild, repository);
                     }
                     else
                     {
                         var emoteId = emote.ToString();
-                        var serverEmotes = context.Guild.Emotes;
 
                         if (serverEmotes.Any(o => o.ToString() == emoteId))
-                            IncrementCounter(emoteId, false, context.Guild);
+                            IncrementCounter(emoteId, false, context.Guild, repository);
                     }
                 }
+
+                repository.SaveChanges();
             }
         }
 
-        public async Task IncrementFromReaction(SocketReaction reaction)
+        public void IncrementFromReaction(SocketReaction reaction)
         {
+            if (!(reaction.Channel is SocketGuildChannel channel)) return;
+            if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
+
+            var serverEmotes = channel.Guild.Emotes;
+
             lock (Locker)
             {
-                if (!(reaction.Channel is SocketGuildChannel channel)) return;
-                if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
-
-                var serverEmotes = channel.Guild.Emotes;
+                using var repository = Provider.GetService<EmoteStatsRepository>();
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    IncrementCounter(emoji.Name, true, channel.Guild);
+                    IncrementCounter(emoji.Name, true, channel.Guild, repository);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        IncrementCounter(reaction.Emote.ToString(), false, channel.Guild);
+                        IncrementCounter(reaction.Emote.ToString(), false, channel.Guild, repository);
                 }
+
+                repository.SaveChanges();
             }
         }
 
-        public async Task DecrementFromReaction(SocketReaction reaction)
+        public void DecrementFromReaction(SocketReaction reaction)
         {
+            if (!(reaction.Channel is SocketGuildChannel channel)) return;
+            if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
+
+            var serverEmotes = channel.Guild.Emotes;
             lock (Locker)
             {
-                if (!(reaction.Channel is SocketGuildChannel channel)) return;
-                if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
+                using var repository = Provider.GetService<EmoteStatsRepository>();
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    DecrementCounter(reaction.Emote.Name, true, channel.Guild);
+                    DecrementCounter(reaction.Emote.Name, true, channel.Guild, repository);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
-                    var serverEmotes = channel.Guild.Emotes;
 
                     if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        DecrementCounter(emoteId, false, channel.Guild);
+                        DecrementCounter(emoteId, false, channel.Guild, repository);
                 }
+
+                repository.SaveChanges();
             }
         }
 
-        private void TryIncrementUnicodeFromMessage(string content, SocketGuild guild)
+        private void TryIncrementUnicodeFromMessage(string content, SocketGuild guild, EmoteStatsRepository repository)
         {
             var emojis = content
                 .Split(' ')
@@ -148,11 +133,11 @@ namespace Grillbot.Services.Statistics
 
             foreach (var emoji in emojis)
             {
-                IncrementCounter(emoji, true, guild);
+                IncrementCounter(emoji, true, guild, repository);
             }
         }
 
-        private void IncrementCounter(string emoteId, bool isUnicode, SocketGuild guild)
+        private void IncrementCounter(string emoteId, bool isUnicode, SocketGuild guild, EmoteStatsRepository repository)
         {
             if (isUnicode)
             {
@@ -160,17 +145,10 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            var key = $"{guild.Id}|{emoteId}";
-
-            if (!Counter.ContainsKey(key))
-                Counter.Add(key, new EmoteStat(emoteId, isUnicode, guild.Id));
-            else
-                GetValue(key).IncrementAndUpdate();
-
-            Changes.Add(key);
+            repository.AddOrIncrementEmoteNoCommit(guild, emoteId, isUnicode);
         }
 
-        private void DecrementCounter(string emoteId, bool isUnicode, SocketGuild guild)
+        private void DecrementCounter(string emoteId, bool isUnicode, SocketGuild guild, EmoteStatsRepository repository)
         {
             if (isUnicode)
             {
@@ -178,40 +156,24 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            var key = $"{guild.Id}|{emoteId}";
-
-            var value = GetValue(key);
-            if (value == null || value.Count == 0) return;
-
-            value.Decrement();
-            Changes.Add(key);
+            repository.DecrementEmote(guild, emoteId);
         }
 
-        public EmoteStat GetValue(string emoteId)
+        public EmoteStat GetValue(SocketGuild guild, string emoteId)
         {
-            return !Counter.ContainsKey(emoteId) ? null : Counter[emoteId];
+            using var repository = Provider.GetService<EmoteStatsRepository>();
+            return repository.GetEmoteStat(guild, emoteId);
         }
 
         public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode)
         {
-            var query = Counter.Values.Where(o => o.GuildIDSnowflake == guildID);
-
-            if (excludeUnicode)
-                query = query.Where(o => !o.IsUnicode);
+            using var repository = Provider.GetService<EmoteStatsRepository>();
+            var query = repository.GetEmoteStats(guildID, excludeUnicode);
 
             if (descOrder)
                 return query.OrderByDescending(o => o.Count).ThenByDescending(o => o.LastOccuredAt).ToList();
             else
                 return query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt).ToList();
-        }
-
-        public void Dispose()
-        {
-            SyncTimerCallback(null);
-
-            Counter.Clear();
-            Changes.Clear();
-            DbSyncTimer.Dispose();
         }
 
         public List<EmoteMergeListItem> GetMergeList(SocketGuild guild)
@@ -233,33 +195,15 @@ namespace Grillbot.Services.Statistics
             return data.FindAll(o => o.Emotes.Count > 0);
         }
 
-        public async Task MergeEmotesAsync(SocketGuild guild)
+        public void MergeEmotes(SocketGuild guild)
         {
             lock (Locker)
             {
+                using var repository = Provider.GetService<EmoteStatsRepository>();
+
                 foreach (var item in GetMergeList(guild))
                 {
-                    var key = $"{guild.Id}|{item.MergeTo}";
-                    if (!Counter.ContainsKey(key))
-                    {
-                        var stat = new EmoteStat(item.MergeTo, false, guild.Id)
-                        {
-                            Count = 0
-                        };
-
-                        Counter.Add(key, stat);
-                    }
-
-                    var emote = Counter[key];
-
-                    foreach (var source in item.Emotes)
-                    {
-                        emote.Count += source.Value;
-                        Repository.RemoveEmote(source.Key);
-                        Counter.Remove($"{guild.Id}|{source.Key}");
-                    }
-
-                    Changes.Add(key);
+                    repository.MergeEmotes(guild, item);
                 }
             }
         }
@@ -270,24 +214,25 @@ namespace Grillbot.Services.Statistics
 
             lock (Locker)
             {
+                using var repository = Provider.GetService<EmoteStatsRepository>();
                 var removed = new List<string>();
 
-                foreach (var emote in Counter.Values.Where(o => !o.IsUnicode).ToList())
-                {
-                    var parsedEmote = Emote.Parse(emote.GetRealId());
+                var emoteClearCandidates = repository.GetEmoteStats(guild.Id, true).ToList();
 
-                    if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
+                foreach(var candidate in emoteClearCandidates)
+                {
+                    var parsedEmote = Emote.Parse(candidate.GetRealId());
+
+                    if(!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                     {
-                        removed.Add($"Smazán starý emote {parsedEmote.Name} ({parsedEmote.Id})");
-                        Repository.RemoveEmote(emote.GetRealId());
-                        Counter.Remove($"{emote.GuildID}|{emote.GetRealId()}");
+                        removed.Add($"Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id})");
+                        repository.RemoveEmojiNoCommit(guild, candidate.GetRealId());
                     }
                 }
 
+                repository.SaveChanges();
                 return removed;
             }
         }
-
-        public async Task InitAsync() { }
     }
 }

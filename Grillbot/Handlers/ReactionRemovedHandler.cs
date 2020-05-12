@@ -26,7 +26,7 @@ namespace Grillbot.Handlers
         private async Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             InternalStatistics.IncrementEvent("ReactionRemoved");
-            await EmoteStats.DecrementFromReaction(reaction).ConfigureAwait(false);
+            EmoteStats.DecrementFromReaction(reaction);
             UserService.DecrementReaction(reaction);
         }
 

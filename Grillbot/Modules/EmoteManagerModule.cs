@@ -2,9 +2,12 @@
 using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Models.Embed;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,7 +21,7 @@ namespace Grillbot.Modules
     {
         private EmoteStats EmoteStats { get; }
 
-        public EmoteManagerModule(EmoteStats emoteStats)
+        public EmoteManagerModule(EmoteStats emoteStats, PaginationService pagination) : base(paginationService: pagination)
         {
             EmoteStats = emoteStats;
         }
@@ -32,16 +35,26 @@ namespace Grillbot.Modules
                 .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
                 .ToList();
 
-            const int maxFieldsCount = EmbedBuilder.MaxFieldCount;
+            var pages = new List<PaginatedEmbedPage>();
+
+            const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
             var pagesCount = Math.Ceiling((float)fields.Count / maxFieldsCount);
             for (int i = 0; i < pagesCount; i++)
             {
-                var embed = new BotEmbed(Context.Message.Author)
-                    .PrependFooter($"Strana {i + 1} z {pagesCount}")
-                    .WithFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
+                var page = new PaginatedEmbedPage(null);
+                page.AddFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
 
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                pages.Add(page);
             }
+
+            var embed = new PaginatedEmbed()
+            {
+                Title = "Kompletní statistika emotů",
+                Pages = pages,
+                ResponseFor = Context.User
+            };
+
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("desc")]
@@ -71,6 +84,7 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
+        [DisabledPM]
         [Command("")]
         [Summary("Statistika emotu")]
         [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]
@@ -80,12 +94,12 @@ namespace Grillbot.Modules
                 return;
 
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
-            var emoteInfo = EmoteStats.GetValue(emote);
+            var emoteInfo = EmoteStats.GetValue(Context.Guild, emote);
 
             if (emoteInfo == null)
             {
                 var bytes = Encoding.Unicode.GetBytes(emote);
-                emoteInfo = EmoteStats.GetValue(Convert.ToBase64String(bytes));
+                emoteInfo = EmoteStats.GetValue(Context.Guild, Convert.ToBase64String(bytes));
             }
 
             if (emoteInfo == null)
@@ -171,11 +185,12 @@ namespace Grillbot.Modules
         [Summary("Provede sloučení stejných emotů ve statistikách.")]
         public async Task ProcessEmoteMergeAsync()
         {
-            await EmoteStats.MergeEmotesAsync(Context.Guild).ConfigureAwait(false);
+            EmoteStats.MergeEmotes(Context.Guild);
             await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
         }
 
         [Command("cleanOldEmotes")]
+        [Summary("Smazání starých statistik k emotům, které již neexistují.")]
         public async Task CleanOldEmotes()
         {
             var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
