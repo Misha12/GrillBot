@@ -13,20 +13,22 @@ namespace Grillbot.Services.TempUnverify
 {
     public class TempUnverifyChecker : IDisposable
     {
-        private ConfigRepository Repository { get; }
+        private ConfigRepository ConfigRepository { get; }
         private Configuration Config { get; }
+        private TempUnverifyRepository Repository { get; }
 
-        public TempUnverifyChecker(ConfigRepository repository, IOptions<Configuration> options)
+        public TempUnverifyChecker(ConfigRepository configRepository, IOptions<Configuration> options, TempUnverifyRepository repository)
         {
+            ConfigRepository = configRepository;
             Repository = repository;
             Config = options.Value;
         }
 
-        public void Validate(SocketGuildUser user, SocketGuild guild, bool selfunverify, List<string> subjects, List<ulong> currentUnverifiedPersons)
+        public void Validate(SocketGuildUser user, SocketGuild guild, bool selfunverify, List<string> subjects)
         {
             ValidateSubjects(selfunverify, subjects, guild);
             ValidateServerOwner(guild, user);
-            ValidateCurrentlyUnverifiedUsers(user, currentUnverifiedPersons);
+            ValidateCurrentlyUnverifiedUsers(user);
             ValidateRoles(guild, user, selfunverify);
             ValidateBotAdmin(selfunverify, user);
         }
@@ -36,7 +38,7 @@ namespace Grillbot.Services.TempUnverify
             if (!selfunverify || subjects?.Count <= 0)
                 return;
 
-            var config = Repository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
+            var config = ConfigRepository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
 
             if (subjects.Count > config.MaxSubjectsCount)
                 throw new BotCommandInfoException($"Je možné si ponechat maximálně {config.MaxSubjectsCount} rolí.");
@@ -56,9 +58,9 @@ namespace Grillbot.Services.TempUnverify
                 throw new BotCommandInfoException("Nelze provést odebrání přístupu, protože se mezi uživateli nachází vlastník serveru.");
         }
 
-        private void ValidateCurrentlyUnverifiedUsers(SocketGuildUser user, List<ulong> currentlyUnverified)
+        private void ValidateCurrentlyUnverifiedUsers(SocketGuildUser user)
         {
-            if (currentlyUnverified.Any(o => o == user.Id))
+            if(Repository.UnverifyExists(user.Id))
                 throw new BotCommandInfoException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
         }
 
@@ -86,6 +88,7 @@ namespace Grillbot.Services.TempUnverify
         public void Dispose()
         {
             Repository.Dispose();
+            ConfigRepository.Dispose();
         }
     }
 }

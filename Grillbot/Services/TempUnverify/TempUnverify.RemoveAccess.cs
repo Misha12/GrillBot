@@ -6,6 +6,8 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -14,16 +16,15 @@ namespace Grillbot.Services.TempUnverify
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            using var checker = Factories.GetChecker();
-            var currentUnverified = GetCurrentUnverifiedUserIDs();
+            using var checker = Provider.GetService<TempUnverifyChecker>();
 
             foreach (var user in users)
             {
-                checker.Validate(user, guild, false, null, currentUnverified);
+                checker.Validate(user, guild, false, null);
             }
 
-            var reason = Factories.GetReasonParser().Parse(data);
-            var unverifyTime = Factories.GetTimeParser().Parse(time);
+            var reason = Provider.GetService<TempUnverifyReasonParser>().Parse(data);
+            var unverifyTime = Provider.GetService<TempUnverifyTimeParser>().Parse(time);
             var unverifiedPersons = new List<TempUnverifyItem>();
 
             foreach (var user in users)
@@ -60,14 +61,14 @@ namespace Grillbot.Services.TempUnverify
             var rolesToRemoveIDs = rolesToRemove.Select(o => o.Id).ToList();
             var overrides = GetChannelOverrides(user);
 
-            using var logService = Factories.GetLogService();
+            using var logService = Provider.GetService<TempUnverifyLogService>();
             logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, user, fromUser, guild, ignoreHigherRoles, subjects);
 
             if (subjects == null || subjects.Length == 0)
                 await FindAndToggleMutedRoleAsync(user, guild, true);
 
-            await PreRemoveAccessToPublicChannels(user, guild).ConfigureAwait(false); // Set SendMessage: Deny for extra channels.
-            await user.RemoveRolesAsync(rolesToRemove).ConfigureAwait(false); // Remove all roles for user.
+            await PreRemoveAccessToPublicChannels(user, guild); // Set SendMessage: Deny for extra channels.
+            await user.RemoveRolesAsync(rolesToRemove); // Remove all roles for user.
 
             // Remove all extra channel permissions.
             foreach (var channelOverride in overrides)
@@ -78,10 +79,9 @@ namespace Grillbot.Services.TempUnverify
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
-            using var repository = Factories.GetUnverifyRepository();
+            using var repository = Provider.GetService<TempUnverifyRepository>();
             var unverify = await repository
-                .AddItemAsync(rolesToRemoveIDs, user.Id, user.Guild.Id, unverifyTime, overrides, reason)
-                .ConfigureAwait(false);
+                .AddItemAsync(rolesToRemoveIDs, user.Id, user.Guild.Id, unverifyTime, overrides, reason);
 
             var formatedPrivateMessage = GetFormatedPrivateMessage(user, unverify, reason, false);
             await user.SendPrivateMessageAsync(formatedPrivateMessage).ConfigureAwait(false);

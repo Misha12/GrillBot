@@ -86,6 +86,10 @@ namespace Grillbot.Modules
         public async Task ListUnverifyAsync()
         {
             var users = await UnverifyService.ListPersonsAsync(Context.Guild);
+
+            if(users.Count == 0)
+                throw new BotCommandInfoException("Nikdo zatím nemá odebraný přístup."); 
+
             var pages = new List<PaginatedEmbedPage>();
 
             foreach (var user in users)

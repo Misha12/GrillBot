@@ -21,7 +21,6 @@ namespace Grillbot.Services.Statistics
 {
     public class EmoteStats
     {
-        private Dictionary<string, EmoteStat> Counter { get; set; }
         private static object Locker { get; } = new object();
         private IServiceProvider Provider { get; }
 

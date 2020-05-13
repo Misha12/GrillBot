@@ -1,8 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Config.Dynamic;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,13 +33,12 @@ namespace Grillbot.Services.TempUnverify
         /// </summary>
         private async Task PreRemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
         {
-            await guild.SyncGuildAsync().ConfigureAwait(false);
+            await guild.SyncGuildAsync();
 
-            var configData = Factories.GetConfig(guild.Id);
-
+            var config = GetConfig(guild);
             var channels = guild.Channels
                 .OfType<SocketTextChannel>()
-                .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()));
+                .Where(o => config.PreprocessRemoveAccess.Contains(o.Id.ToString()));
 
             foreach (var channel in channels)
             {
@@ -60,9 +62,9 @@ namespace Grillbot.Services.TempUnverify
         private async Task RemoveOverwritesForPreprocessedChannels(SocketGuildUser user, SocketGuild guild,
             List<ChannelOverride> overrideExceptions)
         {
-            await guild.SyncGuildAsync().ConfigureAwait(false);
+            await guild.SyncGuildAsync();
 
-            var configData = Factories.GetConfig(guild.Id);
+            var configData = GetConfig(guild);
 
             var overwrites = guild.Channels
                 .OfType<SocketTextChannel>()

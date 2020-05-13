@@ -5,8 +5,9 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using Grillbot.Models.TempUnverify;
 using System.Linq;
-using Grillbot.Exceptions;
 using Discord.WebSocket;
+using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Database.Repository;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -14,12 +15,8 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync(SocketGuild guild)
         {
-            using var repository = Factories.GetUnverifyRepository();
+            using var repository = Provider.GetService<TempUnverifyRepository>();
             var persons = await repository.GetAllItems(guild).ToListAsync();
-
-            if (persons.Count == 0)
-                throw new BotCommandInfoException("Nikdo zatím nemá odebraný přístup.");
-
             return await CreateListsPersonsAsync(persons).ConfigureAwait(false);
         }
 
@@ -45,18 +42,6 @@ namespace Grillbot.Services.TempUnverify
             }
 
             return users;
-        }
-
-        public async Task<List<CurrentUnverifiedUser>> ListPersonsForAdminAsync()
-        {
-            try
-            {
-                return await ListPersonsAsync(null);
-            }
-            catch(BotCommandInfoException)
-            {
-                return new List<CurrentUnverifiedUser>();
-            }
         }
     }
 }

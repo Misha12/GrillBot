@@ -30,7 +30,7 @@ namespace Grillbot.Controllers
         [HttpGet]
         public async Task<IActionResult> IndexAsync()
         {
-            var unverified = await TempUnverifyService.ListPersonsForAdminAsync();
+            var unverified = await TempUnverifyService.ListPersonsAsync(null);
             return View(new UnverifyCurrentStatusViewModel(unverified));
         }
 

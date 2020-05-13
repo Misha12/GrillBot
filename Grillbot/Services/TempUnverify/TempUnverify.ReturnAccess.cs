@@ -8,6 +8,8 @@ using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
 using Grillbot.Extensions;
 using Grillbot.Exceptions;
+using Grillbot.Database.Repository;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -17,7 +19,16 @@ namespace Grillbot.Services.TempUnverify
         {
             if (item is TempUnverifyItem unverify)
             {
-                using var repository = Factories.GetUnverifyRepository();
+                using var repository = Provider.GetService<TempUnverifyRepository>();
+
+                if (!repository.UnverifyExists(unverify.ID))
+                {
+                    if (Data.Any(o => o.ID == unverify.ID))
+                        Data.RemoveAll(o => o.ID == unverify.ID);
+
+                    unverify.Dispose();
+                    return;
+                }
 
                 var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
@@ -35,7 +46,7 @@ namespace Grillbot.Services.TempUnverify
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
                 if (isAutoRemove)
                 {
-                    using var logService = Factories.GetLogService();
+                    using var logService = Provider.GetService<TempUnverifyLogService>();
                     logService.LogAutoRemove(unverify, user, guild);
                 }
 
@@ -63,19 +74,19 @@ namespace Grillbot.Services.TempUnverify
 
         public async Task<string> ReturnAccessAsync(int id, SocketUser fromUser)
         {
-            using var repository = Factories.GetUnverifyRepository();
-            var item = await repository.FindItemByIDAsync(id).ConfigureAwait(false);
+            using var repository = Provider.GetService<TempUnverifyRepository>();
+            var item = await repository.FindItemByIDAsync(id);
 
             if (item == null)
                 throw new BotCommandInfoException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
 
             var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
-            var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
+            var user = await guild.GetUserFromGuildAsync(item.UserID);
 
             if (user == null)
                 throw new BotCommandInfoException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-            using var logService = Factories.GetLogService();
+            using var logService = Provider.GetService<TempUnverifyLogService>();
             logService.LogRemove(item, user, fromUser, guild);
 
             ReturnAccess(item);

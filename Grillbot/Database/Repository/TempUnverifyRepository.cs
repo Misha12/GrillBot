@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -54,13 +55,6 @@ namespace Grillbot.Database.Repository
             return await GetAllItems(null).FirstOrDefaultAsync(o => o.ID == id).ConfigureAwait(false);
         }
 
-        public async Task<TempUnverifyItem> FindUnverifyByUserID(ulong userId)
-        {
-            string user = userId.ToString();
-
-            return await GetAllItems(null).FirstOrDefaultAsync(o => o.UserID == user).ConfigureAwait(false);
-        }
-
         public void RemoveItem(int id)
         {
             var item = Context.TempUnverify.FirstOrDefault(o => o.ID == id);
@@ -70,17 +64,6 @@ namespace Grillbot.Database.Repository
 
             Context.TempUnverify.Remove(item);
             Context.SaveChanges();
-        }
-
-        public async Task RemoveItemAsync(int id)
-        {
-            var item = await FindItemByIDAsync(id).ConfigureAwait(false);
-
-            if (item == null)
-                return;
-
-            Context.TempUnverify.Remove(item);
-            await Context.SaveChangesAsync().ConfigureAwait(false);
         }
 
         public async Task UpdateTimeAsync(int id, int time)
@@ -139,6 +122,17 @@ namespace Grillbot.Database.Repository
                 .OrderByDescending(o => o.DateTime)
                 .Take(limit)
                 .ToList();
+        }
+
+        public bool UnverifyExists(ulong userId)
+        {
+            var id = userId.ToString();
+            return Context.TempUnverify.Any(o => o.UserID == id);
+        }
+
+        public bool UnverifyExists(int id)
+        {
+            return Context.TempUnverify.Any(o => o.ID == id);
         }
     }
 }

@@ -1,10 +1,12 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Grillbot.Models.Config.AppSettings;
+using Grillbot.Database.Repository;
+using Grillbot.Extensions;
+using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,19 +17,16 @@ namespace Grillbot.Services.TempUnverify
     public partial class TempUnverifyService : IInitiable
     {
         private List<TempUnverifyItem> Data { get; }
-        private Configuration Config { get; set; }
         private ILogger<TempUnverifyService> Logger { get; }
         private DiscordSocketClient Client { get; }
-        private TempUnverifyFactories Factories { get; }
+        private IServiceProvider Provider { get; }
 
-        public TempUnverifyService(IOptions<Configuration> config, DiscordSocketClient client, TempUnverifyFactories factories,
-            ILogger<TempUnverifyService> logger)
+        public TempUnverifyService(DiscordSocketClient client, ILogger<TempUnverifyService> logger, IServiceProvider provider)
         {
             Data = new List<TempUnverifyItem>();
-            Config = config.Value;
             Logger = logger;
             Client = client;
-            Factories = factories;
+            Provider = provider;
         }
 
         public async Task InitAsync()
@@ -41,8 +40,8 @@ namespace Grillbot.Services.TempUnverify
             int processedCount = 0;
             int waitingCount = 0;
 
-            using var repository = Factories.GetUnverifyRepository();
-            var items = await repository.GetAllItems(null).ToListAsync().ConfigureAwait(false);
+            using var repository = Provider.GetService<TempUnverifyRepository>();
+            var items = await repository.GetAllItems(null).ToListAsync();
 
             foreach (var item in items)
             {
@@ -64,9 +63,11 @@ namespace Grillbot.Services.TempUnverify
 
         public void Init() { }
 
-        private List<ulong> GetCurrentUnverifiedUserIDs()
+        public TempUnverifyConfig GetConfig(SocketGuild guild)
         {
-            return Data.Select(o => o.UserIDSnowflake).ToList();
+            using var configRepository = Provider.GetConfigRepository();
+            var config = configRepository.FindConfig(guild.Id, "unverify", "");
+            return config.GetData<TempUnverifyConfig>();
         }
     }
 }

@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity;
+using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -12,12 +13,10 @@ namespace Grillbot.Services.TempUnverify
         {
             const string message = "Self unverify";
 
-            using var checker = Factories.GetChecker();
-            var currentUnverified = GetCurrentUnverifiedUserIDs();
+            using var checker = Provider.GetService<TempUnverifyChecker>();
+            checker.Validate(user, guild, true, subjects.ToList());
 
-            checker.Validate(user, guild, true, subjects.ToList(), currentUnverified);
-
-            var timeParser = Factories.GetTimeParser();
+            var timeParser = Provider.GetService<TempUnverifyTimeParser>();
             var unverifyTime = timeParser.Parse(time);
             var unverify = await RemoveAccessAsync(user, unverifyTime, message, user, guild, true, subjects);
 
