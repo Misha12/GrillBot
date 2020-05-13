@@ -1,6 +1,7 @@
 ﻿using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
@@ -37,10 +38,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private bool IsDetectedChange(IMessage messageBefore, IMessage messageAfter)
         {
-            if (messageBefore == null) return false;
-            if (messageAfter == null) return false;
-
-            return messageBefore.Content != messageAfter.Content;
+            return messageBefore != null && messageAfter != null
+                && messageBefore.Author.IsUser() && messageBefore.Content != messageAfter.Content;
         }
     }
 }
