@@ -3,6 +3,7 @@ using WebAdminUserOrder = Grillbot.Models.Users.WebAdminUserOrder;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -22,13 +23,19 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc)
+        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, ulong? userID)
         {
             var query = GetBaseQuery(true);
 
+            if (guildID != null)
+                query = query.Where(o => o.GuildID == guildID.ToString());
+
+            if (userID != null)
+                query = query.Where(o => o.UserID == userID.ToString());
+
             query = order switch
             {
-                WebAdminUserOrder.Username => desc ? query.OrderByDescending(o => o.UserID) : query.OrderBy(o => o.UserID),
+                WebAdminUserOrder.UserID => desc ? query.OrderByDescending(o => o.ID) : query.OrderBy(o => o.ID),
                 WebAdminUserOrder.Server => desc ? query.OrderByDescending(o => o.GuildID) : query.OrderBy(o => o.GuildID),
                 WebAdminUserOrder.Reactions => desc ? query.OrderByDescending(o => o.GivenReactionsCount).ThenByDescending(o => o.ObtainedReactionsCount)
                     : query.OrderBy(o => o.GivenReactionsCount).ThenBy(o => o.ObtainedReactionsCount),
@@ -36,7 +43,8 @@ namespace Grillbot.Database.Repository
                 WebAdminUserOrder.MessageCount => desc ? query.OrderByDescending(o => o.Channels.Sum(x => x.Count)) : query.OrderBy(o => o.Channels.Sum(x => x.Count)),
                 _ => query.OrderByDescending(o => o.Channels.Sum(x => x.Count)),
             };
-            return query;
+
+            return query.Take(limit);
         }
 
         public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels = true)
@@ -70,6 +78,14 @@ namespace Grillbot.Database.Repository
             }
 
             return entity;
+        }
+
+        public async Task<List<string>> GetUsersForFilterAsync()
+        {
+            return await GetBaseQuery(false)
+                .Select(o => o.UserID)
+                .Distinct()
+                .ToListAsync();
         }
     }
 }

@@ -1,4 +1,6 @@
-﻿using System.Threading.Tasks;
+﻿using System.Linq;
+using System.Threading.Tasks;
+using Discord.WebSocket;
 using Grillbot.Models.Users;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authorization;
@@ -11,17 +13,37 @@ namespace Grillbot.Controllers
     public class UsersController : Controller
     {
         private UserService UserService { get; }
+        private DiscordSocketClient Client { get; }
 
-        public UsersController(UserService userService)
+        public UsersController(UserService userService, DiscordSocketClient client)
         {
             UserService = userService;
+            Client = client;
         }
 
         [HttpGet]
-        public async Task<IActionResult> IndexAsync(WebAdminUserOrder order, bool desc)
+        public async Task<IActionResult> IndexAsync()
         {
-            var users = await UserService.GetUsersList(order, desc);
-            return View(new WebAdminUserListViewModel(users, order, desc));
+            var guilds = Client.Guilds.ToList();
+
+            var filter = new WebAdminUserListFilter();
+            var users = await UserService.GetUsersList(filter);
+            var filterUsers = await UserService.GetUsersForFilterAsync();
+
+            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, filterUsers);
+            return View(viewModel);
+        }
+
+        [HttpPost]
+        public async Task<IActionResult> IndexAsync(WebAdminUserListFilter filter)
+        {
+            var guilds = Client.Guilds.ToList();
+
+            var users = await UserService.GetUsersList(filter);
+            var filterUsers = await UserService.GetUsersForFilterAsync();
+
+            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, filterUsers);
+            return View(viewModel);
         }
 
         [HttpGet("UserInfo")]

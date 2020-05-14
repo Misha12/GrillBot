@@ -3,7 +3,7 @@
     public enum WebAdminUserOrder
     {
         None,
-        Username,
+        UserID,
         Server,
         Points,
         Reactions,

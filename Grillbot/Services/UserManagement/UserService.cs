@@ -34,12 +34,12 @@ namespace Grillbot.Services.UserManagement
             DiscordClient = discordClient;
         }
 
-        public async Task<List<DiscordUser>> GetUsersList(WebAdminUserOrder order, bool desc)
+        public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter filter)
         {
             var users = new List<DiscordUser>();
 
             using var repository = Services.GetService<UsersRepository>();
-            var dbUsers = repository.GetUsers(order, desc).ToList();
+            var dbUsers = repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, filter.Limit, filter.UserID).ToList();
 
             foreach (var user in dbUsers)
             {
@@ -281,6 +281,32 @@ namespace Grillbot.Services.UserManagement
 
                 return BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword);
             }
+        }
+
+        public async Task<Dictionary<ulong, string>> GetUsersForFilterAsync()
+        {
+            var dict = new Dictionary<ulong, string>();
+
+            using var repository = Services.GetService<UsersRepository>();
+            var users = await repository.GetUsersForFilterAsync();
+
+            foreach (var user in users)
+            {
+                var userID = Convert.ToUInt64(user);
+
+                foreach (var guild in DiscordClient.Guilds)
+                {
+                    var discordUser = await guild.GetUserFromGuildAsync(userID);
+
+                    if (discordUser == null)
+                        continue;
+
+                    if (!dict.ContainsKey(discordUser.Id))
+                        dict.Add(discordUser.Id, discordUser.GetShortName());
+                }
+            }
+
+            return dict;
         }
     }
 }
