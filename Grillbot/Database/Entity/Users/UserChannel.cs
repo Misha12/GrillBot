@@ -36,6 +36,15 @@ namespace Grillbot.Database.Entity.Users
         [ForeignKey("UserID")]
         public DiscordUser User { get; set; }
 
+        public string GuildID { get; set; }
+
+        [NotMapped]
+        public ulong GuildIDSnowflake
+        {
+            get => Convert.ToUInt64(GuildID);
+            set => GuildID = value.ToString();
+        }
+
         public long Count { get; set; }
         public DateTime LastMessageAt { get; set; }
     }

@@ -42,6 +42,7 @@ namespace Grillbot.Services.Channelboard
         {
             var result = new List<ChannelStatItem>();
 
+            await guild.SyncGuildAsync();
             foreach (var channel in GetAllChannels(guild))
             {
                 if (!(await CanUserToChannelAsync(guild, channel.ChannelIDSnowflake, user)))
@@ -64,8 +65,6 @@ namespace Grillbot.Services.Channelboard
 
         private async Task<bool> CanUserToChannelAsync(SocketGuild guild, ulong channelID, IUser user)
         {
-            await guild.SyncGuildAsync();
-
             var channel = guild.GetChannel(channelID);
             if (channel == null)
                 return false;

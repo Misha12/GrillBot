@@ -5,7 +5,8 @@
 	[UserID] BIGINT NOT NULL,
 	[Count] BIGINT NOT NULL CONSTRAINT DF_UserChannels_Count DEFAULT (0),
 	[LastMessageAt] DATETIME NULL,
-	[DiscordUserID] VARCHAR(30) NOT NULL
+	[DiscordUserID] VARCHAR(30) NOT NULL,
+	[GuildID] VARCHAR(30) NOT NULL
 
 	CONSTRAINT FK_UserChannels_UserID FOREIGN KEY ([UserID]) REFERENCES [DiscordUsers]([ID])
 )
