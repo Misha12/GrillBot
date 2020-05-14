@@ -290,20 +290,16 @@ namespace Grillbot.Services.UserManagement
             using var repository = Services.GetService<UsersRepository>();
             var users = await repository.GetUsersForFilterAsync();
 
+            foreach (var guild in DiscordClient.Guilds)
+                await guild.SyncGuildAsync();
+
             foreach (var user in users)
             {
                 var userID = Convert.ToUInt64(user);
+                var dcUser = DiscordClient.GetUser(userID);
 
-                foreach (var guild in DiscordClient.Guilds)
-                {
-                    var discordUser = await guild.GetUserFromGuildAsync(userID);
-
-                    if (discordUser == null)
-                        continue;
-
-                    if (!dict.ContainsKey(discordUser.Id))
-                        dict.Add(discordUser.Id, discordUser.GetShortName());
-                }
+                if (dcUser != null && !dict.ContainsKey(userID))
+                    dict.Add(userID, dcUser.GetShortName());
             }
 
             return dict;

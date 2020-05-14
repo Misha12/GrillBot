@@ -23,7 +23,7 @@
                     <div class="col-md-4 mb-3">
                         <label for="Filter.UserID">Uživatel</label>
                         <select class="form-control" asp-for="Filter.UserID">
-                            <option value="">Kdokoliv</option>
+                            <option value="">Nezáleží</option>
                             @foreach (var user in Model.FilterUsers)
                             {
                                 <option value="@user.Key">@user.Value</option>

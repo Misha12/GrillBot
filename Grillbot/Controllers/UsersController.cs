@@ -35,7 +35,7 @@ namespace Grillbot.Controllers
         }
 
         [HttpPost]
-        public async Task<IActionResult> IndexAsync(WebAdminUserListFilter filter)
+        public async Task<IActionResult> IndexAsync([FromForm] WebAdminUserListFilter filter)
         {
             var guilds = Client.Guilds.ToList();
 

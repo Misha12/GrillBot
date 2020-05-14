@@ -35,7 +35,7 @@ namespace Grillbot.Extensions.Discord
 
             if (user == null)
             {
-                await guild.DownloadUsersAsync().ConfigureAwait(false);
+                await guild.DownloadUsersAsync();
                 user = guild.GetUser(userId);
             }
 
