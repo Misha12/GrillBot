@@ -59,7 +59,6 @@
     <Folder Include="Tables" />
   </ItemGroup>
   <ItemGroup>
-    <Build Include="Tables\Channelstats.sql" />
     <Build Include="Tables\EmoteStatistics.sql" />
     <Build Include="Tables\AutoReply.sql" />
     <Build Include="Tables\TeamSearch.sql" />

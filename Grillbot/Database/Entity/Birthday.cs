@@ -7,7 +7,6 @@ namespace Grillbot.Database.Entity
     [Table("Birthdays")]
     public class Birthday
     {
-        [Key]
         [Column]
         [Required]
         public string ID { get; set; }

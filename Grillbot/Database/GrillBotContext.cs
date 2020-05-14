@@ -24,6 +24,18 @@ namespace Grillbot.Database
                     .HasMany(o => o.Channels)
                     .WithOne(o => o.User);
             });
+
+            modelBuilder.Entity<EmoteStat>(builder =>
+            {
+                builder
+                    .HasKey(o => new { o.GuildID, o.EmoteID });
+            });
+
+            modelBuilder.Entity<Birthday>(builder =>
+            {
+                builder
+                    .HasKey(o => new { o.GuildID, o.ID });
+            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }

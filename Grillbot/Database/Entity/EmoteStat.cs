@@ -10,7 +10,6 @@ namespace Grillbot.Database.Entity
     [Table("EmoteStatistics")]
     public class EmoteStat
     {
-        [Key]
         [Column]
         [Required]
         [StringLength(255)]
