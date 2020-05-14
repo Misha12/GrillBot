@@ -63,7 +63,7 @@
                         <td>@FormatHelper.FormatWithSpaces(user.GivenReactionsCount) / @FormatHelper.FormatWithSpaces(user.ObtainedReactionsCount)</td>
                         <td>@FormatHelper.FormatWithSpaces(user.TotalMessageCount)</td>
                         <td>
-                            <a class="btn btn-sm btn-primary" asp-action="UserInfo" asp-route-userKey="@user.UserKey">Detail</a>
+                            <a class="btn btn-sm btn-primary" asp-action="UserInfo" asp-route-userId="@user.ID">Detail</a>
                         </td>
                     </tr>
                 }

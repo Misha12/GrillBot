@@ -9,13 +9,13 @@ namespace Grillbot.Models.Users
 {
     public class DiscordUser
     {
+        public long ID { get; set; }
         public SocketGuild Guild { get; set; }
         public SocketGuildUser User { get; set; }
         public long Points { get; set; }
         public long GivenReactionsCount { get; set; }
         public long ObtainedReactionsCount { get; set; }
         public bool WebAdminAccess { get; set; }
-        public string UserKey => $"{User.Id}|{Guild.Id}";
 
         public List<ChannelStatItem> Channels { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
@@ -24,7 +24,7 @@ namespace Grillbot.Models.Users
         {
             Guild = guild;
             User = user;
-
+            ID = dbUser.ID;
             Points = dbUser.Points;
             GivenReactionsCount = dbUser.GivenReactionsCount;
             ObtainedReactionsCount = dbUser.ObtainedReactionsCount;

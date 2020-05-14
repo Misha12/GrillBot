@@ -8,7 +8,6 @@ using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Models.Channelboard;
-using Grillbot.Services.UserManagement;
 using Grillbot.Database.Entity.Users;
 
 namespace Grillbot.Services.Channelboard
@@ -18,12 +17,10 @@ namespace Grillbot.Services.Channelboard
         public const int ChannelboardTakeTop = 10;
 
         private IServiceProvider Provider { get; }
-        private UserService UserService { get; }
 
-        public ChannelStats(IServiceProvider provider, UserService userService)
+        public ChannelStats(IServiceProvider provider)
         {
             Provider = provider;
-            UserService = userService;
         }
 
         public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketUser socketUser)
@@ -45,7 +42,7 @@ namespace Grillbot.Services.Channelboard
         {
             var result = new List<ChannelStatItem>();
 
-            foreach(var channel in GetAllChannels(guild))
+            foreach (var channel in GetAllChannels(guild))
             {
                 if (!(await CanUserToChannelAsync(guild, channel.ChannelIDSnowflake, user)))
                     continue;
@@ -83,42 +80,27 @@ namespace Grillbot.Services.Channelboard
             var removed = new HashSet<string>();
 
             using var repository = Provider.GetService<ChannelStatsRepository>();
-            foreach(var user in UserService.Users)
-            {
-                foreach(var channel in user.Value.Channels.ToList())
-                {
-                    var discordChannel = guild.GetChannel(channel.ChannelIDSnowflake);
+            var channels = repository.GetAllChannels(guild.Id);
 
-                    if(discordChannel == null)
-                    {
-                        removed.Add($"Kanál {channel.ChannelIDSnowflake} byl smazán.");
-                        repository.RemoveChannel(channel.ChannelIDSnowflake);
-                        UserService.RemoveChannel(user.Key, channel.ChannelIDSnowflake);
-                    }
+            foreach (var channelID in channels)
+            {
+                var channelIdSnowflake = Convert.ToUInt64(channelID);
+                var discordChannel = guild.GetChannel(channelIdSnowflake);
+
+                if (discordChannel == null)
+                {
+                    removed.Add($"Kanál {channelID} byl smazán.");
+                    repository.RemoveChannel(channelIdSnowflake);
                 }
             }
 
-            if (removed.Count == 0)
-                return null;
-
-            return removed.ToList();
+            return removed.Count == 0 ? null : removed.ToList();
         }
 
         private List<UserChannel> GetAllChannels(SocketGuild guild)
         {
-            return UserService.Users.Values
-                .Where(o => o.GuildIDSnowflake == guild.Id)
-                .SelectMany(o => o.Channels)
-                .GroupBy(o => o.ChannelIDSnowflake)
-                .Select(o => new UserChannel()
-                {
-                    ChannelIDSnowflake = o.Key,
-                    Count = o.Sum(x => x.Count),
-                    LastMessageAt = o.Max(x => x.LastMessageAt)
-                })
-                .OrderByDescending(o => o.Count)
-                .ThenByDescending(o => o.LastMessageAt)
-                .ToList();
+            using var repository = Provider.GetService<ChannelStatsRepository>();
+            return repository.GetGroupedStats(guild.Id);
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Grillbot.Database.Entity.Users;
+using WebAdminUserOrder = Grillbot.Models.Users.WebAdminUserOrder;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
@@ -11,69 +12,64 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public List<DiscordUser> GetAllUsers()
+        private IQueryable<DiscordUser> GetBaseQuery(bool includeChannels)
         {
-            return Context.Users
-                .Include(o => o.Channels)
-                .ToList();
+            var query = Context.Users.AsQueryable();
+
+            if (includeChannels)
+                query = query.Include(o => o.Channels);
+
+            return query;
         }
 
-        public void UpdateDatabase(List<DiscordUser> users)
+        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc)
         {
-            foreach (var user in users)
+            var query = GetBaseQuery(true);
+
+            query = order switch
             {
-                var entity = Context.Users
-                    .Include(o => o.Channels)
-                    .FirstOrDefault(o => o.GuildID == user.GuildID && o.UserID == user.UserID);
+                WebAdminUserOrder.Username => desc ? query.OrderByDescending(o => o.UserID) : query.OrderBy(o => o.UserID),
+                WebAdminUserOrder.Server => desc ? query.OrderByDescending(o => o.GuildID) : query.OrderBy(o => o.GuildID),
+                WebAdminUserOrder.Reactions => desc ? query.OrderByDescending(o => o.GivenReactionsCount).ThenByDescending(o => o.ObtainedReactionsCount)
+                    : query.OrderBy(o => o.GivenReactionsCount).ThenBy(o => o.ObtainedReactionsCount),
+                WebAdminUserOrder.Points => desc ? query.OrderByDescending(o => o.Points) : query.OrderBy(o => o.Points),
+                WebAdminUserOrder.MessageCount => desc ? query.OrderByDescending(o => o.Channels.Sum(x => x.Count)) : query.OrderBy(o => o.Channels.Sum(x => x.Count)),
+                _ => query.OrderByDescending(o => o.Channels.Sum(x => x.Count)),
+            };
+            return query;
+        }
 
-                if (entity == null)
+        public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels = true)
+        {
+            var guild = guildID.ToString();
+            var user = userID.ToString();
+
+            var query = GetBaseQuery(includeChannels);
+            return query.FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
+        }
+
+        public DiscordUser GetUser(long id)
+        {
+            var query = GetBaseQuery(true);
+            return query.FirstOrDefault(o => o.ID == id);
+        }
+
+        public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, bool includeChannels = true)
+        {
+            var entity = GetUser(guildID, userID, includeChannels);
+
+            if (entity == null)
+            {
+                entity = new DiscordUser()
                 {
-                    entity = new DiscordUser()
-                    {
-                        UserID = user.UserID,
-                        GuildID = user.GuildID,
-                        GivenReactionsCount = user.GivenReactionsCount,
-                        Points = user.Points,
-                        ObtainedReactionsCount = user.ObtainedReactionsCount,
-                        WebAdminPassword = user.WebAdminPassword,
-                        Channels = user.Channels.ToHashSet()
-                    };
+                    GuildIDSnowflake = guildID,
+                    UserIDSnowflake = userID
+                };
 
-                    Context.Users.Add(entity);
-                }
-                else
-                {
-                    entity.GivenReactionsCount = user.GivenReactionsCount;
-                    entity.Points = user.Points;
-                    entity.ObtainedReactionsCount = user.ObtainedReactionsCount;
-                    entity.WebAdminPassword = user.WebAdminPassword;
-
-                    foreach (var channel in user.Channels)
-                    {
-                        var channelEntity = entity.Channels.FirstOrDefault(o => o.ChannelID == channel.ChannelID && o.DiscordUserID == channel.DiscordUserID);
-
-                        if (channelEntity == null)
-                        {
-                            channelEntity = new UserChannel()
-                            {
-                                Count = channel.Count,
-                                LastMessageAt = channel.LastMessageAt,
-                                ChannelID = channel.ChannelID,
-                                DiscordUserID = channel.DiscordUserID
-                            };
-
-                            entity.Channels.Add(channelEntity);
-                        }
-                        else
-                        {
-                            channelEntity.Count = channel.Count;
-                            channelEntity.LastMessageAt = channel.LastMessageAt;
-                        }
-                    }
-                }
+                Context.Users.Add(entity);
             }
 
-            Context.SaveChanges();
+            return entity;
         }
     }
 }

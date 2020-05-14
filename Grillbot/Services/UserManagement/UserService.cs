@@ -5,39 +5,30 @@ using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Users;
-using Grillbot.Services.Initiable;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading;
 using System.Threading.Tasks;
 using Discord;
+using Grillbot.Exceptions;
 
 namespace Grillbot.Services.UserManagement
 {
-    public class UserService : IDisposable, IInitiable
+    public class UserService
     {
-        private ILogger<UserService> Logger { get; }
         private IServiceProvider Services { get; }
-        public Dictionary<string, DBDiscordUser> Users { get; private set; }
-        private HashSet<string> Changes { get; set; }
         public Dictionary<string, DateTime> LastPointsCalculatedAt { get; set; }
         private static readonly object locker = new object();
-        private Timer SyncTimer { get; set; }
         private Random Random { get; }
         private IMessageCache MessageCache { get; }
         private DiscordSocketClient DiscordClient { get; }
 
-        public UserService(ILogger<UserService> logger, IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient)
+        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient)
         {
-            Logger = logger;
             Services = services;
             MessageCache = messageCache;
-            Users = new Dictionary<string, DBDiscordUser>();
-            Changes = new HashSet<string>();
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
             Random = new Random();
             DiscordClient = discordClient;
@@ -47,121 +38,62 @@ namespace Grillbot.Services.UserManagement
         {
             var users = new List<DiscordUser>();
 
-            foreach (var user in Users.Values)
+            using var repository = Services.GetService<UsersRepository>();
+            var dbUsers = repository.GetUsers(order, desc).ToList();
+
+            foreach (var user in dbUsers)
             {
-                var guild = DiscordClient.GetGuild(user.GuildIDSnowflake);
-                if (guild == null) continue;
-
-                var socketUser = await guild.GetUserFromGuildAsync(user.UserIDSnowflake);
-                if (socketUser == null) continue;
-
-                users.Add(new DiscordUser(guild, socketUser, user));
-            }
-
-            switch (order)
-            {
-                case WebAdminUserOrder.MessageCount:
-                    users = (desc ? users.OrderByDescending(o => o.TotalMessageCount) : users.OrderBy(o => o.TotalMessageCount)).ToList();
-                    break;
-                case WebAdminUserOrder.Points:
-                    users = (desc ? users.OrderByDescending(o => o.Points) : users.OrderBy(o => o.Points)).ToList();
-                    break;
-                case WebAdminUserOrder.Reactions:
-                    if (desc)
-                    {
-                        users = users
-                            .OrderByDescending(o => o.GivenReactionsCount)
-                            .ThenByDescending(o => o.ObtainedReactionsCount)
-                            .ToList();
-                    }
-                    else
-                    {
-                        users = users
-                            .OrderBy(o => o.GivenReactionsCount)
-                            .ThenBy(o => o.ObtainedReactionsCount)
-                            .ToList();
-                    }
-                    break;
-                case WebAdminUserOrder.Server:
-                    users = (desc ? users.OrderByDescending(o => o.Guild.Id) : users.OrderBy(o => o.Guild.Id)).ToList();
-                    break;
-                default:
-                    users = (desc ? users.OrderByDescending(o => o.User.Id) : users.OrderBy(o => o.User.Id)).ToList();
-                    break;
+                var mappedUser = await MapUserAsync(user);
+                if (mappedUser != null)
+                    users.Add(mappedUser);
             }
 
             return users;
         }
 
-        public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
+        public async Task<DiscordUser> GetUserAsync(long id)
         {
-            var key = GenerateKey(guild, user);
-            return await GetUserAsync(key);
-        }
+            using var repository = Services.GetService<UsersRepository>();
+            var userData = repository.GetUser(id);
 
-        public async Task<DiscordUser> GetUserAsync(string key)
-        {
-            if (!Users.ContainsKey(key))
+            if (userData == null)
                 return null;
 
-            var user = Users[key];
-            var guild = DiscordClient.GetGuild(user.GuildIDSnowflake);
+            return await MapUserAsync(userData);
+        }
+
+        public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
+        {
+            using var repository = Services.GetService<UsersRepository>();
+            var userData = repository.GetUser(guild.Id, user.Id);
+
+            if (userData == null)
+                return null;
+
+            return await MapUserAsync(userData);
+        }
+
+        private async Task<DiscordUser> MapUserAsync(DBDiscordUser dbUser)
+        {
+            var guild = DiscordClient.GetGuild(dbUser.GuildIDSnowflake);
 
             if (guild == null)
                 return null;
 
-            var socketUser = await guild.GetUserFromGuildAsync(user.UserIDSnowflake);
+            var socketUser = await guild.GetUserFromGuildAsync(dbUser.UserIDSnowflake);
 
             if (socketUser == null)
                 return null;
 
-            return new DiscordUser(guild, socketUser, user);
-        }
-
-        public void Dispose()
-        {
-            SyncTimer.Dispose();
-            SyncTimerCallback(null);
-        }
-
-        public void Init()
-        {
-            using var repository = Services.GetService<UsersRepository>();
-            Users = repository.GetAllUsers().ToDictionary(o => $"{o.UserID}|{o.GuildID}", o => o);
-
-            var syncPeriod = GrillBotService.DatabaseSyncPeriod;
-            SyncTimer = new Timer(SyncTimerCallback, null, syncPeriod, syncPeriod);
-            Logger.LogInformation("User data loaded from database. (Rows: {0})", Users.Count);
-        }
-
-        public async Task InitAsync()
-        {
-        }
-
-        private void SyncTimerCallback(object _)
-        {
-            lock (locker)
-            {
-                if (Changes.Count == 0) return;
-
-                var itemsForUpdate = Users.Where(o => Changes.Contains(o.Key)).Select(o => o.Value).ToList();
-                using var repository = Services.GetService<UsersRepository>();
-                repository.UpdateDatabase(itemsForUpdate);
-
-                Changes.Clear();
-                Logger.LogInformation("User info was synchronized with database. (Updated records: {0})", itemsForUpdate.Count);
-            }
+            return new DiscordUser(guild, socketUser, dbUser);
         }
 
         public void IncrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)
         {
-            var key = GenerateKey(guild, guildUser);
-
             lock (locker)
             {
-                CreateUserIfNotExists(guild, guildUser, key);
-
-                var user = Users[key];
+                using var repository = Services.GetService<UsersRepository>();
+                var user = repository.GetOrCreateUser(guild.Id, guildUser.Id);
                 var channelEntity = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channel.Id);
 
                 if (channelEntity == null)
@@ -171,7 +103,6 @@ namespace Grillbot.Services.UserManagement
                         ChannelIDSnowflake = channel.Id,
                         Count = 1,
                         LastMessageAt = DateTime.Now,
-                        UserID = user.ID,
                         DiscordUserIDSnowflake = guildUser.Id
                     };
 
@@ -187,33 +118,33 @@ namespace Grillbot.Services.UserManagement
                 {
                     user.Points += Random.Next(15, 25);
 
+                    var key = GenerateKey(guild, guildUser);
                     if (LastPointsCalculatedAt.ContainsKey(key))
                         LastPointsCalculatedAt[key] = DateTime.Now;
                     else
                         LastPointsCalculatedAt.Add(key, DateTime.Now);
                 }
 
-                Changes.Add(key);
+                repository.SaveChanges();
             }
         }
 
         public void DecrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)
         {
-            var key = GenerateKey(guild, guildUser);
-
             lock (locker)
             {
-                if (!Users.ContainsKey(key))
+                using var repository = Services.GetService<UsersRepository>();
+                var user = repository.GetUser(guild.Id, guildUser.Id);
+
+                if (user == null)
                     return;
 
-                var user = Users[key];
                 var channelEntity = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channel.Id);
-
                 if (channelEntity == null || channelEntity.Count == 0)
                     return;
 
                 channelEntity.Count--;
-                Changes.Add(key);
+                repository.SaveChanges();
             }
         }
 
@@ -231,20 +162,9 @@ namespace Grillbot.Services.UserManagement
                 return (DateTime.Now - lastMessageAt).TotalMinutes > 1.0;
             }
         }
+
         private string GenerateKey(IGuild guild, IUser user) => GenerateKey(guild.Id, user.Id);
         private string GenerateKey(ulong guildID, ulong userID) => $"{userID}|{guildID}";
-
-        private void CreateUserIfNotExists(SocketGuild guild, SocketGuildUser user, string key)
-        {
-            if (!Users.ContainsKey(key))
-            {
-                Users.Add(key, new Database.Entity.Users.DiscordUser()
-                {
-                    GuildIDSnowflake = guild.Id,
-                    UserIDSnowflake = user.Id
-                });
-            }
-        }
 
         public void IncrementReaction(SocketReaction reaction)
         {
@@ -276,116 +196,89 @@ namespace Grillbot.Services.UserManagement
 
         private void IncrementReaction(SocketGuildUser author, SocketGuildUser reactingUser)
         {
-            var authorKey = GenerateKey(author.Guild, author);
-            var reactingUserKey = GenerateKey(reactingUser.Guild, reactingUser);
+            if (author.Id == reactingUser.Id)
+                return; // Author add reaction to his message.
 
             lock (locker)
             {
-                if (authorKey == reactingUserKey)
-                    return; // Author add reaction to his message.
+                using var repository = Services.GetService<UsersRepository>();
 
-                CreateUserIfNotExists(author.Guild, author, authorKey);
-                CreateUserIfNotExists(reactingUser.Guild, reactingUser, reactingUserKey);
+                var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false);
+                var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false);
 
-                var authorUserEntity = Users[authorKey];
-                var reactingUserEntity = Users[reactingUserKey];
-
-                authorUserEntity.ObtainedReactionsCount++;
+                authorEntity.ObtainedReactionsCount++;
                 reactingUserEntity.GivenReactionsCount++;
 
-                Changes.Add(authorKey);
-                Changes.Add(reactingUserKey);
+                repository.SaveChanges();
             }
         }
 
         private void DecrementReaction(SocketGuildUser author, SocketGuildUser reactingUser)
         {
-            var authorKey = GenerateKey(author.Guild, author);
-            var reactingUserKey = GenerateKey(reactingUser.Guild, reactingUser);
+            if (author.Id == reactingUser.Id)
+                return; // Author add reaction to his message.
 
             lock (locker)
             {
-                if (authorKey == reactingUserKey)
-                    return; // Author add reaction to his message.
+                using var repository = Services.GetService<UsersRepository>();
 
-                CreateUserIfNotExists(author.Guild, author, authorKey);
-                CreateUserIfNotExists(reactingUser.Guild, reactingUser, reactingUserKey);
+                var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false);
+                var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false);
 
-                var authorUserEntity = Users[authorKey];
-                var reactingUserEntity = Users[reactingUserKey];
+                if (authorEntity != null && authorEntity.ObtainedReactionsCount > 0)
+                    authorEntity.ObtainedReactionsCount--;
 
-                if (authorUserEntity.ObtainedReactionsCount > 0)
-                    authorUserEntity.ObtainedReactionsCount--;
-
-                if (reactingUserEntity.GivenReactionsCount > 0)
+                if (reactingUserEntity != null && reactingUserEntity.GivenReactionsCount > 0)
                     reactingUserEntity.GivenReactionsCount--;
 
-                Changes.Add(authorKey);
-                Changes.Add(reactingUserKey);
+                repository.SaveChanges();
             }
         }
 
         public string AddUserToWebAdmin(SocketGuild guild, SocketGuildUser user, string password = null)
         {
-            var userKey = GenerateKey(guild, user);
+            if (!user.IsUser())
+                throw new BotCommandInfoException("Do administrace lze přidat pouze uživatele.");
 
             lock (locker)
             {
-                CreateUserIfNotExists(guild, user, userKey);
-                var userEntity = Users[userKey];
+                using var repository = Services.GetService<UsersRepository>();
 
+                var userEntity = repository.GetOrCreateUser(guild.Id, user.Id, false);
                 var plainPassword = string.IsNullOrEmpty(password) ? StringHelper.CreateRandomString(20) : password;
                 userEntity.WebAdminPassword = BCrypt.Net.BCrypt.HashPassword(plainPassword);
 
-                Changes.Add(userKey);
+                repository.SaveChanges();
                 return plainPassword;
             }
         }
 
         public void RemoveUserFromWebAdmin(SocketGuild guild, SocketGuildUser user)
         {
-            var userKey = GenerateKey(guild, user);
-
             lock (locker)
             {
-                CreateUserIfNotExists(guild, user, userKey);
+                using var repository = Services.GetService<UsersRepository>();
+                var userEntity = repository.GetUser(guild.Id, user.Id, false);
 
-                var userEntity = Users[userKey];
-
-                if (string.IsNullOrEmpty(userEntity.WebAdminPassword))
+                if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
                     throw new ArgumentException("Tento uživatel neměl přístup.");
 
                 userEntity.WebAdminPassword = null;
-                Changes.Add(userKey);
+                repository.SaveChanges();
             }
         }
 
         public bool AuthenticateWebAccess(SocketGuild guild, SocketGuildUser user, string password)
         {
-            var userKey = GenerateKey(guild, user);
-
             lock (locker)
             {
-                CreateUserIfNotExists(guild, user, userKey);
+                using var repository = Services.GetService<UsersRepository>();
+                var userEntity = repository.GetUser(guild.Id, user.Id, false);
 
-                var userEntity = Users[userKey];
-
-                if (string.IsNullOrEmpty(userEntity.WebAdminPassword))
+                if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
                     return false;
 
                 return BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword);
-            }
-        }
-
-        public void RemoveChannel(string userKey, ulong channelID)
-        {
-            lock (locker)
-            {
-                var user = Users[userKey];
-                var channel = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channelID);
-
-                if (channel != null)
-                    user.Channels.Remove(channel);
             }
         }
     }

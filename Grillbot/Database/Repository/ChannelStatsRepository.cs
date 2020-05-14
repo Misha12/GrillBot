@@ -1,4 +1,7 @@
-﻿using System.Linq;
+﻿using Grillbot.Database.Entity.Users;
+using Microsoft.EntityFrameworkCore;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Database.Repository
 {
@@ -16,6 +19,37 @@ namespace Grillbot.Database.Repository
 
             Context.UserChannels.RemoveRange(channels);
             Context.SaveChanges();
+        }
+
+        public List<string> GetAllChannels(ulong guildID)
+        {
+            var guild = guildID.ToString();
+
+            return Context.UserChannels.AsQueryable()
+                .Include(o => o.User)
+                .Where(o => o.User.GuildID == guild)
+                .Select(o => o.ChannelID)
+                .Distinct()
+                .ToList();
+        }
+
+        public List<UserChannel> GetGroupedStats(ulong guildID)
+        {
+            var guild = guildID.ToString();
+
+            return Context.UserChannels
+                .Include(o => o.User)
+                .Where(o => o.User.GuildID == guild)
+                .GroupBy(o => o.ChannelID)
+                .Select(o => new UserChannel()
+                {
+                    ChannelID = o.Key,
+                    Count = o.Sum(x => x.Count),
+                    LastMessageAt = o.Max(x => x.LastMessageAt)
+                })
+                .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastMessageAt)
+                .ToList();
         }
     }
 }

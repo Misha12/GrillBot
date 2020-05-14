@@ -25,20 +25,10 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("UserInfo")]
-        public async Task<IActionResult> UserInfoAsync([FromQuery] string userKey)
+        public async Task<IActionResult> UserInfoAsync([FromQuery] int userId)
         {
-            var user = await UserService.GetUserAsync(userKey);
+            var user = await UserService.GetUserAsync(userId);
             return View(new WebAdminUserInfoViewModel(user));
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if(disposing)
-            {
-                UserService.Dispose();
-            }
-
-            base.Dispose(disposing);
         }
     }
 }
