@@ -1,4 +1,5 @@
-﻿using System.Collections.Generic;
+﻿using Discord;
+using System.Collections.Generic;
 
 namespace Grillbot.Models.BotStatus
 {
@@ -9,5 +10,8 @@ namespace Grillbot.Models.BotStatus
         public Dictionary<string, uint> LoggerStats { get; set; }
         public Dictionary<string, int> DBStatus { get; set; }
         public Dictionary<string, ulong> TriggeredEvents { get; set; }
+        public int Latency { get; set; }
+        public ConnectionState ConnectionState { get; set; }
+        public LoginState LoginState { get; set; }
     }
 }

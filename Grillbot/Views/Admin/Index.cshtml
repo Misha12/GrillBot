@@ -40,6 +40,16 @@
                 <div class="col-4 font-weight-bold">Počet vláken:</div>
                 <div class="col">@Model.Simple.ThreadStatus</div>
             </div>
+
+            <div class="row">
+                <div class="col-4 font-weight-bold">Odezva (Discord):</div>
+                <div class="col">@Model.Latency ms</div>
+            </div>
+
+            <div class="row">
+                <div class="col-4 font-weight-bold">Stav připojení:</div>
+                <div class="col">@Model.ConnectionState / @Model.LoginState</div>
+            </div>
         </div>
     </div>
 

@@ -49,7 +49,10 @@ namespace Grillbot.Controllers
                 ExecutedCommands = InternalStatistics.GetCommands(),
                 DBStatus = dbStatus,
                 LoggerStats = StatusService.GetLoggerStats(),
-                TriggeredEvents = InternalStatistics.GetEvents()
+                TriggeredEvents = InternalStatistics.GetEvents(),
+                Latency = DiscordClient.Latency,
+                ConnectionState = DiscordClient.ConnectionState,
+                LoginState = DiscordClient.LoginState
             };
 
             return View(data);
