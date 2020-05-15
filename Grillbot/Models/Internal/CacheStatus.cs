@@ -1,6 +1,6 @@
 ﻿using Discord.WebSocket;
 
-namespace Grillbot.Models.BotStatus
+namespace Grillbot.Models.Internal
 {
     public class CacheStatus
     {

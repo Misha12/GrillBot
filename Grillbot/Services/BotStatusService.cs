@@ -1,8 +1,8 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.BotStatus;
+using Grillbot.Models.Internal;
 using Grillbot.Services.MessageCache;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
