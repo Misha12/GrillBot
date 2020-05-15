@@ -111,5 +111,11 @@ namespace Grillbot.Services.MessageCache
                 .Where(o => o != null)
                 .ToList();
         }
+
+        public IEnumerable<IMessage> GetFromChannel(ulong channelId)
+        {
+            return Data.Values
+                .Where(o => o.Channel != null && o.Channel.Id == channelId);
+        }
     }
 }

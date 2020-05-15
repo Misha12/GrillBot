@@ -23,6 +23,18 @@ namespace Grillbot.Database
                 builder
                     .HasMany(o => o.Channels)
                     .WithOne(o => o.User);
+
+                builder
+                    .HasIndex(o => o.UserID);
+            });
+
+            modelBuilder.Entity<UserChannel>(builder =>
+            {
+                builder
+                    .HasIndex(o => o.UserID);
+
+                builder
+                    .HasIndex(o => o.DiscordUserID);
             });
 
             modelBuilder.Entity<EmoteStat>(builder =>

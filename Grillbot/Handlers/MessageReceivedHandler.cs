@@ -10,7 +10,6 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
-using Grillbot.Services.Channelboard;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
 

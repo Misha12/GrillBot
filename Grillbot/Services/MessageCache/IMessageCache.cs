@@ -14,5 +14,6 @@ namespace Grillbot.Services.MessageCache
         void Update(IMessage message);
         bool Exists(ulong id);
         Task<IMessage> GetAsync(ulong channelID, ulong messageID);
+        IEnumerable<IMessage> GetFromChannel(ulong channelId);
     }
 }

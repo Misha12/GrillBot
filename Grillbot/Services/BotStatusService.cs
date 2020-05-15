@@ -1,6 +1,9 @@
-﻿using Grillbot.Database.Repository;
+﻿using Discord.WebSocket;
+using Grillbot.Database.Repository;
+using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.BotStatus;
+using Grillbot.Services.MessageCache;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
 using System;
@@ -16,12 +19,17 @@ namespace Grillbot.Services
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
         private BotDbRepository Repository { get; }
+        private DiscordSocketClient Client { get; }
+        private IMessageCache MessageCache { get; }
 
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, BotDbRepository repository)
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, BotDbRepository repository, DiscordSocketClient client,
+            IMessageCache messageCache)
         {
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
             Repository = repository;
+            Client = client;
+            MessageCache = messageCache;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -67,6 +75,26 @@ namespace Grillbot.Services
         public async Task<Dictionary<string, int>> GetDbReport()
         {
             return await Repository.GetTableRowsCount().ConfigureAwait(false);
+        }
+
+        public List<CacheStatus> GetCacheStatus()
+        {
+            var result = new List<CacheStatus>();
+
+            foreach(var channel in Client.Guilds.SelectMany(o => o.TextChannels))
+            {
+                var messageCache = MessageCache.GetFromChannel(channel.Id);
+
+                var item = new CacheStatus(channel)
+                {
+                    InternalCacheCount = channel.CachedMessages.Count,
+                    MessageCacheCount = messageCache.Count(),
+                };
+
+                result.Add(item);
+            }
+
+            return result;
         }
 
         public void Dispose()
