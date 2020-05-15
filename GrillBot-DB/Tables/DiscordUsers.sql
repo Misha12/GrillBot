@@ -8,3 +8,6 @@
 	[ObtainedReactionsCount] BIGINT NOT NULL CONSTRAINT DF_DiscordUsers_ObtainedReactionsCount DEFAULT (0),
 	[WebAdminPassword] VARCHAR(MAX) NULL
 )
+
+GO
+CREATE NONCLUSTERED INDEX IX_DiscordUsers_UserID ON [dbo].[DiscordUsers] ([UserID]);

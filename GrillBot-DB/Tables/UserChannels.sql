@@ -10,3 +10,9 @@
 
 	CONSTRAINT FK_UserChannels_UserID FOREIGN KEY ([UserID]) REFERENCES [DiscordUsers]([ID])
 )
+
+GO
+CREATE INDEX IX_UserChannels_UserID ON [dbo].[UserChannels] ([UserID])
+
+GO
+CREATE INDEX IX_UserChannels_DiscordUserID ON [dbo].[UserChannels] ([DiscordUserID])
