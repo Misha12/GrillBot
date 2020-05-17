@@ -11,6 +11,8 @@ using Microsoft.Extensions.Options;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Initiable;
 using Grillbot.Models.Config.AppSettings;
+using Newtonsoft.Json.Linq;
+using Grillbot.TypeReaders;
 
 namespace Grillbot
 {
@@ -49,11 +51,13 @@ namespace Grillbot
             if (string.IsNullOrEmpty(Config.Discord.Token))
                 throw new ConfigException("Missing bot token in config.");
 
-            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token).ConfigureAwait(false);
-            await Client.StartAsync().ConfigureAwait(false);
-            await SetActivity(Config.Discord.Activity).ConfigureAwait(false);
+            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
+            await Client.StartAsync();
+            await SetActivity(Config.Discord.Activity);
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services).ConfigureAwait(false);
+            Commands.AddTypeReader<JObject>(new JObjectTypeReader());
+
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

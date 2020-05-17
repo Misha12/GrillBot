@@ -6,6 +6,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Preconditions;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -23,7 +24,7 @@ namespace Grillbot.Modules
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]
         [Remarks("commandInfo parametr je dvojce parametrů {group}/{method}\nonlyAdmins mohou nabývat hodnot true/false\nconfigJson je konfigurační JSON.")]
-        public async Task AddMethodAsync(string commandInfo, string onlyAdmins, [Remainder] string configJson)
+        public async Task AddMethodAsync(string commandInfo, string onlyAdmins, [Remainder] JObject configJson)
         {
             if (!commandInfo.Contains("/"))
                 throw new BotCommandInfoException("Neplatný název skupina/metoda");
@@ -66,7 +67,7 @@ namespace Grillbot.Modules
 
         [Command("updateJsonConfig")]
         [Summary("Aktualizace configu")]
-        public async Task UpdateJsonConfigAsync(int methodID, [Remainder] string jsonConfig)
+        public async Task UpdateJsonConfigAsync(int methodID, [Remainder] JObject jsonConfig)
         {
             ConfigRepository.UpdateMethod(Context.Guild, methodID, jsonConfig: jsonConfig);
             await ReplyAsync("Metoda byla úspěšně aktualizována").ConfigureAwait(false);

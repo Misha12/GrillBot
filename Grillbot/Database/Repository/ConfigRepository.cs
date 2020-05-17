@@ -4,6 +4,8 @@ using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -35,12 +37,12 @@ namespace Grillbot.Database.Repository
             return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
 
-        public MethodsConfig AddConfig(SocketGuild guild, string group, string command, bool onlyAdmins, string jsonConfig)
+        public MethodsConfig AddConfig(SocketGuild guild, string group, string command, bool onlyAdmins, JObject json)
         {
             var entity = new MethodsConfig()
             {
                 Command = command,
-                ConfigData = jsonConfig,
+                ConfigData = json.ToString(),
                 Group = group,
                 GuildID = guild.Id.ToString(),
                 OnlyAdmins = onlyAdmins,
@@ -58,7 +60,7 @@ namespace Grillbot.Database.Repository
             return query.Where(o => o.GuildID == guild.Id.ToString()).ToList();
         }
 
-        public MethodsConfig UpdateMethod(SocketGuild guild, int methodID, bool? onlyAdmins = null, string jsonConfig = null)
+        public MethodsConfig UpdateMethod(SocketGuild guild, int methodID, bool? onlyAdmins = null, JObject jsonConfig = null)
         {
             var item = GetBaseQuery(false).FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
 
@@ -68,8 +70,8 @@ namespace Grillbot.Database.Repository
             if (onlyAdmins != null)
                 item.OnlyAdmins = onlyAdmins.Value;
 
-            if (!string.IsNullOrEmpty(jsonConfig))
-                item.ConfigData = jsonConfig;
+            if (jsonConfig != null)
+                item.ConfigData = jsonConfig.ToString(Formatting.None);
 
             Context.SaveChanges();
             return item;
