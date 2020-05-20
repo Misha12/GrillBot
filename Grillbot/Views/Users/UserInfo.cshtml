@@ -52,6 +52,11 @@
                                 {
                                     <span class="badge badge-success" title="Přístup do webové administrace">WebAdmin</span>
                                 }
+
+                                @if(Model.User.User.IsGuildOwner())
+                                {
+                                    <span class="badge badge-dark" title="Vlastník serveru @Model.User.Guild.Name">GuildOwner</span>
+                                }
                             </span>
                         </h4>
 

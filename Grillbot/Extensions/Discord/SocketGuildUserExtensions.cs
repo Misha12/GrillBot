@@ -19,5 +19,15 @@ namespace Grillbot.Extensions.Discord
             if (!haveRole)
                 await user.AddRoleAsync(role);
         }
+
+        public static bool IsGuildOwner(this SocketGuildUser user)
+        {
+            return IsGuildOwner(user, user.Guild);
+        }
+
+        public static bool IsGuildOwner(this SocketGuildUser user, SocketGuild guild)
+        {
+            return guild.OwnerId == user.Id;
+        }
     }
 }

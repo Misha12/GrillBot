@@ -88,6 +88,11 @@
                             {
                                 <span class="badge badge-success">WebAdmin</span>
                             }
+
+                            @if(user.User.IsGuildOwner())
+                            {
+                                <span class="badge badge-dark">GuildOwner</span>
+                            }
                         </td>
                         <td>@user.Guild.Name</td>
                         <td>@FormatHelper.FormatWithSpaces(user.Points)</td>

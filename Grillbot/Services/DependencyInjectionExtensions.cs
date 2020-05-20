@@ -52,7 +52,7 @@ namespace Grillbot.Services
         {
             services
                 .AddTransient<DcUserAuthorization>()
-                .AddTransient<WebAuthenticationService>()
+                .AddScoped<WebAuthenticationService>()
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(opt =>
                 {
