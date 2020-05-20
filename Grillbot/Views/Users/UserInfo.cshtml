@@ -65,48 +65,48 @@
                                 <div class="col">
                                     <table class="table table-sm table-borderless">
                                         <tr>
-                                            <th>Body: </th>
-                                            <td>@FormatHelper.FormatWithSpaces(Model.User.Points)</td>
+                                            <th class="pb-0">Body: </th>
+                                            <td class="pb-0">@FormatHelper.FormatWithSpaces(Model.User.Points)</td>
                                         </tr>
 
                                         <tr>
-                                            <th>Udělených reakcí: </th>
-                                            <td>@FormatHelper.FormatWithSpaces(Model.User.GivenReactionsCount)</td>
+                                            <th class="pb-0">Udělených reakcí: </th>
+                                            <td class="pb-0">@FormatHelper.FormatWithSpaces(Model.User.GivenReactionsCount)</td>
                                         </tr>
 
                                         <tr>
-                                            <th>Obdržených reakcí: </th>
-                                            <td>@FormatHelper.FormatWithSpaces(Model.User.ObtainedReactionsCount)</td>
+                                            <th class="pb-0">Obdržených reakcí: </th>
+                                            <td class="pb-0">@FormatHelper.FormatWithSpaces(Model.User.ObtainedReactionsCount)</td>
                                         </tr>
 
                                         <tr>
-                                            <th>Počet zpráv: </th>
-                                            <td>@FormatHelper.FormatWithSpaces(Model.User.TotalMessageCount)</td>
+                                            <th class="pb-0">Počet zpráv: </th>
+                                            <td class="pb-0">@FormatHelper.FormatWithSpaces(Model.User.TotalMessageCount)</td>
                                         </tr>
 
                                         @if (Model.User.User.VoiceChannel != null)
                                         {
                                             <tr>
-                                                <th>Hlasový kanál:</th>
-                                                <td>@Model.User.User.VoiceChannel.Name</td>
+                                                <th class="pb-0">Hlasový kanál:</th>
+                                                <td class="pb-0">@Model.User.User.VoiceChannel.Name</td>
                                             </tr>
                                         }
 
                                         <tr>
-                                            <th>Registrován:</th>
-                                            <td>@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</td>
+                                            <th class="pb-0">Registrován:</th>
+                                            <td class="pb-0">@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</td>
                                         </tr>
 
                                         <tr>
-                                            <th>Připojen:</th>
-                                            <td>@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</td>
+                                            <th class="pb-0">Připojen:</th>
+                                            <td class="pb-0">@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</td>
                                         </tr>
 
                                         @if (Model.User.User.PremiumSince != null)
                                         {
                                             <tr>
-                                                <th>Boost od:</th>
-                                                <td>@Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()</td>
+                                                <th class="pb-0">Boost od:</th>
+                                                <td class="pb-0">@Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()</td>
                                             </tr>
                                         }
                                     </table>
