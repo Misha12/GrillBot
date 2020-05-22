@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Grillbot.Services.Permissions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -9,7 +10,8 @@ namespace Grillbot.Services.Preconditions
     {
         public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
-            using var permsManager = (PermissionsManager)services.GetService(typeof(PermissionsManager));
+            using var scope = services.CreateScope();
+            using var permsManager = (PermissionsManager)scope.ServiceProvider.GetService(typeof(PermissionsManager));
 
             return (permsManager.CheckPermissions(context, command)) switch
             {

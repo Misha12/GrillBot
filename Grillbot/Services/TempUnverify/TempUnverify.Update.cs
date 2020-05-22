@@ -13,7 +13,8 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<string> UpdateUnverifyAsync(int id, string time, SocketUser fromUser)
         {
-            var timeParser = Provider.GetService<TempUnverifyTimeParser>();
+            using var scope = Provider.CreateScope();
+            var timeParser = scope.ServiceProvider.GetService<TempUnverifyTimeParser>();
             var unverifyTime = timeParser.Parse(time, minimumMinutes: 10);
             var item = Data.Find(o => o.ID == id);
 
@@ -23,10 +24,10 @@ namespace Grillbot.Services.TempUnverify
             var guild = Client.GetGuild(item.GuildIDSnowflake);
             var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);
 
-            using var logService = Provider.GetService<TempUnverifyLogService>();
+            using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
             logService.LogUpdate(unverifyTime, fromUser, user, guild);
 
-            using var repository = Provider.GetService<TempUnverifyRepository>();
+            using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
             await repository.UpdateTimeAsync(id, unverifyTime);
 
             item.TimeFor = unverifyTime;

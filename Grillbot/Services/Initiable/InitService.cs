@@ -1,4 +1,5 @@
-﻿using Microsoft.Extensions.Logging;
+﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -9,24 +10,18 @@ namespace Grillbot.Services.Initiable
 {
     public class InitService
     {
-        private List<IInitiable> Initiables { get; }
         private ILogger<InitService> Logger { get; }
+        private IServiceProvider Provider { get; }
 
         public InitService(IServiceProvider provider, ILogger<InitService> logger)
         {
             Logger = logger;
-
-            var initiableName = typeof(IInitiable).Name;
-            Initiables = Assembly.GetExecutingAssembly().GetTypes()
-                .Where(t => t.GetInterface(initiableName) != null)
-                .Select(t => (IInitiable)provider.GetService(t))
-                .Where(o => o != null)
-                .ToList();
+            Provider = provider;
         }
 
         public void Init()
         {
-            foreach(var service in Initiables)
+            foreach (var service in GetInitiables())
             {
                 service.Init();
                 Logger.LogInformation($"Initialized service {service.GetType().Name} (sync).");
@@ -35,11 +30,23 @@ namespace Grillbot.Services.Initiable
 
         public async Task InitAsync()
         {
-            foreach(var service in Initiables)
+            foreach(var service in GetInitiables())
             {
                 await service.InitAsync();
                 Logger.LogInformation($"Initialized service {service.GetType().Name} (async).");
             }
+        }
+
+        private List<IInitiable> GetInitiables()
+        {
+            var initiableName = typeof(IInitiable).Name;
+
+            using var scope = Provider.CreateScope();
+            return Assembly.GetExecutingAssembly().GetTypes()
+                .Where(t => t.GetInterface(initiableName) != null)
+                .Select(t => (IInitiable)scope.ServiceProvider.GetService(t))
+                .Where(o => o != null)
+                .ToList();
         }
     }
 }

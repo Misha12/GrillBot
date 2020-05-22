@@ -42,7 +42,6 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
-            using var scope = Services.CreateScope();
             InternalStatistics.IncrementEvent("MessageReceived");
 
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
@@ -53,7 +52,7 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), scope.ServiceProvider).ConfigureAwait(false);
+                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);

@@ -13,10 +13,11 @@ namespace Grillbot.Services.TempUnverify
         {
             const string message = "Self unverify";
 
-            using var checker = Provider.GetService<TempUnverifyChecker>();
+            using var scope = Provider.CreateScope();
+            using var checker = scope.ServiceProvider.GetService<TempUnverifyChecker>();
             checker.Validate(user, guild, true, subjects.ToList());
 
-            var timeParser = Provider.GetService<TempUnverifyTimeParser>();
+            var timeParser = scope.ServiceProvider.GetService<TempUnverifyTimeParser>();
             var unverifyTime = timeParser.Parse(time);
             var unverify = await RemoveAccessAsync(user, unverifyTime, message, user, guild, true, subjects);
 

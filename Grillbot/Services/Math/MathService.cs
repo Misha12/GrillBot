@@ -4,6 +4,7 @@ using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Math;
 using Grillbot.Services.Initiable;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -94,7 +95,8 @@ namespace Grillbot.Services.Math
                     };
                 }
 
-                using var repository = ServiceProvider.GetConfigRepository();
+                using var scope = ServiceProvider.CreateScope();
+                using var repository = scope.ServiceProvider.GetConfigRepository();
                 var config = repository.FindConfig(user.Guild.Id, "", "solve");
                 var configData = config.GetData<MathConfig>();
 

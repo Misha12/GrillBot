@@ -6,6 +6,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
+using Grillbot.Models.Users;
 using Grillbot.Services.Initiable;
 using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.Extensions.DependencyInjection;
@@ -41,7 +42,8 @@ namespace Grillbot.Services.Statistics
 
             lock (Locker)
             {
-                using var repository = Provider.GetService<EmoteStatsRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
                 if (mentionedEmotes.Count == 0)
                 {
@@ -79,7 +81,8 @@ namespace Grillbot.Services.Statistics
 
             lock (Locker)
             {
-                using var repository = Provider.GetService<EmoteStatsRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
                 if (reaction.Emote is Emoji emoji)
                 {
@@ -105,7 +108,8 @@ namespace Grillbot.Services.Statistics
             var serverEmotes = channel.Guild.Emotes;
             lock (Locker)
             {
-                using var repository = Provider.GetService<EmoteStatsRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
                 if (reaction.Emote is Emoji emoji)
                 {
@@ -160,13 +164,15 @@ namespace Grillbot.Services.Statistics
 
         public EmoteStat GetValue(SocketGuild guild, string emoteId)
         {
-            using var repository = Provider.GetService<EmoteStatsRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
             return repository.GetEmoteStat(guild, emoteId);
         }
 
         public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode)
         {
-            using var repository = Provider.GetService<EmoteStatsRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
             var query = repository.GetEmoteStats(guildID, excludeUnicode);
 
             if (descOrder)
@@ -198,7 +204,8 @@ namespace Grillbot.Services.Statistics
         {
             lock (Locker)
             {
-                using var repository = Provider.GetService<EmoteStatsRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
                 foreach (var item in GetMergeList(guild))
                 {
@@ -213,7 +220,8 @@ namespace Grillbot.Services.Statistics
 
             lock (Locker)
             {
-                using var repository = Provider.GetService<EmoteStatsRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
                 var removed = new List<string>();
 
                 var emoteClearCandidates = repository.GetEmoteStats(guild.Id, true).ToList();

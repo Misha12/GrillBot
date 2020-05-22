@@ -27,16 +27,12 @@ namespace Grillbot.Modules.AutoReply
             Provider = provider;
         }
 
-        private AutoReplyRepository GetRepository()
-        {
-            return Provider.GetService<AutoReplyRepository>();
-        }
-
         public void Init()
         {
             Data.Clear();
 
-            using var repository = GetRepository();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
             Data.AddRange(repository.GetAllItems());
 
             Logger.LogInformation($"AutoReply module loaded (loaded {Data.Count} templates)");
@@ -120,7 +116,8 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
 
-            using var repository = GetRepository();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
             await repository.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
             if (item.IsDisabled == disabled)
                 throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
@@ -145,7 +142,8 @@ namespace Grillbot.Modules.AutoReply
 
             item.SetCompareType(compareType);
 
-            using var repository = GetRepository();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
             await repository.AddItemAsync(item).ConfigureAwait(false);
 
             Data.Add(item);
@@ -158,7 +156,8 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
 
-            using var repository = GetRepository();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
             await repository.EditItemAsync(id, mustContains, reply, compareType, caseSensitive).ConfigureAwait(false);
 
             item.MustContains = mustContains;
@@ -173,7 +172,8 @@ namespace Grillbot.Modules.AutoReply
             if (!Data.Any(o => o.GuildIDSnowflake == guild.Id && o.ID == id))
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
 
-            using var repository = GetRepository();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
             await repository.RemoveItemAsync(id).ConfigureAwait(false);
             Data.RemoveAll(o => o.ID == id);
         }

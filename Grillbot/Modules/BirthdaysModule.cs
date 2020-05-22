@@ -8,8 +8,6 @@ using System.Globalization;
 using System.Threading.Tasks;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Exceptions;
-using Grillbot.Models;
 
 namespace Grillbot.Modules
 {

@@ -40,7 +40,8 @@ namespace Grillbot.Services.TempUnverify
             int processedCount = 0;
             int waitingCount = 0;
 
-            using var repository = Provider.GetService<TempUnverifyRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
             var items = await repository.GetAllItems(null).ToListAsync();
 
             foreach (var item in items)

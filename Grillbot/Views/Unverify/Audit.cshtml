@@ -105,10 +105,13 @@
                                 break;
                             case UnverifyLogOperation.Set:
                                 <td>
-                                    Důvod: @item.SetLogData.Reason<br />
+                                    @if (!item.SetLogData.IsSelfUnverify)
+                                    {
+                                        <text>Důvod: </text>@item.SetLogData.Reason<br />
+                                    }
 
                                     @if (item.SetLogData.Roles.Count > 0)
-                                    {<text>Role: @string.Join(", ", item.SetLogData.Roles.Select(o => o.Name))</text><br />}
+                                    {<text>Role: </text>@string.Join(", ", item.SetLogData.Roles.Select(o => o.Name))<br />}
 
                                     @if (item.SetLogData.OverridedChannels.Count > 0)
                                     {<text>Kanály: @string.Join(", ", item.SetLogData.OverridedChannels.Select(o => o.Name))<br /></text>}

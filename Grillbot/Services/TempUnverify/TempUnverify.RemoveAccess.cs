@@ -16,15 +16,16 @@ namespace Grillbot.Services.TempUnverify
         public async Task<string> RemoveAccessAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild,
             SocketUser fromUser, bool ignoreHigherRoles = false)
         {
-            using var checker = Provider.GetService<TempUnverifyChecker>();
+            using var scope = Provider.CreateScope();
+            using var checker = scope.ServiceProvider.GetService<TempUnverifyChecker>();
 
             foreach (var user in users)
             {
                 checker.Validate(user, guild, false, null);
             }
 
-            var reason = Provider.GetService<TempUnverifyReasonParser>().Parse(data);
-            var unverifyTime = Provider.GetService<TempUnverifyTimeParser>().Parse(time);
+            var reason = scope.ServiceProvider.GetService<TempUnverifyReasonParser>().Parse(data);
+            var unverifyTime = scope.ServiceProvider.GetService<TempUnverifyTimeParser>().Parse(time);
             var unverifiedPersons = new List<TempUnverifyItem>();
 
             foreach (var user in users)
@@ -42,6 +43,8 @@ namespace Grillbot.Services.TempUnverify
         private async Task<TempUnverifyItem> RemoveAccessAsync(SocketGuildUser user, int unverifyTime, string reason,
             SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
+            using var scope = Provider.CreateScope();
+
             var rolesToRemove = user.Roles
                 .Where(o => !o.IsEveryone && !o.IsManaged && !o.IsMutedRole())
                 .ToList(); // Ignore Muted roles.
@@ -61,7 +64,7 @@ namespace Grillbot.Services.TempUnverify
             var rolesToRemoveIDs = rolesToRemove.Select(o => o.Id).ToList();
             var overrides = GetChannelOverrides(user);
 
-            using var logService = Provider.GetService<TempUnverifyLogService>();
+            using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
             logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, user, fromUser, guild, ignoreHigherRoles, subjects);
 
             if (subjects == null || subjects.Length == 0)
@@ -79,7 +82,7 @@ namespace Grillbot.Services.TempUnverify
                 channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
-            using var repository = Provider.GetService<TempUnverifyRepository>();
+            using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
             var unverify = await repository
                 .AddItemAsync(rolesToRemoveIDs, user.Id, user.Guild.Id, unverifyTime, overrides, reason);
 

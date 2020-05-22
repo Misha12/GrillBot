@@ -78,7 +78,8 @@ namespace Grillbot.Services.Channelboard
 
             var removed = new HashSet<string>();
 
-            using var repository = Provider.GetService<ChannelStatsRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
             var channels = repository.GetAllChannels(guild.Id);
 
             foreach (var channelID in channels)
@@ -98,7 +99,8 @@ namespace Grillbot.Services.Channelboard
 
         private List<UserChannel> GetAllChannels(SocketGuild guild)
         {
-            using var repository = Provider.GetService<ChannelStatsRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
             return repository.GetGroupedStats(guild.Id);
         }
     }

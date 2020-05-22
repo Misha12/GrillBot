@@ -12,7 +12,6 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
-using Grillbot.Exceptions;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -38,7 +37,8 @@ namespace Grillbot.Services.UserManagement
         {
             var users = new List<DiscordUser>();
 
-            using var repository = Services.GetService<UsersRepository>();
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             var dbUsers = repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, filter.Limit, filter.UserID).ToList();
 
             foreach (var user in dbUsers)
@@ -65,7 +65,8 @@ namespace Grillbot.Services.UserManagement
 
         public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
         {
-            using var repository = Services.GetService<UsersRepository>();
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             var userData = repository.GetUser(guild.Id, user.Id);
 
             if (userData == null)
@@ -93,7 +94,8 @@ namespace Grillbot.Services.UserManagement
         {
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
                 var user = repository.GetOrCreateUser(guild.Id, guildUser.Id);
                 var channelEntity = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channel.Id);
 
@@ -135,7 +137,8 @@ namespace Grillbot.Services.UserManagement
         {
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
                 var user = repository.GetUser(guild.Id, guildUser.Id);
 
                 if (user == null)
@@ -203,7 +206,8 @@ namespace Grillbot.Services.UserManagement
 
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
                 var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false);
                 var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false);
@@ -222,7 +226,8 @@ namespace Grillbot.Services.UserManagement
 
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
                 var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false);
                 var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false);
@@ -244,7 +249,8 @@ namespace Grillbot.Services.UserManagement
 
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
                 var userEntity = repository.GetOrCreateUser(guild.Id, user.Id, false);
                 var plainPassword = string.IsNullOrEmpty(password) ? StringHelper.CreateRandomString(20) : password;
@@ -259,7 +265,8 @@ namespace Grillbot.Services.UserManagement
         {
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
                 var userEntity = repository.GetUser(guild.Id, user.Id, false);
 
                 if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
@@ -274,7 +281,8 @@ namespace Grillbot.Services.UserManagement
         {
             lock (locker)
             {
-                using var repository = Services.GetService<UsersRepository>();
+                using var scope = Services.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
                 var userEntity = repository.GetUser(guild.Id, user.Id, false);
 
                 if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
@@ -288,7 +296,8 @@ namespace Grillbot.Services.UserManagement
         {
             var dict = new Dictionary<ulong, string>();
 
-            using var repository = Services.GetService<UsersRepository>();
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             var users = await repository.GetUsersForFilterAsync();
 
             foreach (var guild in DiscordClient.Guilds)

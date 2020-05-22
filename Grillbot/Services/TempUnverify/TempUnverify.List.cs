@@ -15,7 +15,8 @@ namespace Grillbot.Services.TempUnverify
     {
         public async Task<List<CurrentUnverifiedUser>> ListPersonsAsync(SocketGuild guild)
         {
-            using var repository = Provider.GetService<TempUnverifyRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
             var persons = await repository.GetAllItems(guild).ToListAsync();
             return await CreateListsPersonsAsync(persons).ConfigureAwait(false);
         }

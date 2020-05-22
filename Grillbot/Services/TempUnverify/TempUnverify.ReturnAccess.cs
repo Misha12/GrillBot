@@ -19,7 +19,8 @@ namespace Grillbot.Services.TempUnverify
         {
             if (item is TempUnverifyItem unverify)
             {
-                using var repository = Provider.GetService<TempUnverifyRepository>();
+                using var scope = Provider.CreateScope();
+                using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
 
                 if (!repository.UnverifyExists(unverify.ID))
                 {
@@ -46,7 +47,7 @@ namespace Grillbot.Services.TempUnverify
                 var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
                 if (isAutoRemove)
                 {
-                    using var logService = Provider.GetService<TempUnverifyLogService>();
+                    using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
                     logService.LogAutoRemove(unverify, user, guild);
                 }
 
@@ -74,7 +75,8 @@ namespace Grillbot.Services.TempUnverify
 
         public async Task<string> ReturnAccessAsync(int id, SocketUser fromUser)
         {
-            using var repository = Provider.GetService<TempUnverifyRepository>();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();
             var item = await repository.FindItemByIDAsync(id);
 
             if (item == null)
@@ -86,7 +88,7 @@ namespace Grillbot.Services.TempUnverify
             if (user == null)
                 throw new NotFoundException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
-            using var logService = Provider.GetService<TempUnverifyLogService>();
+            using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
             logService.LogRemove(item, user, fromUser, guild);
 
             ReturnAccess(item);
