@@ -2,16 +2,15 @@
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
-using Grillbot.Exceptions;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
-using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
@@ -43,6 +42,7 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
+            using var scope = Services.CreateScope();
             InternalStatistics.IncrementEvent("MessageReceived");
 
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
@@ -53,7 +53,7 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
+                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), scope.ServiceProvider).ConfigureAwait(false);
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
@@ -69,12 +69,6 @@ namespace Grillbot.Handlers
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
                 EmoteStats.AnylyzeMessageAndIncrementValues(context);
             }
-        }
-
-        private async Task SendCommandHelp(SocketCommandContext context, int argPos)
-        {
-            var helpCommand = $"grillhelp {context.Message.Content.Substring(argPos)}";
-            await Commands.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
         }
 
         private bool TryParseMessage(SocketMessage message, out SocketUserMessage socketUserMessage)
