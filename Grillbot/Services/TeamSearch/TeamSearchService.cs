@@ -7,6 +7,7 @@ using Grillbot.Models.TeamSearch;
 using Grillbot.Services.MessageCache;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.TeamSearch
@@ -88,7 +89,7 @@ namespace Grillbot.Services.TeamSearch
         public void CreateSearch(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
         {
             if (message.Content.Length > MaxSearchSize)
-                throw new BotCommandInfoException("Zpráva je příliš dlouhá.");
+                throw new ValidationException("Zpráva je příliš dlouhá.");
 
             Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
         }
@@ -98,11 +99,11 @@ namespace Grillbot.Services.TeamSearch
             var search = Repository.FindSearchByID(searchID);
 
             if (search == null)
-                throw new BotCommandInfoException("Hledaná zpráva neexistuje.");
+                throw new NotFoundException("Hledaná zpráva neexistuje.");
 
             var guildPerms = executor.GuildPermissions.Administrator || executor.GuildPermissions.ManageMessages;
             if (!guildPerms && executor.Id != search.UserIDSnowflake)
-                throw new BotCommandInfoException("Na provedení tohoto příkazu nemáš právo.");
+                throw new UnauthorizedAccessException("Na provedení tohoto příkazu nemáš právo.");
 
             Repository.RemoveSearch(search);
         }

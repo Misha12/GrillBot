@@ -7,6 +7,7 @@ using Grillbot.Models.Config.Dynamic;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
 namespace Grillbot.Services.TempUnverify
@@ -41,7 +42,7 @@ namespace Grillbot.Services.TempUnverify
             var config = ConfigRepository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
 
             if (subjects.Count > config.MaxSubjectsCount)
-                throw new BotCommandInfoException($"Je možné si ponechat maximálně {config.MaxSubjectsCount} rolí.");
+                throw new ValidationException($"Je možné si ponechat maximálně {config.MaxSubjectsCount} rolí.");
 
             var invalidSubjects = subjects
                 .Select(o => o.ToLower())
@@ -49,25 +50,25 @@ namespace Grillbot.Services.TempUnverify
                 .ToArray();
             
             if (invalidSubjects.Length > 0)
-                throw new BotCommandInfoException($"`{string.Join(", ", invalidSubjects)}` nejsou předmětové role.");
+                throw new ValidationException($"`{string.Join(", ", invalidSubjects)}` nejsou předmětové role.");
         }
 
         private void ValidateServerOwner(SocketGuild guild, SocketGuildUser user)
         {
             if(guild.OwnerId == user.Id)
-                throw new BotCommandInfoException("Nelze provést odebrání přístupu, protože se mezi uživateli nachází vlastník serveru.");
+                throw new ValidationException("Nelze provést odebrání přístupu, protože se mezi uživateli nachází vlastník serveru.");
         }
 
         private void ValidateCurrentlyUnverifiedUsers(SocketGuildUser user)
         {
             if(Repository.UnverifyExists(user.Id))
-                throw new BotCommandInfoException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
+                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
         }
 
         private void ValidateBotAdmin(bool selfunverify, SocketGuildUser user)
         {
             if (!selfunverify && Config.IsUserBotAdmin(user.Id))
-                throw new BotCommandInfoException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je administrátor bota.");
+                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je administrátor bota.");
         }
 
         private void ValidateRoles(SocketGuild guild, SocketGuildUser user, bool selfunverify)
@@ -81,7 +82,7 @@ namespace Grillbot.Services.TempUnverify
                 var higherRoles = user.Roles.Where(o => o.Position > botRolePosition);
                 var higherRoleNames = string.Join(", ", higherRoles.Select(o => o.Name));
 
-                throw new BotCommandInfoException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetFullName()}** má vyšší role. **({higherRoleNames})**");
+                throw new ValidationException($"Nelze provést odebírání přístupu, protože uživatel **{user.GetFullName()}** má vyšší role. **({higherRoleNames})**");
             }
         }
 

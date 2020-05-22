@@ -1,5 +1,6 @@
 ﻿using Grillbot.Exceptions;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -19,7 +20,7 @@ namespace Grillbot.Services.TempUnverify
         {
             if (condition()) return;
 
-            throw new BotCommandInfoException("Nemůžu bezdůvodně odebrat přístup. Uveď důvod (`unverify {time} {reason} [{tags}]`)");
+            throw new ValidationException("Nemůžu bezdůvodně odebrat přístup. Uveď důvod (`unverify {time} {reason} [{tags}]`)");
         }
     }
 }

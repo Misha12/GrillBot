@@ -1,5 +1,6 @@
 ﻿using Grillbot.Exceptions;
 using System;
+using System.ComponentModel.DataAnnotations;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -17,7 +18,7 @@ namespace Grillbot.Services.TempUnverify
             var timeParseSuccess = int.TryParse(timeWithoutSuffix, out int convertedTime);
 
             if(!timeParseSuccess)
-                throw new BotCommandInfoException("Neplatný časový formát.");
+                throw new FormatException("Neplatný časový formát.");
 
             if (time.EndsWith("m"))
             {
@@ -37,7 +38,7 @@ namespace Grillbot.Services.TempUnverify
                 return ConvertTimeSpanToSeconds(TimeSpan.FromDays(convertedTime));
             }
 
-            throw new BotCommandInfoException("Nepodporovaný časový formát.");
+            throw new ValidationException("Nepodporovaný časový formát.");
         }
 
         private int ConvertTimeSpanToSeconds(TimeSpan timeSpan)
@@ -53,7 +54,7 @@ namespace Grillbot.Services.TempUnverify
         private void ValidateTime(int minimum, int value, string message)
         {
             if (value < minimum)
-                throw new BotCommandInfoException(message);
+                throw new ValidationException(message);
         }
     }
 }

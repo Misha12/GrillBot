@@ -27,7 +27,10 @@ namespace Grillbot.Modules
         public async Task AddMethodAsync(string commandInfo, string onlyAdmins, [Remainder] JObject configJson)
         {
             if (!commandInfo.Contains("/"))
-                throw new BotCommandInfoException("Neplatný název skupina/metoda");
+            {
+                await ReplyAsync("Neplatný název skupina/metoda");
+                return;
+            }
 
             var groupAndCommand = commandInfo.Split('/');
             var adminsOnly = Convert.ToBoolean(onlyAdmins);
@@ -61,7 +64,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -84,11 +87,17 @@ namespace Grillbot.Modules
             {
                 case PermType.Role:
                     if (Context.Guild.GetRole(Convert.ToUInt64(targetID)) == null)
-                        throw new BotCommandInfoException("Taková role neexistuje");
+                    {
+                        await ReplyAsync("Taková role neexistuje");
+                        return;
+                    }
                     break;
                 case PermType.User:
                     if ((await Context.Guild.GetUserFromGuildAsync(targetID).ConfigureAwait(false)) == null)
-                        throw new BotCommandInfoException("Takový uživatel neexistuje");
+                    {
+                        await ReplyAsync("Takový uživatel neexistuje.");
+                        return;
+                    }
                     break;
             }
 
@@ -99,7 +108,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 

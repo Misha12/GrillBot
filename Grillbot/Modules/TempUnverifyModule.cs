@@ -11,6 +11,7 @@ using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -35,16 +36,29 @@ namespace Grillbot.Modules
             "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30m Přišel jsi o role @User1#1234 @User2#1354 ...")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
-            if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
-                return;
-
-            var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
-
-            if (usersToUnverify.Count > 0)
+            try
             {
-                var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
-                    reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
-                await ReplyAsync(message).ConfigureAwait(false);
+                if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
+                    return;
+
+                var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
+
+                if (usersToUnverify.Count > 0)
+                {
+                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
+                        reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
+                    await ReplyAsync(message).ConfigureAwait(false);
+                }
+            }
+            catch (Exception ex)
+            {
+                if(ex is ValidationException || ex is FormatException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
+                throw;
             }
         }
 
@@ -64,8 +78,11 @@ namespace Grillbot.Modules
                     if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
                     var fields = parameters.Split(' ');
                     if (fields.Length < 2)
-                        throw new BotCommandInfoException("Chybí parametry.");
-                    
+                    {
+                        await ReplyAsync("Chybí parametry.");
+                        return true;
+                    }
+
                     await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
                     return true;
             }
@@ -77,8 +94,15 @@ namespace Grillbot.Modules
         [Summary("Předčasné vrácení rolí.")]
         public async Task RemoveUnverifyAsync(int id)
         {
-            var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
-            await ReplyAsync(message).ConfigureAwait(false);
+            try
+            {
+                var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
+            }
+            catch (NotFoundException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
 
         [Command("list")]
@@ -87,8 +111,11 @@ namespace Grillbot.Modules
         {
             var users = await UnverifyService.ListPersonsAsync(Context.Guild);
 
-            if(users.Count == 0)
-                throw new BotCommandInfoException("Nikdo zatím nemá odebraný přístup."); 
+            if (users.Count == 0)
+            {
+                await ReplyAsync("Nikdo zatím nemá odebraný přístup.");
+                return;
+            }
 
             var pages = new List<PaginatedEmbedPage>();
 
@@ -120,8 +147,15 @@ namespace Grillbot.Modules
         [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
         public async Task UpdateUnverifyAsync(int id, string time)
         {
-            var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
-            await ReplyAsync(message).ConfigureAwait(false);
+            try
+            {
+                var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
+                await ReplyAsync(message).ConfigureAwait(false);
+            }
+            catch (NotFoundException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }

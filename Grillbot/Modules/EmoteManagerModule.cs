@@ -105,9 +105,13 @@ namespace Grillbot.Modules
             if (emoteInfo == null)
             {
                 if (!existsInGuild)
-                    throw new BotCommandInfoException("Tento emote neexistuje");
+                {
+                    await ReplyAsync("Tento emote neexistuje");
+                    return;
+                }
 
-                throw new BotCommandInfoException("Tento emote ještě nebyl použit");
+                await ReplyAsync("Tento emote ještě nebyl použit");
+                return;
             }
 
             var embed = new BotEmbed(Context.Message.Author)
@@ -168,7 +172,10 @@ namespace Grillbot.Modules
             var list = EmoteStats.GetMergeList(Context.Guild);
 
             if (list.Count == 0)
-                throw new BotCommandInfoException("Aktuálně není nic ke sloučení.");
+            {
+                await ReplyAsync("Aktuálně není nic ke sloučení.");
+                return;
+            }
 
             var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
 

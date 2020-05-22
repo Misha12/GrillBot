@@ -1,4 +1,5 @@
-﻿using System.Threading.Tasks;
+﻿using System.Net;
+using System.Threading.Tasks;
 using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
@@ -28,11 +29,18 @@ namespace Grillbot.Modules
         [Summary("Zjištění aktuálního stavu kachny")]
         public async Task GetDuckInfoAsync()
         {
-            var config = GetMethodConfig<DuckConfig>("kachna", "");
-            var duckData = await DuckDataLoader.GetDuckCurrentState(config);
+            try
+            {
+                var config = GetMethodConfig<DuckConfig>("kachna", "");
+                var duckData = await DuckDataLoader.GetDuckCurrentState(config);
 
-            var embed = Renderer.RenderEmbed(duckData, Context.User, config);
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                var embed = Renderer.RenderEmbed(duckData, Context.User, config);
+                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            }
+            catch(WebException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -67,11 +67,17 @@ namespace Grillbot.Modules
         public async Task ChannelboardForRoomAsync()
         {
             if (Context.Message.Tags.Count == 0)
-                throw new BotCommandInfoException("Nic jsi netagnul.");
+            {
+                await ReplyAsync("Nic jsi netagnul.");
+                return;
+            }
 
             var channelMention = Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention);
             if (channelMention == null)
-                throw new BotCommandInfoException("Netagnul jsi žádný kanál");
+            {
+                await ReplyAsync("Netagnul jsi žádný kanál");
+                return;
+            }
 
             if (!(channelMention.Value is ISocketMessageChannel channel))
                 throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
@@ -79,7 +85,10 @@ namespace Grillbot.Modules
             var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
 
             if (value == null)
-                throw new BotCommandInfoException("Do této místnosti nemáš dostatečná práva.");
+            {
+                await ReplyAsync("Do této místnosti nemáš dostatečná práva.");
+                return;
+            }
 
             var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
             var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
@@ -93,7 +102,7 @@ namespace Grillbot.Modules
         {
             var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
 
-            if(clearedChannels == null)
+            if (clearedChannels == null)
             {
                 await ReplyAsync("Není co čistit.");
                 return;

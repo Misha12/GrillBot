@@ -62,12 +62,6 @@ namespace Grillbot.Services
                     await ce.Context.Channel.SendMessageAsync("Nebyl definován platný config");
                     return;
                 }
-
-                if (IsBotCommandException(ce))
-                {
-                    await ce.Context.Channel.SendMessageAsync(ce.InnerException.Message.PreventMassTags());
-                    return;
-                }
             }
 
             var exceptionMessage = message.Exception.ToString();
@@ -141,7 +135,7 @@ namespace Grillbot.Services
 
             if (exception is CommandException ce)
             {
-                if (IsThrowHelpException(ce) || IsConfigException(ce) || IsBotCommandException(ce))
+                if (IsThrowHelpException(ce) || IsConfigException(ce))
                     return false;
             }
 
@@ -150,7 +144,6 @@ namespace Grillbot.Services
 
         private bool IsThrowHelpException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ThrowHelpException;
         private bool IsConfigException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ConfigException;
-        private bool IsBotCommandException(CommandException exception) => exception?.InnerException != null && exception.InnerException is BotCommandInfoException;
         private bool IsWebSocketException(Exception ex) => ex.InnerException != null && (ex.InnerException is WebSocketException || ex.InnerException is WebSocketClosedException);
 
         public void Init()

@@ -2,6 +2,7 @@
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Preconditions;
 using Grillbot.Services.TempUnverify;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -25,12 +26,19 @@ namespace Grillbot.Modules
             "rolí, které bude možné si během doby odebraného přístupu ponechat.")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
-            if (subjects != null)
-                subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
+            try
+            {
+                if (subjects != null)
+                    subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
 
-            var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-            var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
-            await ReplyAsync(message);
+                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
+                var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
+                await ReplyAsync(message);
+            }
+            catch (ValidationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }

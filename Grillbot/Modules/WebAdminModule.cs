@@ -31,16 +31,26 @@ namespace Grillbot.Modules
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.
         public async Task AddUser(string userMention, string password = null)
         {
-            var user = GetUserFromMention();
+            try
+            {
+                var user = GetUserFromMention();
 
-            if (user == null)
-                throw new BotCommandInfoException("Nebyl tagnut žádný uživatel.");
+                if (user == null)
+                {
+                    await ReplyAsync("Nebyl tagnut žádný uživatel.");
+                    return;
+                }
 
-            password = UserService.AddUserToWebAdmin(Context.Guild, user, password);
+                password = UserService.AddUserToWebAdmin(Context.Guild, user, password);
 
-            await user?.SendPrivateMessageAsync(
-                $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
-            await ReplyAsync("Přístup umožněn.");
+                await user?.SendPrivateMessageAsync(
+                    $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
+                await ReplyAsync("Přístup umožněn.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
 
         [DisabledPM]
@@ -54,14 +64,17 @@ namespace Grillbot.Modules
                 var user = GetUserFromMention();
 
                 if (user == null)
-                    throw new BotCommandInfoException("Nebyl tagnut žádný uživatel.");
+                {
+                    await ReplyAsync("Nebyl tagnut žádný uživatel.");
+                    return;
+                }
 
                 UserService.RemoveUserFromWebAdmin(Context.Guild, user);
                 await ReplyAsync("Přístup byl odebrán.");
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 

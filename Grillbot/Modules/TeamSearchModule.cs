@@ -1,4 +1,6 @@
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
@@ -40,9 +42,16 @@ namespace Grillbot.Modules
                 TeamSearchService.CreateSearch(Context.Guild, Context.User, Context.Channel, Context.Message);
                 await Context.Message.AddReactionAsync(new Emoji("✅"));
             }
-            catch
+            catch (Exception ex)
             {
                 await Context.Message.AddReactionAsync(new Emoji("❌"));
+
+                if (ex is ValidationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
                 throw;
             }
         }
@@ -54,7 +63,10 @@ namespace Grillbot.Modules
             var searches = await TeamSearchService.GetItemsAsync(Context.Channel.Id.ToString());
 
             if (searches.Count == 0)
-                throw new BotCommandInfoException("Zatím nikdo nic nehledá.");
+            {
+                await ReplyAsync("Zatím nikdo nic nehledá.");
+                return;
+            }
 
             var pages = new List<PaginatedEmbedPage>();
             var currentPage = new List<EmbedFieldBuilder>();
@@ -67,7 +79,7 @@ namespace Grillbot.Modules
 
                 currentPage.Add(builder);
 
-                if(currentPage.Count == EmbedBuilder.MaxFieldCount)
+                if (currentPage.Count == EmbedBuilder.MaxFieldCount)
                 {
                     pages.Add(new PaginatedEmbedPage(null, new List<EmbedFieldBuilder>(currentPage)));
                     currentPage.Clear();
@@ -90,31 +102,66 @@ namespace Grillbot.Modules
         [Command("remove")]
         public async Task RemoveTeamSearchAsync(int searchId)
         {
-            if (Context.User is SocketGuildUser user)
+            try
             {
-                TeamSearchService.RemoveSearch(searchId, user);
-                await Context.Message.AddReactionAsync(new Emoji("✅"));
+                if (Context.User is SocketGuildUser user)
+                {
+                    TeamSearchService.RemoveSearch(searchId, user);
+                    await Context.Message.AddReactionAsync(new Emoji("✅"));
+                }
             }
+            catch (Exception ex)
+            {
+                await Context.Message.AddReactionAsync(new Emoji("❌"));
+
+                if (ex is ValidationException || ex is UnauthorizedAccessException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+            }
+
         }
 
         [Command("cleanChannel")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
         public async Task CleanChannelAsync(string channel)
         {
-            var mentionedChannel = Context.Message.MentionedChannels.FirstOrDefault();
+            var state = Context.Channel.EnterTypingState();
 
-            if (mentionedChannel == null)
-                throw new BotCommandInfoException("Nebyl tagnut žádný kanál.");
+            try
+            {
+                var mentionedChannel = Context.Message.MentionedChannels.FirstOrDefault();
 
-            await TeamSearchService.BatchCleanChannelAsync(mentionedChannel.Id, async message => await ReplyAsync(message));
-            await ReplyAsync($"Čištění kanálu `{mentionedChannel.Name}` dokončeno");
+                if (mentionedChannel == null)
+                {
+                    await ReplyAsync("Nebyl tagnut žádný kanál.");
+                    return;
+                }
+
+                await TeamSearchService.BatchCleanChannelAsync(mentionedChannel.Id, async message => await ReplyAsync(message));
+                await ReplyAsync($"Čištění kanálu `{mentionedChannel.Name}` dokončeno");
+            }
+            finally
+            {
+                state.Dispose();
+            }
         }
 
         [Command("massRemove")]
         public async Task MassRemoveAsync(params int[] searchIds)
         {
-            await TeamSearchService.BatchCleanAsync(searchIds, async message => await ReplyAsync(message));
-            await ReplyAsync("Úklid hledání dokončeno.");
+            var state = Context.Channel.EnterTypingState();
+
+            try
+            {
+                await TeamSearchService.BatchCleanAsync(searchIds, async message => await ReplyAsync(message));
+                await ReplyAsync("Úklid hledání dokončeno.");
+            }
+            finally
+            {
+                state.Dispose();
+            }
         }
 
         protected override void Dispose(bool disposing)

@@ -2,6 +2,7 @@
 using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Helpers;
+using Grillbot.Models;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services;
@@ -35,7 +36,10 @@ namespace Grillbot.Modules
             var data = Service.GetList(Context.Guild);
 
             if (data.Count == 0)
-                throw new BotCommandInfoException("Ještě nejsou uloženy žádné odpovědi.");
+            {
+                await ReplyAsync("Ještě nejsou uloženy žádné odpovědi.");
+                return;
+            }
 
             var pages = new List<PaginatedEmbedPage>();
             foreach (var item in data)
@@ -77,7 +81,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -90,9 +94,9 @@ namespace Grillbot.Modules
                 await Service.SetActiveStatusAsync(Context.Guild, id, false).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.").ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -108,7 +112,10 @@ namespace Grillbot.Modules
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
                 if (fields.Length < 5)
-                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání, Příznaky, Kanál)");
+                {
+                    await ReplyAsync("Nebyly zadány všechny potřebné parametry. (Musí obsahovat, Odpověď, Typ porovnání, Příznaky, Kanál)");
+                    return;
+                }
 
                 var paramsFlags = Convert.ToInt32(fields[3]);
                 var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
@@ -119,7 +126,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -133,7 +140,10 @@ namespace Grillbot.Modules
                 var fields = data.Split("\n").Where(o => !string.IsNullOrEmpty(o)).ToArray();
 
                 if (fields.Length < 3)
-                    throw new BotCommandInfoException("Nebyly zadány všechny potřebné parametry.");
+                {
+                    await ReplyAsync("Nebyly zadány všechny potřebné parametry.");
+                    return;
+                }
 
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
@@ -143,7 +153,7 @@ namespace Grillbot.Modules
             }
             catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
 
@@ -156,9 +166,9 @@ namespace Grillbot.Modules
                 await Service.RemoveReplyAsync(Context.Guild, id).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
             }
-            catch (Exception ex)
+            catch (ArgumentException ex)
             {
-                throw new BotCommandInfoException(ex.Message);
+                await ReplyAsync(ex.Message);
             }
         }
     }

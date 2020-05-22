@@ -2,7 +2,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
@@ -42,10 +41,13 @@ namespace Grillbot.Modules
                 .OfType<SocketTextChannel>()
                 .FirstOrDefault(o => $"<#{o.Id}>" == channel);
 
-            if(mentionedChannel != null)
+            if (mentionedChannel != null)
+            {
                 await PinManagement.PinPurgeAsync(mentionedChannel, takeCount, skipCount);
+                return;
+            }
 
-            throw new BotCommandInfoException($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
+            await ReplyAsync($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
         }
 
         [DisabledPM]
@@ -106,8 +108,11 @@ namespace Grillbot.Modules
         {
             var user = await Context.ParseGuildUserAsync(identification);
 
-            if(user == null)
-                throw new BotCommandInfoException("Neplatné jméno, nebo uživatel na serveru není. Povolené jsou: ID, Tag, Celý nick (User#1234)");
+            if (user == null)
+            {
+                await ReplyAsync("Neplatné jméno, nebo uživatel na serveru není. Povolené jsou: ID, Tag, Celý nick (User#1234)");
+                return;
+            }
 
             var userTopRoleWithColor = user.Roles.FindHighestRoleWithColor();
 

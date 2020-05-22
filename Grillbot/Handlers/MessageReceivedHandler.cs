@@ -53,24 +53,7 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
-                var result = await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
-
-                if (!result.IsSuccess && result.Error != null)
-                {
-                    switch (result.Error.Value)
-                    {
-                        case CommandError.UnknownCommand: return;
-                        case CommandError.UnmetPrecondition:
-                        case CommandError.ParseFailed:
-                            await context.Channel.SendMessageAsync(result.ErrorReason.PreventMassTags()).ConfigureAwait(false);
-                            break;
-                        case CommandError.BadArgCount:
-                            await SendCommandHelp(context, argPos).ConfigureAwait(false);
-                            break;
-                        default:
-                            throw new BotException(result);
-                    }
-                }
+                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);

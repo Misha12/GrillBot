@@ -18,7 +18,7 @@ namespace Grillbot.Services.TempUnverify
             var item = Data.Find(o => o.ID == id);
 
             if (item == null)
-                throw new BotCommandInfoException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
+                throw new NotFoundException($"Reset pro ID {id} nelze provést. Záznam nebyl nalezen");
 
             var guild = Client.GetGuild(item.GuildIDSnowflake);
             var user = await guild.GetUserFromGuildAsync(item.UserID).ConfigureAwait(false);

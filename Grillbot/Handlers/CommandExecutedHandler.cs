@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Grillbot.Database.Repository;
+using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,6 +30,26 @@ namespace Grillbot.Handlers
         {
             if (!command.IsSpecified) return;
 
+            if(!result.IsSuccess && result.Error != null)
+            {
+                switch(result.Error.Value)
+                {
+                    case CommandError.UnmetPrecondition:
+                    case CommandError.ParseFailed:
+                    case CommandError.Unsuccessful:
+                        await context.Channel.SendMessageAsync(result.ErrorReason.PreventMassTags());
+                        break;
+                    case CommandError.BadArgCount:
+                        await SendCommandHelp(context, 1);
+                        break;
+                }
+            }
+
+            LogCommand(command, context);
+        }
+
+        private void LogCommand(Discord.Optional<CommandInfo> command, ICommandContext context)
+        {
             var cmd = command.Value;
 
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
@@ -54,5 +75,11 @@ namespace Grillbot.Handlers
         }
 
         public async Task InitAsync() { }
+
+        private async Task SendCommandHelp(ICommandContext context, int argPos)
+        {
+            var helpCommand = $"grillhelp {context.Message.Content.Substring(argPos)}";
+            await CommandService.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
+        }
     }
 }

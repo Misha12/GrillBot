@@ -70,7 +70,10 @@ namespace Grillbot.Modules
             var role = Context.Guild.Roles.FirstOrDefault(o => o.Name == roleName);
 
             if (role == null)
-                throw new BotCommandInfoException($"Roli `{roleName}` neznám.");
+            {
+                await ReplyAsync($"Roli `{roleName}` neznám.");
+                return;
+            }
 
             var embed = new BotEmbed(Context.Message.Author, role.Color)
                 .WithFields(new EmbedFieldBuilder().WithName(role.Name).WithValue(CreateRoleInfo(role, true)));

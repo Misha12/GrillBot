@@ -53,7 +53,8 @@ namespace Grillbot.Services.UserManagement
 
         public async Task<DiscordUser> GetUserAsync(long id)
         {
-            using var repository = Services.GetService<UsersRepository>();
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             var userData = repository.GetUser(id);
 
             if (userData == null)
@@ -239,7 +240,7 @@ namespace Grillbot.Services.UserManagement
         public string AddUserToWebAdmin(SocketGuild guild, SocketGuildUser user, string password = null)
         {
             if (!user.IsUser())
-                throw new BotCommandInfoException("Do administrace lze přidat pouze uživatele.");
+                throw new InvalidOperationException("Do administrace lze přidat pouze uživatele.");
 
             lock (locker)
             {

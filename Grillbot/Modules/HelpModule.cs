@@ -43,7 +43,10 @@ namespace Grillbot.Modules
             catch (Exception ex)
             {
                 if (ex is NotFoundException || ex is UnauthorizedAccessException)
-                    throw new BotCommandInfoException(ex.Message);
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
 
                 throw;
             }

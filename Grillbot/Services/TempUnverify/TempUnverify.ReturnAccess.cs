@@ -78,13 +78,13 @@ namespace Grillbot.Services.TempUnverify
             var item = await repository.FindItemByIDAsync(id);
 
             if (item == null)
-                throw new BotCommandInfoException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
+                throw new NotFoundException($"Odebrání přístupu s ID {id} nebylo v databázi nalezeno.");
 
             var guild = Client.GetGuild(Convert.ToUInt64(item.GuildID));
             var user = await guild.GetUserFromGuildAsync(item.UserID);
 
             if (user == null)
-                throw new BotCommandInfoException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
+                throw new NotFoundException($"Uživatel s ID **{item.UserID}** nebyl na serveru **{guild.Name}** nalezen.");
 
             using var logService = Provider.GetService<TempUnverifyLogService>();
             logService.LogRemove(item, user, fromUser, guild);
