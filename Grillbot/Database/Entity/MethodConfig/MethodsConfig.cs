@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -37,7 +38,14 @@ namespace Grillbot.Database.Entity.MethodConfig
         [Required]
         public string ConfigData { get; set; }
 
-        public TData GetData<TData>() => string.IsNullOrEmpty(ConfigData) ? default : JsonConvert.DeserializeObject<TData>(ConfigData);
+        [NotMapped]
+        public JObject Config
+        {
+            get => string.IsNullOrEmpty(ConfigData) ? null : JObject.Parse(ConfigData);
+            set => ConfigData = value.ToString(Formatting.None);
+        }
+
+        public TData GetData<TData>() => Config == null ? default : Config.ToObject<TData>();
 
         [Column]
         public bool OnlyAdmins { get; set; }

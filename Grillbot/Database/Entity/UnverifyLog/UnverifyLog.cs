@@ -1,4 +1,5 @@
 ﻿using Newtonsoft.Json;
+using Newtonsoft.Json.Linq;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -44,6 +45,13 @@ namespace Grillbot.Database.Entity.UnverifyLog
         [Column]
         public string Data { get; set; }
 
+        [NotMapped]
+        public JObject Json
+        {
+            get => string.IsNullOrEmpty(Data) ? null : JObject.Parse(Data);
+            set => Data = value.ToString(Formatting.None);
+        }
+
         [Column]
         public string DestUserID { get; set; }
 
@@ -53,7 +61,5 @@ namespace Grillbot.Database.Entity.UnverifyLog
             get => Convert.ToUInt64(DestUserID);
             set => DestUserID = value.ToString();
         }
-
-        public T GetData<T>() => JsonConvert.DeserializeObject<T>(Data);
     }
 }

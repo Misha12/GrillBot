@@ -17,33 +17,36 @@ namespace Grillbot.Models.TempUnverify.Admin
             DateTime = log.DateTime;
             Guild = client.GetGuild(log.GuildIDSnowflake);
 
-            switch(log.Operation)
+            switch (log.Operation)
             {
                 case UnverifyLogOperation.AutoRemove:
                 case UnverifyLogOperation.Remove:
-                    var removeData = JsonConvert.DeserializeObject<UnverifyLogRemove>(log.Data);
-                    RemoveLogData = new AuditItemRemoveOperation()
                     {
-                        OverridedChannels = removeData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
-                        Roles = removeData.Roles.Select(o => Guild.GetRole(o)).ToList()
-                    };
+                        var data = log.Json.ToObject<UnverifyLogRemove>();
+                        RemoveLogData = new AuditItemRemoveOperation()
+                        {
+                            OverridedChannels = data.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
+                            Roles = data.Roles.Select(o => Guild.GetRole(o)).ToList()
+                        };
+                    }
                     break;
                 case UnverifyLogOperation.Set:
-                    var setData = JsonConvert.DeserializeObject<UnverifyLogSet>(log.Data);
-                    SetLogData = new AuditItemSetOperation()
                     {
-                        OverridedChannels = setData.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
-                        Roles = setData.Roles.Select(o => Guild.GetRole(o)).ToList(),
-                        Reason = setData.Reason,
-                        StartAt = setData.StartAt,
-                        Time = setData.TimeFor,
-                        IsSelfUnverify = setData.IsSelfUnverify,
-                        Subjects = setData.Subjects ?? new List<string>()
-                    };
+                        var data = log.Json.ToObject<UnverifyLogSet>();
+                        SetLogData = new AuditItemSetOperation()
+                        {
+                            OverridedChannels = data.Overrides.Select(o => Guild.GetChannel(o.ChannelIdSnowflake)).Where(o => o != null).ToList(),
+                            Roles = data.Roles.Select(o => Guild.GetRole(o)).ToList(),
+                            Reason = data.Reason,
+                            StartAt = data.StartAt,
+                            Time = data.TimeFor,
+                            IsSelfUnverify = data.IsSelfUnverify,
+                            Subjects = data.Subjects ?? new List<string>()
+                        };
+                    }
                     break;
                 case UnverifyLogOperation.Update:
-                    var updateData = JsonConvert.DeserializeObject<UnverifyLogUpdate>(log.Data);
-                    UpdateLogData = new AuditItemUpdateOperation() { Time = updateData.TimeFor };
+                    UpdateLogData = new AuditItemUpdateOperation() { Time = log.Json.ToObject<UnverifyLogUpdate>().TimeFor };
                     break;
             }
         }

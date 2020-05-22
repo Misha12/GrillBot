@@ -42,13 +42,13 @@ namespace Grillbot.Database.Repository
             var entity = new MethodsConfig()
             {
                 Command = command,
-                ConfigData = json.ToString(),
+                Config = json,
                 Group = group,
                 GuildID = guild.Id.ToString(),
                 OnlyAdmins = onlyAdmins,
             };
 
-            Context.Set<MethodsConfig>().Add(entity);
+            Context.MethodsConfig.Add(entity);
             Context.SaveChanges();
 
             return entity;
