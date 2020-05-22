@@ -10,6 +10,7 @@ using Grillbot.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -42,36 +43,27 @@ namespace Grillbot.Modules
             await ReplyChunkedAsync(fields, chunkSize, separator);
         }
 
-        protected async Task ReplyChunkedAsync(IEnumerable<EmbedFieldBuilder> fields, BotEmbed embedTemplate, int chunkSize)
-        {
-            var chunks = fields.SplitInParts(chunkSize);
-            await ReplyChunkedAsync(chunks, embedTemplate);
-        }
-
         protected async Task ReplyChunkedAsync(IEnumerable<string> fields, int chunkSize, char separator = '\n')
         {
             var chunks = fields.SplitInParts(chunkSize);
             await ReplyChunkedAsync(chunks, separator);
         }
 
-        protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<EmbedFieldBuilder>> fieldChunkGroups, BotEmbed embedTemplate)
-        {
-            foreach (var group in fieldChunkGroups)
-            {
-                embedTemplate
-                    .ClearFields()
-                    .WithFields(group);
-
-                await ReplyAsync(embed: embedTemplate.Build());
-            }
-        }
-
         protected async Task ReplyChunkedAsync(IEnumerable<IEnumerable<string>> chunkGroups, char separator = '\n')
         {
-            foreach (var group in chunkGroups)
+            var state = Context.Channel.EnterTypingState();
+
+            try
             {
-                var message = string.Join(separator, group);
-                await ReplyAsync(message);
+                foreach (var group in chunkGroups)
+                {
+                    var message = string.Join(separator, group);
+                    await ReplyAsync(message);
+                }
+            }
+            finally
+            {
+                state.Dispose();
             }
         }
 
