@@ -12,6 +12,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Grillbot.Services.TempUnverify;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -43,7 +44,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in dbUsers)
             {
-                var mappedUser = await MapUserAsync(user);
+                var mappedUser = await MapUserAsync(user, null);
                 if (mappedUser != null)
                     users.Add(mappedUser);
             }
@@ -55,27 +56,31 @@ namespace Grillbot.Services.UserManagement
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            using var unverifyLogService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
+
             var userData = repository.GetUser(id);
 
             if (userData == null)
                 return null;
 
-            return await MapUserAsync(userData);
+            var unverifyHistory = await unverifyLogService.GetUnverifyHistoryOfUserAsync(userData);
+            return await MapUserAsync(userData, unverifyHistory);
         }
 
         public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            
             var userData = repository.GetUser(guild.Id, user.Id);
 
             if (userData == null)
                 return null;
 
-            return await MapUserAsync(userData);
+            return await MapUserAsync(userData, null);
         }
 
-        private async Task<DiscordUser> MapUserAsync(DBDiscordUser dbUser)
+        private async Task<DiscordUser> MapUserAsync(DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
         {
             var guild = DiscordClient.GetGuild(dbUser.GuildIDSnowflake);
 
@@ -87,7 +92,7 @@ namespace Grillbot.Services.UserManagement
             if (socketUser == null)
                 return null;
 
-            return new DiscordUser(guild, socketUser, dbUser);
+            return new DiscordUser(guild, socketUser, dbUser, unverifyHistory);
         }
 
         public void IncrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)

@@ -16,11 +16,12 @@ namespace Grillbot.Models.Users
         public long GivenReactionsCount { get; set; }
         public long ObtainedReactionsCount { get; set; }
         public bool WebAdminAccess { get; set; }
-
         public List<ChannelStatItem> Channels { get; set; }
+        public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
+
         public long TotalMessageCount => Channels.Sum(o => o.Count);
 
-        public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser)
+        public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
         {
             Guild = guild;
             User = user;
@@ -35,6 +36,8 @@ namespace Grillbot.Models.Users
                 .Where(o => o.Channel != null)
                 .OrderByDescending(o => o.Count)
                 .ToList();
+
+            UnverifyHistory = unverifyHistory;
         }
 
         public string FormatReactions()

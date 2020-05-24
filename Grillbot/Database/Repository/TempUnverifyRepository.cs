@@ -124,6 +124,14 @@ namespace Grillbot.Database.Repository
                 .ToList();
         }
 
+        public List<UnverifyLog> GetHistoryOfUser(ulong guildID, ulong userID)
+        {
+            var guild = guildID.ToString();
+            var user = userID.ToString();
+
+            return Queryable.Where(Context.UnverifyLog, o => o.GuildID == guild && o.DestUserID == user && o.Operation == UnverifyLogOperation.Set).ToList();
+        }
+
         public bool UnverifyExists(ulong userId)
         {
             var id = userId.ToString();

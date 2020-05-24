@@ -2,9 +2,11 @@
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
+using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TempUnverify.Admin;
+using Grillbot.Models.Users;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -99,6 +101,27 @@ namespace Grillbot.Services.TempUnverify
                 auditItem.FromUser = await auditItem.Guild.GetUserFromGuildAsync(item.FromUserIDSnowflake);
                 auditItem.ToUser = await auditItem.Guild.GetUserFromGuildAsync(item.DestUserIDSnowflake);
                 result.Add(auditItem);
+            }
+
+            return result;
+        }
+
+        public async Task<List<UserUnverifyHistoryItem>> GetUnverifyHistoryOfUserAsync(DBDiscordUser user)
+        {
+            var data = Repository.GetHistoryOfUser(user.GuildIDSnowflake, user.UserIDSnowflake);
+
+            var result = new List<UserUnverifyHistoryItem>();
+
+            foreach(var item in data)
+            {
+                var guild = DiscordClient.GetGuild(item.GuildIDSnowflake);
+
+                var historyItem = new UserUnverifyHistoryItem(item)
+                {
+                    FromUser = (await guild.GetUserFromGuildAsync(item.FromUserIDSnowflake))?.GetFullName()
+                };
+
+                result.Add(historyItem);
             }
 
             return result;
