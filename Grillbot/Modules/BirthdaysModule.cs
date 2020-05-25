@@ -1,7 +1,7 @@
 ﻿using Discord.Commands;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;

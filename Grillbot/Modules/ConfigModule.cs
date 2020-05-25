@@ -1,10 +1,9 @@
 ﻿using Discord.Commands;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;

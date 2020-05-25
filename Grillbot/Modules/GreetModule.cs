@@ -2,7 +2,7 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Repository;

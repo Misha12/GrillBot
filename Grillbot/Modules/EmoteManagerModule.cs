@@ -1,10 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Exceptions;
 using Grillbot.Models.Embed;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
 using System.Collections.Generic;

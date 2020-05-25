@@ -1,12 +1,10 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;

@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 using System.Threading.Tasks;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.MemeImages;
 
 namespace Grillbot.Modules

@@ -1,10 +1,9 @@
 ﻿using Discord.Commands;
-using Grillbot.Services.Permissions;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
-namespace Grillbot.Services.Preconditions
+namespace Grillbot.Services.Permissions.Preconditions
 {
     public class RequirePermissionsAttribute : PreconditionAttribute
     {

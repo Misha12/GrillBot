@@ -4,7 +4,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Newtonsoft.Json;

@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Math;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules

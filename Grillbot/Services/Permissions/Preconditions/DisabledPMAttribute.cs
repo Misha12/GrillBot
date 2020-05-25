@@ -2,7 +2,7 @@
 using System;
 using System.Threading.Tasks;
 
-namespace Grillbot.Services.Preconditions
+namespace Grillbot.Services.Permissions.Preconditions
 {
     public class DisabledPMAttribute : PreconditionAttribute
     {

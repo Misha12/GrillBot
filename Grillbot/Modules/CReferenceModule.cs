@@ -3,7 +3,7 @@ using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Services;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 
 namespace Grillbot.Modules
 {

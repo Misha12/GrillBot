@@ -1,9 +1,7 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
 using System;
 using System.Diagnostics.CodeAnalysis;

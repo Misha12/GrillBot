@@ -5,7 +5,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Duck;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules

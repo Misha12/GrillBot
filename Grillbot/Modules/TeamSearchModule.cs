@@ -8,11 +8,10 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
 

@@ -8,7 +8,7 @@ using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
 using System;
 using System.Linq;

@@ -1,6 +1,6 @@
 ﻿using Discord.Commands;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;

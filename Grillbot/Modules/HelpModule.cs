@@ -1,7 +1,7 @@
 ﻿using Discord.Commands;
 using System;
 using System.Threading.Tasks;
-using Grillbot.Services.Preconditions;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services;
