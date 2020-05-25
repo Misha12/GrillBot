@@ -2,6 +2,7 @@
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -35,9 +36,15 @@ namespace Grillbot.Modules
                 var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
                 await ReplyAsync(message);
             }
-            catch (ValidationException ex)
+            catch (Exception ex)
             {
-                await ReplyAsync(ex.Message);
+                if (ex is ArgumentException || ex is ValidationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
+                throw;
             }
         }
     }
