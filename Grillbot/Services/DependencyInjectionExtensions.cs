@@ -1,7 +1,6 @@
 ﻿using Grillbot.Database;
 using Grillbot.Database.Repository;
 using Grillbot.Handlers;
-using Grillbot.Middleware.DiscordUserAuthorization;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.Channelboard;
@@ -51,7 +50,6 @@ namespace Grillbot.Services
         public static IServiceCollection AddWebAuthentication(this IServiceCollection services)
         {
             services
-                .AddTransient<DcUserAuthorization>()
                 .AddScoped<WebAuthenticationService>()
                 .AddAuthentication(CookieAuthenticationDefaults.AuthenticationScheme)
                 .AddCookie(opt =>

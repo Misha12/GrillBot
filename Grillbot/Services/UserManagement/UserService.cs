@@ -16,7 +16,7 @@ using Grillbot.Services.TempUnverify;
 
 namespace Grillbot.Services.UserManagement
 {
-    public class UserService
+    public partial class UserService
     {
         private IServiceProvider Services { get; }
         public Dictionary<string, DateTime> LastPointsCalculatedAt { get; set; }

@@ -87,5 +87,11 @@ namespace Grillbot.Database.Repository
                 .Distinct()
                 .ToListAsync();
         }
+
+        public DiscordUser FindUserByApiToken(string apiToken)
+        {
+            var query = GetBaseQuery(false);
+            return query.FirstOrDefault(o => o.ApiToken == apiToken);
+        }
     }
 }

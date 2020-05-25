@@ -16,6 +16,7 @@ namespace Grillbot.Models.Users
         public long GivenReactionsCount { get; set; }
         public long ObtainedReactionsCount { get; set; }
         public bool WebAdminAccess { get; set; }
+        public bool ApiAccess { get; set; }
         public List<ChannelStatItem> Channels { get; set; }
         public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
 
@@ -30,6 +31,7 @@ namespace Grillbot.Models.Users
             GivenReactionsCount = dbUser.GivenReactionsCount;
             ObtainedReactionsCount = dbUser.ObtainedReactionsCount;
             WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword);
+            ApiAccess = !string.IsNullOrEmpty(dbUser.ApiToken);
 
             Channels = dbUser.Channels
                 .Select(o => new ChannelStatItem(guild.GetChannel(o.ChannelIDSnowflake), o))

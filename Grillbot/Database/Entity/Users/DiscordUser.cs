@@ -36,6 +36,7 @@ namespace Grillbot.Database.Entity.Users
         public long GivenReactionsCount { get; set; }
         public long ObtainedReactionsCount { get; set; }
         public string WebAdminPassword { get; set; }
+        public string ApiToken { get; set; }
 
         public ISet<UserChannel> Channels { get; set; }
 

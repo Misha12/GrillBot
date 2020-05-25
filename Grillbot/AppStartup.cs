@@ -7,6 +7,7 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Initiable;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Permissions.Api;
 
 namespace Grillbot
 {
@@ -91,6 +92,7 @@ namespace Grillbot
             app
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
+                .UseMiddleware<DiscordAuthorizeMiddleware>()
                 .UseAuthentication()
                 .UseAuthorization()
                 .UseStaticFiles()

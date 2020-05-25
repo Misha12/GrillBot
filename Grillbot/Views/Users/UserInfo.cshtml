@@ -66,6 +66,11 @@
                                 <span class="badge badge-success" title="Přístup do webové administrace">WebAdmin</span>
                             }
 
+                            @if (Model.User.ApiAccess)
+                            {
+                                <span class="badge badge-success" title="Přístup k REST API">REST API</span>
+                            }
+
                             @if (Model.User.User.IsGuildOwner())
                             {
                                 <span class="badge badge-dark" title="Vlastník serveru @Model.User.Guild.Name">GuildOwner</span>

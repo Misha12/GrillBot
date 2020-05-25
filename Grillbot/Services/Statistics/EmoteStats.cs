@@ -169,16 +169,21 @@ namespace Grillbot.Services.Statistics
             return repository.GetEmoteStat(guild, emoteId);
         }
 
-        public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode)
+        public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)
         {
             using var scope = Provider.CreateScope();
             using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
             var query = repository.GetEmoteStats(guildID, excludeUnicode);
 
             if (descOrder)
-                return query.OrderByDescending(o => o.Count).ThenByDescending(o => o.LastOccuredAt).ToList();
+                query = query.OrderByDescending(o => o.Count).ThenByDescending(o => o.LastOccuredAt);
             else
-                return query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt).ToList();
+                query = query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt);
+
+            if (limit != null)
+                query = query.Take(limit.Value);
+
+            return query.ToList();
         }
 
         public List<EmoteMergeListItem> GetMergeList(SocketGuild guild)
@@ -226,11 +231,11 @@ namespace Grillbot.Services.Statistics
 
                 var emoteClearCandidates = repository.GetEmoteStats(guild.Id, true).ToList();
 
-                foreach(var candidate in emoteClearCandidates)
+                foreach (var candidate in emoteClearCandidates)
                 {
                     var parsedEmote = Emote.Parse(candidate.GetRealId());
 
-                    if(!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
+                    if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                     {
                         removed.Add($"Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id})");
                         repository.RemoveEmojiNoCommit(guild, candidate.GetRealId());

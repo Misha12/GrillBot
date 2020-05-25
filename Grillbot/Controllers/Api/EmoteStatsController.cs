@@ -1,10 +1,7 @@
-﻿using System;
-using System.Linq;
+﻿using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Middleware.DiscordUserAuthorization;
+using Grillbot.Services.Permissions.Api;
 using Grillbot.Services.Statistics;
-using Microsoft.AspNetCore.Authorization;
-using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers.Api
@@ -13,46 +10,27 @@ namespace Grillbot.Controllers.Api
     [ApiController]
     public class EmoteStatsController : ControllerBase
     {
-        private DcUserAuthorization Auth { get; }
         private EmoteStats EmoteStats { get; }
 
-        public EmoteStatsController(DcUserAuthorization auth, EmoteStats emoteStats)
+        public EmoteStatsController(EmoteStats emoteStats)
         {
-            Auth = auth;
             EmoteStats = emoteStats;
         }
 
-        [AllowAnonymous]
         [HttpGet("getAll/{guildID}")]
-        public async Task<IActionResult> GetAll(ulong guildID, [FromQuery] int limit = 25, bool withUnicode = false)
+        [DiscordAuthAccessType(AccessType = AccessType.Everyone)]
+        public async Task<IActionResult> GetAll(ulong guildID, [FromQuery] int limit = 25, [FromQuery] bool withUnicode = false)
         {
-            try
-            {
-                var guild = await Auth.CheckAuthAndGetGuildAsync(HttpContext.Request, DiscordUserAuthorizationType.Everyone, guildID).ConfigureAwait(false);
-
-                if (guild == null)
-                    return NotFound();
-
-                var data = EmoteStats.GetAllValues(true, guild.Id, !withUnicode)
-                    .Take(limit)
+            var data = EmoteStats.GetAllValues(true, guildID, !withUnicode, limit)
                     .Select(o => new
                     {
-                        emote = o.GetRealId(),
-                        count = o.Count,
-                        lastOccuredAt = o.LastOccuredAt,
-                        isUnicode = o.IsUnicode
+                        Emote = o.GetRealId(),
+                        o.Count,
+                        o.LastOccuredAt,
+                        o.IsUnicode
                     });
 
-                return Ok(data.ToList());
-            }
-            catch(UnauthorizedAccessException ex)
-            {
-                return Unauthorized(ex.Message);
-            }
-            catch(ForbiddenAccessException ex)
-            {
-                return StatusCode(403, ex.Message);
-            }
+            return Ok(data);
         }
     }
 }

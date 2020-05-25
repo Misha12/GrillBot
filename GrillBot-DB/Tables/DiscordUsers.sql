@@ -6,7 +6,8 @@
 	[Points] BIGINT NOT NULL CONSTRAINT DF_DiscordUsers_Points DEFAULT (0.0),
 	[GivenReactionsCount] BIGINT NOT NULL CONSTRAINT DF_DiscordUsers_GivenReactionsCount DEFAULT (0),
 	[ObtainedReactionsCount] BIGINT NOT NULL CONSTRAINT DF_DiscordUsers_ObtainedReactionsCount DEFAULT (0),
-	[WebAdminPassword] VARCHAR(MAX) NULL
+	[WebAdminPassword] VARCHAR(MAX) NULL,
+	[ApiToken] VARCHAR(50) NULL
 )
 
 GO
