@@ -75,6 +75,11 @@
                             {
                                 <span class="badge badge-dark" title="Vlastník serveru @Model.User.Guild.Name">GuildOwner</span>
                             }
+
+                            @if (Model.User.Birthday != null)
+                            {
+                                <span class="badge badge-success" title="Uživatel má uloženy narozeniny.">Birthday</span>
+                            }
                         </div>
                     </div>
                 </div>
