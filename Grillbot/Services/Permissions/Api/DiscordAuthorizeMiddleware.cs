@@ -29,7 +29,7 @@ namespace Grillbot.Services.Permissions.Api
         {
             var endpoint = context.GetEndpoint();
 
-            if (!endpoint.Metadata.OfType<ApiControllerAttribute>().Any())
+            if (endpoint == null || !endpoint.Metadata.OfType<ApiControllerAttribute>().Any())
             {
                 await Next(context);
                 return;
