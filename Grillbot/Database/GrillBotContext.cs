@@ -26,6 +26,10 @@ namespace Grillbot.Database
 
                 builder
                     .HasIndex(o => o.UserID);
+
+                builder
+                    .HasOne(o => o.Birthday)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
@@ -42,12 +46,6 @@ namespace Grillbot.Database
                 builder
                     .HasKey(o => new { o.GuildID, o.EmoteID });
             });
-
-            modelBuilder.Entity<Birthday>(builder =>
-            {
-                builder
-                    .HasKey(o => new { o.GuildID, o.ID });
-            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
@@ -55,7 +53,6 @@ namespace Grillbot.Database
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
-        public virtual DbSet<Birthday> Birthdays { get; set; }
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<MethodPerm> MethodPerms { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }

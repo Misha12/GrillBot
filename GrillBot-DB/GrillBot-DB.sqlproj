@@ -64,11 +64,11 @@
     <Build Include="Tables\TeamSearch.sql" />
     <Build Include="Tables\TempUnverify.sql" />
     <Build Include="Tables\UnverifyLog.sql" />
-    <Build Include="Tables\Birthdays.sql" />
     <Build Include="Tables\MethodsConfig.sql" />
     <Build Include="Tables\MethodPerms.sql" />
     <Build Include="Tables\DiscordUsers.sql" />
     <Build Include="Tables\UserChannels.sql" />
+    <Build Include="Tables\BirthdayDates.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />

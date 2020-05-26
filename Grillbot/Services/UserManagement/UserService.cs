@@ -58,7 +58,7 @@ namespace Grillbot.Services.UserManagement
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             using var unverifyLogService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
 
-            var userData = repository.GetUser(id);
+            var userData = repository.GetUserDetail(id);
 
             if (userData == null)
                 return null;

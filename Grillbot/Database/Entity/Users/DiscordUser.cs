@@ -39,6 +39,7 @@ namespace Grillbot.Database.Entity.Users
         public string ApiToken { get; set; }
 
         public ISet<UserChannel> Channels { get; set; }
+        public BirthdayDate Birthday { get; set; }
 
         public DiscordUser()
         {

@@ -19,6 +19,7 @@ namespace Grillbot.Models.Users
         public bool ApiAccess { get; set; }
         public List<ChannelStatItem> Channels { get; set; }
         public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
+        public UserBirthday Birthday { get; set; }
 
         public long TotalMessageCount => Channels.Sum(o => o.Count);
 
@@ -32,6 +33,7 @@ namespace Grillbot.Models.Users
             ObtainedReactionsCount = dbUser.ObtainedReactionsCount;
             WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword);
             ApiAccess = !string.IsNullOrEmpty(dbUser.ApiToken);
+            Birthday = dbUser.Birthday == null ? null : new UserBirthday(dbUser.Birthday);
 
             Channels = dbUser.Channels
                 .Select(o => new ChannelStatItem(guild.GetChannel(o.ChannelIDSnowflake), o))

@@ -35,7 +35,6 @@ namespace Grillbot.Services
             services
                 .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
                 .AddTransient<AutoReplyRepository>()
-                .AddTransient<BirthdaysRepository>()
                 .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
                 .AddTransient<EmoteStatsRepository>()

@@ -8,12 +8,14 @@ namespace Grillbot.Models.PaginatedEmbed
     public class PaginatedEmbedPage
     {
         public List<EmbedFieldBuilder> Fields { get; }
+        public string Thumbnail { get; set; }
         public string Title { get; set; }
 
-        public PaginatedEmbedPage(string title, List<EmbedFieldBuilder> fields = null)
+        public PaginatedEmbedPage(string title, List<EmbedFieldBuilder> fields = null, string thumbnail = null)
         {
             Title = title;
             Fields = fields ?? new List<EmbedFieldBuilder>();
+            Thumbnail = thumbnail;
         }
 
         public void AddField(EmbedFieldBuilder builder)

@@ -20,7 +20,7 @@ namespace Grillbot.Models.PaginatedEmbed
                 return null;
 
             var page = Pages[CurrentPage - 1];
-            var botEmbed = new BotEmbed(ResponseFor, Color, page.Title, Thumbnail)
+            var botEmbed = new BotEmbed(ResponseFor, Color, page.Title, Thumbnail ?? page.Thumbnail)
                 .WithFields(page.Fields)
                 .PrependFooter($"Strana {CurrentPage}/{Pages.Count}");
 

@@ -1,9 +1,0 @@
-﻿CREATE TABLE [dbo].[Birthdays]
-(
-	[ID] VARCHAR(30) NOT NULL,
-	[Date] DATE NOT NULL,
-	[AcceptAge] BIT NOT NULL CONSTRAINT [DF_BirthDays_AcceptAge] DEFAULT (0),
-	[GuildID] NVARCHAR(255) NOT NULL,
-
-	CONSTRAINT PK_Birthdays PRIMARY KEY (ID, GuildID)
-);
