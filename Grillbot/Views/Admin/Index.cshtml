@@ -143,6 +143,7 @@
                     <tr>
                         <th>Tabulka</th>
                         <th>Počet záznamů</th>
+                        <th>Velikost</th>
                     </tr>
                 </thead>
                 <tbody>
@@ -150,7 +151,8 @@
                     {
                         <tr>
                             <td>@table.Key</td>
-                            <td>@FormatHelper.FormatWithSpaces(table.Value)</td>
+                            <td>@FormatHelper.FormatWithSpaces(table.Value.Item1)</td>
+                            <td>@FormatHelper.FormatAsSize(table.Value.Item2)</td>
                         </tr>
                     }
                 </tbody>

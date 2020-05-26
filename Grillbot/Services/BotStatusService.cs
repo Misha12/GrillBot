@@ -72,7 +72,7 @@ namespace Grillbot.Services
             return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
         }
 
-        public async Task<Dictionary<string, int>> GetDbReport()
+        public async Task<Dictionary<string, Tuple<int, long>>> GetDbReport()
         {
             return await Repository.GetTableRowsCount().ConfigureAwait(false);
         }
