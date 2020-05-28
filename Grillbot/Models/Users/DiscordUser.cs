@@ -1,6 +1,7 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Helpers;
 using Grillbot.Models.Channelboard;
+using Grillbot.Models.Math;
 using System.Collections.Generic;
 using System.Linq;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
@@ -20,6 +21,7 @@ namespace Grillbot.Models.Users
         public List<ChannelStatItem> Channels { get; set; }
         public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
         public UserBirthday Birthday { get; set; }
+        public List<MathAuditItem> MathAuditItems { get; set; }
 
         public long TotalMessageCount => Channels.Sum(o => o.Count);
 
@@ -42,6 +44,7 @@ namespace Grillbot.Models.Users
                 .ToList();
 
             UnverifyHistory = unverifyHistory;
+            MathAuditItems = dbUser.MathAudit.Select(o => new MathAuditItem(o, guild)).ToList();
         }
 
         public string FormatReactions()

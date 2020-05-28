@@ -1,5 +1,5 @@
 ﻿
-namespace Grillbot.Models.Math
+namespace Grillbot.Database.Entity.Math
 {
     public class MathCalcResult
     {

@@ -30,6 +30,10 @@ namespace Grillbot.Database
                 builder
                     .HasOne(o => o.Birthday)
                     .WithOne(o => o.User);
+
+                builder
+                    .HasMany(o => o.MathAudit)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>

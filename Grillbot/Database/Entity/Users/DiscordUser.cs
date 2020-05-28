@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Database.Entity.Math;
+using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -40,10 +41,12 @@ namespace Grillbot.Database.Entity.Users
 
         public ISet<UserChannel> Channels { get; set; }
         public BirthdayDate Birthday { get; set; }
+        public ISet<MathAuditLogItem> MathAudit { get; set; }
 
         public DiscordUser()
         {
             Channels = new HashSet<UserChannel>();
+            MathAudit = new HashSet<MathAuditLogItem>();
         }
     }
 }

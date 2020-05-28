@@ -277,4 +277,42 @@
             </div>
         </div>
     </div>
+
+    <div class="row mr-0">
+        <div class="col-12">
+            <div class="card mt-3">
+                <div class="card-header">
+                    <h4 class="card-title mb-0">Matematické výpočty</h4>
+                </div>
+
+                <div class="card-body">
+                    <table class="table table-sm table-bordered table-striped">
+                        <thead>
+                            <tr>
+                                <th>ID</th>
+                                <th>Výraz</th>
+                                <th>Kdy</th>
+                                <th>Kanál</th>
+                                <th>Jednotka</th>
+                                <th>Výsledek</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach(var item in Model.User.MathAuditItems)
+                            {
+                                <tr>
+                                    <td>@item.ID</td>
+                                    <td title="@item.Expression">@item.Expression.Substring(0, Math.Min(item.Expression.Length, 150))</td>
+                                    <td>@item.DateTime.ToLocaleDatetime()</td>
+                                    <td>#@item.Channel.Name</td>
+                                    <td>@item.UnitInfo</td>
+                                    <td>@item.Result</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+    </div>
 </section>

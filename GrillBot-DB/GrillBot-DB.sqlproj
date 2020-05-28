@@ -69,6 +69,7 @@
     <Build Include="Tables\DiscordUsers.sql" />
     <Build Include="Tables\UserChannels.sql" />
     <Build Include="Tables\BirthdayDates.sql" />
+    <Build Include="Tables\MathAuditLog.sql" />
   </ItemGroup>
   <ItemGroup>
     <None Include="GrillBot-DB.publish.xml" />

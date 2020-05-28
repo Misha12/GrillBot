@@ -1,9 +1,12 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Database.Entity.Math;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Math;
 using Grillbot.Services.Initiable;
+using Grillbot.Services.UserManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
@@ -21,12 +24,14 @@ namespace Grillbot.Services.Math
         private static readonly object Locker = new object();
         private Configuration Config { get; }
         private IServiceProvider ServiceProvider { get; }
+        private UserService UserService { get; }
 
-        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider)
+        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, UserService userService)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
             ServiceProvider = serviceProvider;
+            UserService = userService;
         }
 
         private void InitSessions()
@@ -71,9 +76,10 @@ namespace Grillbot.Services.Math
             MathSession session = null;
             MathCalcResult result = null;
 
+            var user = (SocketGuildUser)message.Author;
+
             try
             {
-                var user = (SocketGuildUser)message.Author;
                 bool booster = Config.Discord.IsBooster(user.Roles);
                 session = LockAndGetSession(input, booster);
 
@@ -81,18 +87,14 @@ namespace Grillbot.Services.Math
 
                 if (string.IsNullOrEmpty(input))
                 {
-                    return new MathCalcResult()
-                    {
-                        ErrorMessage = "Nelze spočítat prázdný výraz.",
-                    };
+                    result = new MathCalcResult() { ErrorMessage = "Nelze spočítat prázdný výraz." };
+                    return result;
                 }
 
                 if (input.Contains("nan", StringComparison.InvariantCultureIgnoreCase))
                 {
-                    return new MathCalcResult()
-                    {
-                        ErrorMessage = "NaN není platný vstup."
-                    };
+                    result = new MathCalcResult() { ErrorMessage = "NaN není platný vstup." };
+                    return result;
                 }
 
                 using var scope = ServiceProvider.CreateScope();
@@ -132,6 +134,7 @@ namespace Grillbot.Services.Math
             }
             finally
             {
+                UserService.SaveMathAuditItem(input, user, message.Channel, session, result);
                 ReleaseSession(session, result);
             }
         }

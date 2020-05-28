@@ -13,7 +13,7 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        private IQueryable<DiscordUser> GetBaseQuery(bool includeChannels, bool includeBirthday)
+        private IQueryable<DiscordUser> GetBaseQuery(bool includeChannels, bool includeBirthday, bool includeMathAudit)
         {
             var query = Context.Users.AsQueryable();
 
@@ -23,12 +23,15 @@ namespace Grillbot.Database.Repository
             if (includeBirthday)
                 query = query.Include(o => o.Birthday);
 
+            if (includeMathAudit)
+                query = query.Include(o => o.MathAudit);
+
             return query;
         }
 
         public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, ulong? userID)
         {
-            var query = GetBaseQuery(true, true);
+            var query = GetBaseQuery(true, false, false);
 
             if (guildID != null)
                 query = query.Where(o => o.GuildID == guildID.ToString());
@@ -50,24 +53,24 @@ namespace Grillbot.Database.Repository
             return query.Take(limit);
         }
 
-        public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels = true, bool includeBirthday = true)
+        public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels = true, bool includeBirthday = true, bool includeMathAudit = true)
         {
             var guild = guildID.ToString();
             var user = userID.ToString();
 
-            var query = GetBaseQuery(includeChannels, includeBirthday);
+            var query = GetBaseQuery(includeChannels, includeBirthday, includeMathAudit);
             return query.FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
         }
 
         public DiscordUser GetUserDetail(long id)
         {
-            var query = GetBaseQuery(true, true);
+            var query = GetBaseQuery(true, true, true);
             return query.FirstOrDefault(o => o.ID == id);
         }
 
-        public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, bool includeChannels = true, bool includeBirthday = true)
+        public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, bool includeChannels = true, bool includeBirthday = true, bool includeMathAudit = true)
         {
-            var entity = GetUser(guildID, userID, includeChannels, includeBirthday);
+            var entity = GetUser(guildID, userID, includeChannels, includeBirthday, includeMathAudit);
 
             if (entity == null)
             {
@@ -85,7 +88,7 @@ namespace Grillbot.Database.Repository
 
         public async Task<List<string>> GetUsersForFilterAsync()
         {
-            return await GetBaseQuery(false, false)
+            return await GetBaseQuery(false, false, false)
                 .Select(o => o.UserID)
                 .Distinct()
                 .ToListAsync();
@@ -93,7 +96,7 @@ namespace Grillbot.Database.Repository
 
         public DiscordUser FindUserByApiToken(string apiToken)
         {
-            var query = GetBaseQuery(false, false);
+            var query = GetBaseQuery(false, false, false);
             return query.FirstOrDefault(o => o.ApiToken == apiToken);
         }
 
@@ -101,7 +104,7 @@ namespace Grillbot.Database.Repository
         {
             var guild = guildID.ToString();
 
-            return GetBaseQuery(false, true)
+            return GetBaseQuery(false, true, false)
                 .Where(o => o.GuildID == guild && o.Birthday != null)
                 .ToList();
         }
