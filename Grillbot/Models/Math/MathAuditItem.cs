@@ -3,9 +3,6 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity.Math;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Models.Math
 {
@@ -31,14 +28,14 @@ namespace Grillbot.Models.Math
             var result = JsonConvert.DeserializeObject<MathCalcResult>(item.Result);
             if (result.IsValid)
             {
-                Result = $"{result.Result} ({result.GetComputingTime()}/{result.GetAssignedComputingTime()})";
+                Result = $"{result.Result} ({result.GetComputingTime()})";
             }
             else
             {
                 if (result.IsTimeout)
                     Result = $"Timeout ({result.GetComputingTime()})";
                 else
-                    Result = $"Error ({result.ErrorMessage}) ({result.GetComputingTime()}/{result.GetAssignedComputingTime()})";
+                    Result = $"Error ({result.ErrorMessage}) ({result.GetComputingTime()})";
             }
         }
     }
