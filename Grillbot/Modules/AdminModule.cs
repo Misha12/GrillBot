@@ -150,23 +150,30 @@ namespace Grillbot.Modules
         {
             if (Context.Message.Channel is ITextChannel channel)
             {
-                var messages = await channel.GetMessagesAsync(count).FlattenAsync();
+                var options = new RequestOptions()
+                {
+                    AuditLogReason = "Clear command",
+                    RetryMode = RetryMode.AlwaysRetry,
+                    Timeout = 30000
+                };
+
+                var messages = await channel.GetMessagesAsync(count, options: options).FlattenAsync();
 
                 var olderTwoWeeks = messages.Where(o => (DateTime.UtcNow - o.CreatedAt).TotalDays >= 14.0);
                 var newerTwoWeeks = messages.Where(o => (DateTime.UtcNow - o.CreatedAt).TotalDays < 14.0);
 
-                await channel.DeleteMessagesAsync(newerTwoWeeks);
+                await channel.DeleteMessagesAsync(newerTwoWeeks, options);
 
                 foreach (var oldMessage in olderTwoWeeks)
                 {
-                    await oldMessage.DeleteAsync();
+                    await oldMessage.DeleteAsync(options);
                 }
 
                 MessageCache.TryBulkDelete(messages.Select(o => o.Id));
 
                 var message = await ReplyAsync($"Počet smazaných zpráv: {messages.Count()}");
                 await Task.Delay(TimeSpan.FromSeconds(10));
-                await message.DeleteAsync();
+                await message.DeleteAsync(options);
             }
         }
     }
