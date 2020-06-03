@@ -38,7 +38,7 @@ namespace Grillbot.Modules
             }
             catch (Exception ex)
             {
-                if (ex is ArgumentException || ex is ValidationException)
+                if (ex is ArgumentException || ex is ValidationException || ex is FormatException)
                 {
                     await ReplyAsync(ex.Message);
                     return;
