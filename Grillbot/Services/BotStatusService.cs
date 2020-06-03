@@ -82,7 +82,7 @@ namespace Grillbot.Services
         {
             var result = new List<CacheStatus>();
 
-            foreach(var channel in Client.Guilds.SelectMany(o => o.TextChannels))
+            foreach (var channel in Client.Guilds.SelectMany(o => o.TextChannels))
             {
                 var messageCache = MessageCache.GetFromChannel(channel.Id);
 
@@ -92,7 +92,8 @@ namespace Grillbot.Services
                     MessageCacheCount = messageCache.Count(),
                 };
 
-                result.Add(item);
+                if (item.InternalCacheCount > 0 || item.MessageCacheCount > 0)
+                    result.Add(item);
             }
 
             return result;
