@@ -38,6 +38,7 @@ namespace Grillbot.Controllers
         public async Task<IActionResult> Index()
         {
             var dbStatus = await StatusService.GetDbReport();
+            var activityStats = await UsersActivityStats.CreateAsync(DiscordClient);
 
             var data = new WebStatus()
             {
@@ -48,7 +49,9 @@ namespace Grillbot.Controllers
                 TriggeredEvents = InternalStatistics.GetEvents(),
                 Latency = DiscordClient.Latency,
                 ConnectionState = DiscordClient.ConnectionState,
-                LoginState = DiscordClient.LoginState
+                LoginState = DiscordClient.LoginState,
+                BotUser = DiscordClient.CurrentUser,
+                ActivityStats = activityStats
             };
 
             return View(data);
