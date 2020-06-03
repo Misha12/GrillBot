@@ -136,9 +136,9 @@ namespace Grillbot.Modules
                     new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", roles)),
                     new EmbedFieldBuilder().WithName("Boost od").WithValue(!user.PremiumSince.HasValue ? "Boost nenalezen" : user.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Aktivní klienti").WithValue(string.Join(", ", user.ActiveClients.Select(o => o.ToString()))).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Body").WithValue(FormatHelper.FormatWithSpaces(userDetail?.Points ?? 0)).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Body").WithValue((userDetail?.Points ?? 0).FormatWithSpaces()).WithIsInline(true),
                     new EmbedFieldBuilder().WithName("Reakce").WithValue(userDetail?.FormatReactions() ?? "0 / 0").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet zpráv").WithValue(FormatHelper.FormatWithSpaces(userDetail?.TotalMessageCount ?? 0)).WithIsInline(true)
+                    new EmbedFieldBuilder().WithName("Počet zpráv").WithValue((userDetail?.TotalMessageCount ?? 0).FormatWithSpaces()).WithIsInline(true)
                 );
 
             await ReplyAsync(embed: embed.Build());

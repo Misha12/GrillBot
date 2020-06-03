@@ -3,7 +3,6 @@ using Discord.Commands;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Grillbot.Helpers;
 using Grillbot.Services.Permissions.Preconditions;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
@@ -11,6 +10,7 @@ using Newtonsoft.Json;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
 using Grillbot.Models.Embed;
+using Grillbot.Extensions;
 
 namespace Grillbot.Modules
 {
@@ -44,7 +44,7 @@ namespace Grillbot.Modules
 
                 messageBuilder
                     .Append(i + 1).Append(": ").Append(channelBoardItem.Channel.Name)
-                    .Append(" - ").AppendLine(FormatHelper.FormatWithSpaces(channelBoardItem.Count));
+                    .Append(" - ").AppendLine(channelBoardItem.Count.FormatWithSpaces());
             }
 
             embed.AddField("=======================", messageBuilder.ToString(), false);
@@ -90,7 +90,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var formatedMessageCount = FormatHelper.FormatWithSpaces(value.Item2);
+            var formatedMessageCount = value.Item2.FormatWithSpaces();
             var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
 
             await Context.Message.Author.SendPrivateMessageAsync(message);

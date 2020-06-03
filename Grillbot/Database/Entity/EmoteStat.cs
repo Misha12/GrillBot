@@ -41,7 +41,7 @@ namespace Grillbot.Database.Entity
         public string GetFormatedInfo()
         {
             return new StringBuilder()
-                .Append("Počet použití: ").AppendLine(FormatHelper.FormatWithSpaces(Count))
+                .Append("Počet použití: ").AppendLine(Count.FormatWithSpaces())
                 .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime())
                 .ToString();
         }

@@ -90,12 +90,12 @@
                     <div class="row">
                         <div class="col-4">
                             Body<br />
-                            <b>@FormatHelper.FormatWithSpaces(Model.User.Points)</b>
+                            <b>@Model.User.Points.FormatWithSpaces()</b>
                         </div>
 
                         <div class="col-4">
                             Počet zpráv<br />
-                            <b>@FormatHelper.FormatWithSpaces(Model.User.TotalMessageCount)</b>
+                            <b>@Model.User.TotalMessageCount.FormatWithSpaces()</b>
                         </div>
 
                         <div class="col-4">
@@ -110,12 +110,12 @@
                     <div class="row mt-2">
                         <div class="col-4">
                             Uděleno reakcí<br />
-                            <b>@FormatHelper.FormatWithSpaces(Model.User.GivenReactionsCount)</b>
+                            <b>@Model.User.GivenReactionsCount.FormatWithSpaces()</b>
                         </div>
 
                         <div class="col-4">
                             Získáno reakcí<br />
-                            <b>@FormatHelper.FormatWithSpaces(Model.User.ObtainedReactionsCount)</b>
+                            <b>@Model.User.ObtainedReactionsCount.FormatWithSpaces()</b>
                         </div>
                     </div>
 
@@ -176,7 +176,7 @@
                                 {
                                     <tr>
                                         <td>#@channel.Channel.Name</td>
-                                        <td>@FormatHelper.FormatWithSpaces(channel.Count)</td>
+                                        <td>@channel.Count.FormatWithSpaces()</td>
                                         <td>@channel.LastMessageAt.ToLocaleDatetime()</td>
                                     </tr>
                                 }

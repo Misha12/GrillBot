@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
-using Grillbot.Helpers;
+using Grillbot.Extensions;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services;
@@ -48,7 +48,7 @@ namespace Grillbot.Modules
                     .WithValue(string.Join("\n", new[] {
                         $"Status: {(item.IsActive ? "Aktivní" : "Neaktivní")}",
                         $"Metoda: {item.CompareType}",
-                        $"Počet použití: {FormatHelper.FormatWithSpaces(item.CallsCount)}",
+                        $"Počet použití: {item.CallsCount.FormatWithSpaces()}",
                         $"Case sensitive: {(item.CaseSensitive ? "Ano" : "Ne")}",
                         $"Kanál: {item.Channel}"
                     }));

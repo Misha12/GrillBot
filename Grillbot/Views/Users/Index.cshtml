@@ -95,9 +95,9 @@
                             }
                         </td>
                         <td>@user.Guild.Name</td>
-                        <td>@FormatHelper.FormatWithSpaces(user.Points)</td>
-                        <td>@FormatHelper.FormatWithSpaces(user.GivenReactionsCount) / @FormatHelper.FormatWithSpaces(user.ObtainedReactionsCount)</td>
-                        <td>@FormatHelper.FormatWithSpaces(user.TotalMessageCount)</td>
+                        <td>@user.Points.FormatWithSpaces()</td>
+                        <td>@user.GivenReactionsCount.FormatWithSpaces() / @user.ObtainedReactionsCount.FormatWithSpaces()</td>
+                        <td>@user.TotalMessageCount.FormatWithSpaces()</td>
                         <td>
                             <a class="btn btn-sm btn-primary" asp-action="UserInfo" asp-route-userId="@user.ID">Detail</a>
                         </td>

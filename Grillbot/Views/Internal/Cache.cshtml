@@ -22,8 +22,8 @@
                         <tr>
                             <td>@item.Channel.Guild.Name</td>
                             <td>@item.Channel.Name</td>
-                            <td>@FormatHelper.FormatWithSpaces(item.InternalCacheCount)</td>
-                            <td>@FormatHelper.FormatWithSpaces(item.MessageCacheCount)</td>
+                            <td>@item.InternalCacheCount.FormatWithSpaces()</td>
+                            <td>@item.MessageCacheCount.FormatWithSpaces()</td>
                         </tr>
                     }
                 </tbody>

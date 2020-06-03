@@ -24,8 +24,8 @@
                             <td>@item.Group</td>
                             <td>@item.Command</td>
                             <td>@item.Guild</td>
-                            <td>@FormatHelper.FormatWithSpaces(item.CallsCount)</td>
-                            <td>@FormatHelper.FormatWithSpaces(item.PermissionsCount)</td>
+                            <td>@item.CallsCount.FormatWithSpaces()</td>
+                            <td>@item.PermissionsCount.FormatWithSpaces()</td>
                         </tr>
                     }
                 </tbody>

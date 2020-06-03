@@ -1,5 +1,5 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Helpers;
+using Grillbot.Extensions;
 using Grillbot.Models.Channelboard;
 using Grillbot.Models.Math;
 using System.Collections.Generic;
@@ -49,8 +49,8 @@ namespace Grillbot.Models.Users
 
         public string FormatReactions()
         {
-            var given = FormatHelper.FormatWithSpaces(GivenReactionsCount);
-            var obtained = FormatHelper.FormatWithSpaces(ObtainedReactionsCount);
+            var given = GivenReactionsCount.FormatWithSpaces();
+            var obtained = ObtainedReactionsCount.FormatWithSpaces();
 
             return $"{given} / {obtained}";
         }

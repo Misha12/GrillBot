@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.BotStatus;
 using Grillbot.Models.Internal;
@@ -69,7 +70,7 @@ namespace Grillbot.Services
                     sleepCount++;
             }
 
-            return $"{FormatHelper.FormatWithSpaces(process.Threads.Count)} ({FormatHelper.FormatWithSpaces(sleepCount)} spí)";
+            return $"{process.Threads.Count.FormatWithSpaces()} ({sleepCount.FormatWithSpaces()} spí)";
         }
 
         public async Task<Dictionary<string, Tuple<int, long>>> GetDbReport()

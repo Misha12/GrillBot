@@ -37,7 +37,7 @@
                                 }
                                 else
                                 {
-                                    <p>@FormatHelper.FormatWithSpaces(Model.Guild.UsersCount) uživatelů</p>
+                                    <p>@Model.Guild.UsersCount.FormatWithSpaces() uživatelů</p>
                                 }
                             </div>
                         </div>
@@ -98,7 +98,7 @@
                                             }
                                             else
                                             {
-                                                <text>@FormatHelper.FormatWithSpaces(Model.Items[i].Count) zpráv</text>
+                                                <text>@Model.Items[i].Count.FormatWithSpaces() zpráv</text>
                                             }
                                         </div>
                                         <div class="container-item-lastMessageAt">@Model.Items[i].LastMessageAt.ToLocaleDatetime()</div>
