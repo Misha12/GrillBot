@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Math;
+using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 using System;
 
@@ -14,6 +15,7 @@ namespace Grillbot.Models.Math
         public IChannel Channel { get; set; }
         public string UnitInfo { get; set; }
         public string Result { get; set; }
+        public IUser User { get; set; }
 
         public MathAuditItem(MathAuditLogItem item, SocketGuild guild)
         {
@@ -21,6 +23,7 @@ namespace Grillbot.Models.Math
             Expression = item.Expression;
             DateTime = item.DateTime;
             Channel = guild.GetTextChannel(item.ChannelIDSnowflake);
+            User = guild.GetUserFromGuildAsync(item.User.UserIDSnowflake).Result;
 
             var unitInfo = JsonConvert.DeserializeObject<MathUnitInfo>(item.UnitInfo);
             UnitInfo = $"#{unitInfo.SessionID} {(unitInfo.ForBooster ? "(Booster)" : "")} ({unitInfo.ComputeLimit / 1000.0}sec)";
@@ -37,6 +40,10 @@ namespace Grillbot.Models.Math
                 else
                     Result = $"Error ({result.ErrorMessage}) ({result.GetComputingTime()})";
             }
+        }
+
+        public MathAuditItem(MathAuditLogItem item, DiscordSocketClient client) : this(item, client.GetGuild(item.User.GuildIDSnowflake))
+        {
         }
     }
 }

@@ -1,4 +1,5 @@
 ﻿using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.UnverifyLog;
 using Grillbot.Database.Entity.Users;
@@ -61,5 +62,6 @@ namespace Grillbot.Database
         public virtual DbSet<MethodPerm> MethodPerms { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }
         public virtual DbSet<UserChannel> UserChannels { get; set; }
+        public virtual DbSet<MathAuditLogItem> MathAuditLogs { get; set; }
     }
 }

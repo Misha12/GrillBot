@@ -2,12 +2,20 @@
     <button class="navbar-toggler text-white" type="button" data-toggle="collapse" data-target="#navbar" aria-controls="navbar" aria-expanded="false" aria-label="Menu">
         <span class="navbar-toggler-icon"></span>
     </button>
-    
+
     <div class="navbar-collapse collapse" id="navbar">
         <ul class="navbar-nav">
             <a asp-controller="Admin" asp-action="Index" class="nav-item nav-link active mr-2">Stav bota</a>
             <a asp-controller="Admin" asp-action="TeamSearch" class="nav-item nav-link active mr-2">Hledání týmů</a>
-            <a asp-controller="Admin" asp-action="Math" class="nav-item nav-link active mr-2">Výpočty</a>
+            <li class="nav-item dropdown">
+                <a class="nav-link dropdown-toggle text-white" href="#" id="math_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    Výpočty
+                </a>
+                <div class="dropdown-menu" aria-labelledby="math_navbarDropdown">
+                    <a asp-controller="Math" asp-action="Index" class="dropdown-item">Sessions</a>
+                    <a asp-controller="Math" asp-action="Audit" class="dropdown-item">Audit log</a>
+                </div>
+            </li>
             <li class="nav-item dropdown">
                 <a class="nav-link dropdown-toggle text-white" href="#" id="unverify_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
                     Unverify

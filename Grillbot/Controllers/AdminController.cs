@@ -4,10 +4,8 @@ using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Models.BotStatus;
 using Grillbot.Models.CallStats;
-using Grillbot.Models.Math;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services;
-using Grillbot.Services.Math;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.TeamSearch;
 using Microsoft.AspNetCore.Authorization;
@@ -25,17 +23,15 @@ namespace Grillbot.Controllers
         private DiscordSocketClient DiscordClient { get; }
         private ConfigRepository ConfigRepository { get; }
         private TeamSearchService TeamSearchService { get; }
-        private MathService MathService { get; }
 
         public AdminController(BotStatusService service, InternalStatistics internalStatistics, ConfigRepository configRepository, DiscordSocketClient discordSocket,
-            TeamSearchService teamSearchService, MathService mathService)
+            TeamSearchService teamSearchService)
         {
             StatusService = service;
             InternalStatistics = internalStatistics;
             ConfigRepository = configRepository;
             DiscordClient = discordSocket;
             TeamSearchService = teamSearchService;
-            MathService = mathService;
         }
 
         [HttpGet]
@@ -86,12 +82,6 @@ namespace Grillbot.Controllers
         {
             var items = await TeamSearchService.GetAllItemsAsync();
             return View(new TeamSearchViewModel(items));
-        }
-
-        [HttpGet("Math")]
-        public IActionResult Math()
-        {
-            return View(new MathViewModel(MathService.Sessions));
         }
 
         protected override void Dispose(bool disposing)
