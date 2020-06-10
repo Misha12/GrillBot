@@ -68,6 +68,18 @@ namespace Grillbot.Database.Repository
             return query.FirstOrDefault(o => o.ID == id);
         }
 
+        public async Task<long?> FindUserIDFromDiscordIDAsync(ulong guildID, ulong userID)
+        {
+            var guild = guildID.ToString();
+            var user = userID.ToString();
+
+            var query = GetBaseQuery(false, false, false);
+            var entity = await query
+                .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
+
+            return entity?.ID;
+        }
+
         public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, bool includeChannels = true, bool includeBirthday = true, bool includeMathAudit = true)
         {
             var entity = GetUser(guildID, userID, includeChannels, includeBirthday, includeMathAudit);

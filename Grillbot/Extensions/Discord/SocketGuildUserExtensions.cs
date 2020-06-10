@@ -29,5 +29,15 @@ namespace Grillbot.Extensions.Discord
         {
             return guild.OwnerId == user.Id;
         }
+
+        public static bool IsMuted(this SocketGuildUser user)
+        {
+            return user.IsMuted || user.IsDeafened;
+        }
+
+        public static bool IsSelfMuted(this SocketGuildUser user)
+        {
+            return user.IsSelfMuted || user.IsSelfDeafened;
+        }
     }
 }

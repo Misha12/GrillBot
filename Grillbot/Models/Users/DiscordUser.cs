@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Channelboard;
 using Grillbot.Models.Math;
 using System.Collections.Generic;
@@ -53,6 +54,37 @@ namespace Grillbot.Models.Users
             var obtained = ObtainedReactionsCount.FormatWithSpaces();
 
             return $"{given} / {obtained}";
+        }
+
+        public ChannelStatItem GetMostActiveChannel()
+        {
+            return Channels.FirstOrDefault();
+        }
+
+        public ChannelStatItem GetLastActiveChannel()
+        {
+            return Channels
+                .OrderByDescending(o => o.LastMessageAt)
+                .FirstOrDefault();
+        }
+
+        public List<string> GetDetailFlags()
+        {
+            var flags = new List<string>();
+
+            if (WebAdminAccess)
+                flags.Add("WebAdminAccess");
+
+            if (ApiAccess)
+                flags.Add("ApiAccess");
+
+            if (User.IsGuildOwner())
+                flags.Add("GuildOwner");
+
+            if (Birthday != null)
+                flags.Add("Birthday");
+
+            return flags;
         }
     }
 }

@@ -67,17 +67,17 @@ namespace Grillbot.Services.UserManagement
             return await MapUserAsync(userData, unverifyHistory);
         }
 
-        public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
+        public async Task<DiscordUser> GetUserDetailAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-            
-            var userData = repository.GetUser(guild.Id, user.Id);
 
-            if (userData == null)
+            var userId = await repository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+
+            if (userId == null)
                 return null;
 
-            return await MapUserAsync(userData, null);
+            return await GetUserAsync(userId.Value);
         }
 
         private async Task<DiscordUser> MapUserAsync(DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
