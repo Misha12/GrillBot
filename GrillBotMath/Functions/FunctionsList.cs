@@ -13,7 +13,8 @@ namespace GrillBotMath.Functions
             {
                 Functions = new List<ICustomFunction>()
                 {
-                    new Fibonacci()
+                    new Fibonacci(),
+                    new Random()
                 }.ToArray();
             }
 

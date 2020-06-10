@@ -8,6 +8,10 @@ namespace GrillBotMath
 {
     public class ExpressionParser
     {
+        private const string Exception = "|EXCEPTION|";
+        private const string Constant = "const ";
+        private const string ExceptionMessageSeparator = "-----";
+
         public Expression Expression { get; }
         public List<string> Errors { get; }
 
@@ -17,36 +21,54 @@ namespace GrillBotMath
         public ExpressionParser(string data)
         {
             Errors = new List<string>();
-
-            var expressionFields = data.Split(';').Select(o => o.Trim());
-            var arguments = ParseArguments(expressionFields);
-            var expressionData = expressionFields.FirstOrDefault(o => !IsVariableDeclaration(o));
-
-            if (string.IsNullOrEmpty(expressionData)) return;
-
-            foreach (var func in FunctionsList.GetCustomFunctions())
+            
+            try
             {
-                expressionData = func.FixExpression(expressionData);
+                var expressionFields = data.Split(';').Select(o => o.Trim());
+                var arguments = ParseArguments(expressionFields);
+                var expressionData = expressionFields.FirstOrDefault(o => !IsConstantDeclaration(o));
+
+                if (string.IsNullOrEmpty(expressionData)) return;
+
+                foreach (var func in FunctionsList.GetCustomFunctions())
+                {
+                    expressionData = func.FixExpression(expressionData);
+                }
+
+                Expression = new Expression(expressionData);
+
+                if (arguments.Any())
+                    Expression.addArguments(arguments.ToArray());
+
+                Expression.addFunctions(FunctionsList.GetCustomFunctions().Select(func => new Function(func.FunctionName, func)).ToArray());
+                Errors.AddRange(ValidateAndGetErrors(Expression));
             }
-
-            Expression = new Expression(expressionData);
-
-            Expression.addArguments(arguments.ToArray());
-            Expression.addFunctions(FunctionsList.GetCustomFunctions().Select(func => new Function(func.FunctionName, func)).ToArray());
-
-            Errors.AddRange(ValidateAndGetErrors(Expression));
+            catch(Exception ex)
+            {
+                Errors.Add(Exception);
+                Errors.Add(ex.Message);
+                Errors.Add(ExceptionMessageSeparator);
+                Errors.Add(ex.ToString());
+            }
         }
 
-        private List<Argument> ParseArguments(IEnumerable<string> arguments)
+        private IEnumerable<Argument> ParseArguments(IEnumerable<string> arguments)
         {
             return arguments
-                .Where(IsVariableDeclaration)
-                .Select(o => o.Substring(4).Split('='))
-                .Select(o => new Argument(o[0].Trim(), Convert.ToDouble(o[1].Trim())))
-                .ToList();
+                .Where(IsConstantDeclaration)
+                .Select(o => o.Substring(Constant.Length).Split('='))
+                .Select(CreateArgument);
         }
 
-        private bool IsVariableDeclaration(string field) => field.Trim().StartsWith("var", StringComparison.InvariantCultureIgnoreCase);
+        private Argument CreateArgument(string[] data)
+        {
+            if (!double.TryParse(data[1].Trim(), out double value))
+                throw new FormatException("Neplatný formát konstanty.");
+
+            return new Argument(data[0].Trim(), value);
+        }
+
+        private bool IsConstantDeclaration(string field) => field.Trim().StartsWith(Constant, StringComparison.InvariantCultureIgnoreCase);
 
         private List<string> ValidateAndGetErrors(Expression expression)
         {

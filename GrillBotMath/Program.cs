@@ -8,8 +8,7 @@ namespace GrillBotMath
         public static void Main(string[] args)
         {
             MathCalcResult result;
-            var input = string.Join(" ", args);
-            var parser = new ExpressionParser(input);
+            var parser = new ExpressionParser(string.Join(" ", args));
 
             if (parser.Empty)
             {
