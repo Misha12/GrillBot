@@ -54,7 +54,7 @@ namespace Grillbot.Modules
 
             var userDetail = await UserService.GetUserDetailAsync(Context.Guild, user);
 
-            if(userDetail == null)
+            if (userDetail == null)
             {
                 await ReplyAsync("Uživatel nebyl v databázi nalezen. Buď ještě není na tomto serveru, nebo neprojevil aktivitu.");
                 return;
@@ -64,14 +64,23 @@ namespace Grillbot.Modules
             var lastActiveChannel = userDetail.GetLastActiveChannel();
             var selfUnverifies = userDetail.UnverifyHistory.Where(o => o.IsSelfUnverify);
             var detailFlags = userDetail.GetDetailFlags();
+            var clients = userDetail.User.ActiveClients.Select(o => o.ToString());
 
             var embed = CreateSimpleEmbed(userDetail);
             embed
                 .AddField("Počet unverify (z toho self)", $"{userDetail.UnverifyHistory.Count.FormatWithSpaces()} ({selfUnverifies.Count().FormatWithSpaces()})", true)
-                .AddField("Práva", string.Join(", ", userDetail.User.GuildPermissions.GetPermissionsNames()), false)
-                .AddField("Aktivní klienti", string.Join(", ", userDetail.User.ActiveClients.Select(o => o.ToString())), false)
-                .AddField("Nejaktivnější kanál", $"#{mostActiveChannel.Channel.Name} ({mostActiveChannel.Count.FormatWithSpaces()})", false)
-                .AddField("Poslední zpráva v", $"#{lastActiveChannel.Channel.Name} ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false)
+                .AddField("Práva", string.Join(", ", userDetail.User.GuildPermissions.GetPermissionsNames()), false);
+
+            if (clients.Any())
+                embed.AddField("Aktivní klienti", string.Join(", ", clients), false);
+
+            if (mostActiveChannel != null)
+                embed.AddField("Nejaktivnější kanál", $"#{mostActiveChannel.Channel.Name} ({mostActiveChannel.Count.FormatWithSpaces()})", false);
+
+            if (lastActiveChannel != null)
+                embed.AddField("Poslední zpráva v", $"#{lastActiveChannel.Channel.Name} ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false);
+
+            embed
                 .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);
 
             await ReplyAsync(embed: embed.Build());
