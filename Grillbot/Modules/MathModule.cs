@@ -19,6 +19,9 @@ namespace Grillbot.Modules
         }
 
         [Command("solve")]
+        [Summary("Matematické výpočty")]
+        [Remarks("Příklad běžného použití: **solve 1+1**\nPříklad použití s konstanty: **const x = 5; const y = 10; rand(x, y)**\nExtra funkce:\n- rand(x, y): Náhodné" +
+            " číslo na intervalu <x; y>\n- Fib(x): Fibonacciho posloupnost.")]
         public async Task SolveAsync([Remainder] string expression)
         {
             var result = Calculator.Solve(expression, Context.Message);
@@ -32,7 +35,7 @@ namespace Grillbot.Modules
                     .SetColor(Color.Red)
                     .WithTitle("Při zpracování výrazu došlo k neznámé chybě.");
 
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build());
                 return;
             }
 
@@ -44,7 +47,7 @@ namespace Grillbot.Modules
                 {
                     embed
                         .WithTitle("Vypršel časový limit pro výpočet výrazu.")
-                        .AddField(o => o.WithName("Maximální doba zpracování").WithValue(result.GetAssignedComputingTime()));
+                        .AddField("Maximální doba zpracování", result.GetAssignedComputingTime(), false);
                 }
                 else
                 {
@@ -53,15 +56,15 @@ namespace Grillbot.Modules
                         .AddField("Chybové hlášení", result.ErrorMessage.Trim(), false);
                 }
 
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+                await ReplyAsync(embed: embed.Build());
                 return;
             }
 
             embed
                 .AddField("Výsledek", result.Result.ToString(), true)
-                .AddField(o => o.WithName("Doba zpracování").WithValue(result.GetComputingTime()).WithIsInline(true));
+                .AddField("Doba zpracování", result.GetComputingTime(), true);
 
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+            await ReplyAsync(embed: embed.Build());
         }
     }
 }

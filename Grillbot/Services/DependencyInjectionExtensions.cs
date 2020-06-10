@@ -80,7 +80,8 @@ namespace Grillbot.Services
         public static IServiceCollection AddMath(this IServiceCollection services)
         {
             services
-                .AddSingleton<MathService>();
+                .AddSingleton<MathService>()
+                .AddTransient<MathAuditService>();
 
             return services;
         }

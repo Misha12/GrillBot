@@ -1,13 +1,12 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Repository;
-using Grillbot.Extensions;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Math;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.UserManagement;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
@@ -24,14 +23,14 @@ namespace Grillbot.Services.Math
         private static readonly object Locker = new object();
         private Configuration Config { get; }
         private IServiceProvider ServiceProvider { get; }
-        private UserService UserService { get; }
+        private ILogger<MathService> Logger { get; }
 
-        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, UserService userService)
+        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, ILogger<MathService> logger)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
             ServiceProvider = serviceProvider;
-            UserService = userService;
+            Logger = logger;
         }
 
         private void InitSessions()
@@ -97,14 +96,9 @@ namespace Grillbot.Services.Math
                     return result;
                 }
 
-                using var scope = ServiceProvider.CreateScope();
-                using var repository = scope.ServiceProvider.GetConfigRepository();
-                var config = repository.FindConfig(user.Guild.Id, "", "solve");
-                var configData = config.GetData<MathConfig>();
+                var appPath = GetExecutablePath(user.Guild);
 
-                var appPath = configData.ProcessPath;
                 using var process = new Process();
-
                 process.StartInfo.FileName = appPath;
                 process.StartInfo.Arguments = $"\"{input}\"";
                 process.StartInfo.UseShellExecute = false;
@@ -129,14 +123,46 @@ namespace Grillbot.Services.Math
                 {
                     var output = process.StandardOutput.ReadToEnd();
                     result = JsonConvert.DeserializeObject<MathCalcResult>(output);
+
+                    const string exceptionPrefix = "|EXCEPTION|";
+                    if(!result.IsValid && result.ErrorMessage.StartsWith(exceptionPrefix))
+                    {
+                        var exception = result.ErrorMessage.Substring(exceptionPrefix.Length).Trim();
+                        Logger.LogError(exception);
+                        
+                        var lines = exception.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
+                        result.ErrorMessage = lines[0];
+                    }
+
                     return result;
                 }
             }
             finally
             {
-                UserService.SaveMathAuditItem(input, user, message.Channel, session, result);
+                SaveAudit(user, message, session, result);
                 ReleaseSession(session, result);
             }
+        }
+
+        private void SaveAudit(SocketGuildUser user, SocketUserMessage message, MathSession session, MathCalcResult result)
+        {
+            using var scope = ServiceProvider.CreateScope();
+            using var auditService = scope.ServiceProvider.GetRequiredService<MathAuditService>();
+
+            auditService.SaveItem(user, message.Channel, session, result);
+        }
+
+        private string GetExecutablePath(SocketGuild guild)
+        {
+            using var scope = ServiceProvider.CreateScope();
+            using var repository = scope.ServiceProvider.GetRequiredService<ConfigRepository>();
+
+            var config = repository.FindConfig(guild.Id, "", "solve")?.GetData<MathConfig>();
+
+            if (config == null)
+                throw new InvalidOperationException("Chybí konfigurace matematické služby. Nelze získat cestu k výpočetnímu programu.");
+
+            return config.ProcessPath;
         }
 
         public async Task InitAsync() { }

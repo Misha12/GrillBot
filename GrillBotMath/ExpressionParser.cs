@@ -10,7 +10,6 @@ namespace GrillBotMath
     {
         private const string Exception = "|EXCEPTION|";
         private const string Constant = "const ";
-        private const string ExceptionMessageSeparator = "-----";
 
         public Expression Expression { get; }
         public List<string> Errors { get; }
@@ -46,8 +45,6 @@ namespace GrillBotMath
             catch(Exception ex)
             {
                 Errors.Add(Exception);
-                Errors.Add(ex.Message);
-                Errors.Add(ExceptionMessageSeparator);
                 Errors.Add(ex.ToString());
             }
         }
