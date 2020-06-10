@@ -35,7 +35,7 @@ namespace Grillbot.Handlers
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
             InternalStatistics.IncrementEvent("MessageDeleted");
-            if (message.HasValue && !message.Value.Author.IsUser()) return;
+            if (channel is IPrivateChannel || (message.HasValue && !message.Value.Author.IsUser())) return;
 
             SocketGuildUser user = null;
             if (message.HasValue && message.Value.Author is SocketGuildUser guildUser)

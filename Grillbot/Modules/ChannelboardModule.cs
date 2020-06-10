@@ -61,7 +61,6 @@ namespace Grillbot.Modules
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
         }
 
-        [DisabledPM]
         [Command("channelboard", true)]
         [Summary("Počet zpráv v místnosti.")]
         public async Task ChannelboardForRoomAsync()

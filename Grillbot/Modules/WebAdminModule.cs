@@ -22,7 +22,6 @@ namespace Grillbot.Modules
             UserService = userService;
         }
 
-        [DisabledPM]
         [Command("add")]
         [Summary("Udělení přístupu uživatele do webové administrace.")]
         [Remarks("AllowType znamená typ povolení (Allow=0, Deny=1)\nHeslo je volitelné. Pokud nebude zadáno, tak bude vygenerováno náhodné.")]
@@ -51,7 +50,6 @@ namespace Grillbot.Modules
             }
         }
 
-        [DisabledPM]
         [Command("remove")]
         [Summary("Odebrání uživatele z webové administrace.")]
         [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")] // Data is from mention.

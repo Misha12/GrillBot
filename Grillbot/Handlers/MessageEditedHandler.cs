@@ -25,8 +25,8 @@ namespace Grillbot.Handlers
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
             InternalStatistics.IncrementEvent("MessageUpdated");
-            if (!messageAfter.Author.IsUser()) return;
 
+            if (!messageAfter.Author.IsUser() || channel is IPrivateChannel) return;
             await Logger.OnMessageEdited(messageBefore, messageAfter, channel).ConfigureAwait(false);
         }
 

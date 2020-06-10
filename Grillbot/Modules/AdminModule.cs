@@ -4,12 +4,10 @@ using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Permissions.Preconditions;
-using Grillbot.Services.UserManagement;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -47,7 +45,6 @@ namespace Grillbot.Modules
             await ReplyAsync($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
         }
 
-        [DisabledPM]
         [Command("guildStatus")]
         [Summary("Informace o serveru.")]
         public async Task GuildStatusAsync()

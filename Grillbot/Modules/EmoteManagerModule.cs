@@ -83,7 +83,6 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
-        [DisabledPM]
         [Command("")]
         [Summary("Statistika emotu")]
         [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]

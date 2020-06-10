@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [DisabledPM]
     [RequirePermissions]
     [Group("autoreply")]
     [Name("Ovládání automatických odpovědí")]

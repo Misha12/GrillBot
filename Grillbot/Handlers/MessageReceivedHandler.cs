@@ -10,7 +10,6 @@ using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
-using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
@@ -47,7 +46,7 @@ namespace Grillbot.Handlers
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
 
             var context = new SocketCommandContext(Client, userMessage);
-            if (context.IsPrivate && !Config.IsUserBotAdmin(userMessage.Author.Id)) return;
+            if (context.IsPrivate) return;
 
             int argPos = 0;
             if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))

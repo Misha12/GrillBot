@@ -1,21 +1,13 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.AppSettings;
-using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
-using Microsoft.Extensions.Options;
-using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [DisabledPM]
     [Group("user")]
     [RequirePermissions]
     [Name("Správa uživatelů")]
