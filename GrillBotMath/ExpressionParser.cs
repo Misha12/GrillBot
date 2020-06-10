@@ -24,7 +24,7 @@ namespace GrillBotMath
 
             if (string.IsNullOrEmpty(expressionData)) return;
 
-            foreach (var func in FunctionsList.Functions)
+            foreach (var func in FunctionsList.GetCustomFunctions())
             {
                 expressionData = func.FixExpression(expressionData);
             }
@@ -32,7 +32,7 @@ namespace GrillBotMath
             Expression = new Expression(expressionData);
 
             Expression.addArguments(arguments.ToArray());
-            Expression.addFunctions(FunctionsList.Functions.Select(func => new Function(func.FunctionName, func)).ToArray());
+            Expression.addFunctions(FunctionsList.GetCustomFunctions().Select(func => new Function(func.FunctionName, func)).ToArray());
 
             Errors.AddRange(ValidateAndGetErrors(Expression));
         }

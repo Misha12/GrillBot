@@ -1,12 +1,23 @@
 ﻿using GrillBotMath.Functions.CustomFunctions;
+using System.Collections.Generic;
 
 namespace GrillBotMath.Functions
 {
     public static class FunctionsList
     {
-        public static ICustomFunction[] Functions { get; } = new[]
+        private static ICustomFunction[] Functions { get; set; }
+
+        public static ICustomFunction[] GetCustomFunctions()
         {
-            new Fibonacci()
-        };
+            if(Functions == null)
+            {
+                Functions = new List<ICustomFunction>()
+                {
+                    new Fibonacci()
+                }.ToArray();
+            }
+
+            return Functions;
+        }
     }
 }
