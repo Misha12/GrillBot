@@ -1,12 +1,13 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using System;
 using System.Linq;
 
-namespace Grillbot.Models.Channelboard
+namespace Grillbot.Models.Users
 {
-    public class ChannelboardWebUser
+    public class SimpleUserInfo
     {
         public string Name { get; set; }
         public string Nickname { get; set; }
@@ -14,9 +15,9 @@ namespace Grillbot.Models.Channelboard
         public string AvatarUrl { get; set; }
         public GuildUserStatus Status { get; set; } = GuildUserStatus.Other;
 
-        public static ChannelboardWebUser Create(SocketGuildUser user)
+        public static SimpleUserInfo Create(SocketGuildUser user)
         {
-            var guildUser = new ChannelboardWebUser()
+            var guildUser = new SimpleUserInfo()
             {
                 AvatarUrl = user.GetUserAvatarUrl(),
                 Discriminator = user.Discriminator,

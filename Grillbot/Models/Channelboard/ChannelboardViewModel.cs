@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Models.Users;
 using System.Collections.Generic;
 
 namespace Grillbot.Models.Channelboard
@@ -7,7 +8,7 @@ namespace Grillbot.Models.Channelboard
     {
         public List<ChannelStatItem> Items { get; set; }
         public ChannelboardWebGuild Guild { get; set; }
-        public ChannelboardWebUser User { get; set; }
+        public SimpleUserInfo User { get; set; }
         public ChannelboardErrors Error { get; set; }
 
         public ChannelboardViewModel(ChannelboardErrors error)
@@ -18,7 +19,7 @@ namespace Grillbot.Models.Channelboard
         public ChannelboardViewModel(SocketGuild guild, SocketGuildUser user, List<ChannelStatItem> items)
         {
             Guild = ChannelboardWebGuild.Create(guild);
-            User = ChannelboardWebUser.Create(user);
+            User = SimpleUserInfo.Create(user);
             Items = items;
         }
     }
