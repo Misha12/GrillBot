@@ -9,6 +9,7 @@ namespace Grillbot.Models.Users
 {
     public class SimpleUserInfo
     {
+        public ulong ID { get; set; }
         public string Name { get; set; }
         public string Nickname { get; set; }
         public string Discriminator { get; set; }
@@ -22,7 +23,8 @@ namespace Grillbot.Models.Users
                 AvatarUrl = user.GetUserAvatarUrl(),
                 Discriminator = user.Discriminator,
                 Name = user.Username,
-                Nickname = user.Nickname
+                Nickname = user.Nickname,
+                ID = user.Id
             };
 
             if (user.Activity?.Type == ActivityType.Listening && string.Equals(user.Activity.Name, "spotify", StringComparison.InvariantCultureIgnoreCase))
