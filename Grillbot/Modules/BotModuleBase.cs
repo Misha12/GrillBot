@@ -3,14 +3,13 @@ using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Models.Embed;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Services;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -73,6 +72,15 @@ namespace Grillbot.Modules
                 throw new InvalidOperationException("Paginated embed requires PaginationService");
 
             await PaginationService.SendPaginatedMessage(embed, async embed => await ReplyAsync(embed: embed));
+        }
+
+        protected async Task ReplyAndDeleteAsync(string message = null, bool isTTS = false, Embed embed = null,
+            RequestOptions options = null, RequestOptions deleteOptions = null, int timeout = 10)
+        {
+            var userMessage = await ReplyAsync(message, isTTS, embed, options);
+
+            await Task.Delay(TimeSpan.FromSeconds(timeout));
+            await userMessage.DeleteMessageAsync(deleteOptions);
         }
 
         #region IDisposable Support
