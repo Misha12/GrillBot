@@ -2,6 +2,7 @@
 using System.Net;
 using System.Threading.Tasks;
 using Grillbot.Exceptions;
+using Grillbot.Models;
 using Grillbot.Models.Users;
 using Grillbot.Services.Permissions.Api;
 using Grillbot.Services.UserManagement;
@@ -19,15 +20,16 @@ namespace Grillbot.Controllers.Api
             UserService = userService;
         }
 
-        [HttpGet("usersSimpleInfoBatch/{guild}")]
+        [HttpPost("usersSimpleInfoBatch/{guild}")]
         [DiscordAuthAccessType(AccessType = AccessType.OnlyBot)]
         [ProducesResponseType(typeof(List<SimpleUserInfo>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
-        public async Task<IActionResult> GetUsersSimpleInfoBatch(ulong guild, [FromQuery] List<ulong> userIds)
+        // From body is a hack. Because query have length limit.
+        public async Task<IActionResult> GetUsersSimpleInfoBatch(ulong guild, [FromBody] GetUsersSimpleInfoBatchRequest request)
         {
             try
             {
-                var data = await UserService.GetSimpleUsersList(guild, userIds);
+                var data = await UserService.GetSimpleUsersList(guild, request.UserIDs);
                 return Ok(data);
             }
             catch(BadRequestException ex)
