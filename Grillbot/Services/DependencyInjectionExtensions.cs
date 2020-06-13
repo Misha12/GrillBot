@@ -42,7 +42,8 @@ namespace Grillbot.Services
                 .AddTransient<TeamSearchRepository>()
                 .AddTransient<TempUnverifyRepository>()
                 .AddTransient<UsersRepository>()
-                .AddTransient<MathRepository>();
+                .AddTransient<MathRepository>()
+                .AddTransient<UserStatisticsRepository>();
 
             return services;
         }

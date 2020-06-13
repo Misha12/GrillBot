@@ -18,7 +18,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var dbUser = repository.GetOrCreateUser(guild.Id, user.Id, false);
+            var dbUser = repository.GetOrCreateUser(guild.Id, user.Id, false, true, false, false);
 
             if (dbUser.Birthday != null)
                 throw new ValidationException("Tento uživatel již má uložené datum narození.");
@@ -37,7 +37,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var dbUser = repository.GetUser(guild.Id, user.Id, false);
+            var dbUser = repository.GetUser(guild.Id, user.Id, false, true, false, false);
 
             if (dbUser?.Birthday == null)
                 throw new ValidationException("Tento uživatel nemá uložené datum narození.");

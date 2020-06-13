@@ -23,8 +23,8 @@ namespace Grillbot.Models.Users
         public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
         public UserBirthday Birthday { get; set; }
         public List<MathAuditItem> MathAuditItems { get; set; }
-
         public long TotalMessageCount => Channels.Sum(o => o.Count);
+        public StatisticItem Statistics { get; set; }
 
         public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
         {
@@ -46,6 +46,9 @@ namespace Grillbot.Models.Users
 
             UnverifyHistory = unverifyHistory;
             MathAuditItems = dbUser.MathAudit.Select(o => new MathAuditItem(o, guild)).ToList();
+
+            if (dbUser.Statistics != null)
+                Statistics = new StatisticItem(dbUser.Statistics);
         }
 
         public string FormatReactions()

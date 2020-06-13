@@ -131,7 +131,7 @@
                         </div>
 
                         <div class="col-4">
-                            Boost od:<br />
+                            Boost od<br />
 
                             <b>
                                 @if (Model.User.User.PremiumSince != null)
@@ -145,6 +145,21 @@
                             </b>
                         </div>
                     </div>
+
+                    @if(Model.User.Statistics != null)
+                    {
+                        <div class="row mt-2">
+                            <div class="col-4">
+                                Počet volání API<br />
+                                <b>@Model.User.Statistics.ApiCallsCount.FormatWithSpaces()</b>
+                            </div>
+
+                            <div class="col-4">
+                                Počet přihlášení<br />
+                                <b>@Model.User.Statistics.WebAdminLoginCount.FormatWithSpaces()</b>
+                            </div>
+                        </div>
+                    }
                 </div>
             </div>
 

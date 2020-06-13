@@ -45,8 +45,10 @@ namespace Grillbot.Services.Permissions
                 if (user == null)
                     return null; // User not found in guild.
 
-                if (!UserService.AuthenticateWebAccess(guild, user, password))
+                if (!UserService.AuthenticateWebAccess(guild, user, password, out long userID))
                     return null; // Invalid password, or unallowed access.
+
+                await UserService.IncrementWebAdminLoginCount(userID);
 
                 var claims = new[]
                 {

@@ -42,6 +42,7 @@ namespace Grillbot.Database.Entity.Users
         public ISet<UserChannel> Channels { get; set; }
         public BirthdayDate Birthday { get; set; }
         public ISet<MathAuditLogItem> MathAudit { get; set; }
+        public StatisticItem Statistics { get; set; }
 
         public DiscordUser()
         {

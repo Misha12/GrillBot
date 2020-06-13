@@ -73,6 +73,8 @@ namespace Grillbot.Services.Permissions.Api
                 return;
             }
 
+            await UserService.IncrementApiCallStatistics(token);
+
             // Types, that requires additional checks.
             switch (accessType.AccessType)
             {

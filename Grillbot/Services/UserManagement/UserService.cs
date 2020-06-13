@@ -3,7 +3,6 @@ using DBUserChannel = Grillbot.Database.Entity.Users.UserChannel;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Helpers;
 using Grillbot.Models.Users;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.DependencyInjection;
@@ -101,7 +100,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var user = repository.GetOrCreateUser(guild.Id, guildUser.Id);
+                var user = repository.GetOrCreateUser(guild.Id, guildUser.Id, true, false, false, false);
                 var channelEntity = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channel.Id);
 
                 if (channelEntity == null)
@@ -144,7 +143,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var user = repository.GetUser(guild.Id, guildUser.Id);
+                var user = repository.GetUser(guild.Id, guildUser.Id, true, false, false, false);
 
                 if (user == null)
                     return;
@@ -214,8 +213,8 @@ namespace Grillbot.Services.UserManagement
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false);
-                var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false);
+                var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false, false, false, false);
+                var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false);
 
                 authorEntity.ObtainedReactionsCount++;
                 reactingUserEntity.GivenReactionsCount++;
@@ -234,8 +233,8 @@ namespace Grillbot.Services.UserManagement
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false);
-                var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false);
+                var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false, false, false, false);
+                var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false);
 
                 if (authorEntity != null && authorEntity.ObtainedReactionsCount > 0)
                     authorEntity.ObtainedReactionsCount--;
@@ -244,56 +243,6 @@ namespace Grillbot.Services.UserManagement
                     reactingUserEntity.GivenReactionsCount--;
 
                 repository.SaveChanges();
-            }
-        }
-
-        public string AddUserToWebAdmin(SocketGuild guild, SocketGuildUser user, string password = null)
-        {
-            if (!user.IsUser())
-                throw new InvalidOperationException("Do administrace lze přidat pouze uživatele.");
-
-            lock (locker)
-            {
-                using var scope = Services.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-
-                var userEntity = repository.GetOrCreateUser(guild.Id, user.Id, false);
-                var plainPassword = string.IsNullOrEmpty(password) ? StringHelper.CreateRandomString(20) : password;
-                userEntity.WebAdminPassword = BCrypt.Net.BCrypt.HashPassword(plainPassword);
-
-                repository.SaveChanges();
-                return plainPassword;
-            }
-        }
-
-        public void RemoveUserFromWebAdmin(SocketGuild guild, SocketGuildUser user)
-        {
-            lock (locker)
-            {
-                using var scope = Services.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var userEntity = repository.GetUser(guild.Id, user.Id, false);
-
-                if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
-                    throw new ArgumentException("Tento uživatel neměl přístup.");
-
-                userEntity.WebAdminPassword = null;
-                repository.SaveChanges();
-            }
-        }
-
-        public bool AuthenticateWebAccess(SocketGuild guild, SocketGuildUser user, string password)
-        {
-            lock (locker)
-            {
-                using var scope = Services.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var userEntity = repository.GetUser(guild.Id, user.Id, false);
-
-                if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
-                    return false;
-
-                return BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword);
             }
         }
 
