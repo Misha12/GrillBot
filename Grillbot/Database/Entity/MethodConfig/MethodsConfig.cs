@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Discord;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -42,7 +43,7 @@ namespace Grillbot.Database.Entity.MethodConfig
         public JObject Config
         {
             get => string.IsNullOrEmpty(ConfigData) ? null : JObject.Parse(ConfigData);
-            set => ConfigData = value.ToString(Formatting.None);
+            set => ConfigData = (value ?? new JObject()).ToString(Formatting.None);
         }
 
         public TData GetData<TData>() => Config == null ? default : Config.ToObject<TData>();
@@ -58,6 +59,18 @@ namespace Grillbot.Database.Entity.MethodConfig
         public MethodsConfig()
         {
             Permissions = new HashSet<MethodPerm>();
+        }
+
+        public static MethodsConfig Create(IGuild guild, string group, string command, bool onlyAdmins, JObject json)
+        {
+            return new MethodsConfig()
+            {
+                Command = command,
+                Config = json,
+                Group = group,
+                GuildID = guild.Id.ToString(),
+                OnlyAdmins = onlyAdmins
+            };
         }
     }
 }

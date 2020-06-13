@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
-using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -30,8 +29,8 @@ namespace Grillbot.Database.Repository
 
         public MethodsConfig FindConfig(ulong guildID, string group, string command)
         {
-            if (group == null) group = "";
-            if (command == null) command = "";
+            CorrectValue(ref group);
+            CorrectValue(ref command);
 
             var query = GetBaseQuery(true);
             return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
@@ -39,14 +38,10 @@ namespace Grillbot.Database.Repository
 
         public MethodsConfig AddConfig(SocketGuild guild, string group, string command, bool onlyAdmins, JObject json)
         {
-            var entity = new MethodsConfig()
-            {
-                Command = command,
-                Config = json,
-                Group = group,
-                GuildID = guild.Id.ToString(),
-                OnlyAdmins = onlyAdmins,
-            };
+            CorrectValue(ref group);
+            CorrectValue(ref command);
+
+            var entity = MethodsConfig.Create(guild, group, command, onlyAdmins, json);
 
             Context.MethodsConfig.Add(entity);
             Context.SaveChanges();
@@ -62,7 +57,8 @@ namespace Grillbot.Database.Repository
 
         public MethodsConfig UpdateMethod(SocketGuild guild, int methodID, bool? onlyAdmins = null, JObject jsonConfig = null)
         {
-            var item = GetBaseQuery(false).FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
+            var item = GetBaseQuery(false)
+                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
 
             if (item == null)
                 throw new ArgumentException("Požadovaná metoda neexistuje");
@@ -71,7 +67,7 @@ namespace Grillbot.Database.Repository
                 item.OnlyAdmins = onlyAdmins.Value;
 
             if (jsonConfig != null)
-                item.ConfigData = jsonConfig.ToString(Formatting.None);
+                item.Config = jsonConfig;
 
             Context.SaveChanges();
             return item;
@@ -97,7 +93,8 @@ namespace Grillbot.Database.Repository
 
         public MethodsConfig GetMethod(SocketGuild guild, int methodID)
         {
-            var item = GetBaseQuery(true).FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
+            var item = GetBaseQuery(true)
+                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
 
             if (item == null)
                 throw new ArgumentException("Požadovaná metoda neexistuje");
@@ -107,7 +104,8 @@ namespace Grillbot.Database.Repository
 
         public void RemovePermission(SocketGuild guild, int methodID, int permID)
         {
-            var item = GetBaseQuery(true).FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
+            var item = GetBaseQuery(true)
+                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
 
             if (item == null)
                 throw new ArgumentException("Požadovaná metoda neexistuje");
@@ -123,17 +121,19 @@ namespace Grillbot.Database.Repository
 
         public void IncrementUsageCounter(IGuild guild, string group, string command)
         {
-            if (guild == null)
-                return;
+            CorrectValue(ref group);
+            CorrectValue(ref command);
 
-            if (group == null) group = "";
-            if (command == null) command = "";
             var guildID = guild?.Id.ToString();
 
-            var entity = GetBaseQuery(false).FirstOrDefault(o => o.GuildID == guildID && o.Group == group && o.Command == command);
+            var entity = GetBaseQuery(false)
+                .FirstOrDefault(o => o.GuildID == guildID && o.Group == group && o.Command == command);
 
             if (entity == null)
-                throw new NotFoundException($"Metoda {guildID}/{group}/{command} nebyla nalezena v konfiguraci.");
+            {
+                entity = MethodsConfig.Create(guild, group, command, false, null);
+                Context.MethodsConfig.Add(entity);
+            }
 
             entity.UsedCount++;
             Context.SaveChanges();
@@ -141,7 +141,15 @@ namespace Grillbot.Database.Repository
 
         public List<MethodsConfig> GetAllConfigurations()
         {
-            return GetBaseQuery(true).OrderByDescending(o => o.UsedCount).ToList();
+            return GetBaseQuery(true)
+                .OrderByDescending(o => o.UsedCount)
+                .ToList();
+        }
+
+        private void CorrectValue(ref string value)
+        {
+            if (value == null)
+                value = "";
         }
     }
 }

@@ -60,9 +60,12 @@ namespace Grillbot.Handlers
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
             InternalStatistics.IncrementCommand(commandName);
 
-            using var scope = Services.CreateScope();
-            using var configRepository = scope.ServiceProvider.GetService<ConfigRepository>();
-            configRepository.IncrementUsageCounter(context.Guild, cmd.Module.Group, cmd.Name);
+            if(context.Guild != null)
+            {
+                using var scope = Services.CreateScope();
+                using var configRepository = scope.ServiceProvider.GetService<ConfigRepository>();
+                configRepository.IncrementUsageCounter(context.Guild, cmd.Module.Group, cmd.Name);
+            }
         }
 
         public void Dispose()
