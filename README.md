@@ -3,10 +3,12 @@
 ## Requirements
 - MSSQL server 
   - Instalation: https://www.microsoft.com/en-us/sql-server/sql-server-downloads 
-- Microsoft Visual Studio (2017 and later) (or another IDE supports .NET)
+- Microsoft Visual Studio 2019 (or another IDE supports .NET)
   - Visual studio instalation: https://docs.microsoft.com/cs-cz/visualstudio/install/install-visual-studio?view=vs-2019
 - .NET Core 3.1 (with ASP\.NET Core 3.1)
   - https://dotnet.microsoft.com/download/dotnet-core/3.1
+- dotnet-ef (For code first migrations)
+  - https://docs.microsoft.com/cs-cz/ef/core/miscellaneous/cli/dotnet
 
 ## Continuous integration
 [![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/Misha12.GrillBot?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=8&branchName=master)
@@ -20,18 +22,27 @@
 - [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/5.0.0-preview.3.20207.1)
 - [UnicodeEmoji.NET](https://www.nuget.org/packages/UnicodeEmoji.net/)
 - [BCrypt.Net-Next](https://www.nuget.org/packages/BCrypt.Net-Next/)
+- [Microsoft.EntityFrameworkCore.Tools](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Tools/)
 
 ### GrillBotMath
 - [Newtonsoft.JSON](https://www.nuget.org/packages/Newtonsoft.Json/)
 - [MathParser.org-mXParser](https://www.nuget.org/packages/MathParser.org-mXparser/)
 
 ## Database
-You can create database with scripts in `GrillBot-DB` project. If you're using Visual Studio on Windows, you can create migration script for your SQL Server instance.
+This project using Code first database migrations.
 
-## Config (appsettings.json)
+To create database:
+- Configure database connection string in appsettings.development.json. If you are using MSSQL LocalDB you can use connection string in appsettings.json.
+- `dotnet tool restore`
+- `dotnet ef database update`
+
+## Config (appsettings.json/appsettings.development.json)
 **Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
-- Filename: **appsettings.json**
+- Filename: **appsettings(.development).json**
+
+Use appsettings.development.json for development purposes.
+If you edit `appsettings.json` file, write it to pull request.
 
 ### Models
 #### Config
@@ -40,7 +51,6 @@ You can create database with scripts in `GrillBot-DB` project. If you're using V
 | ------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
 | AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.              |
 | CommandPrefix             | string                            | Message content, that must starts to invoke command.                              |
-| Database                  | string                            | Connection string to MSSQL database.                                              |
 | Administrators            | string[]                          | List of bot administrators. Can use bot independently of roles. Value is user ID. |
 | EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                       |
 | Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                             |
@@ -62,10 +72,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 | ErrorLogChannelID   | string | ID of channel for logging errors.                                        |
 
 ## GrillBotMath
-To run the math module in bot, you have to publish GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
-
-## GrillBot-Web
-Readme for GrillBot-Web is [Here](GrillBot-Web)
+To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
 
 ## Permission system
 Permission is documented in file [permissions.md](docs/permissions.md).
