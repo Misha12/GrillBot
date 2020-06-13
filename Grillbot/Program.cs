@@ -1,7 +1,5 @@
 ﻿using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
-using System;
 
 namespace Grillbot
 {
@@ -9,12 +7,16 @@ namespace Grillbot
     {
         public static void Main(string[] args)
         {
-            Host.CreateDefaultBuilder(args)
-                .ConfigureWebHostDefaults(config =>
+            CreateHostBuilder(args).Build().Run();
+        }
+
+        public static IHostBuilder CreateHostBuilder(string[] args)
+        {
+            return Host.CreateDefaultBuilder(args)
+                .ConfigureWebHostDefaults(webBuilder =>
                 {
-                    config.UseStartup<AppStartup>();
-                })
-                .Build().Run();
+                    webBuilder.UseStartup<AppStartup>();
+                });
         }
     }
 }
