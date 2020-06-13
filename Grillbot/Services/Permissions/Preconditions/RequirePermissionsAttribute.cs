@@ -19,6 +19,7 @@ namespace Grillbot.Services.Permissions.Preconditions
                 PermissionsResult.OnlyAdmins => Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota.")),
                 PermissionsResult.PMNotAllowed => Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze provést v soukromé konverzaci.")),
                 PermissionsResult.UserIsBanned => Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít.")),
+                PermissionsResult.NoPermissions => Task.FromResult(PreconditionResult.FromError("Tento příkaz nemá nakonfigurované oprávnění.")),
                 _ => Task.FromResult(PreconditionResult.FromSuccess()),
             };
         }

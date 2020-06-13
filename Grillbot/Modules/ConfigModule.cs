@@ -77,27 +77,40 @@ namespace Grillbot.Modules
 
         [Command("addPermission")]
         [Summary("Přidá oprávnění pro metodu.")]
-        [Remarks("targetID je discord ID\nPermType specifikuje, co znamená ID (Role=0, User=1)\nAllowType znamená typ povolení (Allow=0, Deny=1)")]
+        [Remarks("targetID je discord ID (Pokud chcete povolit všem, použijte klíčové slovo everyone." +
+            "\nPermType specifikuje, co znamená ID (Role=0, User=1)\nAllowType znamená typ povolení (Allow=0, Deny=1)")]
         public async Task AddPermissionAsync(int methodID, string targetID, int permType, int allowType)
         {
             await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
 
-            switch ((PermType)permType)
+            if (!string.Equals(targetID, "everyone", StringComparison.InvariantCultureIgnoreCase))
             {
-                case PermType.Role:
-                    if (Context.Guild.GetRole(Convert.ToUInt64(targetID)) == null)
-                    {
-                        await ReplyAsync("Taková role neexistuje");
+                var id = Convert.ToUInt64(targetID);
+
+                switch ((PermType)permType)
+                {
+                    case PermType.Role:
+                        if (Context.Guild.GetRole(id) == null)
+                        {
+                            await ReplyAsync("Taková role neexistuje");
+                            return;
+                        }
+                        break;
+                    case PermType.User:
+                        if (await Context.Guild.GetUserFromGuildAsync(id) == null)
+                        {
+                            await ReplyAsync("Takový uživatel neexistuje.");
+                            return;
+                        }
+                        break;
+                    case PermType.Everyone:
+                        await ReplyAsync("Pro povolení všem použij klíčové slovo `everyone` jako identifikátor.");
                         return;
-                    }
-                    break;
-                case PermType.User:
-                    if ((await Context.Guild.GetUserFromGuildAsync(targetID).ConfigureAwait(false)) == null)
-                    {
-                        await ReplyAsync("Takový uživatel neexistuje.");
-                        return;
-                    }
-                    break;
+                }
+            }
+            else
+            {
+                permType = (int)PermType.Everyone;
             }
 
             try
@@ -130,6 +143,8 @@ namespace Grillbot.Modules
                     case PermType.User:
                         var user = Context.Guild.GetUserFromGuildAsync(o.DiscordID).Result;
                         return $"{o.PermID}\t{user.GetFullName()}\t{o.PermType}\t{o.AllowType}";
+                    case PermType.Everyone:
+                        return $"{o.PermID}\tEveryone\t-\t{o.AllowType}";
                 }
 
                 return null;

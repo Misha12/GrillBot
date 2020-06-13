@@ -3,6 +3,7 @@
     public enum PermType : byte
     {
         Role,
-        User
+        User,
+        Everyone
     }
 }

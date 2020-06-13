@@ -7,6 +7,7 @@
         PMNotAllowed,
         OnlyAdmins,
         UserIsBanned,
-        MissingPermissions
+        MissingPermissions,
+        NoPermissions
     }
 }

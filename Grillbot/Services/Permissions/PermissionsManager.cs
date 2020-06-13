@@ -23,9 +23,7 @@ namespace Grillbot.Services.Permissions
         public PermissionsResult CheckPermissions(ICommandContext context, CommandInfo command)
         {
             if (context.Guild == null)
-            {
-                return Config.IsUserBotAdmin(context.User.Id) ? PermissionsResult.Success : PermissionsResult.PMNotAllowed;
-            }
+                return PermissionsResult.PMNotAllowed;
 
             if (Config.IsUserBotAdmin(context.User.Id))
                 return PermissionsResult.Success;
@@ -35,8 +33,11 @@ namespace Grillbot.Services.Permissions
             if (config == null)
                 return PermissionsResult.MethodNotFound;
 
-            if (config.OnlyAdmins || config.Permissions.Count == 0)
+            if (config.OnlyAdmins)
                 return PermissionsResult.OnlyAdmins;
+
+            if (config.Permissions.Count == 0)
+                return PermissionsResult.NoPermissions;
 
             if (context.Message.Author is SocketGuildUser user)
             {
@@ -54,10 +55,9 @@ namespace Grillbot.Services.Permissions
                             if (haveRole && permission.AllowType == AllowType.Allow)
                                 return PermissionsResult.Success;
                             break;
-                        case PermType.User:
-                            if (permission.DiscordIDSnowflake == user.Id && permission.AllowType == AllowType.Allow)
-                                return PermissionsResult.Success;
-                            break;
+                        case PermType.User when permission.DiscordIDSnowflake == user.Id && permission.AllowType == AllowType.Allow:
+                        case PermType.Everyone:
+                            return PermissionsResult.Success;
                     }
                 }
             }
