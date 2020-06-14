@@ -1,5 +1,6 @@
 ﻿using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Attributes;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
@@ -10,6 +11,7 @@ namespace Grillbot.Modules
 {
     [Group("user")]
     [RequirePermissions]
+    [ModuleID("UserModule")]
     [Name("Správa uživatelů")]
     public class UserModule : BotModuleBase
     {

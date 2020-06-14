@@ -13,12 +13,14 @@ using System.Collections.Generic;
 using Discord;
 using Grillbot.Extensions;
 using Grillbot.Services;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
     [Group("birthday")]
     [Name("Narozeniny")]
     [RequirePermissions]
+    [ModuleID("BirthdaysModule")]
     public class BirthdaysModule : BotModuleBase
     {
         private UserService UserService { get; }

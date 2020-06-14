@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Math;
 using Grillbot.Services.Permissions.Preconditions;
@@ -9,6 +10,7 @@ namespace Grillbot.Modules
 {
     [Name("Počítání")]
     [RequirePermissions]
+    [ModuleID("MathModule")]
     public class MathModule : BotModuleBase
     {
         private MathService Calculator { get; }

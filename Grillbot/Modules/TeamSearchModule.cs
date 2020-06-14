@@ -7,6 +7,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.PaginatedEmbed;
@@ -20,6 +21,7 @@ namespace Grillbot.Modules
     [Group("hledam")]
     [RequirePermissions]
     [Name("Hledání týmů")]
+    [ModuleID("TeamSearchModule")]
     public class TeamSearchModule : BotModuleBase
     {
         private TeamSearchService TeamSearchService { get; }

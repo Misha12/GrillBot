@@ -11,11 +11,13 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
 using Grillbot.Models.Embed;
 using Grillbot.Extensions;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Name("Channel leaderboards")]
+    [ModuleID("ChannelboardModule")]
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }

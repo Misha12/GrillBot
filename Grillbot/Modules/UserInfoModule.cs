@@ -8,11 +8,13 @@ using Grillbot.Services.UserManagement;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Extensions;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Group("userinfo")]
+    [ModuleID("UserInfoModule")]
     [Name("Informace o uživateli")]
     public class UserInfoModule : BotModuleBase
     {

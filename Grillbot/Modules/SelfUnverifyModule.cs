@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
@@ -11,7 +12,8 @@ namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Group("selfunverify")]
-    [Name("Odebrání přístupu sobě sama:")]
+    [ModuleID("SelfUnverifyModule")]
+    [Name("Odebrání přístupu sobě sama")]
     public class SelfUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }

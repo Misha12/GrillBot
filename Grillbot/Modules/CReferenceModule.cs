@@ -1,5 +1,6 @@
 using System.Threading.Tasks;
 using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Services;
@@ -9,6 +10,7 @@ namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Name("Hledani dokumentace")]
+    [ModuleID("CReferenceModule")]
     public class CReferenceModule : BotModuleBase
     {
         private CReferenceService Service { get; }

@@ -1,4 +1,5 @@
 ﻿using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
@@ -16,6 +17,7 @@ namespace Grillbot.Modules
     [Group("config")]
     [RequirePermissions]
     [Name("Konfigurace bota")]
+    [ModuleID("ConfigModule")]
     public class ConfigModule : BotModuleBase
     {
         public ConfigModule(IOptions<Configuration> options, ConfigRepository repository) : base(options, repository) { }

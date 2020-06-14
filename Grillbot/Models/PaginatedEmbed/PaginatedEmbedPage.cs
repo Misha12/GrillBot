@@ -26,6 +26,16 @@ namespace Grillbot.Models.PaginatedEmbed
             Fields.Add(builder);
         }
 
+        public void AddField(string name, string value, bool inline = false)
+        {
+            var builder = new EmbedFieldBuilder()
+                .WithName(name)
+                .WithValue(value)
+                .WithIsInline(inline);
+
+            AddField(builder);
+        }
+
         public void AddFields(IEnumerable<EmbedFieldBuilder> fields)
         {
             if(Fields.Count + fields.Count() >= EmbedBuilder.MaxFieldCount)

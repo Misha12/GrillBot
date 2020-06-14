@@ -2,10 +2,12 @@
 using System.Threading.Tasks;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.MemeImages;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
     [RequirePermissions]
+    [ModuleID("MemeImageModule")]
     [Name("Nudes a další zajímavé fotky")]
     public class MemeImageModule : BotModuleBase
     {

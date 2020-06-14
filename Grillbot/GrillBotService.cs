@@ -13,6 +13,14 @@ using Grillbot.Services.Initiable;
 using Grillbot.Models.Config.AppSettings;
 using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
+using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Database.Repository;
+using Grillbot.Enums;
+using System.Linq;
+using Grillbot.Modules;
+using System.Collections.Generic;
+using Newtonsoft.Json;
+using Microsoft.Extensions.Logging;
 
 namespace Grillbot
 {
@@ -26,9 +34,10 @@ namespace Grillbot
         private Configuration Config { get; }
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
+        private ILogger<GrillBotService> Logger { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            InternalStatistics internalStatistics, InitService initService)
+            InternalStatistics internalStatistics, InitService initService, ILogger<GrillBotService> logger)
         {
             Services = services;
             Client = client;
@@ -36,6 +45,7 @@ namespace Grillbot
             Config = config.Value;
             InternalStatistics = internalStatistics;
             InitService = initService;
+            Logger = logger;
 
             Client.Ready += OnClientReadyAsync;
         }
@@ -57,7 +67,7 @@ namespace Grillbot
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            await AddModulesAsync();
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -85,6 +95,29 @@ namespace Grillbot
                 await Client.SetGameAsync(FormatActivity(activityMessage)).ConfigureAwait(false);
             else
                 await Client.SetGameAsync(null).ConfigureAwait(false);
+        }
+
+        private async Task AddModulesAsync()
+        {
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetRequiredService<GlobalConfigRepository>();
+
+            var unloadedModules = new List<string>();
+            var unloadedModulesConfig = await repository.GetItemAsync(GlobalConfigItems.UnloadedModules);
+
+            if (!string.IsNullOrEmpty(unloadedModulesConfig))
+                unloadedModules.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModulesConfig));
+
+            var moduleBase = typeof(BotModuleBase);
+            var types = Assembly.GetExecutingAssembly()
+                .GetTypes()
+                .Where(o => !o.IsAbstract && moduleBase.IsAssignableFrom(o) && !unloadedModules.Contains(o.Name));
+
+            foreach (var moduleType in types)
+            {
+                await Commands.AddModuleAsync(moduleType, Services);
+                Logger.LogInformation($"Initialized module {moduleType.FullName}");
+            }
         }
     }
 }

@@ -1,6 +1,7 @@
 ﻿using System.Net;
 using System.Threading.Tasks;
 using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
@@ -13,6 +14,7 @@ namespace Grillbot.Modules
     [Name("Stav Kachny")]
     [Group("kachna")]
     [RequirePermissions]
+    [ModuleID("DuckModule")]
     public class DuckModule : BotModuleBase
     {
         private DuckDataLoader DuckDataLoader { get; }

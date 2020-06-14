@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Models.Embed;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Services;
@@ -16,6 +17,7 @@ namespace Grillbot.Modules
     [Group("emoteinfo")]
     [RequirePermissions]
     [Name("Správa emotů")]
+    [ModuleID("EmoteManagerModule")]
     public class EmoteManagerModule : BotModuleBase
     {
         private EmoteStats EmoteStats { get; }

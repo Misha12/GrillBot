@@ -6,6 +6,7 @@ using Microsoft.Extensions.Options;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services;
 using Grillbot.Exceptions;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
@@ -13,6 +14,7 @@ namespace Grillbot.Modules
     [Group("grillhelp")]
     [Alias("help")]
     [RequirePermissions]
+    [ModuleID("HelpModule")]
     public class HelpModule : BotModuleBase
     {
         private HelpEmbedRenderer Renderer { get; }

@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Attributes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -19,6 +20,7 @@ namespace Grillbot.Modules
     [Group("unverify")]
     [RequirePermissions]
     [Name("Odebrání přístupu")]
+    [ModuleID("TempUnverifyModule")]
     public class TempUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }

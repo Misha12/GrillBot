@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.Commands;
+using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
@@ -15,6 +16,7 @@ namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Group("autoreply")]
+    [ModuleID("AutoReplyModule")]
     [Name("Ovládání automatických odpovědí")]
     public class AutoReplyModule : BotModuleBase
     {

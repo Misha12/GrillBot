@@ -8,11 +8,13 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
     [RequirePermissions]
     [Name("Pozdrav bota")]
+    [ModuleID("GreetModule")]
     public class GreetModule : BotModuleBase
     {
         public GreetModule(IOptions<Configuration> config, ConfigRepository repository) : base(config, repository)

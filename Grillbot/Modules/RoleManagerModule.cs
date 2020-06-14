@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Attributes;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Permissions.Preconditions;
@@ -14,6 +15,7 @@ namespace Grillbot.Modules
     [Group("roleinfo")]
     [RequirePermissions]
     [Name("Správa rolí")]
+    [ModuleID("RoleManagerModule")]
     public class RoleManagerModule : BotModuleBase
     {
         [Command("all")]
