@@ -29,11 +29,7 @@ namespace GrillBotMath
 
                 if (string.IsNullOrEmpty(expressionData)) return;
 
-                foreach (var func in FunctionsList.GetCustomFunctions())
-                {
-                    expressionData = func.FixExpression(expressionData);
-                }
-
+                expressionData = TransformExpression.ProcessExpression(expressionData);
                 Expression = new Expression(expressionData);
 
                 if (arguments.Any())
