@@ -26,9 +26,13 @@ namespace Grillbot.Models.Math
             User = guild.GetUserFromGuildAsync(item.User.UserIDSnowflake).Result;
 
             var unitInfo = JsonConvert.DeserializeObject<MathUnitInfo>(item.UnitInfo);
-            UnitInfo = $"#{unitInfo.SessionID} {(unitInfo.ForBooster ? "(Booster)" : "")} ({unitInfo.ComputeLimit / 1000.0}sec)";
+            UnitInfo = $"#{unitInfo.SessionID} {(unitInfo.ForBooster ? "(Booster)" : "")} ({unitInfo.ComputeLimit / 1000.0}sec)".Trim();
 
             var result = JsonConvert.DeserializeObject<MathCalcResult>(item.Result);
+
+            if (result == null)
+                result = new MathCalcResult() { ErrorMessage = "Výpočetní jednotka nevrátila data." };
+
             if (result.IsValid)
             {
                 Result = $"{result.Result} ({result.GetComputingTime()})";

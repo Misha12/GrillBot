@@ -124,6 +124,15 @@ namespace Grillbot.Services.Math
                     var output = process.StandardOutput.ReadToEnd();
                     result = JsonConvert.DeserializeObject<MathCalcResult>(output);
 
+                    if(result == null)
+                    {
+                        result = new MathCalcResult
+                        {
+                            IsValid = false,
+                            ErrorMessage = "Výpočetní jednotka nevrátila žádná data."
+                        };
+                    }
+
                     const string exceptionPrefix = "|EXCEPTION|";
                     if(!result.IsValid && result.ErrorMessage.StartsWith(exceptionPrefix))
                     {
@@ -157,7 +166,8 @@ namespace Grillbot.Services.Math
             using var scope = ServiceProvider.CreateScope();
             using var repository = scope.ServiceProvider.GetRequiredService<ConfigRepository>();
 
-            var config = repository.FindConfig(guild.Id, "", "solve")?.GetData<MathConfig>();
+            var configData = repository.FindConfig(guild.Id, "", "solve");
+            var config = configData?.GetData<MathConfig>();
 
             if (config == null)
                 throw new InvalidOperationException("Chybí konfigurace matematické služby. Nelze získat cestu k výpočetnímu programu.");
