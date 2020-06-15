@@ -7,12 +7,12 @@ namespace GrillBotMath.Functions.CustomFunctions
     {
         public string FunctionName => "rand";
 
-        public int A { get; set; }
-        public int B { get; set; }
+        public double A { get; set; }
+        public double B { get; set; }
 
-        public Random() : this(int.MinValue, int.MinValue) { }
+        public Random() : this(double.MinValue, double.MinValue) { }
 
-        public Random(int a, int b)
+        public Random(double a, double b)
         {
             A = a;
             B = b;
@@ -20,8 +20,12 @@ namespace GrillBotMath.Functions.CustomFunctions
 
         public double calculate()
         {
+            // Thanks stack overflow.
+            /// <see cref="https://stackoverflow.com/a/50953366"/>
             var random = new System.Random();
-            return random.Next(A, B);
+            var next = random.NextDouble();
+
+            return A + (next * (B - A));
         }
 
         public FunctionExtension clone()
@@ -46,13 +50,15 @@ namespace GrillBotMath.Functions.CustomFunctions
 
         public void setParameterValue(int parameterIndex, double parameterValue)
         {
-            switch(parameterIndex)
+            var floor = Math.Floor(parameterValue);
+
+            switch (parameterIndex)
             {
                 case 0:
-                    A = Convert.ToInt32(Math.Floor(parameterValue));
+                    A = floor;
                     break;
                 case 1:
-                    B = Convert.ToInt32(Math.Floor(parameterValue));
+                    B = floor;
                     break;
             }
         }
