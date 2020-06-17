@@ -182,7 +182,8 @@ namespace Grillbot.Services
                 .AddSingleton<TempUnverifyService>()
                 .AddTransient<TempUnverifyChecker>()
                 .AddTransient<TempUnverifyReasonParser>()
-                .AddTransient<TempUnverifyTimeParser>();
+                .AddTransient<TempUnverifyTimeParser>()
+                .AddTransient<TempUnverifyRoleManager>();
 
             return services;
         }
