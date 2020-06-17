@@ -1,6 +1,10 @@
 ﻿using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
+using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
@@ -17,10 +21,12 @@ namespace Grillbot.Modules
     public class SelfUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }
+        private TempUnverifyRoleManager RoleManager { get; }
 
-        public SelfUnverifyModule(TempUnverifyService unverifyService)
+        public SelfUnverifyModule(TempUnverifyService unverifyService, TempUnverifyRoleManager roleManager)
         {
             UnverifyService = unverifyService;
+            RoleManager = roleManager;
         }
 
         [Command("")]
@@ -29,6 +35,9 @@ namespace Grillbot.Modules
             "rolí, které bude možné si během doby odebraného přístupu ponechat.")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
+            if (await SelfUnverifyRoutingAsync(time))
+                return;
+
             try
             {
                 if (subjects != null)
@@ -48,6 +57,49 @@ namespace Grillbot.Modules
 
                 throw;
             }
+        }
+
+        private async Task<bool> SelfUnverifyRoutingAsync(string route)
+        {
+            switch (route)
+            {
+                case "roles":
+                    await GetSubjectListAsync();
+                    return true;
+            }
+
+            return false;
+        }
+
+        [Command("roles")]
+        [Summary("Seznam rolí, co si může osoba ponechat.")]
+        public async Task GetSubjectListAsync()
+        {
+            var config = RoleManager.GetSelfUnverifyConfig(Context.Guild);
+
+            var embed = new BotEmbed(Context.User, title: "Ponechatelné role")
+                .AddField("Počet ponechatelných", config.MaxRolesToKeep.FormatWithSpaces(), false);
+
+            foreach (var group in config.RolesToKeep)
+            {
+                var parts = group.Value.SplitInParts(50);
+                var key = group.Key == "_" ? "Ostatní" : group.Key;
+
+                foreach (var part in parts)
+                {
+                    embed.AddField(key, string.Join(", ", part.Select(o => o.ToUpper())), false);
+                }
+            }
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                RoleManager.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }
