@@ -15,7 +15,7 @@ namespace Grillbot.Services.TempUnverify
 
             using var scope = Provider.CreateScope();
             using var checker = scope.ServiceProvider.GetService<TempUnverifyChecker>();
-            checker.Validate(user, guild, true, subjects.ToList());
+            checker.Validate(user, guild, true);
 
             var timeParser = scope.ServiceProvider.GetService<TempUnverifyTimeParser>();
             var unverifyTime = timeParser.Parse(time);

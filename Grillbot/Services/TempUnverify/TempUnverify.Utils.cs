@@ -1,11 +1,8 @@
 ﻿using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.Dynamic;
-using Microsoft.Extensions.DependencyInjection;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -14,11 +11,11 @@ namespace Grillbot.Services.TempUnverify
 {
     public partial class TempUnverifyService
     {
-        private async Task FindAndToggleMutedRoleAsync(SocketGuildUser user, SocketGuild guild, bool set)
+        private async Task FindAndToggleMutedRoleAsync(SocketGuildUser user, SocketGuild guild, ulong mutedRoleId, bool set)
         {
             await guild.SyncGuildAsync();
 
-            var mutedRole = guild.FindMutedRole();
+            var mutedRole = guild.GetRole(mutedRoleId);
             if (mutedRole == null)
                 return; // Mute role not exists on this server.
 
@@ -28,28 +25,6 @@ namespace Grillbot.Services.TempUnverify
                 await user.RemoveRoleAsync(mutedRole);
         }
 
-        /// <summary>
-        /// Remove access to channels where user can't see now, but after unverify can see.
-        /// </summary>
-        private async Task PreRemoveAccessToPublicChannels(SocketGuildUser user, SocketGuild guild)
-        {
-            await guild.SyncGuildAsync();
-
-            var config = GetConfig(guild);
-            var channels = guild.Channels
-                .OfType<SocketTextChannel>()
-                .Where(o => config.PreprocessRemoveAccess.Contains(o.Id.ToString()));
-
-            foreach (var channel in channels)
-            {
-                var cantSee = channel.GetUser(user.Id) == null;
-                if (cantSee) return;
-
-                var perms = new OverwritePermissions(sendMessages: PermValue.Deny);
-                await channel.AddPermissionOverwriteAsync(user, perms).ConfigureAwait(false);
-            }
-        }
-
         private List<ChannelOverride> GetChannelOverrides(SocketGuildUser user)
         {
             return user.Guild.Channels
@@ -57,26 +32,6 @@ namespace Grillbot.Services.TempUnverify
                 .Where(channel => channel?.overrides != null && (channel?.overrides?.AllowValue > 0 || channel?.overrides?.DenyValue > 0))
                 .Select(channel => new ChannelOverride(channel.Id, channel.overrides.Value))
                 .ToList();
-        }
-
-        private async Task RemoveOverwritesForPreprocessedChannels(SocketGuildUser user, SocketGuild guild,
-            List<ChannelOverride> overrideExceptions)
-        {
-            await guild.SyncGuildAsync();
-
-            var configData = GetConfig(guild);
-
-            var overwrites = guild.Channels
-                .OfType<SocketTextChannel>()
-                .Where(o => configData.PreprocessRemoveAccess.Contains(o.Id.ToString()) &&
-                    !overrideExceptions.Any(x => x.ChannelIdSnowflake == o.Id))
-                .Select(ch => new { channel = ch, overwrite = ch.GetPermissionOverwrite(user) })
-                .Where(o => o.overwrite != null);
-
-            foreach (var channel in overwrites)
-            {
-                await channel.channel.RemovePermissionOverwriteAsync(user).ConfigureAwait(false);
-            }
         }
 
         private string GetFormatedPrivateMessage(SocketGuildUser user, TempUnverifyItem item, string reason, bool update)
