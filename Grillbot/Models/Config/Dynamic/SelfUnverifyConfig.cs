@@ -4,12 +4,12 @@ namespace Grillbot.Models.Config.Dynamic
 {
     public class SelfUnverifyConfig
     {
-        public int MaxSubjectsCount { get; set; }
-        public List<string> Subjects { get; set; }
+        public int MaxRolesToKeep { get; set; }
+        public Dictionary<string, List<string>> RolesToKeep { get; set; }
 
         public SelfUnverifyConfig()
         {
-            Subjects = new List<string>();
+            RolesToKeep = new Dictionary<string, List<string>>();
         }
     }
 }
