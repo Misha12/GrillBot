@@ -3,8 +3,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Models.PaginatedEmbed;
-using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
@@ -17,7 +15,7 @@ namespace Grillbot.Modules
     [RequirePermissions]
     [Group("selfunverify")]
     [ModuleID("SelfUnverifyModule")]
-    [Name("Odebrání přístupu sobě sama")]
+    [Name("Odebrání přístupu")]
     public class SelfUnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }
@@ -31,8 +29,8 @@ namespace Grillbot.Modules
 
         [Command("")]
         [Summary("Odebrání práv sám sobě.")]
-        [Remarks("Parametr time je ve formátu {cas}{m/h/d}. Např.: 30m.\nPopis: m: minuty, h: hodiny, d: dny.\nJe možné zadat maximálně 5 předmětových " +
-            "rolí, které bude možné si během doby odebraného přístupu ponechat.")]
+        [Remarks("Parametr time je ve formátu {cas}{m/h/d}. Např.: 30m.\nPopis: m: minuty, h: hodiny, d: dny.\nJe možné zadat maximálně 5 rolí " +
+            ", které bude možné si během doby odebraného přístupu ponechat.\nMinimální doba pro selfunverify je půl hodiny.")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
             if (await SelfUnverifyRoutingAsync(time))
@@ -40,9 +38,6 @@ namespace Grillbot.Modules
 
             try
             {
-                if (subjects != null)
-                    subjects = subjects.Distinct().Select(o => o.Trim().ToLower()).ToArray();
-
                 var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
                 var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
                 await ReplyAsync(message);
