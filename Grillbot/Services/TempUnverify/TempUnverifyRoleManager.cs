@@ -26,7 +26,7 @@ namespace Grillbot.Services.TempUnverify
             if (roleNamesToKeep == null || roleNamesToKeep.Length == 0)
                 return new List<SocketRole>();
 
-            var selfUnverifyConfig = ConfigRepository.FindConfig(guild.Id, "selfunverify", null)?.GetData<SelfUnverifyConfig>();
+            var selfUnverifyConfig = GetSelfUnverifyConfig(guild);
 
             if (selfUnverifyConfig == null)
                 throw new InvalidOperationException("Neplatná konfigurace pro selfunverify.");
@@ -81,6 +81,12 @@ namespace Grillbot.Services.TempUnverify
             return groups.Values
                 .Where(o => o != null)
                 .Any(o => o.Contains(roleName));
+        }
+
+        public SelfUnverifyConfig GetSelfUnverifyConfig(SocketGuild guild)
+        {
+            var config = ConfigRepository.FindConfig(guild.Id, "selfunverify", null);
+            return config?.GetData<SelfUnverifyConfig>();
         }
 
         public void Dispose()
