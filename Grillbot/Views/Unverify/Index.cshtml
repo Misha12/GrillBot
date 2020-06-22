@@ -7,14 +7,43 @@
 <section class="mt-4">
     @if (Model.CurrentUnverifiedUsers != null && Model.CurrentUnverifiedUsers.Count > 0)
     {
-        <div class="card">
-            <h5 class="card-header">Aktuálně odebrané přístupy</h5>
-            <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-start">
-                    @foreach (var user in Model.CurrentUnverifiedUsers)
-                    {
-                        <partial name="CurrentlyUnverifiedPartial" model="user" />
-                    }
+        <div class="d-flex justify-content-center mb-3">
+            <div class="card" style="width: 600px">
+                <div class="card-header">
+                    <h5 class="card-title mb-0">Statistiky</h5>
+                </div>
+
+                <div class="card-body">
+                    <table class="table table-striped table-bordered table-sm">
+                        <thead>
+                            <tr>
+                                <th>Unverify</th>
+                                <th>Selfunverify</th>
+                                <th>Celkem</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            <tr>
+                                <td>@Model.CurrentUnverifiedUsers.Count(o => !o.IsSelfUnverify).FormatWithSpaces()</td>
+                                <td>@Model.CurrentUnverifiedUsers.Count(o => o.IsSelfUnverify).FormatWithSpaces()</td>
+                                <td>@Model.CurrentUnverifiedUsers.Count.FormatWithSpaces()</td>
+                            </tr>
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+        </div>
+
+        <div class="d-flex justify-content-center">
+            <div class="card" style="width: 1800px">
+                <h5 class="card-header">Aktuálně odebrané přístupy</h5>
+                <div class="card-body">
+                    <div class="d-flex flex-wrap justify-content-between">
+                        @foreach (var user in Model.CurrentUnverifiedUsers)
+                        {
+                            <partial name="CurrentlyUnverifiedPartial" model="user" />
+                        }
+                    </div>
                 </div>
             </div>
         </div>

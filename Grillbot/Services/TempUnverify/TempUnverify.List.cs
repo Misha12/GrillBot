@@ -8,6 +8,7 @@ using System.Linq;
 using Discord.WebSocket;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Database.Repository;
+using System;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -38,7 +39,9 @@ namespace Grillbot.Services.TempUnverify
                     Reason = person.Reason,
                     Roles = person.DeserializedRolesToReturn.Select(id => guild.GetRole(id)).Where(role => role != null).OrderByDescending(o => o.Position).Select(o => o.Name).ToList(),
                     Username = unverifiedUser.GetFullName(),
-                    GuildName = guild.Name
+                    GuildName = guild.Name,
+                    IsSelfUnverify = string.Equals(person.Reason, "Self unverify", StringComparison.InvariantCultureIgnoreCase),
+                    StartAt = person.StartAt
                 });
             }
 
