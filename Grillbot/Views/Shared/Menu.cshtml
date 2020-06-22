@@ -4,7 +4,7 @@
     </button>
 
     <div class="navbar-collapse collapse" id="navbar">
-        <ul class="navbar-nav">
+        <ul class="navbar-nav mr-auto">
             <a asp-controller="Admin" asp-action="Index" class="nav-item nav-link active mr-2">Stav bota</a>
             <a asp-controller="Admin" asp-action="TeamSearch" class="nav-item nav-link active mr-2">Hledání týmů</a>
             <li class="nav-item dropdown">
@@ -36,8 +36,18 @@
             </li>
             <a asp-controller="Users" asp-action="Index" class="nav-item nav-link active mr-2">Uživatelé</a>
             <li class="nav-item nav-link">
-                <a asp-controller="Auth" asp-action="Logout" class="text-white">Odhlásit se</a>
+                
             </li>
         </ul>
+        <span class="navbar-text">
+            <span class="dropdown">
+                <a class="dropdown-toggle text-white" href="#" id="user_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
+                    @User.Identity.Name (@@@User.FindFirst(ClaimTypes.Role).Value)
+                </a>
+                <div class="dropdown-menu" aria-labelledby="user_navbarDropdown">
+                    <a asp-controller="Auth" asp-action="Logout" class="dropdown-item text-dark">Odhlásit se</a>
+                </div>
+            </span>
+        </span>
     </div>
 </nav>

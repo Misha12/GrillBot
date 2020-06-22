@@ -53,7 +53,7 @@ namespace Grillbot.Services.Permissions
                 var claims = new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
-                    new Claim(ClaimTypes.Name, user.Username),
+                    new Claim(ClaimTypes.Name, user.GetShortName()),
                     new Claim(ClaimTypes.Role, user.FindHighestRole().Name),
                     new Claim(ClaimTypes.UserData, guild.Id.ToString())
                 };
