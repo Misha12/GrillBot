@@ -4,33 +4,43 @@
     ViewData["Title"] = "Hledání týmů";
 }
 
-<section>
-    <table class="table table-sm mt-3">
-        <thead>
-            <tr>
-                <th>#</th>
-                <th>Uživatel</th>
-                <th>Server</th>
-                <th>Kanál</th>
-                <th>Zpráva</th>
-                <th>&nbsp;</th>
-            </tr>
-        </thead>
-        <tbody>
-            @foreach(var item in Model.Items)
-            {
+<div class="mt-2 mr-3 ml-3">
+    <div class="d-flex justify-content-center">
+        <table class="table table-striped table-sm mt-4 table-bordered" style="width: 1700px">
+            <thead>
                 <tr>
-                    <td>@item.ID</td>
-                    <td>@item.FullUsername</td>
-                    <td>@item.GuildName</td>
-                    <td>#@item.ChannelName</td>
-                    <td>@item.Message</td>
-                    <td>
-                        <a class="btn btn-primary btn-sm text-white" href="@item.MessageLink" target="_blank">Přejít na zprávu</a>
-                    </td>
+                    <th>#</th>
+                    <th>Uživatel</th>
+                    <th>Server</th>
+                    <th>Kanál</th>
+                    <th>Zpráva</th>
+                    <th>&nbsp;</th>
                 </tr>
-            }
-        </tbody>
-    </table>
-</section>
+            </thead>
+            <tbody>
+                @if (Model.Items.Count == 0)
+                {
+                    <tr>
+                        <th colspan="6" class="text-center">Momentálně nikdo nic nehledá.</th>
+                    </tr>
+                }
 
+                @foreach (var item in Model.Items)
+                {
+                    <tr>
+                        <td>@item.ID</td>
+                        <td>@item.FullUsername</td>
+                        <td>@item.GuildName</td>
+                        <td>#@item.ChannelName</td>
+                        <td>@item.Message</td>
+                        <td>
+                            <a class="btn btn-link btn-sm" href="@item.MessageLink" target="_blank">
+                                <u>Přejít na zprávu</u>
+                            </a>
+                        </td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
