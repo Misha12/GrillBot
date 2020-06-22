@@ -7,6 +7,8 @@ namespace Grillbot.Database.Repository
 {
     public class MathRepository : RepositoryBase
     {
+        private const int PageSize = 25;
+
         public MathRepository(GrillBotContext context) : base(context)
         {
         }
@@ -42,7 +44,8 @@ namespace Grillbot.Database.Repository
                 query = query.Where(o => o.User.UserID == user);
             }
 
-            return query;
+            var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PageSize;
+            return query.Skip(skip).Take(PageSize);
         }
     }
 }

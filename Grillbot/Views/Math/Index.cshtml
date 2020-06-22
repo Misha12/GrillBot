@@ -4,20 +4,24 @@
     ViewData["Title"] = "Výpočetní jednotky";
 }
 
-<section class="mt-4 col-xl-11">
-    <h3>Server Boosters</h3>
-    <div class="d-flex flex-wrap justify-content-between">
-        @foreach (var session in Model.Sessions.Where(o => o.ForBooster))
-        {
-            <partial name="Partials/MathSessionPartial" model="session" />
-        }
-    </div>
+<div class="d-flex justify-content-center">
+    <section class="mt-4 row mr-0 ml-0" style="width: 1600px">
+        <div class="col-md-6 mb-2">
+            <div class="card">
+                <h5 class="card-header">Server boosters</h5>
+                <div class="card-body">
+                    <partial name="Partials/MathSessionsTablePartial" model="Model.Sessions.Where(o => o.ForBooster).ToList()" />
+                </div>
+            </div>
+        </div>
 
-    <h3 class="mt-5">Běžní uživatelé</h3>
-    <div class="d-flex flex-wrap justify-content-between">
-        @foreach (var session in Model.Sessions.Where(o => !o.ForBooster))
-        {
-            <partial name="Partials/MathSessionPartial" model="session" />
-        }
-    </div>
-</section>
+        <div class="col-md-6">
+            <div class="card">
+                <h5 class="card-header">Běžní uživatelé</h5>
+                <div class="card-body">
+                    <partial name="Partials/MathSessionsTablePartial" model="Model.Sessions.Where(o => !o.ForBooster).ToList()" />
+                </div>
+            </div>
+        </div>
+    </section>
+</div>

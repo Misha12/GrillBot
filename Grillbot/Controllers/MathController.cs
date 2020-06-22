@@ -37,16 +37,9 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("Audit")]
-        public async Task<IActionResult> AuditAsync()
+        public async Task<IActionResult> AuditAsync(MathAuditLogFilter filter = null)
         {
-            var viewModel = await GetAuditViewModelAsync(new MathAuditLogFilter());
-            return View(viewModel);
-        }
-
-        [HttpPost("Audit")]
-        public async Task<IActionResult> AuditAsync(MathAuditLogFilter filter)
-        {
-            var viewModel = await GetAuditViewModelAsync(filter);
+            var viewModel = await GetAuditViewModelAsync(filter ?? new MathAuditLogFilter());
             return View(viewModel);
         }
 

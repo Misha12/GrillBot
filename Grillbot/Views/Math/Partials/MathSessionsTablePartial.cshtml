@@ -1,0 +1,72 @@
+﻿@model List<Grillbot.Models.Math.MathSession>;
+
+@{
+    string getResultStateBackground(Grillbot.Models.Math.MathSession session)
+    {
+        if (session.IsUsed)
+            return "bg-warning";
+
+        if (session.LastResult == null)
+            return "";
+
+        return session.LastResult.IsValid ? "bg-success" : "bg-danger";
+    }
+
+    string getResultStateColor(Grillbot.Models.Math.MathSession session)
+    {
+        if (session.IsUsed || session.LastResult == null)
+            return "";
+
+        return "text-white";
+    }
+}
+
+<table class="table table-sm table-bordered table-striped">
+    <thead>
+        <tr>
+            <th>#</th>
+            <th>Výpočetní čas</th>
+            <th>Počet použití</th>
+            <th>Výraz</th>
+            <th>Posl. výsledek</th>
+        </tr>
+    </thead>
+    <tbody>
+        @foreach (var session in Model)
+        {
+            <tr class="@getResultStateBackground(session) @getResultStateColor(session)">
+                <td>@session.ID</td>
+                <td>@TimeSpan.FromMilliseconds(session.ComputingTime)</td>
+                <td>@session.UsedCount.FormatWithSpaces()</td>
+                <td>@(string.IsNullOrEmpty(session.Expression) ? "-" : session.Expression)</td>
+
+                @if (session.LastResult == null)
+                {
+                    <td>-</td>
+                }
+                else
+                {
+                    if (session.LastResult.IsTimeout)
+                    {
+                        <td>Timeout</td>
+                    }
+                    else
+                    {
+                        if (session.LastResult.IsValid)
+                        {
+                            <td>
+                                OK (@session.LastResult.GetComputingTime())
+                            </td>
+                        }
+                        else
+                        {
+                            <td>
+                                <pre class="pb-0 mb-0 @getResultStateColor(session)">@session.LastResult.ErrorMessage</pre>
+                            </td>
+                        }
+                    }
+                }
+            </tr>
+        }
+    </tbody>
+</table>
