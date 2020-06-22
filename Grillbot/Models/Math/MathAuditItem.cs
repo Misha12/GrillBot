@@ -28,7 +28,7 @@ namespace Grillbot.Models.Math
             var unitInfo = JsonConvert.DeserializeObject<MathUnitInfo>(item.UnitInfo);
             UnitInfo = $"#{unitInfo.SessionID} {(unitInfo.ForBooster ? "(Booster)" : "")} ({unitInfo.ComputeLimit / 1000.0}sec)".Trim();
 
-            var result = JsonConvert.DeserializeObject<MathCalcResult>(item.Result);
+            var result = string.IsNullOrEmpty(item.Result) ? null : JsonConvert.DeserializeObject<MathCalcResult>(item.Result);
 
             if (result == null)
                 result = new MathCalcResult() { ErrorMessage = "Výpočetní jednotka nevrátila data." };
