@@ -69,11 +69,11 @@
             <thead>
                 <tr>
                     <th>ID</th>
-                    <th>Výraz</th>
                     <th>Kdy</th>
                     <th>Kdo</th>
                     <th>Kanál</th>
                     <th>Jednotka</th>
+                    <th>Výraz</th>
                     <th>Výsledek</th>
                 </tr>
             </thead>
@@ -89,11 +89,13 @@
                 {
                     <tr>
                         <td>@item.ID</td>
-                        <td>@item.Expression</td>
                         <td>@item.DateTime.ToLocaleDatetime()</td>
                         <td>@item.User.GetFullName()</td>
                         <td>@(item.Channel?.Name ?? $"Unknown channel")</td>
                         <td>@item.UnitInfo</td>
+                        <td>
+                            <pre class="text-truncate mb-0" style="max-width: 400px" title="@item.Expression">@item.Expression</pre>
+                        </td>
                         <td>@item.Result</td>
                     </tr>
                 }
