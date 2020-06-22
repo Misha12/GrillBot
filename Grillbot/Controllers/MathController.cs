@@ -5,6 +5,7 @@ using Grillbot.Services.Math;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -38,24 +39,26 @@ namespace Grillbot.Controllers
         [HttpGet("Audit")]
         public async Task<IActionResult> AuditAsync()
         {
-            var filter = new MathAuditLogFilter();
-            var data = MathRepository.GetAuditLog(filter).ToList();
-            var items = data.Select(o => new MathAuditItem(o, DiscordClient)).ToList();
-            var users = await UserService.GetUsersForFilterAsync();
-            var viewModel = new MathAuditLogViewModel(DiscordClient, items, filter, users);
-
+            var viewModel = await GetAuditViewModelAsync(new MathAuditLogFilter());
             return View(viewModel);
         }
 
         [HttpPost("Audit")]
         public async Task<IActionResult> AuditAsync(MathAuditLogFilter filter)
         {
-            var data = MathRepository.GetAuditLog(filter).ToList();
-            var items = data.Select(o => new MathAuditItem(o, DiscordClient)).ToList();
-            var users = await UserService.GetUsersForFilterAsync();
-            var viewModel = new MathAuditLogViewModel(DiscordClient, items, filter, users);
-
+            var viewModel = await GetAuditViewModelAsync(filter);
             return View(viewModel);
+        }
+
+        private async Task<MathAuditLogViewModel> GetAuditViewModelAsync(MathAuditLogFilter filter)
+        {
+            var data = await MathRepository.GetAuditLog(filter)
+                .AsAsyncEnumerable()
+                .Select(o => new MathAuditItem(o, DiscordClient))
+                .ToListAsync();
+
+            var users = await UserService.GetUsersForFilterAsync();
+            return new MathAuditLogViewModel(DiscordClient, data, filter, users);
         }
 
         protected override void Dispose(bool disposing)

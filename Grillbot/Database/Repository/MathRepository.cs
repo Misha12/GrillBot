@@ -15,6 +15,7 @@ namespace Grillbot.Database.Repository
         {
             var query = Context.MathAuditLogs
                 .Include(o => o.User)
+                .OrderByDescending(o => o.ID)
                 .AsQueryable();
 
             if (filter.Channel != null)

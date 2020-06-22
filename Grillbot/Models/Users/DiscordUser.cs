@@ -45,7 +45,11 @@ namespace Grillbot.Models.Users
                 .ToList();
 
             UnverifyHistory = unverifyHistory;
-            MathAuditItems = dbUser.MathAudit.Select(o => new MathAuditItem(o, guild)).ToList();
+            
+            MathAuditItems = dbUser.MathAudit
+                .OrderByDescending(o => o.ID)
+                .Select(o => new MathAuditItem(o, guild))
+                .ToList();
 
             if (dbUser.Statistics != null)
                 Statistics = new StatisticItem(dbUser.Statistics);
