@@ -77,4 +77,3 @@ To run the math module in bot, you have to build GrillBotMath project and set pa
 ## Features
 
 - [Permissions](docs/permissions.md)
-- [Unverify](docs/unverify.md)
