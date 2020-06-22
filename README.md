@@ -74,5 +74,7 @@ For properties **Token**, **ClientId**, **ClientSecret** you will need to create
 ## GrillBotMath
 To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
 
-## Permission system
-Permission is documented in file [permissions.md](docs/permissions.md).
+## Features
+
+- [Permissions](docs/permissions.md)
+- [Unverify](docs/unverify.md)
