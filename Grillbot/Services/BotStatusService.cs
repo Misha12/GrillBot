@@ -82,7 +82,12 @@ namespace Grillbot.Services
         {
             var result = new List<CacheStatus>();
 
-            foreach (var channel in Client.Guilds.SelectMany(o => o.TextChannels))
+            var channels = Client.Guilds
+                .OrderBy(o => o.Name)
+                .SelectMany(o => o.TextChannels)
+                .OrderBy(o => o.Name);
+
+            foreach (var channel in channels)
             {
                 var messageCache = MessageCache.GetFromChannel(channel.Id);
 
