@@ -39,7 +39,9 @@ namespace Grillbot.Services.UserManagement
 
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-            var dbUsers = repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, filter.Limit, filter.UserID).ToList();
+
+            var userIds = filter.UserID == null ? null : new List<ulong>() { filter.UserID.Value };
+            var dbUsers = repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, filter.Limit, userIds).ToList();
 
             foreach (var user in dbUsers)
             {

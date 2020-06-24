@@ -4,6 +4,8 @@ using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
+using System.Linq.Expressions;
+using System;
 
 namespace Grillbot.Database.Repository
 {
@@ -33,28 +35,46 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, ulong? userID)
+        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, List<ulong> userIds)
         {
             var query = GetBaseQuery(true, false, false, false);
 
             if (guildID != null)
                 query = query.Where(o => o.GuildID == guildID.ToString());
 
-            if (userID != null)
-                query = query.Where(o => o.UserID == userID.ToString());
-
-            query = order switch
+            if (userIds != null)
             {
-                WebAdminUserOrder.UserID => desc ? query.OrderByDescending(o => o.ID) : query.OrderBy(o => o.ID),
-                WebAdminUserOrder.Server => desc ? query.OrderByDescending(o => o.GuildID) : query.OrderBy(o => o.GuildID),
-                WebAdminUserOrder.Reactions => desc ? query.OrderByDescending(o => o.GivenReactionsCount).ThenByDescending(o => o.ObtainedReactionsCount)
-                    : query.OrderBy(o => o.GivenReactionsCount).ThenBy(o => o.ObtainedReactionsCount),
-                WebAdminUserOrder.Points => desc ? query.OrderByDescending(o => o.Points) : query.OrderBy(o => o.Points),
-                WebAdminUserOrder.MessageCount => desc ? query.OrderByDescending(o => o.Channels.Sum(x => x.Count)) : query.OrderBy(o => o.Channels.Sum(x => x.Count)),
-                _ => query.OrderByDescending(o => o.Channels.Sum(x => x.Count)),
+                var ids = userIds.Select(o => o.ToString()).ToList();
+                query = query.Where(o => ids.Contains(o.UserID));
+            }
+
+            return OrderUsers(query, desc, order).Take(limit);
+        }
+
+        private IQueryable<DiscordUser> OrderUsers(IQueryable<DiscordUser> query, bool desc, WebAdminUserOrder order)
+        {
+            if (order == WebAdminUserOrder.UserID)
+                return desc ? query.OrderByDescending(o => o.ID) : query.OrderBy(o => o.ID);
+
+            Expression<Func<DiscordUser, object>> expression = order switch
+            {
+                WebAdminUserOrder.MessageCount => o => o.Channels.Sum(x => x.Count),
+                WebAdminUserOrder.GivenReactions => o => o.GivenReactionsCount,
+                WebAdminUserOrder.ObtainedReactions => o => o.ObtainedReactionsCount,
+                WebAdminUserOrder.Server => o => o.GuildID,
+                _ => o => o.Points,
             };
 
-            return query.Take(limit);
+            if (desc)
+            {
+                return query
+                    .OrderByDescending(expression)
+                    .ThenByDescending(o => o.ID);
+            }
+
+            return query
+                .OrderBy(expression)
+                .ThenBy(o => o.ID);
         }
 
         public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels, bool includeBirthday, bool includeMathAudit, bool includeStatistics)

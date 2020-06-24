@@ -22,27 +22,19 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet]
-        public async Task<IActionResult> IndexAsync()
+        public async Task<IActionResult> IndexAsync(WebAdminUserListFilter filter = null)
         {
+            if (filter == null)
+                filter = new WebAdminUserListFilter();
+
             var guilds = Client.Guilds.ToList();
 
-            var filter = new WebAdminUserListFilter();
-            var users = await UserService.GetUsersList(filter);
-            var filterUsers = await UserService.GetUsersForFilterAsync();
+            var getUsersTask = UserService.GetUsersList(filter);
+            var getUsersFilterTask = UserService.GetUsersForFilterAsync();
 
-            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, filterUsers);
-            return View(viewModel);
-        }
+            await Task.WhenAll(getUsersTask, getUsersFilterTask);
 
-        [HttpPost]
-        public async Task<IActionResult> IndexAsync([FromForm] WebAdminUserListFilter filter)
-        {
-            var guilds = Client.Guilds.ToList();
-
-            var users = await UserService.GetUsersList(filter);
-            var filterUsers = await UserService.GetUsersForFilterAsync();
-
-            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, filterUsers);
+            var viewModel = new WebAdminUserListViewModel(await getUsersTask, guilds, filter, await getUsersFilterTask);
             return View(viewModel);
         }
 
