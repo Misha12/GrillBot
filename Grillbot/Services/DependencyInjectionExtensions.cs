@@ -96,6 +96,9 @@ namespace Grillbot.Services
                     .SetMinimumLevel(LogLevel.Information)
                     .AddFilter("Microsoft.EntityFrameworkCore.Database.Command", LogLevel.Warning)
                     .AddFilter("Microsoft.EntityFrameworkCore.Infrastructure", LogLevel.Warning)
+                    .AddFilter("Microsoft.AspNetCore.Hosting.Diagnostics", LogLevel.Warning)
+                    .AddFilter("Microsoft.AspNetCore.Mvc.Infrastructure.ControllerActionInvoker", LogLevel.Warning)
+                    .AddFilter("Microsoft.AspNetCore.Mvc.ViewFeatures.ViewResultExecutor", LogLevel.Warning)
                     .AddConsole(consoleConfig =>
                     {
                         consoleConfig.TimestampFormat = "[dd. MM. yyyy HH:mm:ss]\t";
