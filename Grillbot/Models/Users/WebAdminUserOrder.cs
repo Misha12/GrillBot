@@ -6,7 +6,8 @@
         UserID,
         Server,
         Points,
-        Reactions,
+        GivenReactions,
+        ObtainedReactions,
         MessageCount
     }
 }
