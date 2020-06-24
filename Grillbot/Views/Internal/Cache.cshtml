@@ -15,6 +15,7 @@
                 <thead>
                     <tr>
                         <th>Server</th>
+                        <th>Kategorie</th>
                         <th>Kanál</th>
                         <th>Počet interní cache</th>
                         <th>Počet externí cache</th>
@@ -25,7 +26,8 @@
                     {
                         <tr>
                             <td>@item.Channel.Guild.Name</td>
-                            <td>@item.Channel.Name</td>
+                            <td>@(item.Channel.Category == null ? "-" : item.Channel.Category.Name)</td>
+                            <td>#@item.Channel.Name</td>
                             <td>@item.InternalCacheCount.FormatWithSpaces()</td>
                             <td>@item.MessageCacheCount.FormatWithSpaces()</td>
                         </tr>
