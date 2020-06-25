@@ -7,6 +7,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Services;
+using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
@@ -14,6 +15,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [ModuleUnloadCheck]
     public abstract class BotModuleBase : ModuleBase<SocketCommandContext>, IDisposable
     {
         protected Configuration Config { get; }

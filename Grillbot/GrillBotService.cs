@@ -67,7 +67,7 @@ namespace Grillbot
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
 
-            await AddModulesAsync();
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -95,29 +95,6 @@ namespace Grillbot
                 await Client.SetGameAsync(FormatActivity(activityMessage)).ConfigureAwait(false);
             else
                 await Client.SetGameAsync(null).ConfigureAwait(false);
-        }
-
-        private async Task AddModulesAsync()
-        {
-            using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetRequiredService<GlobalConfigRepository>();
-
-            var unloadedModules = new List<string>();
-            var unloadedModulesConfig = await repository.GetItemAsync(GlobalConfigItems.UnloadedModules);
-
-            if (!string.IsNullOrEmpty(unloadedModulesConfig))
-                unloadedModules.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModulesConfig));
-
-            var moduleBase = typeof(BotModuleBase);
-            var types = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .Where(o => !o.IsAbstract && moduleBase.IsAssignableFrom(o) && !unloadedModules.Contains(o.Name));
-
-            foreach (var moduleType in types)
-            {
-                await Commands.AddModuleAsync(moduleType, Services);
-                Logger.LogInformation($"Initialized module {moduleType.FullName}");
-            }
         }
     }
 }

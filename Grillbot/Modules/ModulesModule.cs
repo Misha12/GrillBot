@@ -10,10 +10,8 @@ using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Reflection;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -27,22 +25,21 @@ namespace Grillbot.Modules
         private CommandService CommandService { get; }
         private ILogger<ModulesModule> Logger { get; }
         private GlobalConfigRepository GlobalConfig { get; }
-        private IServiceProvider Services { get; }
 
         public ModulesModule(CommandService commandService, GlobalConfigRepository globalConfig, PaginationService paginationService,
-            ILogger<ModulesModule> logger, IServiceProvider services) : base(paginationService: paginationService)
+            ILogger<ModulesModule> logger) : base(paginationService: paginationService)
         {
             CommandService = commandService;
             Logger = logger;
             GlobalConfig = globalConfig;
-            Services = services;
         }
 
         [Command("list")]
-        [Summary("Získání seznamu všech aktivních modulů.")]
+        [Summary("Získání seznamu všech modulů.")]
         public async Task GetModulesAsync()
         {
             var moduleIdAttribute = typeof(ModuleIDAttribute);
+            var unloadedModules = await GetUnloadedModulesAsync();
             var modulesChunk = CommandService.Modules
                 .SplitInParts(EmbedBuilder.MaxFieldCount);
 
@@ -57,7 +54,7 @@ namespace Grillbot.Modules
                     var attribute = item.Attributes.FirstOrDefault(o => o.GetType() == moduleIdAttribute) as ModuleIDAttribute;
 
                     var info = item.Name + (string.IsNullOrEmpty(item.Group) ? "" : $" ({item.Group})");
-                    page.AddField(attribute.ID, info, false);
+                    page.AddField(attribute.ID, info + (unloadedModules.Contains(attribute.ID) ? " - **Deaktivován**" : ""), false);
                 }
 
                 if (page.AnyField())
@@ -66,13 +63,13 @@ namespace Grillbot.Modules
 
             if (pages.Count == 0)
             {
-                await ReplyAsync("Nebyl nalezen žádný aktivní modul.");
+                await ReplyAsync("Nebyl nalezen žádný modul.");
                 return;
             }
 
             var embed = new PaginatedEmbed()
             {
-                Title = "Seznam aktivních modulů",
+                Title = "Seznam modulů",
                 Pages = pages,
                 ResponseFor = Context.User,
                 Thumbnail = Context.Client.CurrentUser.GetUserAvatarUrl()
@@ -88,42 +85,21 @@ namespace Grillbot.Modules
             var unloadedModules = await GetUnloadedModulesAsync();
 
             if (!unloadedModules.Contains(name))
-                await ReplyAsync("Tento modul mezi uvolněnými. Pokusím se jej najít a přidat.");
-
-            var botModuleBase = typeof(BotModuleBase);
-            var type = Assembly.GetExecutingAssembly()
-                .GetTypes()
-                .FirstOrDefault(o =>
-                {
-                    var attribute = o.GetCustomAttribute<ModuleIDAttribute>();
-                    if (o.IsAbstract || !botModuleBase.IsAssignableFrom(o) || attribute == null)
-                        return false;
-
-                    return attribute.ID == name;
-                });
-
-            if(type == null)
             {
-                await ReplyAsync("Tento modul v assembly nebyl nalezen.");
+                await ReplyAsync("Tento modul je již aktivní.");
                 return;
             }
 
-            var module = FindModule(name);
-
-            if(module != null)
+            if(FindModule(name) == null)
             {
-                await ReplyAsync("Tento modul je již načten.");
+                await ReplyAsync("Tento modul nebyl nalezen.");
                 return;
             }
 
-            await CommandService.AddModuleAsync(type, Services);
-
-            if (unloadedModules.Contains(name))
-                unloadedModules.Remove(name);
-
+            unloadedModules.Remove(name);
             Logger.LogInformation($"Requested add module {name}");
             await GlobalConfig.UpdateItemAsync(GlobalConfigItems.UnloadedModules, unloadedModules.Count == 0 ? null : JsonConvert.SerializeObject(unloadedModules));
-            await ReplyAsync("Modul byl úspěšně načten.");
+            await ReplyAsync("Modul byl úspěšně povolen.");
         }
 
         [Command("remove")]
@@ -131,25 +107,16 @@ namespace Grillbot.Modules
         public async Task RemoveModuleAsync(string name)
         {
             var unloadedModules = await GetUnloadedModulesAsync();
-            var module = FindModule(name);
 
-            if (module == null)
+            if (unloadedModules.Contains(name))
             {
-                if (unloadedModules.Contains(name))
-                {
-                    await ReplyAsync("Tento modul je již uvolněn.");
-                    return;
-                }
-
-                await ReplyAsync("Tento modul nebyl nalezen.");
+                await ReplyAsync("Tento modul je již uvolněn.");
                 return;
             }
 
-            var success = await CommandService.RemoveModuleAsync(module);
-
-            if (!success)
+            if (FindModule(name) == null)
             {
-                await ReplyAsync("Modul se nepodařilo uvolnit.");
+                await ReplyAsync("Tento modul nebyl nalezen.");
                 return;
             }
 
