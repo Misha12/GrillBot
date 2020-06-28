@@ -68,14 +68,11 @@ namespace Grillbot.Services.Channelboard
 
         public async Task<List<ChannelStatItem>> GetFullChannelboardAsync()
         {
-            var tasks = Discord.Guilds.Select(o => GetChannelboardDataAsync(o, null, null, true));
-            await Task.WhenAll(tasks);
-
             var channels = new List<ChannelStatItem>();
 
-            foreach (var task in tasks)
+            foreach (var guild in Discord.Guilds)
             {
-                var result = await task;
+                var result = await GetChannelboardDataAsync(guild, null, null, true);
 
                 if (result?.Count > 0)
                     channels.AddRange(result);
