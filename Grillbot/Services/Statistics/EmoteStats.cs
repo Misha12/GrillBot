@@ -229,10 +229,29 @@ namespace Grillbot.Services.Statistics
                 using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
                 var removed = new List<string>();
 
-                var emoteClearCandidates = repository.GetEmoteStats(guild.Id, true).ToList();
+                var emoteClearCandidates = repository.GetEmoteStats(guild.Id, false).ToList();
+
+                if (emoteClearCandidates.Count == 0)
+                    return new List<string>();
 
                 foreach (var candidate in emoteClearCandidates)
                 {
+                    if(candidate.IsUnicode)
+                    {
+                        if (candidate.Count > 0)
+                            continue;
+
+                        var lastUsedDelta = DateTime.Now - candidate.LastOccuredAt;
+
+                        if(lastUsedDelta.TotalDays >= 14.0)
+                        {
+                            removed.Add($"Smazán unicode emote **{candidate.GetRealId()}**. Použití: 0, Naposledy použit: {candidate.LastOccuredAt.ToLocaleDatetime()}");
+                            repository.RemoveEmojiNoCommit(guild, candidate.EmoteID);
+                        }
+
+                        continue;
+                    }
+
                     var parsedEmote = Emote.Parse(candidate.GetRealId());
 
                     if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
