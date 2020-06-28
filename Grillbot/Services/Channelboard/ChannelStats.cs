@@ -18,9 +18,12 @@ namespace Grillbot.Services.Channelboard
 
         private IServiceProvider Provider { get; }
 
-        public ChannelStats(IServiceProvider provider)
+        private DiscordSocketClient Discord { get; }
+
+        public ChannelStats(IServiceProvider provider, DiscordSocketClient discord)
         {
             Provider = provider;
+            Discord = discord;
         }
 
         public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketUser socketUser)
@@ -38,14 +41,14 @@ namespace Grillbot.Services.Channelboard
             return new Tuple<int, long, DateTime>(position, channel.Count, channel.LastMessageAt);
         }
 
-        public async Task<List<ChannelStatItem>> GetChannelboardDataAsync(SocketGuild guild, SocketUser user, int? limit = null)
+        public async Task<List<ChannelStatItem>> GetChannelboardDataAsync(SocketGuild guild, SocketUser user, int? limit = null, bool full = false)
         {
             var result = new List<ChannelStatItem>();
 
             await guild.SyncGuildAsync();
             foreach (var channel in GetAllChannels(guild))
             {
-                if (!(await CanUserToChannelAsync(guild, channel.ChannelIDSnowflake, user)))
+                if (!full && !(await CanUserToChannelAsync(guild, channel.ChannelIDSnowflake, user)))
                     continue;
 
                 var textChannel = guild.GetTextChannel(channel.ChannelIDSnowflake);
@@ -61,6 +64,28 @@ namespace Grillbot.Services.Channelboard
                 resultData = result.Take(limit.Value);
 
             return resultData.ToList();
+        }
+
+        public async Task<List<ChannelStatItem>> GetFullChannelboardAsync()
+        {
+            var tasks = Discord.Guilds.Select(o => GetChannelboardDataAsync(o, null, null, true));
+            await Task.WhenAll(tasks);
+
+            var channels = new List<ChannelStatItem>();
+
+            foreach (var task in tasks)
+            {
+                var result = await task;
+
+                if (result?.Count > 0)
+                    channels.AddRange(result);
+            }
+
+            return channels
+                .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastMessageAt)
+                .ThenBy(o => o.Channel.Id)
+                .ToList();
         }
 
         private async Task<bool> CanUserToChannelAsync(SocketGuild guild, ulong channelID, IUser user)
@@ -97,6 +122,9 @@ namespace Grillbot.Services.Channelboard
             return removed.Count == 0 ? null : removed.ToList();
         }
 
+        /// <summary>
+        /// Get all channels for specific guild.
+        /// </summary>
         private List<UserChannel> GetAllChannels(SocketGuild guild)
         {
             using var scope = Provider.CreateScope();

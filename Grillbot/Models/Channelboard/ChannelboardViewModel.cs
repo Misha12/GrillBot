@@ -18,8 +18,12 @@ namespace Grillbot.Models.Channelboard
 
         public ChannelboardViewModel(SocketGuild guild, SocketGuildUser user, List<ChannelStatItem> items)
         {
-            Guild = ChannelboardWebGuild.Create(guild);
-            User = SimpleUserInfo.Create(user);
+            if (guild != null)
+                Guild = ChannelboardWebGuild.Create(guild);
+
+            if (user != null)
+                User = SimpleUserInfo.Create(user);
+
             Items = items;
         }
     }
