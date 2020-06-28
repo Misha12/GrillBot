@@ -36,6 +36,12 @@ namespace Grillbot.Modules
                 .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
                 .ToList();
 
+            if(fields.Count == 0)
+            {
+                await ReplyAsync("Ještě nebyl použit žádný emote.");
+                return;
+            }
+
             var pages = new List<PaginatedEmbedPage>();
 
             const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
@@ -157,7 +163,14 @@ namespace Grillbot.Modules
             var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, false)
                 .Where(o => o.IsUnicode)
                 .Take(EmbedBuilder.MaxFieldCount)
-                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
+                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
+                .ToList();
+
+            if(fields.Count == 0)
+            {
+                await ReplyAsync("Ještě nebyl použit žádný unicode emote.");
+                return;
+            }
 
             var embed = new BotEmbed(Context.Message.Author)
                 .WithFields(fields);
