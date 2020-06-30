@@ -6,12 +6,8 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
-using Microsoft.AspNetCore.Mvc.TagHelpers;
 using System;
 using System.Collections.Generic;
-using System.Linq;
-using System.Linq.Expressions;
-using System.Runtime.InteropServices;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -20,7 +16,7 @@ namespace Grillbot.Modules
     [Name("Práce s body")]
     [RequirePermissions]
     [Group("points")]
-    [Alias("body")]
+    [Alias("body", "punkty")]
     [ModuleID("PointsModule")]
     public class PointsModule : BotModuleBase
     {
