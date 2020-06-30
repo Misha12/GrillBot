@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
+using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -150,6 +151,18 @@ namespace Grillbot.Database.Repository
         {
             if (value == null)
                 value = "";
+        }
+
+        public void RemoveMethod(ulong guildID, int methodID)
+        {
+            var method = GetBaseQuery(true)
+                .SingleOrDefault(o => o.GuildID == guildID.ToString() && o.ID == methodID);
+
+            if (method == null)
+                throw new NotFoundException($"Konfigurace pro metodu s ID `{methodID}` nebyla nalezena.");
+
+            Context.MethodsConfig.Remove(method);
+            Context.SaveChanges();
         }
     }
 }

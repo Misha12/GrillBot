@@ -177,5 +177,20 @@ namespace Grillbot.Modules
             var config = ConfigRepository.GetMethod(Context.Guild, methodID);
             await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
         }
+
+        [Command("removeMethod")]
+        [Summary("Smazání metody")]
+        public async Task RemoveMethodAsync(int methodID)
+        {
+            try
+            {
+                ConfigRepository.RemoveMethod(Context.Guild.Id, methodID);
+                await ReplyAsync("Metoda byla odebrána.");
+            }
+            catch(InvalidOperationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
     }
 }
