@@ -65,5 +65,13 @@ namespace Grillbot.Extensions.Discord
                 throw;
             }
         }
+
+        public static string GetDisplayName(this IUser user)
+        {
+            if (user is SocketGuildUser socketGuildUser)
+                return string.IsNullOrEmpty(socketGuildUser.Nickname) ? socketGuildUser.GetShortName() : socketGuildUser.Nickname;
+            else
+                return user.GetShortName();
+        }
     }
 }

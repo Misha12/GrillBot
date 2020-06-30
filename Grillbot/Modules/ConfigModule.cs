@@ -186,6 +186,21 @@ namespace Grillbot.Modules
             await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
         }
 
+        [Command("removeMethod")]
+        [Summary("Smazání metody")]
+        public async Task RemoveMethodAsync(int methodID)
+        {
+            try
+            {
+                ConfigRepository.RemoveMethod(Context.Guild.Id, methodID);
+                await ReplyAsync("Metoda byla odebrána.");
+            }
+            catch(InvalidOperationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
+
         private async Task<bool> CheckMissingMethodID(GroupCommandMatch command)
         {
             if (command.MethodID == null)

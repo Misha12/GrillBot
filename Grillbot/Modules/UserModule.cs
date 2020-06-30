@@ -1,10 +1,15 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
+using System;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -45,6 +50,84 @@ namespace Grillbot.Modules
             {
                 await ReplyAsync(ex.Message);
             }
+        }
+
+        [Command("addToWebAdmin")]
+        [Summary("Udělení přístupu uživatele do webové administrace.")]
+        public async Task AddUserToWebAdmin(IUser userMention)
+        {
+            try
+            {
+                var password = UserService.AddUserToWebAdmin(Context.Guild, (SocketGuildUser)userMention);
+
+                await userMention.SendPrivateMessageAsync(
+                    $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
+                await ReplyAsync("Přístup umožněn.");
+            }
+            catch (InvalidOperationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
+
+        [Command("removeFromWebAdmin")]
+        [Summary("Odebrání uživatele z webové administrace.")]
+        public async Task RemoveUser(IUser userMention)
+        {
+            try
+            {
+                UserService.RemoveUserFromWebAdmin(Context.Guild, (SocketGuildUser)userMention);
+                await ReplyAsync("Přístup byl odebrán.");
+            }
+            catch (ArgumentException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
+
+        [Command("info")]
+        [Summary("Informace o konkrétním uživateli.")]
+        public async Task InfoAsync(IUser userMention)
+        {
+            var user = userMention is SocketGuildUser usr ? usr : await Context.Guild.GetUserFromGuildAsync(userMention.Id);
+
+            if (user == null)
+            {
+                await ReplyAsync("Uživatel nebyl na tomto serveru nalezen.");
+                return;
+            }
+
+            var userDetail = await UserService.GetUserDetailAsync(Context.Guild, user);
+
+            if (userDetail == null)
+            {
+                await ReplyAsync("Uživatel nebyl v databázi nalezen. Buď ještě není na tomto serveru, nebo neprojevil aktivitu.");
+                return;
+            }
+
+            var mostActiveChannel = userDetail.GetMostActiveChannel();
+            var lastActiveChannel = userDetail.GetLastActiveChannel();
+
+            var detailFlags = userDetail.GetDetailFlags();
+            var clients = userDetail.User.ActiveClients.Select(o => o.ToString());
+
+            var embed = await UserInfoHelper.CreateSimpleEmbedAsync(userDetail, Context);
+            embed
+                .AddField("Práva", string.Join(", ", userDetail.User.GuildPermissions.GetPermissionsNames()), false);
+
+            if (clients.Any())
+                embed.AddField("Aktivní klienti", string.Join(", ", clients), false);
+
+            if (mostActiveChannel != null)
+                embed.AddField("Nejaktivnější kanál", $"#{mostActiveChannel.Channel.Name} ({mostActiveChannel.Count.FormatWithSpaces()})", false);
+
+            if (lastActiveChannel != null)
+                embed.AddField("Poslední zpráva v", $"#{lastActiveChannel.Channel.Name} ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false);
+
+            embed
+                .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);
+
+            await ReplyAsync(embed: embed.Build());
         }
     }
 }
