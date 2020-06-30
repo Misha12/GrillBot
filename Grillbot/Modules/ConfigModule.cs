@@ -3,6 +3,7 @@ using Grillbot.Attributes;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
@@ -24,20 +25,19 @@ namespace Grillbot.Modules
 
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]
-        [Remarks("commandInfo parametr je dvojce parametrů {group}/{method}\nonlyAdmins mohou nabývat hodnot true/false\nconfigJson je konfigurační JSON.")]
-        public async Task AddMethodAsync(string commandInfo, string onlyAdmins, [Remainder] JObject configJson)
+        [Remarks("command parametr je dvojce parametrů {group}/{method}\nonlyAdmins mohou nabývat hodnot true/false\nconfigJson je konfigurační JSON.")]
+        public async Task AddMethodAsync(GroupCommandMatch command, string onlyAdmins, [Remainder] JObject configJson)
         {
-            if (!commandInfo.Contains("/"))
+            if (command.MethodID != null)
             {
-                await ReplyAsync("Neplatný název skupina/metoda");
+                await ReplyAsync("Tato konfigurace již existuje.");
                 return;
             }
 
-            var groupAndCommand = commandInfo.Split('/');
             var adminsOnly = Convert.ToBoolean(onlyAdmins);
 
-            var config = ConfigRepository.AddConfig(Context.Guild, groupAndCommand[0], groupAndCommand[1], adminsOnly, configJson);
-            await ReplyAsync($"Konfigurační záznam `{commandInfo},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
+            var config = ConfigRepository.AddConfig(Context.Guild, command.Group, command.Command, adminsOnly, configJson);
+            await ReplyAsync($"Konfigurační záznam `{command},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
         }
 
         [Command("listMethods")]
@@ -56,11 +56,13 @@ namespace Grillbot.Modules
 
         [Command("switchOnlyAdmins")]
         [Summary("Přepne administrátorský režim pro metodu.")]
-        public async Task SwitchOnlyAdminsAsync(int methodID, string onlyAdmins)
+        public async Task SwitchOnlyAdminsAsync(GroupCommandMatch method, string onlyAdmins)
         {
             try
             {
-                ConfigRepository.UpdateMethod(Context.Guild, methodID, Convert.ToBoolean(onlyAdmins));
+                if (await CheckMissingMethodID(method)) return;
+
+                ConfigRepository.UpdateMethod(Context.Guild, method.MethodID.Value, Convert.ToBoolean(onlyAdmins));
                 await ReplyAsync("Příkaz byl úspěšně aktualizován.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -71,9 +73,11 @@ namespace Grillbot.Modules
 
         [Command("updateJsonConfig")]
         [Summary("Aktualizace configu")]
-        public async Task UpdateJsonConfigAsync(int methodID, [Remainder] JObject jsonConfig)
+        public async Task UpdateJsonConfigAsync(GroupCommandMatch method, [Remainder] JObject jsonConfig)
         {
-            ConfigRepository.UpdateMethod(Context.Guild, methodID, jsonConfig: jsonConfig);
+            if (await CheckMissingMethodID(method)) return;
+
+            ConfigRepository.UpdateMethod(Context.Guild, method.MethodID.Value, jsonConfig: jsonConfig);
             await ReplyAsync("Metoda byla úspěšně aktualizována").ConfigureAwait(false);
         }
 
@@ -81,43 +85,42 @@ namespace Grillbot.Modules
         [Summary("Přidá oprávnění pro metodu.")]
         [Remarks("targetID je discord ID (Pokud chcete povolit všem, použijte klíčové slovo everyone." +
             "\nPermType specifikuje, co znamená ID (Role=0, User=1)\nAllowType znamená typ povolení (Allow=0, Deny=1)")]
-        public async Task AddPermissionAsync(int methodID, string targetID, int permType, int allowType)
+        public async Task AddPermissionAsync(GroupCommandMatch method, string targetID, int permType, int allowType)
         {
-            await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
+            if (await CheckMissingMethodID(method)) return;
 
-            if (!string.Equals(targetID, "everyone", StringComparison.InvariantCultureIgnoreCase))
-            {
-                var id = Convert.ToUInt64(targetID);
+            await Context.Guild.SyncGuildAsync();
 
-                switch ((PermType)permType)
-                {
-                    case PermType.Role:
-                        if (Context.Guild.GetRole(id) == null)
-                        {
-                            await ReplyAsync("Taková role neexistuje");
-                            return;
-                        }
-                        break;
-                    case PermType.User:
-                        if (await Context.Guild.GetUserFromGuildAsync(id) == null)
-                        {
-                            await ReplyAsync("Takový uživatel neexistuje.");
-                            return;
-                        }
-                        break;
-                    case PermType.Everyone:
-                        await ReplyAsync("Pro povolení všem použij klíčové slovo `everyone` jako identifikátor.");
-                        return;
-                }
-            }
-            else
+            if (string.Equals(targetID, "everyone", StringComparison.InvariantCultureIgnoreCase))
             {
                 permType = (int)PermType.Everyone;
             }
 
+            var id = Convert.ToUInt64(targetID);
+            switch ((PermType)permType)
+            {
+                case PermType.Role:
+                    if (Context.Guild.GetRole(id) == null)
+                    {
+                        await ReplyAsync("Taková role neexistuje");
+                        return;
+                    }
+                    break;
+                case PermType.User:
+                    if (await Context.Guild.GetUserFromGuildAsync(id) == null)
+                    {
+                        await ReplyAsync("Takový uživatel neexistuje.");
+                        return;
+                    }
+                    break;
+                case PermType.Everyone when !string.Equals(targetID, "everyone", StringComparison.InvariantCultureIgnoreCase):
+                    await ReplyAsync("Pro povolení všem použij klíčové slovo `everyone` jako identifikátor.");
+                    return;
+            }
+
             try
             {
-                ConfigRepository.AddPermission(Context.Guild, methodID, targetID, (PermType)permType, (AllowType)allowType);
+                ConfigRepository.AddPermission(Context.Guild, method.MethodID.Value, targetID, (PermType)permType, (AllowType)allowType);
                 await ReplyAsync("Oprávnění bylo úspěšně přidáno.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -128,14 +131,15 @@ namespace Grillbot.Modules
 
         [Command("listPermissions")]
         [Summary("Získá seznam oprávnění.")]
-        public async Task ListPermissionsAsync(int methodID)
+        public async Task ListPermissionsAsync(GroupCommandMatch method)
         {
+            if (await CheckMissingMethodID(method)) return;
             await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
 
-            var method = ConfigRepository.GetMethod(Context.Guild, methodID);
-            await ReplyAsync($"ID: `{method.ID}`\nSkupina/Příkaz: `{method.Group}/{method.Command}`\nOnlyAdmins: `{method.OnlyAdmins}`").ConfigureAwait(false);
+            var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
+            await ReplyAsync($"ID: `{config.ID}`\nSkupina/Příkaz: `{config.Group}/{config.Command}`\nOnlyAdmins: `{config.OnlyAdmins}`").ConfigureAwait(false);
 
-            var rowsData = method.Permissions.Select(o =>
+            var rowsData = config.Permissions.Select(o =>
             {
                 switch (o.PermType)
                 {
@@ -165,17 +169,32 @@ namespace Grillbot.Modules
 
         [Command("removePermission")]
         [Summary("Smazání oprávnění.")]
-        public async Task RemovePermissionAsync(int methodID, int permID)
+        public async Task RemovePermissionAsync(GroupCommandMatch method, int permID)
         {
-            ConfigRepository.RemovePermission(Context.Guild, methodID, permID);
+            if (await CheckMissingMethodID(method)) return;
+
+            ConfigRepository.RemovePermission(Context.Guild, method.MethodID.Value, permID);
             await ReplyAsync("Oprávnění bylo odebráno").ConfigureAwait(false);
         }
 
         [Command("getJsonConfig")]
-        public async Task GetJsonConfig(int methodID)
+        public async Task GetJsonConfig(GroupCommandMatch method)
         {
-            var config = ConfigRepository.GetMethod(Context.Guild, methodID);
+            if (await CheckMissingMethodID(method)) return;
+
+            var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
             await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
+        }
+
+        private async Task<bool> CheckMissingMethodID(GroupCommandMatch command)
+        {
+            if (command.MethodID == null)
+            {
+                await ReplyAsync($"Hledaná konfigurace pro metodu `{command}` nebyla nalezena.");
+                return true;
+            }
+
+            return false;
         }
     }
 }

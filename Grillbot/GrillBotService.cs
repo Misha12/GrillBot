@@ -21,6 +21,7 @@ using Grillbot.Modules;
 using System.Collections.Generic;
 using Newtonsoft.Json;
 using Microsoft.Extensions.Logging;
+using Grillbot.Models;
 
 namespace Grillbot
 {
@@ -66,6 +67,7 @@ namespace Grillbot
             await SetActivity(Config.Discord.Activity);
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
+            Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }

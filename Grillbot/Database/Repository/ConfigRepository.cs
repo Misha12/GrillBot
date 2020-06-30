@@ -91,7 +91,7 @@ namespace Grillbot.Database.Repository
             return item;
         }
 
-        public MethodsConfig GetMethod(SocketGuild guild, int methodID)
+        public MethodsConfig GetMethod(IGuild guild, int methodID)
         {
             var item = GetBaseQuery(true)
                 .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
