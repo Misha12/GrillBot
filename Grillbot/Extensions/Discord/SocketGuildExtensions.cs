@@ -87,7 +87,7 @@ namespace Grillbot.Extensions.Discord
                 .OrderBy(o => o.JoinedAt)
                 .ToList();
 
-            return positions.FindIndex(o => o == user);
+            return positions.FindIndex(o => o == user) + 1;
         }
     }
 }
