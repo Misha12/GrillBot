@@ -22,8 +22,8 @@ namespace Grillbot.Modules
             UserService = userService;
         }
 
-        [Command]
-        [Summary("<FromModule>")]
+        [Command("")]
+        [Summary("<FromModule(Name)>")]
         public async Task InfoAboutMeAsync()
         {
             var user = Context.User is SocketGuildUser usr ? usr : await Context.Guild.GetUserFromGuildAsync(Context.User.Id);

@@ -78,9 +78,21 @@ namespace Grillbot.Services
 
             var field = new EmbedFieldBuilder()
                 .WithName(builder.ToString())
-                .WithValue(string.IsNullOrEmpty(command.Summary) ? "-" : command.Summary);
+                .WithValue(ProcessSummary(command));
 
             page.AddField(field);
+        }
+
+        private string ProcessSummary(CommandInfo command)
+        {
+            if (string.IsNullOrEmpty(command.Summary))
+                return "-";
+
+            return (command.Summary.ToLower()) switch
+            {
+                "<frommodule(name)>" => command.Module.Name,
+                _ => command.Summary,
+            };
         }
 
         public async Task<BotEmbed> RenderCommandHelpAsync(string command, SocketCommandContext context)
