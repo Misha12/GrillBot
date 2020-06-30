@@ -211,7 +211,8 @@ namespace Grillbot.Services
         public static IServiceCollection AddUserManagement(this IServiceCollection services)
         {
             services
-                .AddSingleton<UserService>();
+                .AddSingleton<UserService>()
+                .AddTransient<PointsService>();
 
             return services;
         }
