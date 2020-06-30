@@ -77,5 +77,17 @@ namespace Grillbot.Extensions.Discord
         {
             return guild.Channels.OfType<SocketVoiceChannel>().Count();
         }
+
+        public static async Task<int> CalculateJoinPositionAsync(this SocketGuild guild, SocketGuildUser user)
+        {
+            await guild.SyncGuildAsync();
+
+            var positions = guild.Users
+                .Where(o => o.JoinedAt != null)
+                .OrderBy(o => o.JoinedAt)
+                .ToList();
+
+            return positions.FindIndex(o => o == user);
+        }
     }
 }
