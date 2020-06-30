@@ -4,17 +4,11 @@
 
 ```json
 {
-    "PreprocessRemoveAccess": [
-        "461541385204400140",
-        "635169501771464704",
-        "592677233538367498"
-    ],
     "MutedRoleID": 665205984330907668
 }
 ```
 
 - Muted role ID is optional. If role with this ID not exists, so it will be ignored
-- PreprocessRemoveAccess is array of channel ID. If channel with this ID not exists, so it will be ignored.
 
 ## Selfunverify
 
