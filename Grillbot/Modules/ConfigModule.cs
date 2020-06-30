@@ -188,11 +188,13 @@ namespace Grillbot.Modules
 
         [Command("removeMethod")]
         [Summary("Smazání metody")]
-        public async Task RemoveMethodAsync(int methodID)
+        public async Task RemoveMethodAsync(GroupCommandMatch method)
         {
+            if (await CheckMissingMethodID(method)) return;
+
             try
             {
-                ConfigRepository.RemoveMethod(Context.Guild.Id, methodID);
+                ConfigRepository.RemoveMethod(Context.Guild.Id, method.MethodID.Value);
                 await ReplyAsync("Metoda byla odebrána.");
             }
             catch(InvalidOperationException ex)
