@@ -77,10 +77,5 @@ namespace Grillbot.Extensions.Discord
         {
             return guild.Channels.OfType<SocketVoiceChannel>().Count();
         }
-
-        public static SocketRole FindMutedRole(this SocketGuild guild)
-        {
-            return guild.Roles.FirstOrDefault(o => o.IsMutedRole());
-        }
     }
 }

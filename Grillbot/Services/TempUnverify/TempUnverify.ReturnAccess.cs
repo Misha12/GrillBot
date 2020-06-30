@@ -6,10 +6,10 @@ using System;
 using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.Extensions.Logging;
-using Grillbot.Extensions;
 using Grillbot.Exceptions;
 using Grillbot.Database.Repository;
 using Microsoft.Extensions.DependencyInjection;
+using System.Collections.Generic;
 
 namespace Grillbot.Services.TempUnverify
 {
@@ -34,6 +34,8 @@ namespace Grillbot.Services.TempUnverify
                 var guild = Client.GetGuild(unverify.GuildIDSnowflake);
                 if (guild == null) return;
 
+                var config = GetConfig(guild);
+
                 var user = guild.GetUserFromGuildAsync(unverify.UserIDSnowflake).Result;
                 if (user == null)
                 {
@@ -56,16 +58,21 @@ namespace Grillbot.Services.TempUnverify
                     .Where(o => o.channel != null)
                     .ToList();
 
-                user.AddRolesAsync(roles).RunSync();
+                var tasks = new List<Task>()
+                {
+                    user.AddRolesAsync(roles)
+                };
+
                 foreach (var channelOverride in overrides)
                 {
-                    channelOverride.channel
-                        .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions())
-                        .RunSync();
+                    var task = channelOverride.channel
+                        .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions());
+
+                    tasks.Add(task);
                 }
 
-                FindAndToggleMutedRoleAsync(user, guild, false).RunSync();
-                RemoveOverwritesForPreprocessedChannels(user, guild, overrides.Select(o => o.channelOverride).ToList()).RunSync();
+                tasks.Add(FindAndToggleMutedRoleAsync(user, guild, config.MutedRoleID, false));
+                Task.WaitAll(tasks.ToArray());
 
                 repository.RemoveItem(unverify.ID);
                 unverify.Dispose();

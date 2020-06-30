@@ -2,7 +2,6 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Entity;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -21,7 +20,7 @@ namespace Grillbot.Services.TempUnverify
 
             foreach (var user in users)
             {
-                checker.Validate(user, guild, false, null);
+                checker.Validate(user, guild, false);
             }
 
             var reason = scope.ServiceProvider.GetService<TempUnverifyReasonParser>().Parse(data);
@@ -44,10 +43,11 @@ namespace Grillbot.Services.TempUnverify
             SocketUser fromUser, SocketGuild guild, bool ignoreHigherRoles, string[] subjects)
         {
             using var scope = Provider.CreateScope();
+            var unverifyConfig = GetConfig(guild);
 
             var rolesToRemove = user.Roles
-                .Where(o => !o.IsEveryone && !o.IsManaged && !o.IsMutedRole())
-                .ToList(); // Ignore Muted roles.
+                .Where(o => !o.IsEveryone && !o.IsManaged && o.Id != unverifyConfig.MutedRoleID)
+                .ToList(); // Ignore Muted role.
 
             if (ignoreHigherRoles)
             {
@@ -56,21 +56,19 @@ namespace Grillbot.Services.TempUnverify
                 rolesToRemove = rolesToRemove.Where(o => o.Position < botMaxRolePosition).ToList();
             }
 
-            if (subjects != null && subjects.Length > 0)
-            {
-                rolesToRemove = rolesToRemove.Where(role => !subjects.Contains(role.Name.ToLower())).ToList();
-            }
+            using var roleManager = scope.ServiceProvider.GetService<TempUnverifyRoleManager>();
+            var rolesToKeep = await roleManager.GetRolesToKeepAsync(subjects, user, guild);
+
+            if (rolesToKeep.Count > 0)
+                rolesToRemove = rolesToRemove.Where(o => !rolesToKeep.Contains(o)).ToList();
 
             var rolesToRemoveIDs = rolesToRemove.Select(o => o.Id).ToList();
             var overrides = GetChannelOverrides(user);
 
             using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
-            logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, user, fromUser, guild, ignoreHigherRoles, subjects);
+            logService.LogSet(overrides, rolesToRemoveIDs, unverifyTime, reason, user, fromUser, guild, ignoreHigherRoles, rolesToKeep);
 
-            if (subjects == null || subjects.Length == 0)
-                await FindAndToggleMutedRoleAsync(user, guild, true);
-
-            await PreRemoveAccessToPublicChannels(user, guild); // Set SendMessage: Deny for extra channels.
+            await FindAndToggleMutedRoleAsync(user, guild, unverifyConfig.MutedRoleID, true);
             await user.RemoveRolesAsync(rolesToRemove); // Remove all roles for user.
 
             // Remove all extra channel permissions.
@@ -79,7 +77,7 @@ namespace Grillbot.Services.TempUnverify
                 var channel = user.Guild.GetChannel(channelOverride.ChannelIdSnowflake);
 
                 // Where had access, now not have.
-                channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
+                await channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
             }
 
             using var repository = scope.ServiceProvider.GetService<TempUnverifyRepository>();

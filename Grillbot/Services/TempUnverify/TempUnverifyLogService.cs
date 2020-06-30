@@ -26,7 +26,7 @@ namespace Grillbot.Services.TempUnverify
         }
 
         public void LogSet(List<ChannelOverride> overrides, List<ulong> roleIDs, int unverifyTime, string reason, IUser toUser, IUser fromUser,
-            IGuild guild, bool isSelfUnverify, string[] subjects)
+            IGuild guild, bool isSelfUnverify, List<SocketRole> rolesToKeep)
         {
             var data = new UnverifyLogSet()
             {
@@ -36,7 +36,7 @@ namespace Grillbot.Services.TempUnverify
                 StartAt = DateTime.Now,
                 TimeFor = unverifyTime.ToString(),
                 IsSelfUnverify = isSelfUnverify,
-                Subjects = subjects?.ToList() ?? new List<string>()
+                Subjects = rolesToKeep?.Select(o => o.Name)?.ToList() ?? new List<string>()
             };
 
             Save(UnverifyLogOperation.Set, fromUser, toUser, guild, data);

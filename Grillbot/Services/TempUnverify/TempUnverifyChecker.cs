@@ -1,12 +1,9 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Models.Config.Dynamic;
 using Microsoft.Extensions.Options;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
@@ -14,43 +11,21 @@ namespace Grillbot.Services.TempUnverify
 {
     public class TempUnverifyChecker : IDisposable
     {
-        private ConfigRepository ConfigRepository { get; }
         private Configuration Config { get; }
         private TempUnverifyRepository Repository { get; }
 
-        public TempUnverifyChecker(ConfigRepository configRepository, IOptions<Configuration> options, TempUnverifyRepository repository)
+        public TempUnverifyChecker(IOptions<Configuration> options, TempUnverifyRepository repository)
         {
-            ConfigRepository = configRepository;
             Repository = repository;
             Config = options.Value;
         }
 
-        public void Validate(SocketGuildUser user, SocketGuild guild, bool selfunverify, List<string> subjects)
+        public void Validate(SocketGuildUser user, SocketGuild guild, bool selfunverify)
         {
-            ValidateSubjects(selfunverify, subjects, guild);
             ValidateServerOwner(guild, user);
             ValidateCurrentlyUnverifiedUsers(user);
             ValidateRoles(guild, user, selfunverify);
             ValidateBotAdmin(selfunverify, user);
-        }
-
-        private void ValidateSubjects(bool selfunverify, List<string> subjects, SocketGuild guild)
-        {
-            if (!selfunverify || subjects?.Count <= 0)
-                return;
-
-            var config = ConfigRepository.FindConfig(guild.Id, "selfunverify", "").GetData<SelfUnverifyConfig>();
-
-            if (subjects.Count > config.MaxSubjectsCount)
-                throw new ValidationException($"Je možné si ponechat maximálně {config.MaxSubjectsCount} rolí.");
-
-            var invalidSubjects = subjects
-                .Select(o => o.ToLower())
-                .Where(subject => !config.Subjects.Contains(subject))
-                .ToArray();
-            
-            if (invalidSubjects.Length > 0)
-                throw new ValidationException($"`{string.Join(", ", invalidSubjects)}` nejsou předmětové role.");
         }
 
         private void ValidateServerOwner(SocketGuild guild, SocketGuildUser user)
@@ -89,7 +64,6 @@ namespace Grillbot.Services.TempUnverify
         public void Dispose()
         {
             Repository.Dispose();
-            ConfigRepository.Dispose();
         }
     }
 }
