@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Models.Duck
+﻿namespace Grillbot.Enums
 {
     public enum DuckState
     {

@@ -1,4 +1,5 @@
 ﻿using System;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 

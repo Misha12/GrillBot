@@ -1,4 +1,6 @@
-﻿namespace Grillbot.Models.Users
+﻿using Grillbot.Enums;
+
+namespace Grillbot.Models.Users
 {
     public class WebAdminUserListFilter
     {

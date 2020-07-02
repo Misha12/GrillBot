@@ -1,4 +1,5 @@
-﻿using System;
+﻿using Grillbot.Enums;
+using System;
 
 namespace Grillbot.Services.Permissions.Api
 {

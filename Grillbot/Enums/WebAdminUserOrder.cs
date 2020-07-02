@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Models.Users
+﻿namespace Grillbot.Enums
 {
     public enum WebAdminUserOrder
     {

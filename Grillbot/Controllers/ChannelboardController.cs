@@ -1,5 +1,6 @@
 ﻿using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Channelboard;
 using Grillbot.Services.Channelboard;

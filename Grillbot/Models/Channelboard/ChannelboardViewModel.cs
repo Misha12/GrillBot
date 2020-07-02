@@ -1,4 +1,5 @@
 ﻿using Discord.WebSocket;
+using Grillbot.Enums;
 using Grillbot.Models.Users;
 using System.Collections.Generic;
 

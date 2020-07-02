@@ -1,6 +1,6 @@
 ﻿using System;
 
-namespace Grillbot.Services.AutoReply
+namespace Grillbot.Enums
 {
     [Flags]
     public enum AutoReplyParams

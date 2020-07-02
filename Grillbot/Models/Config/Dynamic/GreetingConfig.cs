@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Grillbot.Enums;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
 
 namespace Grillbot.Models.Config.Dynamic

@@ -1,6 +1,7 @@
 ﻿using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Grillbot.Enums;
 using Grillbot.Exceptions;
 using Grillbot.Models;
 using Grillbot.Models.Users;

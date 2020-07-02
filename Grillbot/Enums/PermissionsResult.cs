@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Services.Permissions
+﻿namespace Grillbot.Enums
 {
     public enum PermissionsResult
     {
