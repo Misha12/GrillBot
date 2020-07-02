@@ -1,8 +1,7 @@
 ﻿using Discord;
-using Grillbot.Models.Embed;
 using System.Collections.Generic;
 
-namespace Grillbot.Models.PaginatedEmbed
+namespace Grillbot.Models.Embed.PaginatedEmbed
 {
     public class PaginatedEmbed
     {

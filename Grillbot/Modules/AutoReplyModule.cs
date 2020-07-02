@@ -3,7 +3,7 @@ using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Enums;
 using Grillbot.Extensions;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;

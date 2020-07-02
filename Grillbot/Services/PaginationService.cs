@@ -1,6 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;

@@ -5,7 +5,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
