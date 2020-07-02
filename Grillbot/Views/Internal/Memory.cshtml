@@ -11,22 +11,22 @@
                 <div class="row">
                     <div class="col">
                         <b>Celkem alokováno paměti:</b><br />
-                        @FormatHelper.FormatAsSize(Model.TotalAllocatedBytes)
+                        @Model.TotalAllocatedBytes.FormatAsSize()
                     </div>
 
                     <div class="col">
                         <b>Ve spravované paměti:</b><br />
-                        @FormatHelper.FormatAsSize(Model.TotalManagedMemory)
+                        @Model.TotalManagedMemory.FormatAsSize()
                     </div>
 
                     <div class="col">
                         <b>Fragmentace:</b><br />
-                        @FormatHelper.FormatAsSize(Model.MemoryInfo.FragmentedBytes)
+                        @Model.MemoryInfo.FragmentedBytes.FormatAsSize()
                     </div>
 
                     <div class="col">
                         <b>Na haldě:</b><br />
-                        @FormatHelper.FormatAsSize(Model.MemoryInfo.HeapSizeBytes)
+                        @Model.MemoryInfo.HeapSizeBytes.FormatAsSize()
                     </div>
                 </div>
             </div>
