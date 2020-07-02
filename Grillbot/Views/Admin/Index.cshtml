@@ -35,8 +35,8 @@
                         </div>
 
                         <div class="col">
-                            <b>Online/Idle/DoNotDisturb/Offline:</b><br />
-                            @Model.ActivityStats.Online.FormatWithSpaces()/@Model.ActivityStats.Idle.FormatWithSpaces()/@Model.ActivityStats.DoNotDisturb.FormatWithSpaces()/@Model.ActivityStats.Offline.FormatWithSpaces()
+                            <b>Online: </b>@Model.ActivityStats.Online.FormatWithSpaces()<br />
+                            <b>Idle: </b>@Model.ActivityStats.Idle.FormatWithSpaces()
                         </div>
                     </div>
 
@@ -61,7 +61,10 @@
                             @Model.ConnectionState / @Model.LoginState
                         </div>
 
-                        <div class="col"></div>
+                        <div class="col">
+                            <b>DoNotDisturb: </b>@Model.ActivityStats.DoNotDisturb.FormatWithSpaces()<br />
+                            <b>Offline: </b>@Model.ActivityStats.Offline.FormatWithSpaces()
+                        </div>
                     </div>
                 </div>
             </div>
