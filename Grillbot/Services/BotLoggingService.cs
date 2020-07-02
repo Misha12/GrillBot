@@ -34,7 +34,7 @@ namespace Grillbot.Services
             Client = client;
             Commands = commands;
             Logger = logger;
-            LogRoom = config.Value.Discord.ErrorLogChannelIDSnowflake;
+            LogRoom = config.Value.Discord.ErrorLogChannelID;
             Services = services;
         }
 

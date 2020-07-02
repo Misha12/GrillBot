@@ -11,16 +11,16 @@ namespace Grillbot.Models.Config.AppSettings
         public int EmoteChain_CheckLastCount { get; set; }
         public DiscordConfig Discord { get; set; }
 
-        public List<string> Administrators { get; set; }
+        public List<ulong> Administrators { get; set; }
 
         public Configuration()
         {
-            Administrators = new List<string>();
+            Administrators = new List<ulong>();
         }
 
         public bool IsUserBotAdmin(ulong id)
         {
-            return Administrators.Any(o => o == id.ToString());
+            return Administrators.Contains(id);
         }
     }
 }

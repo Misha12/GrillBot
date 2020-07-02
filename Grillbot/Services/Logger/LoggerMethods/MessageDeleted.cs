@@ -115,6 +115,10 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 }
 
                 var loggerChannel = GetLoggerRoom();
+
+                if (loggerChannel == null)
+                    return;
+
                 await loggerChannel.SendMessageAsync(embed: logEmbedBuilder.Build()).ConfigureAwait(false);
                 foreach (var stream in streams)
                 {

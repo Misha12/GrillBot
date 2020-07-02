@@ -30,8 +30,12 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         protected ISocketMessageChannel GetLoggerRoom(bool adminChannel = false)
         {
-            var id = !adminChannel ? Convert.ToUInt64(Config.Discord.LoggerRoomID) : Config.Discord.AdminChannelSnowflakeID;
-            var channel = Client.GetChannel(id);
+            var id = !adminChannel ? Config.Discord.LoggerRoomID : Config.Discord.AdminChannelID;
+
+            if (id == null)
+                return null;
+
+            var channel = Client.GetChannel(id.Value);
 
             if (channel == null)
                 throw new BotException($"Cannot find logger room with ID {id}");
@@ -42,6 +46,10 @@ namespace Grillbot.Services.Logger.LoggerMethods
         protected async Task<RestUserMessage> SendEmbedAsync(LogEmbedBuilder embedBuilder)
         {
             var loggerRoom = GetLoggerRoom();
+
+            if (loggerRoom == null)
+                return null;
+
             return await loggerRoom.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
         }
 
