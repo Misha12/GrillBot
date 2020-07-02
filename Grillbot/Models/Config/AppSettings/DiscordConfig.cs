@@ -1,6 +1,4 @@
 ﻿using Discord.WebSocket;
-using Newtonsoft.Json;
-using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,35 +11,14 @@ namespace Grillbot.Models.Config.AppSettings
         public ulong ClientId { get; set; }
         public string ClientSecret { get; set; }
         public string UserJoinedMessage { get; set; }
-        public string LoggerRoomID { get; set; }
-        public string ServerBoosterRoleId { get; set; }
-        public string AdminChannelID { get; set; }
-        public string ErrorLogChannelID { get; set; }
-
-        [JsonIgnore]
-        public ulong ServerBoosterRoleIdSnowflake
-        {
-            get => Convert.ToUInt64(ServerBoosterRoleId);
-            set => ServerBoosterRoleId = value.ToString();
-        }
+        public ulong? LoggerRoomID { get; set; }
+        public ulong? ServerBoosterRoleId { get; set; }
+        public ulong? AdminChannelID { get; set; }
+        public ulong? ErrorLogChannelID { get; set; }
 
         public bool IsBooster(IReadOnlyCollection<SocketRole> roles)
         {
-            return roles.Any(o => o.Id == ServerBoosterRoleIdSnowflake);
-        }
-
-        [JsonIgnore]
-        public ulong AdminChannelSnowflakeID
-        {
-            get => Convert.ToUInt64(AdminChannelID);
-            set => AdminChannelID = value.ToString();
-        }
-
-        [JsonIgnore]
-        public ulong? ErrorLogChannelIDSnowflake
-        {
-            get => Convert.ToUInt64(ErrorLogChannelID);
-            set => ErrorLogChannelID = value?.ToString();
+            return roles.Any(o => o.Id == ServerBoosterRoleId);
         }
     }
 }
