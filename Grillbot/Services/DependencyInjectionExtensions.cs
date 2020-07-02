@@ -212,7 +212,8 @@ namespace Grillbot.Services
         {
             services
                 .AddSingleton<UserService>()
-                .AddTransient<PointsService>();
+                .AddTransient<PointsService>()
+                .AddTransient<BirthdayService>();
 
             return services;
         }

@@ -1,5 +1,6 @@
 ﻿using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Helpers;
 using Grillbot.Models.Users;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -47,7 +48,7 @@ namespace Grillbot.Services.UserManagement
             if (user == null)
                 return null;
 
-            return await MapUserAsync(user, null);
+            return await UserHelper.MapUserAsync(DiscordClient, user, null);
         }
 
         public async Task IncrementApiCallStatistics(string apiToken)

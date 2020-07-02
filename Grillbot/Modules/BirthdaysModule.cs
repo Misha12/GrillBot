@@ -23,18 +23,18 @@ namespace Grillbot.Modules
     [ModuleID("BirthdaysModule")]
     public class BirthdaysModule : BotModuleBase
     {
-        private UserService UserService { get; }
+        private BirthdayService BirthdayService { get; }
 
-        public BirthdaysModule(IOptions<Configuration> options, UserService userService, PaginationService paginationService)
+        public BirthdaysModule(IOptions<Configuration> options, BirthdayService birthdayService, PaginationService paginationService)
             : base(options, paginationService: paginationService)
         {
-            UserService = userService;
+            BirthdayService = birthdayService;
         }
 
         [Command("")]
         public async Task GetTodayBirthdayAsync()
         {
-            var birthdayUsers = await UserService.GetUsersWithTodayBirthdayAsync(Context.Guild);
+            var birthdayUsers = await BirthdayService.GetUsersWithTodayBirthdayAsync(Context.Guild);
 
             if (birthdayUsers.Count == 0)
             {
@@ -73,11 +73,11 @@ namespace Grillbot.Modules
             {
                 if (DateTime.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
                 {
-                    UserService.SetBirthday(Context.Guild, Context.User, dateTime, true);
+                    BirthdayService.SetBirthday(Context.Guild, Context.User, dateTime, true);
                 }
                 else if (DateTime.TryParseExact(date, "dd/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
                 {
-                    UserService.SetBirthday(Context.Guild, Context.User, dateTime, false);
+                    BirthdayService.SetBirthday(Context.Guild, Context.User, dateTime, false);
                 }
                 else
                 {
@@ -85,12 +85,13 @@ namespace Grillbot.Modules
                 }
 
                 await ReplyAsync("Datum narození bylo úspěšně přidáno.");
-                await Context.Message.DeleteAsync(new Discord.RequestOptions() { AuditLogReason = $"Birthday create for {Context.User.GetShortName()}" });
             }
             catch (ValidationException ex)
             {
                 await ReplyAsync(ex.Message);
             }
+
+            await Context.Message.DeleteAsync(new Discord.RequestOptions() { AuditLogReason = $"Birthday create for {Context.User.GetShortName()}" });
         }
 
         [Command("remove")]
@@ -99,13 +100,29 @@ namespace Grillbot.Modules
         {
             try
             {
-                UserService.ClearBirthday(Context.Guild, Context.User);
+                BirthdayService.ClearBirthday(Context.Guild, Context.User);
                 await ReplyAsync("Datum narození bylo odebráno.");
             }
             catch (ValidationException ex)
             {
                 await ReplyAsync(ex.Message);
             }
+        }
+
+        [Command("have?")]
+        [Summary("Mám uložené narozeniny?")]
+        public async Task Have()
+        {
+            var have = await BirthdayService.HaveUserBirthday(Context.Guild, Context.User);
+            await ReplyAsync($"{Context.User.Mention} {(have ? "máš" : "nemáš")} uložené narozeniny.");
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                BirthdayService.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }
