@@ -8,12 +8,12 @@ using System.Threading.Tasks;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
 using System.ComponentModel.DataAnnotations;
-using Grillbot.Models.PaginatedEmbed;
 using System.Collections.Generic;
 using Discord;
 using Grillbot.Extensions;
 using Grillbot.Services;
 using Grillbot.Attributes;
+using Grillbot.Models.Embed.PaginatedEmbed;
 
 namespace Grillbot.Modules
 {

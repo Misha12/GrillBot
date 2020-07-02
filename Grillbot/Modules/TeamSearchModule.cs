@@ -10,7 +10,7 @@ using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TeamSearch;

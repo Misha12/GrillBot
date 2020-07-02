@@ -5,7 +5,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Logging;

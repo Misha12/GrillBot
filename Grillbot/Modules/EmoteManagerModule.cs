@@ -2,7 +2,7 @@
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Models.Embed;
-using Grillbot.Models.PaginatedEmbed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.Statistics;

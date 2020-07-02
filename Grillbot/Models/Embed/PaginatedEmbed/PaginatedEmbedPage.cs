@@ -3,7 +3,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace Grillbot.Models.PaginatedEmbed
+namespace Grillbot.Models.Embed.PaginatedEmbed
 {
     public class PaginatedEmbedPage
     {
