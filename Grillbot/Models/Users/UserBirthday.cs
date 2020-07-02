@@ -1,8 +1,5 @@
 ﻿using Grillbot.Database.Entity.Users;
 using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Models.Users
 {
@@ -11,10 +8,10 @@ namespace Grillbot.Models.Users
         public DateTime DateTime { get; set; }
         public bool AcceptAge { get; set; }
 
-        public bool HaveTodayBirthday()
+        public static bool HaveTodayBirthday(DateTime dateTime)
         {
             var today = DateTime.Today;
-            return DateTime.Date.Day == today.Day && DateTime.Date.Month == today.Month;
+            return dateTime.Date.Day == today.Day && dateTime.Date.Month == today.Month;
         }
 
         public UserBirthday(BirthdayDate birthday)

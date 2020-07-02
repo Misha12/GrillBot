@@ -53,9 +53,8 @@ namespace Grillbot.Services.UserManagement
 
             var usersWithBirthday = repository.GetUsersWithBirthday(guild.Id);
             var result = new List<DiscordUser>();
-            var today = DateTime.Today;
 
-            foreach(var user in usersWithBirthday.Where(o => o.Birthday.Date.Day == today.Day && o.Birthday.Date.Month == today.Month))
+            foreach(var user in usersWithBirthday.Where(o => UserBirthday.HaveTodayBirthday(o.Birthday.Date)))
             {
                 var mappedUser = await MapUserAsync(user, null);
 
