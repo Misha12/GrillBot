@@ -8,8 +8,6 @@ namespace Grillbot.Models.Config.AppSettings
     {
         public string Activity { get; set; }
         public string Token { get; set; }
-        public ulong ClientId { get; set; }
-        public string ClientSecret { get; set; }
         public string UserJoinedMessage { get; set; }
         public ulong? LoggerRoomID { get; set; }
         public ulong? ServerBoosterRoleId { get; set; }
