@@ -30,11 +30,17 @@ namespace Grillbot.Services.Initiable
 
         public async Task InitAsync()
         {
-            foreach(var service in GetInitiables())
-            {
-                await service.InitAsync();
-                Logger.LogInformation($"Initialized service {service.GetType().Name} (async).");
-            }
+            var tasks = GetInitiables()
+                .Select(o => InitServiceAsync(o))
+                .ToArray();
+
+            await Task.WhenAll(tasks);
+        }
+
+        private async Task InitServiceAsync(Initiable.IInitiable service)
+        {
+            await service.InitAsync();
+            Logger.LogInformation($"Initialized service {service.GetType().Name} (async).");
         }
 
         private List<IInitiable> GetInitiables()
