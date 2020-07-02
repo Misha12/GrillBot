@@ -12,6 +12,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Helpers;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -45,7 +46,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in dbUsers)
             {
-                var mappedUser = await MapUserAsync(user, null);
+                var mappedUser = await UserHelper.MapUserAsync(DiscordClient, user, null);
                 if (mappedUser != null)
                     users.Add(mappedUser);
             }
@@ -65,7 +66,7 @@ namespace Grillbot.Services.UserManagement
                 return null;
 
             var unverifyHistory = await unverifyLogService.GetUnverifyHistoryOfUserAsync(userData);
-            return await MapUserAsync(userData, unverifyHistory);
+            return await UserHelper.MapUserAsync(DiscordClient, userData, unverifyHistory);
         }
 
         public async Task<DiscordUser> GetUserDetailAsync(SocketGuild guild, SocketUser user)
@@ -79,21 +80,6 @@ namespace Grillbot.Services.UserManagement
                 return null;
 
             return await GetUserAsync(userId.Value);
-        }
-
-        private async Task<DiscordUser> MapUserAsync(DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
-        {
-            var guild = DiscordClient.GetGuild(dbUser.GuildIDSnowflake);
-
-            if (guild == null)
-                return null;
-
-            var socketUser = await guild.GetUserFromGuildAsync(dbUser.UserIDSnowflake);
-
-            if (socketUser == null)
-                return null;
-
-            return new DiscordUser(guild, socketUser, dbUser, unverifyHistory);
         }
 
         public void IncrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)
