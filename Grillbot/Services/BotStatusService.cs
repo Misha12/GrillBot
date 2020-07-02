@@ -90,14 +90,11 @@ namespace Grillbot.Services
             {
                 var messageCache = MessageCache.GetFromChannel(channel.Id);
 
-                var item = new CacheStatus(channel)
+                result.Add(new CacheStatus(channel)
                 {
                     InternalCacheCount = channel.CachedMessages.Count,
                     MessageCacheCount = messageCache.Count(),
-                };
-
-                if (item.InternalCacheCount > 0 || item.MessageCacheCount > 0)
-                    result.Add(item);
+                });
             }
 
             return result;
