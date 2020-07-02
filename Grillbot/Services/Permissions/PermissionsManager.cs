@@ -2,6 +2,7 @@
 using Discord.WebSocket;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
+using Grillbot.Enums;
 using Grillbot.Models.Config.AppSettings;
 using Microsoft.Extensions.Options;
 using System;

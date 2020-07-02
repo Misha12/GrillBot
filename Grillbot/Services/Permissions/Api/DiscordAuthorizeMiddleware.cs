@@ -1,4 +1,5 @@
-﻿using Grillbot.Extensions.Discord;
+﻿using Grillbot.Enums;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;

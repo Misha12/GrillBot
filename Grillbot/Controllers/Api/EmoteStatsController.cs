@@ -1,5 +1,6 @@
 ﻿using System.Linq;
 using System.Threading.Tasks;
+using Grillbot.Enums;
 using Grillbot.Services.Permissions.Api;
 using Grillbot.Services.Statistics;
 using Microsoft.AspNetCore.Mvc;

@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Services.Permissions.Api
+﻿namespace Grillbot.Enums
 {
     public enum AccessType
     {

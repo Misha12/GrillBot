@@ -1,11 +1,11 @@
 ﻿using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Enums;
 using Grillbot.Extensions;
 using Grillbot.Models.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services;
-using Grillbot.Services.AutoReply;
 using Grillbot.Services.Permissions.Preconditions;
 using System;
 using System.Collections.Generic;

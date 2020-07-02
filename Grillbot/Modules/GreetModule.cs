@@ -9,6 +9,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Attributes;
+using Grillbot.Enums;
 
 namespace Grillbot.Modules
 {

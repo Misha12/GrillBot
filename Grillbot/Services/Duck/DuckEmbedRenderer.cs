@@ -1,4 +1,5 @@
 ﻿using Discord;
+using Grillbot.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
