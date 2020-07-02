@@ -8,7 +8,7 @@ namespace Grillbot.Models.Channelboard
     public class ChannelboardViewModel
     {
         public List<ChannelStatItem> Items { get; set; }
-        public ChannelboardWebGuild Guild { get; set; }
+        public SocketGuild Guild { get; set; }
         public SimpleUserInfo User { get; set; }
         public ChannelboardErrors Error { get; set; }
 
@@ -19,8 +19,7 @@ namespace Grillbot.Models.Channelboard
 
         public ChannelboardViewModel(SocketGuild guild, SocketGuildUser user, List<ChannelStatItem> items)
         {
-            if (guild != null)
-                Guild = ChannelboardWebGuild.Create(guild);
+            Guild = guild;
 
             if (user != null)
                 User = SimpleUserInfo.Create(user);

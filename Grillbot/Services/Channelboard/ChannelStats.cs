@@ -79,6 +79,7 @@ namespace Grillbot.Services.Channelboard
             }
 
             return channels
+                .Where(o => o.Channel != null)
                 .OrderByDescending(o => o.Count)
                 .ThenByDescending(o => o.LastMessageAt)
                 .ThenBy(o => o.Channel.Id)

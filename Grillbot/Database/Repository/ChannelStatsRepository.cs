@@ -36,8 +36,14 @@ namespace Grillbot.Database.Repository
         {
             var guild = guildID.ToString();
 
+            var userIDs = Context.Users.AsQueryable()
+                .Where(o => o.GuildID == guild && o.Points > 0)
+                .Select(o => o.ID)
+                .Distinct()
+                .ToList();
+
             return Context.UserChannels.AsQueryable()
-                .Where(o => o.GuildID == guild)
+                .Where(o => userIDs.Contains(o.UserID))
                 .GroupBy(o => o.ChannelID)
                 .Select(o => new UserChannel()
                 {

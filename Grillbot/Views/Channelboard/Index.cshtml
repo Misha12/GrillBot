@@ -22,22 +22,22 @@
                 <header>
                     <div class="header-container">
                         <div class="server-info">
-                            <img class="profile-picture" src="@Model.Guild.AvatarUrl"
+                            <img class="profile-picture" src="@Model.Guild.IconUrl"
                                  alt="@Model.Guild.Name">
                             <div>
                                 <h2>@Model.Guild.Name</h2>
 
-                                @if (Model.Guild.UsersCount == 1)
+                                @if (Model.Guild.MemberCount == 1)
                                 {
                                     <p>1 uživatel</p>
                                 }
-                                else if (Model.Guild.UsersCount > 1 && Model.Guild.UsersCount < 5)
+                                else if (Model.Guild.MemberCount > 1 && Model.Guild.MemberCount < 5)
                                 {
-                                    <p>@Model.Guild.UsersCount uživatelé</p>
+                                    <p>@Model.Guild.MemberCount uživatelé</p>
                                 }
                                 else
                                 {
-                                    <p>@Model.Guild.UsersCount.FormatWithSpaces() uživatelů</p>
+                                    <p>@Model.Guild.MemberCount.FormatWithSpaces() uživatelů</p>
                                 }
                             </div>
                         </div>
