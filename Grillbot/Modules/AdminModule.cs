@@ -47,39 +47,6 @@ namespace Grillbot.Modules
             await ReplyAsync($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
         }
 
-        [Command("guildStatus")]
-        [Summary("Informace o serveru.")]
-        public async Task GuildStatusAsync()
-        {
-            var guild = Context.Guild;
-
-            var color = guild.Roles.FindHighestRoleWithColor()?.Color;
-            var embed = new BotEmbed(Context.Message.Author, color, title: guild.Name)
-                .WithThumbnail(guild.IconUrl)
-                .WithFields(
-                    new EmbedFieldBuilder().WithName("Počet kategorií").WithValue($"**{guild.CategoryChannels?.Count ?? 0}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet textových kanálů").WithValue($"**{guild.ComputeTextChannelsCount()}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet hlasových kanálů").WithValue($"**{guild.ComputeVoiceChannelsCount()}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet rolí").WithValue($"**{guild.Roles.Count}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Vytvořen").WithValue($"**{guild.CreatedAt.DateTime.ToLocaleDatetime()}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Vlastník").WithValue($"**{guild.Owner.GetFullName()}** ({guild.OwnerId})"),
-                    new EmbedFieldBuilder().WithName("Systémový kanál").WithValue($"**{guild.SystemChannel?.Name ?? "None"}** ({guild.SystemChannel?.Id ?? 0})"),
-                    new EmbedFieldBuilder().WithName("Uživatelé synchronizováni").WithValue($"**{(guild.HasAllMembers ? "Ano" : "Ne")}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Synchronizován").WithValue($"**{(guild.IsSynced ? "Ano" : "Ne")}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet uživatelů (v paměti)").WithValue($"**{guild.MemberCount}** (**{guild.Users.Count}**)").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Úroveň ověření").WithValue($"**{guild.VerificationLevel}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("ID oblasti (Hovory)").WithValue($"**{guild.VoiceRegionId ?? "null"}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Úroveň MFA").WithValue($"**{guild.MfaLevel}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Filtr explicitního obsahu").WithValue($"**{guild.ExplicitContentFilter}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Výchozí notifikace").WithValue($"**{guild.DefaultMessageNotifications}**").WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Extra funkce").WithValue(guild.Features.Count == 0 ? "-" : string.Join(", ", guild.Features)),
-                    new EmbedFieldBuilder().WithName("Tier").WithValue(guild.PremiumTier.ToString()).WithIsInline(true),
-                    new EmbedFieldBuilder().WithName("Počet boosterů").WithValue(guild.PremiumSubscriptionCount).WithIsInline(true)
-                );
-
-            await ReplyAsync(embed: embed.Build());
-        }
-
         [Command("syncGuild")]
         [Summary("Synchronizace serveru s botem.")]
         public async Task SyncGuild()
