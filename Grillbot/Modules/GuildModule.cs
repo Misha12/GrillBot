@@ -60,5 +60,13 @@ namespace Grillbot.Modules
 
             await ReplyAsync(embed: embed.Build());
         }
+
+        [Command("sync")]
+        [Summary("Synchronizace serveru")]
+        public async Task SyncAsync()
+        {
+            await Context.Guild.SyncGuildAsync();
+            await ReplyAsync("Synchronizace úspěšně dokončena.");
+        }
     }
 }
