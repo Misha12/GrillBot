@@ -47,22 +47,6 @@ namespace Grillbot.Modules
             await ReplyAsync($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
         }
 
-        [Command("syncGuild")]
-        [Summary("Synchronizace serveru s botem.")]
-        public async Task SyncGuild()
-        {
-            try
-            {
-                await Context.Guild.SyncGuildAsync();
-                await ReplyAsync("Synchronizace dokončena");
-            }
-            catch (Exception ex)
-            {
-                await ReplyAsync($"Synchronizace se nezdařila ({ex.Message.PreventMassTags()}).");
-                throw;
-            }
-        }
-
         [Command("clear")]
         [Summary("Hromadné mazání zpráv.")]
         public async Task ClearMessagesAsync(int count)
