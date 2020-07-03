@@ -120,6 +120,8 @@ namespace Grillbot.Modules
                     await ReplyAsync(ex.Message);
                     return;
                 }
+
+                throw;
             }
 
         }
