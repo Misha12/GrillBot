@@ -2,10 +2,12 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
-using System;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -18,29 +20,30 @@ namespace Grillbot.Modules
     [ModuleID("RoleManagerModule")]
     public class RoleManagerModule : BotModuleBase
     {
+        public RoleManagerModule(PaginationService pagination) : base(paginationService: pagination) { }
+
         [Command("all")]
         public async Task GetCompleteRoleListAsync()
         {
-            var fields = Context.Guild.Roles
-                    .Where(o => !o.IsEveryone && !o.IsManaged)
+            var chunks = Context.Guild.Roles
+                    .Where(o => !o.IsEveryone)
                     .OrderByDescending(o => o.Position)
-                    .Select(o => new { field = new EmbedFieldBuilder().WithName(o.Name).WithValue(CreateRoleInfo(o, false)), color = o.Color })
+                    .Select(o => new EmbedFieldBuilder().WithName(o.Name).WithValue(CreateRoleInfo(o, false)))
+                    .SplitInParts(EmbedBuilder.MaxEmbedLength)
                     .ToList();
 
-            const int roleMaxCount = EmbedBuilder.MaxFieldCount;
-            var pagesCount = Math.Ceiling((float)fields.Count / roleMaxCount);
+            var highestRoleWithColor = Context.Guild.Roles.FindHighestRoleWithColor();
 
-            for (int i = 0; i < pagesCount; i++)
+            var paginatedEmbed = new PaginatedEmbed()
             {
-                var fieldList = fields.Skip(i * roleMaxCount).Take(roleMaxCount);
+                Color = highestRoleWithColor?.Color ?? Color.Blue,
+                Pages = chunks.Select(ch => new PaginatedEmbedPage(null, ch.ToList())).ToList(),
+                Thumbnail = Context.Guild.IconUrl,
+                Title = "Informace o rolích",
+                ResponseFor = Context.User
+            };
 
-                var embed = new BotEmbed(Context.Message.Author)
-                    .SetColor(fieldList.FirstOrDefault(o => o.color.RawValue != 0)?.color ?? Color.Blue)
-                    .PrependFooter($"Strana {i + 1} z {pagesCount}")
-                    .WithFields(fieldList.Select(o => o.field));
-
-                await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-            }
+            await SendPaginatedEmbedAsync(paginatedEmbed);
         }
 
         [Command("")]
