@@ -11,6 +11,7 @@ using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Models.TeamSearch;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TeamSearch;
@@ -62,7 +63,19 @@ namespace Grillbot.Modules
         public async Task TeamSearchInfoAsync()
         {
             var searches = await TeamSearchService.GetItemsAsync(Context.Channel.Id.ToString());
+            await PrintSearchesAsync(searches);
+        }
 
+        [Command("full")]
+        [Summary("Kompletní seznam hledání napříč kanály")]
+        public async Task TeamSearchInfoFullAsync()
+        {
+            var searches = await TeamSearchService.GetItemsAsync(null);
+            await PrintSearchesAsync(searches);
+        }
+
+        private async Task PrintSearchesAsync(List<TeamSearchItem> searches)
+        {
             if (searches.Count == 0)
             {
                 await ReplyAsync("Zatím nikdo nic nehledá.");
