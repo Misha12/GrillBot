@@ -77,12 +77,10 @@ namespace Grillbot.Services.TeamSearch
             return new TeamSearchItem()
             {
                 ID = dbItem.Id,
-                FullUsername = message.Author.GetFullName(),
                 ShortUsername = message.Author.GetShortName(),
                 Message = message.Content.Substring("hledam add ".Length + 1),
                 MessageLink = message.GetJumpUrl(),
-                ChannelName = channel.Name,
-                GuildName = channel.Guild.Name
+                ChannelName = channel.Name
             };
         }
 
