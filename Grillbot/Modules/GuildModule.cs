@@ -8,6 +8,7 @@ using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Permissions.Preconditions;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -162,8 +163,8 @@ namespace Grillbot.Modules
             var embed = new BotEmbed(Context.User, title: $"Informace o kanálu #{channel.Name}")
                 .AddField("Interní cache", cache.InternalCacheCount.FormatWithSpaces(), true)
                 .AddField("Externí cache", cache.MessageCacheCount.FormatWithSpaces(), true)
-                .AddField("Celkový počet zpráv", channelboard.Count.FormatWithSpaces(), true)
-                .AddField("Poslední zpráva", channelboard.LastMessageAt.ToLocaleDatetime(), true);
+                .AddField("Celkový počet zpráv", (channelboard?.Count ?? 0).FormatWithSpaces(), true)
+                .AddField("Poslední zpráva", (channelboard?.LastMessageAt ?? DateTime.MinValue).ToLocaleDatetime(), true);
 
             await ReplyAsync(embed: embed.Build());
         }
