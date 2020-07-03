@@ -44,13 +44,6 @@ namespace Grillbot.Controllers
             return View(new ChannelboardViewModel(guild, user, data));
         }
 
-        [Route("Admin/Channelboard")]
-        public async Task<IActionResult> ChannelboardAdmin()
-        {
-            var data = await ChannelStats.GetFullChannelboardAsync();
-            return View(new ChannelboardViewModel(null, null, data));
-        }
-
         protected override void Dispose(bool disposing)
         {
             if (disposing)

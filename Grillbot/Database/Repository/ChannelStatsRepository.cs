@@ -55,5 +55,28 @@ namespace Grillbot.Database.Repository
                 .ThenByDescending(o => o.LastMessageAt)
                 .ToList();
         }
+
+        public UserChannel GetGroupedChannel(ulong guildID, ulong channelID)
+        {
+            var guild = guildID.ToString();
+            var channel = channelID.ToString();
+
+            var userIDs = Context.Users.AsQueryable()
+                .Where(o => o.GuildID == guild && o.Points > 0)
+                .Select(o => o.ID)
+                .Distinct()
+                .ToList();
+
+            return Context.UserChannels.AsQueryable()
+                .Where(o => o.ChannelID == channel && userIDs.Contains(o.ID))
+                .GroupBy(o => o.ChannelID)
+                .Select(o => new UserChannel()
+                {
+                    ChannelID = o.Key,
+                    Count = o.Sum(x => x.Count),
+                    LastMessageAt = o.Max(x => x.LastMessageAt)
+                })
+                .FirstOrDefault();
+        }
     }
 }

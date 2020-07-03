@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Models.BotStatus;
@@ -98,6 +99,39 @@ namespace Grillbot.Services
             }
 
             return result;
+        }
+
+        public List<CacheStatus> GetCacheStatus(SocketGuild guild)
+        {
+            var result = new List<CacheStatus>();
+
+            var channels = guild.TextChannels
+                .OrderBy(o => o.Name);
+
+            foreach(var channel in channels)
+            {
+                var messageCache = MessageCache.GetFromChannel(channel.Id);
+
+                result.Add(new CacheStatus(channel)
+                {
+                    InternalCacheCount = channel.CachedMessages.Count,
+                    MessageCacheCount = messageCache.Count()
+                });
+            }
+
+            return result;
+        }
+
+        public CacheStatus GetCacheStatus(SocketGuild guild, IChannel channel)
+        {
+            var messageCache = MessageCache.GetFromChannel(channel.Id);
+            var guildChannel = guild.GetTextChannel(channel.Id);
+
+            return new CacheStatus(guildChannel)
+            {
+                MessageCacheCount = messageCache.Count(),
+                InternalCacheCount = guildChannel.CachedMessages.Count
+            };
         }
 
         public void Dispose()

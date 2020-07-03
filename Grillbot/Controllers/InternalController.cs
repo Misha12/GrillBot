@@ -16,13 +16,6 @@ namespace Grillbot.Controllers
             BotStatus = botStatusService;
         }
 
-        [HttpGet("Cache")]
-        public IActionResult Cache()
-        {
-            var viewModel = new CacheStatusViewModel { CacheData = BotStatus.GetCacheStatus() };
-            return View(viewModel);
-        }
-
         [HttpGet("Memory")]
         public IActionResult Memory()
         {

@@ -66,26 +66,6 @@ namespace Grillbot.Services.Channelboard
             return resultData.ToList();
         }
 
-        public async Task<List<ChannelStatItem>> GetFullChannelboardAsync()
-        {
-            var channels = new List<ChannelStatItem>();
-
-            foreach (var guild in Discord.Guilds)
-            {
-                var result = await GetChannelboardDataAsync(guild, null, null, true);
-
-                if (result?.Count > 0)
-                    channels.AddRange(result);
-            }
-
-            return channels
-                .Where(o => o.Channel != null)
-                .OrderByDescending(o => o.Count)
-                .ThenByDescending(o => o.LastMessageAt)
-                .ThenBy(o => o.Channel.Id)
-                .ToList();
-        }
-
         private async Task<bool> CanUserToChannelAsync(SocketGuild guild, ulong channelID, IUser user)
         {
             var channel = guild.GetChannel(channelID);
@@ -123,11 +103,19 @@ namespace Grillbot.Services.Channelboard
         /// <summary>
         /// Get all channels for specific guild.
         /// </summary>
-        private List<UserChannel> GetAllChannels(SocketGuild guild)
+        public List<UserChannel> GetAllChannels(SocketGuild guild)
         {
             using var scope = Provider.CreateScope();
             using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
             return repository.GetGroupedStats(guild.Id);
+        }
+
+        public UserChannel GetChannel(SocketGuild guild, IChannel channel)
+        {
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
+
+            return repository.GetGroupedChannel(guild.Id, channel.Id);
         }
     }
 }

@@ -4,7 +4,11 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Services;
+using Grillbot.Services.Channelboard;
 using Grillbot.Services.Permissions.Preconditions;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -16,6 +20,16 @@ namespace Grillbot.Modules
     [ModuleID("GuildModule")]
     public class GuildModule : BotModuleBase
     {
+        private BotStatusService BotStatus { get; }
+        private ChannelStats ChannelStats { get; }
+
+        public GuildModule(BotStatusService botStatus, ChannelStats channelStats, PaginationService paginationService)
+            : base(paginationService: paginationService)
+        {
+            BotStatus = botStatus;
+            ChannelStats = channelStats;
+        }
+
         [Command("info")]
         [Summary("Informace o serveru")]
         public async Task InfoAsync()
@@ -67,6 +81,91 @@ namespace Grillbot.Modules
         {
             await Context.Guild.SyncGuildAsync();
             await ReplyAsync("Synchronizace úspěšně dokončena.");
+        }
+
+        [Command("channels")]
+        [Summary("Statistiky kanálů")]
+        public async Task ChannelsAsync(string mode = "summary")
+        {
+            switch (mode)
+            {
+                case "summary":
+                    await ChannelsSummaryAsync();
+                    break;
+                case "full":
+                    await ChannelsListAsync();
+                    break;
+            }
+        }
+
+        private async Task ChannelsSummaryAsync()
+        {
+            var cache = BotStatus.GetCacheStatus(Context.Guild);
+            var channelboard = ChannelStats.GetAllChannels(Context.Guild);
+
+            var internalCacheSummary = cache.Sum(o => o.InternalCacheCount);
+            var messageCacheSummary = cache.Sum(o => o.MessageCacheCount);
+            var channelboardSummary = channelboard.Sum(o => o.Count);
+
+            var embed = new BotEmbed(Context.User, title: "Souhrn kanálů (počet zpráv)", thumbnail: Context.Guild.IconUrl)
+                .AddField("Interní cache", internalCacheSummary.FormatWithSpaces(), true)
+                .AddField("Externí cache", messageCacheSummary.FormatWithSpaces(), true)
+                .AddField("Celkový počet zpráv", channelboardSummary.FormatWithSpaces(), true);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
+        private async Task ChannelsListAsync()
+        {
+            var cache = BotStatus.GetCacheStatus(Context.Guild);
+            var channelboard = ChannelStats.GetAllChannels(Context.Guild);
+
+            var embed = new PaginatedEmbed()
+            {
+                Pages = new List<PaginatedEmbedPage>(),
+                ResponseFor = Context.User,
+                Thumbnail = Context.Guild.IconUrl,
+                Title = "Seznam kanálů"
+            };
+
+            var chunks = cache.SplitInParts(5);
+            foreach (var chunk in chunks)
+            {
+                var page = new PaginatedEmbedPage(null);
+
+                foreach (var channel in chunk)
+                {
+                    var channelboardChannel = channelboard.Find(o => o.ChannelIDSnowflake == channel.Channel.Id);
+                    var name = channel.Channel.Category == null ? channel.Channel.Name : $"{channel.Channel.Category.Name}/{channel.Channel.Name}";
+
+                    var info = $"Interní cache: **{channel.InternalCacheCount.FormatWithSpaces()}**" +
+                        $"\nExterní cache: **{channel.MessageCacheCount.FormatWithSpaces()}**" +
+                        $"\nCelkový počet zpráv: **{(channelboardChannel?.Count ?? 0).FormatWithSpaces()}**";
+
+                    page.AddField(name, info);
+                }
+
+                if (page.AnyField())
+                    embed.Pages.Add(page);
+            }
+
+            await SendPaginatedEmbedAsync(embed);
+        }
+
+        [Command("channel")]
+        [Summary("Informace o kanálu")]
+        public async Task ChannelInfoAsync(IChannel channel)
+        {
+            var cache = BotStatus.GetCacheStatus(Context.Guild, channel);
+            var channelboard = ChannelStats.GetChannel(Context.Guild, channel);
+
+            var embed = new BotEmbed(Context.User, title: $"Informace o kanálu #{channel.Name}")
+                .AddField("Interní cache", cache.InternalCacheCount.FormatWithSpaces(), true)
+                .AddField("Externí cache", cache.MessageCacheCount.FormatWithSpaces(), true)
+                .AddField("Celkový počet zpráv", channelboard.Count.FormatWithSpaces(), true)
+                .AddField("Poslední zpráva", channelboard.LastMessageAt.ToLocaleDatetime(), true);
+
+            await ReplyAsync(embed: embed.Build());
         }
     }
 }
