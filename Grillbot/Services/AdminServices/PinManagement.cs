@@ -1,4 +1,5 @@
-﻿using Discord.Rest;
+﻿using Discord;
+using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Microsoft.Extensions.Logging;
@@ -18,7 +19,7 @@ namespace Grillbot.Services.AdminServices
             Logger = logger;
         }
 
-        public async Task PinPurgeAsync(SocketTextChannel channel, int take, int skip)
+        public async Task<int> PinPurgeAsync(ITextChannel channel, int take, int skip)
         {
             var pins = await channel.GetPinnedMessagesAsync();
 
@@ -31,6 +32,7 @@ namespace Grillbot.Services.AdminServices
                 .OfType<RestUserMessage>();
 
             await UnpinMessagesAsync(pinsToRemove);
+            return pinsToRemove.Count();
         }
 
         private async Task UnpinMessagesAsync(IEnumerable<RestUserMessage> messages)

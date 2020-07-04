@@ -1,11 +1,9 @@
 ﻿using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Embed;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Permissions.Preconditions;
@@ -32,19 +30,20 @@ namespace Grillbot.Modules
         [Command("pinpurge")]
         [Summary("Hromadné odpinování zpráv.")]
         [Remarks("Poslední parametr skipCount je volitelný. Výchozí hodnota je 0.")]
-        public async Task PinPurge(string channel, int takeCount, int skipCount = 0)
+        public async Task PinPurge(ITextChannel channel, int takeCount, int skipCount = 0)
         {
-            var mentionedChannel = Context.Message.MentionedChannels
-                .OfType<SocketTextChannel>()
-                .FirstOrDefault(o => $"<#{o.Id}>" == channel);
+            var message = await ReplyAsync("Probíhá úklid.");
+            var typingState = Context.Channel.EnterTypingState();
 
-            if (mentionedChannel != null)
+            try
             {
-                await PinManagement.PinPurgeAsync(mentionedChannel, takeCount, skipCount);
-                return;
+                var result = await PinManagement.PinPurgeAsync(channel, takeCount, skipCount);
+                await message.ModifyAsync(m => m.Content = $"Úklid pinů dokončen. Uklizeno pinů: **{result.FormatWithSpaces()}**");
             }
-
-            await ReplyAsync($"Odkazovaný textový kanál **{channel}** nebyl nalezen.");
+            finally
+            {
+                typingState.Dispose();
+            };
         }
 
         [Command("clear")]
