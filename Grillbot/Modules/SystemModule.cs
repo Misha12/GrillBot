@@ -1,10 +1,15 @@
 ﻿using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
+using Grillbot.Services.TempUnverify;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -17,11 +22,16 @@ namespace Grillbot.Modules
     {
         private ILogger<SystemModule> Logger { get; }
         private IHostApplicationLifetime Lifetime { get; }
+        private BotStatusService BotStatus { get; }
+        private TempUnverifyService TempUnverify { get; }
 
-        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime)
+        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotStatusService botStatus,
+            TempUnverifyService tempUnverify)
         {
             Logger = logger;
             Lifetime = lifetime;
+            BotStatus = botStatus;
+            TempUnverify = tempUnverify;
         }
 
         [Command("send")]
@@ -45,8 +55,38 @@ namespace Grillbot.Modules
         public async Task ShutdownAsync()
         {
             var message = await ReplyAsync("Probíhá příprava ukončení.");
-            
-            // TODO: Implement controls and shutdown.
+            var cannotShutdownData = new List<string>();
+
+            var workingCommands = BotStatus.RunningCommands.Take(BotStatus.RunningCommands.Count - 1);
+            if (workingCommands.Count() > 0)
+            {
+                var runningCommands = workingCommands.Select(o =>
+                {
+                    var prefix = $"> `{o.Author.GetFullName()}` (#{o.Channel.Name}) ({o.CreatedAt.LocalDateTime.ToLocaleDatetime()}):";
+                    return $"{prefix} `{o.Content.Cut(100)}`";
+                });
+
+                cannotShutdownData.Add("**Běžící příkazy**:");
+                cannotShutdownData.AddRange(runningCommands);
+            }
+
+            if (TempUnverify.ReturningAcccessFor.Count > 0)
+            {
+                var users = TempUnverify.ReturningAcccessFor.Select(o => $"> `{o.GetFullName()}` ({o.Id})");
+
+                cannotShutdownData.Add("**Vracení přístupu pro uživatele**:");
+                cannotShutdownData.AddRange(users);
+            }
+
+            if (cannotShutdownData.Count > 0)
+            {
+                await message.ModifyAsync(o => o.Content = "Nyní nelze provést vypnutí, protože probíhají následující operace:");
+                await ReplyChunkedAsync(cannotShutdownData, 3);
+                return;
+            }
+
+            await message.ModifyAsync(o => o.Content = "Probíhá vypínání.");
+            Lifetime.StopApplication();
         }
     }
 }

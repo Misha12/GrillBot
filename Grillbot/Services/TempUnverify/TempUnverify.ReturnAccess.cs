@@ -43,40 +43,48 @@ namespace Grillbot.Services.TempUnverify
                     return;
                 }
 
-                var rolesToReturn = unverify.DeserializedRolesToReturn;
-                var roles = rolesToReturn.Select(id => guild.GetRole(id)).Where(role => role != null && !user.Roles.Any(x => x.Id == role.Id)).ToList();
-
-                var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
-                if (isAutoRemove)
+                try
                 {
-                    using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
-                    logService.LogAutoRemove(unverify, user, guild);
+                    ReturningAcccessFor.Add(user);
+
+                    var rolesToReturn = unverify.DeserializedRolesToReturn;
+                    var roles = rolesToReturn.Select(id => guild.GetRole(id))
+                        .Where(role => role != null && !user.Roles.Any(x => x.Id == role.Id))
+                        .ToList();
+
+                    var isAutoRemove = (unverify.GetEndDatetime() - DateTime.Now).Ticks <= 0;
+                    if (isAutoRemove)
+                    {
+                        using var logService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
+                        logService.LogAutoRemove(unverify, user, guild);
+                    }
+
+                    var overrides = unverify.DeserializedChannelOverrides
+                        .Select(o => new { channel = guild.GetChannel(o.ChannelIdSnowflake), channelOverride = o })
+                        .Where(o => o.channel != null)
+                        .ToList();
+
+                    var tasks = new List<Task>() { user.AddRolesAsync(roles) };
+
+                    foreach (var channelOverride in overrides)
+                    {
+                        var task = channelOverride.channel
+                            .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions());
+
+                        tasks.Add(task);
+                    }
+
+                    tasks.Add(FindAndToggleMutedRoleAsync(user, guild, config.MutedRoleID, false));
+                    Task.WaitAll(tasks.ToArray());
+
+                    repository.RemoveItem(unverify.ID);
+                    unverify.Dispose();
+                    Data.RemoveAll(o => o.ID == unverify.ID);
                 }
-
-                var overrides = unverify.DeserializedChannelOverrides
-                    .Select(o => new { channel = guild.GetChannel(o.ChannelIdSnowflake), channelOverride = o })
-                    .Where(o => o.channel != null)
-                    .ToList();
-
-                var tasks = new List<Task>()
+                finally
                 {
-                    user.AddRolesAsync(roles)
-                };
-
-                foreach (var channelOverride in overrides)
-                {
-                    var task = channelOverride.channel
-                        .AddPermissionOverwriteAsync(user, channelOverride.channelOverride.GetPermissions());
-
-                    tasks.Add(task);
+                    ReturningAcccessFor.RemoveAll(o => o.Id == user.Id);
                 }
-
-                tasks.Add(FindAndToggleMutedRoleAsync(user, guild, config.MutedRoleID, false));
-                Task.WaitAll(tasks.ToArray());
-
-                repository.RemoveItem(unverify.ID);
-                unverify.Dispose();
-                Data.RemoveAll(o => o.ID == unverify.ID);
             }
         }
 

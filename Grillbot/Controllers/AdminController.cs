@@ -79,7 +79,6 @@ namespace Grillbot.Controllers
         {
             if(disposing)
             {
-                StatusService.Dispose();
                 ConfigRepository.Dispose();
             }
 

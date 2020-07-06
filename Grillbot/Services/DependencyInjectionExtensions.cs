@@ -132,7 +132,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddWebAdminServices(this IServiceCollection services)
         {
             services
-                .AddTransient<BotStatusService>();
+                .AddSingleton<BotStatusService>();
 
             return services;
         }

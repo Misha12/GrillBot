@@ -24,9 +24,11 @@ namespace Grillbot.Handlers
         private EmoteStats EmoteStats { get; }
         private Configuration Config { get; }
         private UserService UserService { get; }
+        private BotStatusService BotStatus { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
-            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService)
+            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService,
+            BotStatusService botStatus)
         {
             Client = client;
             Commands = commands;
@@ -37,6 +39,7 @@ namespace Grillbot.Handlers
             EmoteStats = emoteStats;
             Config = config.Value;
             UserService = userService;
+            BotStatus = botStatus;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -55,6 +58,8 @@ namespace Grillbot.Handlers
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
+
+                BotStatus.RunningCommands.Add(message);
             }
             else
             {

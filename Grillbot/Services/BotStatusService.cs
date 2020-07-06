@@ -6,6 +6,7 @@ using Grillbot.Models.BotStatus;
 using Grillbot.Models.Internal;
 using Grillbot.Services.MessageCache;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -15,22 +16,26 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class BotStatusService : IDisposable
+    public class BotStatusService
     {
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
-        private BotDbRepository Repository { get; }
         private DiscordSocketClient Client { get; }
         private IMessageCache MessageCache { get; }
+        private IServiceProvider Provider { get; }
 
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, BotDbRepository repository, DiscordSocketClient client,
+        public List<SocketMessage> RunningCommands { get; }
+
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IServiceProvider provider, DiscordSocketClient client,
             IMessageCache messageCache)
         {
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
-            Repository = repository;
             Client = client;
             MessageCache = messageCache;
+            Provider = provider;
+
+            RunningCommands = new List<SocketMessage>();
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -75,7 +80,10 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, Tuple<int, long>>> GetDbReport()
         {
-            return await Repository.GetTableRowsCount().ConfigureAwait(false);
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<BotDbRepository>();
+
+            return await repository.GetTableRowsCount().ConfigureAwait(false);
         }
 
         public List<CacheStatus> GetCacheStatus()
@@ -132,11 +140,6 @@ namespace Grillbot.Services
                 MessageCacheCount = messageCache.Count(),
                 InternalCacheCount = guildChannel.CachedMessages.Count
             };
-        }
-
-        public void Dispose()
-        {
-            Repository.Dispose();
         }
     }
 }

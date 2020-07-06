@@ -1,6 +1,7 @@
 ﻿using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
+using Grillbot.Services;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -16,14 +17,16 @@ namespace Grillbot.Handlers
         private IServiceProvider Services { get; }
         private ILogger<CommandExecutedHandler> Logger { get; }
         private InternalStatistics InternalStatistics { get; }
+        private BotStatusService BotStatus { get; }
 
         public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger,
-            InternalStatistics internalStatistics)
+            InternalStatistics internalStatistics, BotStatusService botStatus)
         {
             CommandService = commandService;
             Services = services;
             Logger = logger;
             InternalStatistics = internalStatistics;
+            BotStatus = botStatus;
         }
 
         private async Task CommandExecutedAsync(Discord.Optional<CommandInfo> command, ICommandContext context, IResult result)
@@ -46,6 +49,7 @@ namespace Grillbot.Handlers
             }
 
             LogCommand(command, context);
+            BotStatus.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
         private void LogCommand(Discord.Optional<CommandInfo> command, ICommandContext context)

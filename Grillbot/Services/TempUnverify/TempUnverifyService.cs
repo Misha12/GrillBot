@@ -1,4 +1,5 @@
-﻿using Discord.WebSocket;
+﻿using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
@@ -20,10 +21,12 @@ namespace Grillbot.Services.TempUnverify
         private ILogger<TempUnverifyService> Logger { get; }
         private DiscordSocketClient Client { get; }
         private IServiceProvider Provider { get; }
+        public List<IUser> ReturningAcccessFor { get; }
 
         public TempUnverifyService(DiscordSocketClient client, ILogger<TempUnverifyService> logger, IServiceProvider provider)
         {
             Data = new List<TempUnverifyItem>();
+            ReturningAcccessFor = new List<IUser>();
             Logger = logger;
             Client = client;
             Provider = provider;
