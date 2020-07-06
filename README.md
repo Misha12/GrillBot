@@ -1,5 +1,9 @@
 # GrillBot
 
+[![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/Misha12.GrillBot?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=8&branchName=master)
+[![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
+[![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Misha12/grillbot/graphs/commit-activity)
+
 ## Requirements
 - MSSQL server 
   - Instalation: https://www.microsoft.com/en-us/sql-server/sql-server-downloads 
@@ -9,9 +13,6 @@
   - https://dotnet.microsoft.com/download/dotnet-core/3.1
 - dotnet-ef (For code first migrations)
   - https://docs.microsoft.com/cs-cz/ef/core/miscellaneous/cli/dotnet
-
-## Continuous integration
-[![Build Status](https://dev.azure.com/mhalabica/GrillBot/_apis/build/status/Misha12.GrillBot?branchName=master)](https://dev.azure.com/mhalabica/GrillBot/_build/latest?definitionId=8&branchName=master)
 
 ## Used NuGet packages
 
