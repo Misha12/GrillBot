@@ -39,5 +39,14 @@ namespace Grillbot.Modules
             await ReplyAsync("Probíhá násilné ukončování.");
             Lifetime.StopApplication();
         }
+
+        [Command("shutdown")]
+        [Summary("Ukončení aplikace")]
+        public async Task ShutdownAsync()
+        {
+            var message = await ReplyAsync("Probíhá příprava ukončení.");
+            
+            // TODO: Implement controls and shutdown.
+        }
     }
 }
