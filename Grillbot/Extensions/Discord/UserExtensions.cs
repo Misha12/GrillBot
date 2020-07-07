@@ -1,6 +1,8 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using System;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Grillbot.Extensions.Discord
@@ -72,6 +74,14 @@ namespace Grillbot.Extensions.Discord
                 return string.IsNullOrEmpty(socketGuildUser.Nickname) ? socketGuildUser.GetShortName() : socketGuildUser.Nickname;
             else
                 return user.GetShortName();
+        }
+
+        public static async Task<byte[]> DownloadAvatarAsync(this IUser user, ushort size = 128)
+        {
+            var link = user.GetUserAvatarUrl(size: size);
+
+            using var client = new WebClient();
+            return await client.DownloadDataTaskAsync(new Uri(link));
         }
     }
 }
