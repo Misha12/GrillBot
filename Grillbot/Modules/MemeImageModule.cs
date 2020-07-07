@@ -3,6 +3,8 @@ using System.Threading.Tasks;
 using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
+using System.IO;
+using System.Drawing.Imaging;
 
 namespace Grillbot.Modules
 {
@@ -41,6 +43,21 @@ namespace Grillbot.Modules
             }
 
             await Context.Channel.SendFileAsync(file);
+        }
+
+        [Command("peepolove")]
+        public async Task PeepoloveAsync(Discord.IUser forUser = null)
+        {
+            if (forUser == null)
+                forUser = Context.User;
+
+            using var bitmap = await Service.CreatePeepoloveAsync(forUser);
+            using var ms = new MemoryStream();
+            
+            bitmap.Save(ms, ImageFormat.Png);
+            ms.Position = 0;
+
+            await Context.Channel.SendFileAsync(ms, "peepolove.png");
         }
 
         protected override void Dispose(bool disposing)

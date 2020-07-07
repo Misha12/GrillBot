@@ -1,5 +1,4 @@
 ﻿using System.Collections.Generic;
-using System.Linq;
 
 namespace Grillbot.Models.Config.AppSettings
 {
@@ -10,6 +9,7 @@ namespace Grillbot.Models.Config.AppSettings
         public string Database { get; set; }
         public int EmoteChain_CheckLastCount { get; set; }
         public DiscordConfig Discord { get; set; }
+        public string PeepoloveDir { get; set; }
 
         public List<ulong> Administrators { get; set; }
 
