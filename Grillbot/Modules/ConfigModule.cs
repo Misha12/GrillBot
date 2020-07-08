@@ -214,5 +214,13 @@ namespace Grillbot.Modules
 
             return false;
         }
+
+        [Command("removeGuild")]
+        [Summary("Smazání všech konfigurací o serveru")]
+        public async Task RemoveGuildAsync(ulong guildID)
+        {
+            ConfigRepository.RemoveGuild(guildID);
+            await ReplyAsync($"Guild `{guildID}` byla úspěšně z databáze uklizena.");
+        }
     }
 }

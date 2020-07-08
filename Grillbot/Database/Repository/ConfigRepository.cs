@@ -164,5 +164,20 @@ namespace Grillbot.Database.Repository
             Context.MethodsConfig.Remove(method);
             Context.SaveChanges();
         }
+
+        public void RemoveGuild(ulong guildID) 
+        {
+            var guild = guildID.ToString();
+
+            var methods = GetBaseQuery(true)
+                .Where(o => o.GuildID == guild)
+                .ToList();
+
+            if(methods.Count == 0)
+                return;
+
+            Context.MethodsConfig.RemoveRange(methods);
+            Context.SaveChanges();
+        }
     }
 }
