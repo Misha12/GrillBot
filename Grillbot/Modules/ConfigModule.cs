@@ -129,8 +129,8 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("listPermissions")]
-        [Summary("Získá seznam oprávnění.")]
+        [Command("getMethod")]
+        [Summary("Získání detailu metody vč. nastavených oprávnění.")]
         public async Task ListPermissionsAsync(GroupCommandMatch method)
         {
             if (await CheckMissingMethodID(method)) return;
