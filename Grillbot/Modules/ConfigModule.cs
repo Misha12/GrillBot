@@ -177,7 +177,8 @@ namespace Grillbot.Modules
             await ReplyAsync("Oprávnění bylo odebráno").ConfigureAwait(false);
         }
 
-        [Command("getJsonConfig")]
+        [Command("getJson")]
+        [Summary("Získání aktuální JSON konfigurace dané metody.")]
         public async Task GetJsonConfig(GroupCommandMatch method)
         {
             if (await CheckMissingMethodID(method)) return;
