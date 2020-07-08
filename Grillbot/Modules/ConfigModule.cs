@@ -183,7 +183,7 @@ namespace Grillbot.Modules
             if (await CheckMissingMethodID(method)) return;
 
             var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
-            await ReplyAsync($"```json\n {config.ConfigData}```").ConfigureAwait(false);
+            await ReplyAsync($"```json\n{config.ConfigData}```").ConfigureAwait(false);
         }
 
         [Command("removeMethod")]
