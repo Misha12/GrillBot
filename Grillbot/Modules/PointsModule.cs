@@ -35,7 +35,7 @@ namespace Grillbot.Modules
             var userEntity = user ?? Context.User;
             var (points, position) = PointsService.GetPoints(Context.Guild, userEntity);
 
-            var message = $"Uživatel `{userEntity.GetFullName()}` má {FormatPointsValue(points)} a drží se na {position.FormatWithSpaces()} pozici.";
+            var message = $"Uživatel `{userEntity.GetFullName()}` má {FormatPointsValue(points)} a drží se na {position.FormatWithSpaces()}. pozici.";
             await ReplyAsync(message);
         }
 
