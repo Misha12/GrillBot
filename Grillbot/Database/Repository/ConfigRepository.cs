@@ -8,6 +8,7 @@ using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace Grillbot.Database.Repository
@@ -50,9 +51,9 @@ namespace Grillbot.Database.Repository
             return entity;
         }
 
-        public List<MethodsConfig> GetAllMethods(SocketGuild guild)
+        public List<MethodsConfig> GetAllMethods(SocketGuild guild, bool withPermissions = false)
         {
-            var query = GetBaseQuery(false);
+            var query = GetBaseQuery(withPermissions);
             return query.Where(o => o.GuildID == guild.Id.ToString()).ToList();
         }
 
@@ -165,7 +166,7 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
         }
 
-        public void RemoveGuild(ulong guildID) 
+        public void RemoveGuild(ulong guildID)
         {
             var guild = guildID.ToString();
 
@@ -173,10 +174,34 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.GuildID == guild)
                 .ToList();
 
-            if(methods.Count == 0)
+            if (methods.Count == 0)
                 return;
 
             Context.MethodsConfig.RemoveRange(methods);
+            Context.SaveChanges();
+        }
+
+        public void ImportConfiguration(MethodsConfig config)
+        {
+            if (config.Group == null) config.Group = "";
+            if (config.Command == null) config.Command = "";
+
+            if (GetBaseQuery(false).Any(o => o.GuildID == config.GuildID && o.Group == config.Group && o.Command == config.Command))
+                throw new InvalidOperationException($"Metoda `{config}` již existuje.");
+
+            var entity = MethodsConfig.Create(config.GuildIDSnowflake, config.Group, config.Command, config.OnlyAdmins, config.Config);
+
+            foreach (var perm in config.Permissions)
+            {
+                entity.Permissions.Add(new MethodPerm()
+                {
+                    AllowType = perm.AllowType,
+                    DiscordID = perm.DiscordID,
+                    PermType = perm.PermType
+                });
+            }
+
+            Context.MethodsConfig.Add(entity);
             Context.SaveChanges();
         }
     }

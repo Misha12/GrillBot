@@ -1,16 +1,22 @@
-﻿using Discord.Commands;
+﻿using Discord;
+using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Permissions.Preconditions;
+using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
+using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -198,7 +204,7 @@ namespace Grillbot.Modules
                 ConfigRepository.RemoveMethod(Context.Guild.Id, method.MethodID.Value);
                 await ReplyAsync("Metoda byla odebrána.");
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 await ReplyAsync(ex.Message);
             }
@@ -221,6 +227,60 @@ namespace Grillbot.Modules
         {
             ConfigRepository.RemoveGuild(guildID);
             await ReplyAsync($"Guild `{guildID}` byla úspěšně z databáze uklizena.");
+        }
+
+        [Command("export")]
+        [Summary("Kompletní export konfigurace do JSON souboru.")]
+        public async Task ExportConfigurationAsync()
+        {
+            var configs = ConfigRepository.GetAllMethods(Context.Guild, true);
+            var json = JsonConvert.SerializeObject(configs);
+
+            using var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
+
+            await Context.User.SendFileAsync(ms, $"{Context.Guild.Name}.json");
+            await Context.Message.AddReactionAsync(new Emoji("✅"));
+        }
+
+        [Command("import")]
+        [Summary("Import dat do konfigurace.")]
+        [Remarks("Tato metoda vyžaduje soubor jako přílohu.")]
+        public async Task ImportConfigurationAsync()
+        {
+            var attachment = Context.Message.Attachments.FirstOrDefault(o => Path.GetExtension(o.Filename) == ".json");
+
+            if(attachment == null)
+            {
+                await ReplyAsync("Nebyl nalezen žádný JSON soubor.");
+                return;
+            }
+
+            var bytes = await attachment.DownloadFileAsync();
+            var jsonData = Encoding.UTF8.GetString(bytes);
+            var importedData = JsonConvert.DeserializeObject<List<MethodsConfig>>(jsonData);
+
+            var state = Context.Channel.EnterTypingState();
+            try
+            {
+                foreach(var method in importedData)
+                {
+                    ConfigRepository.ImportConfiguration(method);
+                    await ReplyAsync($"> Importována metoda: `{method}`");
+                }
+            }
+            catch(InvalidOperationException ex)
+            {
+                await ReplyAsync(ex.Message);
+                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                return;
+            }
+            finally
+            {
+                state.Dispose();
+            }
+
+            await ReplyAsync("Import byl úspěšně dokončen.");
+            await Context.Message.AddReactionAsync(new Emoji("✅"));
         }
     }
 }

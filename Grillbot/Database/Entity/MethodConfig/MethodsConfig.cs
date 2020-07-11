@@ -23,6 +23,7 @@ namespace Grillbot.Database.Entity.MethodConfig
         public string GuildID { get; set; }
 
         [NotMapped]
+        [JsonIgnore]
         public ulong GuildIDSnowflake => Convert.ToUInt64(GuildID);
 
         [Column]
@@ -37,6 +38,7 @@ namespace Grillbot.Database.Entity.MethodConfig
 
         [Column]
         [Required]
+        [JsonIgnore]
         public string ConfigData { get; set; }
 
         [NotMapped]
@@ -63,14 +65,24 @@ namespace Grillbot.Database.Entity.MethodConfig
 
         public static MethodsConfig Create(IGuild guild, string group, string command, bool onlyAdmins, JObject json)
         {
+            return Create(guild.Id, group, command, onlyAdmins, json);
+        }
+
+        public static MethodsConfig Create(ulong guildID, string group, string command, bool onlyAdmins, JObject json)
+        {
             return new MethodsConfig()
             {
                 Command = command,
                 Config = json,
                 Group = group,
-                GuildID = guild.Id.ToString(),
+                GuildID = guildID.ToString(),
                 OnlyAdmins = onlyAdmins
             };
+        }
+
+        public override string ToString()
+        {
+            return $"{GuildID}/{Group}/{Command}";
         }
     }
 }

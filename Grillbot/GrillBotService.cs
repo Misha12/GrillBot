@@ -13,14 +13,6 @@ using Grillbot.Services.Initiable;
 using Grillbot.Models.Config.AppSettings;
 using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
-using Microsoft.Extensions.DependencyInjection;
-using Grillbot.Database.Repository;
-using Grillbot.Enums;
-using System.Linq;
-using Grillbot.Modules;
-using System.Collections.Generic;
-using Newtonsoft.Json;
-using Microsoft.Extensions.Logging;
 using Grillbot.Models;
 
 namespace Grillbot
@@ -35,10 +27,9 @@ namespace Grillbot
         private Configuration Config { get; }
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
-        private ILogger<GrillBotService> Logger { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            InternalStatistics internalStatistics, InitService initService, ILogger<GrillBotService> logger)
+            InternalStatistics internalStatistics, InitService initService)
         {
             Services = services;
             Client = client;
@@ -46,7 +37,6 @@ namespace Grillbot
             Config = config.Value;
             InternalStatistics = internalStatistics;
             InitService = initService;
-            Logger = logger;
 
             Client.Ready += OnClientReadyAsync;
         }
