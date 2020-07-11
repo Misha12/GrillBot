@@ -4,9 +4,12 @@ using Grillbot.Attributes;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
@@ -27,7 +30,7 @@ namespace Grillbot.Modules
     [ModuleID("ConfigModule")]
     public class ConfigModule : BotModuleBase
     {
-        public ConfigModule(IOptions<Configuration> options, ConfigRepository repository) : base(options, repository) { }
+        public ConfigModule(IOptions<Configuration> options, ConfigRepository repository, PaginationService paginationService) : base(options, repository, paginationService) { }
 
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]
@@ -50,14 +53,31 @@ namespace Grillbot.Modules
         [Summary("Seznam metod")]
         public async Task ListMethodsAsync()
         {
-            var rows = new List<string>() { "ID\tSkupina/Příkaz\tOnlyAdmins" };
+            var embed = new PaginatedEmbed()
+            {
+                Pages = new List<PaginatedEmbedPage>(),
+                ResponseFor = Context.User,
+                Thumbnail = Context.Client.CurrentUser.GetUserAvatarUrl(),
+                Title = "Konfigurace metod."
+            };
 
-            var rowsData = ConfigRepository.GetAllMethods(Context.Guild)
-                .Select(o => $"{o.ID}\t{o.Group}/{o.Command}\t{(o.OnlyAdmins ? 1 : 0)}");
+            var methods = ConfigRepository.GetAllMethods(Context.Guild, true);
+            var chunks = methods.SplitInParts(EmbedBuilder.MaxFieldCount);
 
-            rows.AddRange(rowsData);
+            foreach (var chunk in chunks)
+            {
+                var fields = chunk.Select(o =>
+                {
+                    return new EmbedFieldBuilder()
+                        .WithName($"{o.Group}/{o.Command} ({o.ID})")
+                        .WithValue($"OnlyAdmins: **{o.OnlyAdmins.TranslateToCz()}**\nPočet oprávnění: **{o.Permissions.Count.FormatWithSpaces()}**\n" +
+                            $"Počet použití: **{o.UsedCount.FormatWithSpaces()}**");
+                }).ToList();
 
-            await ReplyAsync($"```{string.Join("\n", rows)}```").ConfigureAwait(false);
+                embed.Pages.Add(new PaginatedEmbedPage(null, fields));
+            }
+
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("switchOnlyAdmins")]
@@ -249,7 +269,7 @@ namespace Grillbot.Modules
         {
             var attachment = Context.Message.Attachments.FirstOrDefault(o => Path.GetExtension(o.Filename) == ".json");
 
-            if(attachment == null)
+            if (attachment == null)
             {
                 await ReplyAsync("Nebyl nalezen žádný JSON soubor.");
                 return;
@@ -262,13 +282,13 @@ namespace Grillbot.Modules
             var state = Context.Channel.EnterTypingState();
             try
             {
-                foreach(var method in importedData)
+                foreach (var method in importedData)
                 {
                     ConfigRepository.ImportConfiguration(method);
                     await ReplyAsync($"> Importována metoda: `{method}`");
                 }
             }
-            catch(InvalidOperationException ex)
+            catch (InvalidOperationException ex)
             {
                 await ReplyAsync(ex.Message);
                 await Context.Message.AddReactionAsync(new Emoji("❌"));
