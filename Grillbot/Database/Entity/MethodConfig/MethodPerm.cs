@@ -1,4 +1,5 @@
 ﻿using Grillbot.Database.Enums;
+using Newtonsoft.Json;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -19,6 +20,7 @@ namespace Grillbot.Database.Entity.MethodConfig
         public int MethodID { get; set; }
 
         [ForeignKey("MethodID")]
+        [JsonIgnore]
         public MethodsConfig Method { get; set; }
 
         [Column]
@@ -27,6 +29,7 @@ namespace Grillbot.Database.Entity.MethodConfig
         public string DiscordID { get; set; }
 
         [NotMapped]
+        [JsonIgnore]
         public ulong DiscordIDSnowflake => Convert.ToUInt64(DiscordID);
 
         [Column]

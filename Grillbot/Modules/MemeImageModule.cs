@@ -67,10 +67,7 @@ namespace Grillbot.Modules
         protected override void Dispose(bool disposing)
         {
             if (disposing)
-            {
                 Service.Dispose();
-                ConfigRepository.Dispose();
-            }
 
             base.Dispose(disposing);
         }
