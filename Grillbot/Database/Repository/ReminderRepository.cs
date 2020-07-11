@@ -31,8 +31,21 @@ namespace Grillbot.Database.Repository
                 .ToList();
         }
 
-        // TODO: Remove remind from database
-        // TODO: Get all reminders
-        // TODO: Get reminders for specific user.
+        public Reminder FindReminderByID(long id)
+        {
+            return GetBaseQuery(true)
+                .SingleOrDefault(o => o.RemindID == id);
+        }
+
+        public void RemoveRemind(long id)
+        {
+            var remind = FindReminderByID(id);
+
+            if (remind == null)
+                return;
+
+            Context.Reminders.Remove(remind);
+            Context.SaveChanges();
+        }
     }
 }
