@@ -4,11 +4,9 @@ using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
 using System.Linq;
 
 namespace Grillbot.Database.Repository
@@ -202,6 +200,23 @@ namespace Grillbot.Database.Repository
             }
 
             Context.MethodsConfig.Add(entity);
+            Context.SaveChanges();
+        }
+
+        public void RenameMethod(ulong guildID, int id, string group, string command)
+        {
+            CorrectValue(ref group);
+            CorrectValue(ref command);
+
+            var entity = GetBaseQuery(false)
+                .SingleOrDefault(o => o.GuildID == guildID.ToString() && o.ID == id);
+
+            if (entity == null)
+                throw new NotFoundException($"Metoda s ID `{id}` neexistuje.");
+
+            entity.Group = group;
+            entity.Command = command;
+
             Context.SaveChanges();
         }
     }
