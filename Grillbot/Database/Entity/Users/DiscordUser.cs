@@ -43,11 +43,13 @@ namespace Grillbot.Database.Entity.Users
         public BirthdayDate Birthday { get; set; }
         public ISet<MathAuditLogItem> MathAudit { get; set; }
         public StatisticItem Statistics { get; set; }
+        public ISet<Reminder> Reminders { get; set; } 
 
         public DiscordUser()
         {
             Channels = new HashSet<UserChannel>();
             MathAudit = new HashSet<MathAuditLogItem>();
+            Reminders = new HashSet<Reminder>();
         }
     }
 }

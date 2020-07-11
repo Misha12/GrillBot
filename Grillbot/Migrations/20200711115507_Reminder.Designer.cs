@@ -4,14 +4,16 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Grillbot.Migrations
 {
     [DbContext(typeof(GrillBotContext))]
-    partial class GrillBotContextModelSnapshot : ModelSnapshot
+    [Migration("20200711115507_Reminder")]
+    partial class Reminder
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder

@@ -9,6 +9,7 @@ using Grillbot.Services.Math;
 using Grillbot.Services.MemeImages;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Permissions;
+using Grillbot.Services.Reminder;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.TeamSearch;
 using Grillbot.Services.TempUnverify;
@@ -44,7 +45,8 @@ namespace Grillbot.Services
                 .AddTransient<UsersRepository>()
                 .AddTransient<MathRepository>()
                 .AddTransient<UserStatisticsRepository>()
-                .AddTransient<GlobalConfigRepository>();
+                .AddTransient<GlobalConfigRepository>()
+                .AddTransient<ReminderRepository>();
 
             return services;
         }
@@ -213,7 +215,9 @@ namespace Grillbot.Services
             services
                 .AddSingleton<UserService>()
                 .AddTransient<PointsService>()
-                .AddTransient<BirthdayService>();
+                .AddTransient<BirthdayService>()
+                .AddTransient<ReminderService>()
+                .AddSingleton<ReminderTaskService>();
 
             return services;
         }

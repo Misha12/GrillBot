@@ -40,6 +40,10 @@ namespace Grillbot.Database
                 builder
                     .HasOne(o => o.Statistics)
                     .WithOne(o => o.User);
+
+                builder
+                    .HasMany(o => o.Reminders)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
@@ -55,6 +59,12 @@ namespace Grillbot.Database
             {
                 builder
                     .HasKey(o => new { o.GuildID, o.EmoteID });
+            });
+
+            modelBuilder.Entity<Reminder>(builder =>
+            {
+                builder
+                    .HasOne(o => o.FromUser);
             });
         }
 
