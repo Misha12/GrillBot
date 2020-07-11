@@ -1,6 +1,7 @@
 ﻿using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using System;
 using System.Net;
 using System.Threading.Tasks;
@@ -61,7 +62,7 @@ namespace Grillbot.Extensions.Discord
             }
             catch (HttpException ex)
             {
-                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == 50007)
+                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (int)DiscordJsonCodes.CannotSendPM)
                     return; // User have disabled PM.
 
                 throw;
