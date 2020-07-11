@@ -44,28 +44,26 @@ namespace Grillbot.Services.MemeImages
             return files[randomValue];
         }
 
-        public async Task<Img> CreatePeepoloveAsync(IUser forUser)
+        public async Task<Img> CreatePeepoloveAsync(IUser forUser, PeepoloveConfig config)
         {
-            using var profileImage = await RenderProfileImageAsync(forUser);
+            using var profileImage = await RenderProfileImageAsync(forUser, config.ProfilePicSize);
 
             // Drawing canvas
-            using var body = new Bitmap(Path.Combine(AppConfig.PeepoloveDir, "peepoBody.png"));
+            using var body = new Bitmap(config.BodyPath);
             using var graphics = Graphics.FromImage(body);
 
-            graphics.RotateTransform(-0.4f);
-            graphics.DrawImage(profileImage, 5, 512 - 200, 180, 180);
-            graphics.RotateTransform(0.4f);
-            graphics.DrawImage(Img.FromFile(Path.Combine(AppConfig.PeepoloveDir, "peepoHands.png")), 0, 0, 512, 512);
+            graphics.RotateTransform(-config.Rotate);
+            graphics.DrawImage(profileImage, config.ProfilePicRect);
+            graphics.RotateTransform(config.Rotate);
+            graphics.DrawImage(Img.FromFile(config.HandsPath), config.Screen);
 
             graphics.DrawImage(body, new Point(0, 0));
-
-            const int startY = 115;
-            return (body as Img).CropImage(new Rectangle(0, startY, 512, 512 - startY));
+            return (body as Img).CropImage(config.CropRect);
         }
 
-        private async Task<Img> RenderProfileImageAsync(IUser user)
+        private async Task<Img> RenderProfileImageAsync(IUser user, ushort size)
         {
-            var profileImageData = await user.DownloadAvatarAsync(256);
+            var profileImageData = await user.DownloadAvatarAsync(size);
             using var profileImageStream = new MemoryStream(profileImageData);
             using var profileImage = Img.FromStream(profileImageStream);
 
