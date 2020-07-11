@@ -66,7 +66,7 @@ namespace Grillbot.TypeReaders
             using var scope = provider.CreateScope();
             var commandService = scope.ServiceProvider.GetService<CommandService>();
 
-            var searchResult = commandService.Search(context, $"{group} {command}");
+            var searchResult = commandService.Search(context, $"{group} {command}".Trim());
             return searchResult.IsSuccess;
         }
     }
