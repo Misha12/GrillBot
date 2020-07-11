@@ -4,6 +4,7 @@ using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.UnverifyLog;
 using Grillbot.Database.Entity.Users;
+using Grillbot.Models.Reminder;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Database
@@ -78,5 +79,6 @@ namespace Grillbot.Database
         public virtual DbSet<UserChannel> UserChannels { get; set; }
         public virtual DbSet<MathAuditLogItem> MathAuditLogs { get; set; }
         public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
+        public virtual DbSet<Reminder> Reminders { get; set; }
     }
 }

@@ -20,5 +20,13 @@ namespace Grillbot.Database
         {
             return Context.SaveChanges();
         }
+
+        public int SaveChangesIfAny()
+        {
+            if (!Context.ChangeTracker.HasChanges())
+                return 0;
+
+            return Context.SaveChanges();
+        }
     }
 }

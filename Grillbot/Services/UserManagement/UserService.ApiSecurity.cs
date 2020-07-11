@@ -16,7 +16,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var dbUser = repository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false);
+            var dbUser = repository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false, false);
 
             dbUser.ApiToken = Guid.NewGuid().ToString();
 
@@ -29,7 +29,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var dbUser = repository.GetUser(guild.Id, user.Id, false, false, false, false);
+            var dbUser = repository.GetUser(guild.Id, user.Id, false, false, false, false, false);
 
             if (dbUser?.ApiToken == null)
                 throw new ValidationException("Tento uživatel nikdy nedostal přístup k API.");

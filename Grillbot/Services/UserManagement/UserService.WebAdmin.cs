@@ -26,7 +26,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var userEntity = repository.GetUser(guild.Id, user.Id, false, false, false, false);
+                var userEntity = repository.GetUser(guild.Id, user.Id, false, false, false, false, false);
 
                 if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
                     return false;
@@ -46,7 +46,7 @@ namespace Grillbot.Services.UserManagement
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var userEntity = repository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false);
+                var userEntity = repository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false, false);
                 var plainPassword = string.IsNullOrEmpty(password) ? StringHelper.CreateRandomString(20) : password;
                 userEntity.WebAdminPassword = BCrypt.Net.BCrypt.HashPassword(plainPassword);
 
@@ -61,7 +61,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var userEntity = repository.GetUser(guild.Id, user.Id, false, false, false, false);
+                var userEntity = repository.GetUser(guild.Id, user.Id, false, false, false, false, false);
 
                 if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
                     throw new ArgumentException("Tento uživatel neměl přístup.");

@@ -1,4 +1,5 @@
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -39,7 +40,21 @@ namespace Grillbot.Modules
         [Summary("Upozorni uživatele")]
         public async Task RemindUserAsync(IUser user, DateTime at, [Remainder] string message)
         {
+            try
+            {
+                Reminder.CreateReminder(Context.Guild, Context.User, user, at, message);
+                await ReplyAsync("Upozornění vytvořeno.");
+            }
+            catch(Exception ex)
+            {
+                if(ex is ValidationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
 
+                throw;
+            }
         }
 
         [Command("all")]
