@@ -4,6 +4,7 @@ using Grillbot.Attributes;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
@@ -11,7 +12,6 @@ using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -171,7 +171,7 @@ namespace Grillbot.Modules
                 {
                     case PermType.Role:
                         var role = Context.Guild.GetRole(o.DiscordIDSnowflake);
-                        return $"{o.PermID}\t{role.Name} ({role.Id})\t{o.PermType}\t{o.AllowType}";
+                        return $"{o.PermID}\t{role?.Name ?? "Neznámá role"} ({role?.Id ?? o.DiscordIDSnowflake})\t{o.PermType}\t{o.AllowType}";
                     case PermType.User:
                         var user = Context.Guild.GetUserFromGuildAsync(o.DiscordID).Result;
                         return $"{o.PermID}\t{user.GetFullName()}\t{o.PermType}\t{o.AllowType}";
@@ -301,6 +301,21 @@ namespace Grillbot.Modules
 
             await ReplyAsync("Import byl úspěšně dokončen.");
             await Context.Message.AddReactionAsync(new Emoji("✅"));
+        }
+
+        [Command("rename")]
+        [Summary("Přejmenování metody")]
+        public async Task RenameMethod(int id, string group, string command)
+        {
+            try
+            {
+                ConfigRepository.RenameMethod(Context.Guild.Id, id, group, command);
+                await ReplyAsync("Metoda byla přejmenována.");
+            }
+            catch (NotFoundException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }
