@@ -1,7 +1,10 @@
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
 using Discord;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
@@ -52,6 +55,21 @@ namespace Grillbot.Services.Reminder
 
             if (string.IsNullOrEmpty(message))
                 throw new ValidationException("Text musí být uveden.");
+        }
+
+        public async Task<List<ReminderEntity>> GetRemindersAsync(IGuild guild, IUser user)
+        {
+            var userId = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+
+            if (userId == null)
+                throw new NotFoundException("Žádná data pro tohoto uživatele nebyly nalezeny.");
+
+            return ReminderRepository.GetReminders(userId);
+        }
+
+        public List<ReminderEntity> GetAllReminders()
+        {
+            return ReminderRepository.GetReminders(null);
         }
 
         public void Dispose()

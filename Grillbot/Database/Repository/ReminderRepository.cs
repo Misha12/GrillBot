@@ -15,7 +15,7 @@ namespace Grillbot.Database.Repository
         {
             var query = Context.Reminders.AsQueryable();
 
-            if(includeUsers)
+            if (includeUsers)
             {
                 query = query
                     .Include(o => o.FromUser)
@@ -46,6 +46,16 @@ namespace Grillbot.Database.Repository
 
             Context.Reminders.Remove(remind);
             Context.SaveChanges();
+        }
+
+        public List<Reminder> GetReminders(long? userId)
+        {
+            var query = GetBaseQuery(true);
+
+            if (userId != null)
+                query.Where(o => o.UserID == userId.Value);
+
+            return query.ToList();
         }
     }
 }
