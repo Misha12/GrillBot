@@ -6,10 +6,8 @@ namespace Grillbot.Models.Config.AppSettings
     {
         public string AllowedHosts { get; set; }
         public string CommandPrefix { get; set; }
-        public string Database { get; set; }
         public int EmoteChain_CheckLastCount { get; set; }
         public DiscordConfig Discord { get; set; }
-        public string PeepoloveDir { get; set; }
 
         public List<ulong> Administrators { get; set; }
 

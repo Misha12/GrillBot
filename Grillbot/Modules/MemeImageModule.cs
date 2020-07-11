@@ -5,6 +5,8 @@ using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
 using System.IO;
 using System.Drawing.Imaging;
+using Grillbot.Database.Repository;
+using Grillbot.Models.Config.Dynamic;
 
 namespace Grillbot.Modules
 {
@@ -15,7 +17,7 @@ namespace Grillbot.Modules
     {
         private MemeImagesService Service { get; }
 
-        public MemeImageModule(MemeImagesService service)
+        public MemeImageModule(MemeImagesService service, ConfigRepository config) : base(configRepository: config)
         {
             Service = service;
         }
@@ -51,9 +53,11 @@ namespace Grillbot.Modules
             if (forUser == null)
                 forUser = Context.User;
 
-            using var bitmap = await Service.CreatePeepoloveAsync(forUser);
+            var config = GetMethodConfig<PeepoloveConfig>(null, "peepolove");
+
+            using var bitmap = await Service.CreatePeepoloveAsync(forUser, config);
             using var ms = new MemoryStream();
-            
+
             bitmap.Save(ms, ImageFormat.Png);
             ms.Position = 0;
 
@@ -63,7 +67,10 @@ namespace Grillbot.Modules
         protected override void Dispose(bool disposing)
         {
             if (disposing)
+            {
                 Service.Dispose();
+                ConfigRepository.Dispose();
+            }
 
             base.Dispose(disposing);
         }
