@@ -1,22 +1,71 @@
 using System;
+using System.ComponentModel.DataAnnotations;
+using System.Threading.Tasks;
+using Discord;
 using Grillbot.Database.Repository;
+using Grillbot.Services.Initiable;
+using Microsoft.Extensions.Logging;
+using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
 {
-    public class ReminderService : IDisposable
+    public class ReminderService : IDisposable, IInitiable
     {
         private ReminderRepository ReminderRepository { get; }
+        private ReminderTaskService ReminderTaskService { get; }
+        private ILogger<ReminderService> Logger { get; }
+        private UsersRepository UsersRepository { get; }
 
-        public ReminderService(ReminderRepository reminderRepository)
+        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, ILogger<ReminderService> logger,
+            UsersRepository usersRepository)
         {
             ReminderRepository = reminderRepository;
+            Logger = logger;
+            ReminderTaskService = reminderTaskService;
+            UsersRepository = usersRepository;
         }
 
-        // TODO: Init 
+        public void Init()
+        {
+        }
+
+        public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message)
+        {
+            ValidateReminderCreation(at, message);
+
+            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, false, false, false, false, true);
+            UsersRepository.SaveChangesIfAny();
+
+            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, true);
+
+            var remindEntity = new ReminderEntity()
+            {
+                At = at,
+                FromUserID = fromUser == toUser ? (long?)null : fromUserEntity.ID,
+                Message = message
+            };
+
+            toUserEntity.Reminders.Add(remindEntity);
+
+            UsersRepository.SaveChanges();
+            ReminderTaskService.AddReminder(remindEntity);
+        }
+
+        private void ValidateReminderCreation(DateTime at, string message)
+        {
+            if (DateTime.Now > at)
+                throw new ValidationException("Datum a èas notifikace musí být v budoucnosti.");
+
+            if (string.IsNullOrEmpty(message))
+                throw new ValidationException("Text musí být uveden.");
+        }
+
+        public Task InitAsync() => Task.FromResult(1);
 
         public void Dispose()
         {
             ReminderRepository.Dispose();
+            UsersRepository.Dispose();
         }
     }
 }
