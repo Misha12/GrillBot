@@ -37,11 +37,11 @@ All commands to manage with permissions are stored in group named `config`.
 
 Creates a method in database and save configuration.
 
-| Parametr    | Type   | Description                                                                               |
+| Parameter   | Type   | Description                                                                               |
 | ----------- | ------ | ----------------------------------------------------------------------------------------- |
 | commandInfo | string | Pair of parameters separated with slash. `{group}/{command}`. Slash is a required symbol. |
 | onlyAdmins  | bool   | Flag that describes access only for bot administrators.                                   |
-| configJson  | string | Method configuration stored in JSON format.                                               |
+| configJson  | JSON   | Method configuration stored in JSON format.                                               |
 
 ### config listMethods
 
@@ -51,52 +51,87 @@ List of method stored in database.
 
 Sets access only for bot administrators.
 
-| Parametr   | Type | Description                                             |
-| ---------- | ---- | ------------------------------------------------------- |
-| methodID   | int  | Unique ID of the method.                                |
-| onlyAdmins | bool | Flag that describes access only for bot administrators. |
+| Parameter  | Type              | Description                                                           |
+| ---------- | ----------------- | --------------------------------------------------------------------- |
+| method     | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
+| onlyAdmins | bool              | Flag that describes access only for bot administrators.               |
 
 ### config updateJsonConfig `{methodID}` `{jsonConfig}`
 
 Updates JSON configuration of method.
 
-| Parametr   | Type   | Description              |
-| ---------- | ------ | ------------------------ |
-| methodID   | int    | Unique ID of the method. |
-| jsonConfig | string | JSON configuration.      |
+| Parameter  | Type              | Description                                                           |
+| ---------- | ----------------- | --------------------------------------------------------------------- |
+| method     | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
+| jsonConfig | string            | JSON configuration.                                                   |
 
 ### config addPermission `{methodID}` `{targetID}` `{permType}` `{allowType}`
 
 Insert method permissions.
 
-| Parametr  | Type   | Description                                                                                    |
-| --------- | ------ | ---------------------------------------------------------------------------------------------- |
-| methodID  | int    | Unique ID of the method.                                                                       |
-| targetID  | UInt64 | Discord ID of user or role.                                                                    |
-| permType  | int    | Type of ID inserted in parameter `targetID`. Value is from enum `PermType` {Role=0, User=1}    |
-| allowType | int    | Flag that describes allowed or banned access. Value is from enum `AllowType` {Allow=0, Deny=1} |
+| Parameter | Type              | Description                                                                                    |
+| --------- | ----------------- | ---------------------------------------------------------------------------------------------- |
+| method    | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method.                          |
+| targetID  | UInt64            | Discord ID of user or role.                                                                    |
+| permType  | int               | Type of ID inserted in parameter `targetID`. Value is from enum `PermType` {Role=0, User=1}    |
+| allowType | int               | Flag that describes allowed or banned access. Value is from enum `AllowType` {Allow=0, Deny=1} |
 
-### config listPermissions `{methodID}`
+### config getMethod `{methodID}`
 
-List permissions of method.
+Get all informations about method.
 
-| Parametr | Type | Description              |
-| -------- | ---- | ------------------------ |
-| methodID | int  | Unique ID of the method. |
+| Parameter | Type              | Description                                                           |
+| --------- | ----------------- | --------------------------------------------------------------------- |
+| method    | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
 
 ### config removePermission `{methodID}` `{permID}`
 
 Remove method permissions.
 
-| Parametr | Type | Description              |
-| -------- | ---- | ------------------------ |
-| methodID | int  | Unique ID of the method. |
-| permID   | int  | Unique ID of permission. |
+| Parameter | Type              | Description                                                           |
+| --------- | ----------------- | --------------------------------------------------------------------- |
+| method    | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
+| permID    | int               | Unique ID of permission.                                              |
 
-### config getJsonConfig `{methodID}`
+### config getJson `{methodID}`
 
 Obtain the JSON configuration for the method.
 
-| Parametr | Type | Description              |
-| -------- | ---- | ------------------------ |
-| methodID | int  | Unique ID of the method. |
+| Parameter | Type              | Description                                                           |
+| --------- | ----------------- | --------------------------------------------------------------------- |
+| method    | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
+
+### config removeMethod
+
+Removes method configuration from database.
+
+| Parameter | Type              | Description                                                           |
+| --------- | ----------------- | --------------------------------------------------------------------- |
+| method    | GroupCommandMatch | Unique ID (or text identification `{group}/{command}`) of the method. |
+
+### config removeGuild
+
+Removes all configurations and permissions for specified guild ID.
+
+| Parameter | Type   | Description                 |
+| --------- | ------ | --------------------------- |
+| guildID   | UInt64 | Unique discord ID of guild. |
+
+### config export
+
+Exports full JSON configuration from context guild.
+
+### config import
+
+Batch import of configurations to database.
+This method requires JSON file as attachment with JSON content of type `Array<MethodsConfig>`.
+
+### config rename `{id}` `{group}` `{command}`
+
+Rename method without any other configuration change.
+
+| Parameter | Type   | Description                     |
+| --------- | ------ | ------------------------------- |
+| id        | int    | Unique ID  of the method.       |
+| group     | string | New group name of the method.   |
+| command   | string | New command name of the method. |
