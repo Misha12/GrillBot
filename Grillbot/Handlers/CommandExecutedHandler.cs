@@ -31,8 +31,6 @@ namespace Grillbot.Handlers
 
         private async Task CommandExecutedAsync(Discord.Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            if (!command.IsSpecified) return;
-
             if(!result.IsSuccess && result.Error != null)
             {
                 switch(result.Error.Value)
