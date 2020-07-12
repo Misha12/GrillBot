@@ -54,7 +54,7 @@ namespace Grillbot.Services.Reminder
             Data.RemoveAll(o => remindersToProcess.Any(x => x.ID == o.ID));
         }
 
-        private async Task ProcessReminderAsync(ReminderData data)
+        private async Task ProcessReminderAsync(ReminderData data, bool force = false)
         {
             Logger.LogInformation($"Reminder event triggered: {data.ID} ({data.At})");
 
@@ -66,8 +66,14 @@ namespace Grillbot.Services.Reminder
             if (remind == null)
                 return;
 
-            await NotifyUserAsync(remind);
+            await NotifyUserAsync(remind, force);
             remindersRepository.RemoveRemind(data.ID);
+        }
+
+        public async Task ProcessReminderForclyAsync(long id)
+        {
+            var data = Data.Find(o => o.ID == id);
+            await ProcessReminderAsync(data, true);
         }
 
         public void AddReminder(ReminderEntity reminder)
@@ -79,7 +85,7 @@ namespace Grillbot.Services.Reminder
             });
         }
 
-        private async Task NotifyUserAsync(ReminderEntity reminder)
+        private async Task NotifyUserAsync(ReminderEntity reminder, bool force)
         {
             var guild = Discord.GetGuild(reminder.User.GuildIDSnowflake);
 
@@ -91,7 +97,7 @@ namespace Grillbot.Services.Reminder
 
             try
             {
-                var message = CreateMessage(fromUser, reminder.Message);
+                var message = CreateMessage(fromUser, reminder.Message, force);
                 await toUser.SendMessageAsync(message);
             }
             catch (HttpException ex)
@@ -106,10 +112,13 @@ namespace Grillbot.Services.Reminder
             }
         }
 
-        private string CreateMessage(SocketGuildUser fromUser, string message)
+        private string CreateMessage(SocketGuildUser fromUser, string message, bool force)
         {
             var builder = new StringBuilder()
                 .AppendLine("Ahoj");
+
+            if (force)
+                builder.AppendLine("Je to sice pøedèasné, ale.");
 
             if (fromUser == null)
                 builder.AppendLine("Upozoròuji tì, že sis nastavil upozornìní.");
@@ -137,5 +146,12 @@ namespace Grillbot.Services.Reminder
         }
 
         public Task InitAsync() => Task.FromResult(1);
+
+        public bool TaskExists(long id) => Data.Any(o => o.ID == id);
+
+        public void RemoveTask(long id)
+        {
+            Data.RemoveAll(o => o.ID == id);
+        }
     }
 }

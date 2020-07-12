@@ -5,7 +5,6 @@ using System.Threading.Tasks;
 using Discord;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
-using Microsoft.Extensions.Logging;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
@@ -14,14 +13,11 @@ namespace Grillbot.Services.Reminder
     {
         private ReminderRepository ReminderRepository { get; }
         private ReminderTaskService ReminderTaskService { get; }
-        private ILogger<ReminderService> Logger { get; }
         private UsersRepository UsersRepository { get; }
 
-        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, ILogger<ReminderService> logger,
-            UsersRepository usersRepository)
+        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository)
         {
             ReminderRepository = reminderRepository;
-            Logger = logger;
             ReminderTaskService = reminderTaskService;
             UsersRepository = usersRepository;
         }
@@ -70,6 +66,24 @@ namespace Grillbot.Services.Reminder
         public List<ReminderEntity> GetAllReminders()
         {
             return ReminderRepository.GetReminders(null);
+        }
+
+        public void CancelReminderWithoutNotification(long id)
+        {
+            if (!ReminderTaskService.TaskExists(id))
+                return;
+
+            ReminderTaskService.RemoveTask(id);
+            ReminderRepository.RemoveRemind(id);
+        }
+
+        public async Task CancelReminderWithNotificationAsync(long id)
+        {
+            if (!ReminderTaskService.TaskExists(id))
+                return;
+
+            await ReminderTaskService.ProcessReminderForclyAsync(id);
+            ReminderTaskService.RemoveTask(id);
         }
 
         public void Dispose()

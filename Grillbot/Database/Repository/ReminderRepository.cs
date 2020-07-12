@@ -57,5 +57,10 @@ namespace Grillbot.Database.Repository
 
             return query.ToList();
         }
+
+        public bool ExistsReminder(long id)
+        {
+            return GetBaseQuery(false).Any(o => o.RemindID == id);
+        }
     }
 }

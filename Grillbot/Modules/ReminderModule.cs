@@ -34,6 +34,7 @@ namespace Grillbot.Modules
 
         [Command("me")]
         [Summary("Upozorni mě.")]
+        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
         public async Task RemindMeAsync(DateTime at, [Remainder] string message)
         {
             await RemindUserAsync(Context.User, at, message);
@@ -62,8 +63,9 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("")]
+        [Command("user")]
         [Summary("Upozorni uživatele")]
+        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
         public async Task RemindUserAsync(IUser user, DateTime at, [Remainder] string message)
         {
             try
@@ -94,10 +96,19 @@ namespace Grillbot.Modules
 
         [Command("cancel")]
         [Summary("Předčasné ukončení upozornění.")]
-        [Remarks("Pokud se poslední parametr nastaví na true, tak dojde k notifikaci uživatelů.")]
-        public async Task CancelReminderAsync(int id, bool notify = false)
+        public async Task CancelReminderAsync(long id)
         {
+            Reminder.CancelReminderWithoutNotification(id);
+            await ReplyAsync("Upozornění bylo staženo.");
+        }
 
+        [Command("notify")]
+        [Summary("Předčasné upozornění a ukončení upozornění.")]
+        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
+        public async Task NotifyReminderAsync(long id)
+        {
+            await Reminder.CancelReminderWithNotificationAsync(id);
+            await ReplyAsync("Notifikace a ukončení bylo dokončeno.");
         }
 
         private async Task<PaginatedEmbed> CreatePaginatedEmbedAsync(List<Reminder> reminders, bool full = false)
