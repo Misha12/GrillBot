@@ -98,8 +98,21 @@ namespace Grillbot.Modules
         [Summary("Předčasné ukončení upozornění.")]
         public async Task CancelReminderAsync(long id)
         {
-            Reminder.CancelReminderWithoutNotification(id);
-            await ReplyAsync("Upozornění bylo staženo.");
+            try
+            {
+                Reminder.CancelReminderWithoutNotification(id, Context.User as SocketGuildUser);
+                await ReplyAsync("Upozornění bylo staženo.");
+            }
+            catch (Exception ex)
+            {
+                if (ex is UnauthorizedAccessException || ex is InvalidOperationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
+                throw;
+            }
         }
 
         [Command("notify")]
@@ -107,8 +120,21 @@ namespace Grillbot.Modules
         [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
         public async Task NotifyReminderAsync(long id)
         {
-            await Reminder.CancelReminderWithNotificationAsync(id);
-            await ReplyAsync("Notifikace a ukončení bylo dokončeno.");
+            try
+            {
+                await Reminder.CancelReminderWithNotificationAsync(id, Context.User as SocketGuildUser);
+                await ReplyAsync("Notifikace a ukončení bylo dokončeno.");
+            }
+            catch (Exception ex)
+            {
+                if (ex is UnauthorizedAccessException || ex is InvalidOperationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
+                throw;
+            }
         }
 
         private async Task<PaginatedEmbed> CreatePaginatedEmbedAsync(List<Reminder> reminders, bool full = false)

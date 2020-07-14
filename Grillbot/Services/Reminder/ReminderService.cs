@@ -3,6 +3,7 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Threading.Tasks;
 using Discord;
+using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
@@ -68,19 +69,31 @@ namespace Grillbot.Services.Reminder
             return ReminderRepository.GetReminders(null);
         }
 
-        public void CancelReminderWithoutNotification(long id)
+        public void CancelReminderWithoutNotification(long id, SocketGuildUser user)
         {
-            if (!ReminderTaskService.TaskExists(id))
-                return;
+            var remind = ReminderRepository.FindReminderByID(id);
+
+            if (remind == null)
+                throw new InvalidOperationException("Toto upozornìní neexistuje.");
+
+            var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
+            if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
+                throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
 
             ReminderTaskService.RemoveTask(id);
             ReminderRepository.RemoveRemind(id);
         }
 
-        public async Task CancelReminderWithNotificationAsync(long id)
+        public async Task CancelReminderWithNotificationAsync(long id, SocketGuildUser user)
         {
-            if (!ReminderTaskService.TaskExists(id))
-                return;
+            var remind = ReminderRepository.FindReminderByID(id);
+
+            if (remind == null)
+                throw new InvalidOperationException("Toto upozornìní neexistuje.");
+
+            var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
+            if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
+                throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
 
             await ReminderTaskService.ProcessReminderForclyAsync(id);
             ReminderTaskService.RemoveTask(id);
