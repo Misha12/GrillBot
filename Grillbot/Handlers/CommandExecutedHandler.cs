@@ -7,6 +7,7 @@ using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
@@ -31,9 +32,9 @@ namespace Grillbot.Handlers
 
         private async Task CommandExecutedAsync(Discord.Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            if(!result.IsSuccess && result.Error != null)
+            if (!result.IsSuccess && result.Error != null)
             {
-                switch(result.Error.Value)
+                switch (result.Error.Value)
                 {
                     case CommandError.UnmetPrecondition:
                     case CommandError.ParseFailed:
@@ -42,6 +43,9 @@ namespace Grillbot.Handlers
                         break;
                     case CommandError.BadArgCount:
                         await SendCommandHelp(context, 1);
+                        break;
+                    case CommandError.UnknownCommand:
+                        await ProcessUnknownCommandAsync(context);
                         break;
                 }
             }
@@ -60,7 +64,7 @@ namespace Grillbot.Handlers
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
             InternalStatistics.IncrementCommand(commandName);
 
-            if(context.Guild != null && command.IsSpecified)
+            if (context.Guild != null && command.IsSpecified)
             {
                 var cmd = command.Value;
 
@@ -86,6 +90,15 @@ namespace Grillbot.Handlers
         {
             var helpCommand = $"grillhelp {context.Message.Content.Substring(argPos)}";
             await CommandService.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);
+        }
+
+        private async Task ProcessUnknownCommandAsync(ICommandContext context)
+        {
+            var group = context.Message.Content.Substring(1);
+            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group);
+
+            if (module != null)
+                await context.Channel.SendMessageAsync($"Toto je skupina příkazů. Pro více se podívej do nápovědy.");
         }
     }
 }
