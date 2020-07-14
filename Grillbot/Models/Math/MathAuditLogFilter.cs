@@ -1,7 +1,9 @@
-﻿using System;
+﻿using Discord.Commands;
+using System;
 
 namespace Grillbot.Models.Math
 {
+    [NamedArgumentType]
     public class MathAuditLogFilter
     {
         public ulong? GuildID { get; set; }
