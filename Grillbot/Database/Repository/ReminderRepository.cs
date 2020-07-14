@@ -53,7 +53,7 @@ namespace Grillbot.Database.Repository
             var query = GetBaseQuery(true);
 
             if (userId != null)
-                query.Where(o => o.UserID == userId.Value);
+                query = query.Where(o => o.UserID == userId.Value);
 
             return query.ToList();
         }
