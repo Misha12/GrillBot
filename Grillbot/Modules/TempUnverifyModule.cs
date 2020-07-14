@@ -5,6 +5,7 @@ using Grillbot.Attributes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
@@ -53,7 +54,7 @@ namespace Grillbot.Modules
             }
             catch (Exception ex)
             {
-                if(ex is ValidationException || ex is FormatException || ex is ArgumentException)
+                if (ex is ValidationException || ex is FormatException || ex is ArgumentException)
                 {
                     await ReplyAsync(ex.Message);
                     return;
@@ -85,6 +86,9 @@ namespace Grillbot.Modules
                     }
 
                     await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
+                    return true;
+                case "stats":
+                    await StatsAsync();
                     return true;
             }
 
@@ -157,6 +161,20 @@ namespace Grillbot.Modules
             {
                 await ReplyAsync(ex.Message);
             }
+        }
+
+        [Command("stats")]
+        [Summary("Statistiky unverify")]
+        public async Task StatsAsync()
+        {
+            var users = await UnverifyService.ListPersonsAsync(Context.Guild);
+
+            var embed = new BotEmbed(Context.User, title: "Statistiky unverify")
+                .AddField("SelfUnverify", users.Count(o => o.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("Unverify", users.Count(o => !o.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("Celkem", users.Count.FormatWithSpaces(), true);
+
+            await ReplyAsync(embed: embed.Build());
         }
     }
 }
