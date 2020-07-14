@@ -52,18 +52,18 @@ namespace Grillbot.Handlers
 
         private void LogCommand(Discord.Optional<CommandInfo> command, ICommandContext context)
         {
-            var cmd = command.Value;
-
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
             var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
             var args = $"{guild}, {channel}, @{context.User}, ({context.Message.Content})";
-            var commandName = $"{cmd.Module.Group} {cmd.Name}".Trim();
+            var commandName = command.IsSpecified ? $"{command.Value.Module.Group} {command.Value.Name}".Trim() : "Unknown command";
 
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
             InternalStatistics.IncrementCommand(commandName);
 
-            if(context.Guild != null)
+            if(context.Guild != null && command.IsSpecified)
             {
+                var cmd = command.Value;
+
                 using var scope = Services.CreateScope();
                 using var configRepository = scope.ServiceProvider.GetService<ConfigRepository>();
                 configRepository.IncrementUsageCounter(context.Guild, cmd.Module.Group, cmd.Name);

@@ -58,7 +58,7 @@ namespace Grillbot.Modules
             var cannotShutdownData = new List<string>();
 
             var workingCommands = BotStatus.RunningCommands.Take(BotStatus.RunningCommands.Count - 1);
-            if (workingCommands.Count() > 0)
+            if (workingCommands.Any())
             {
                 var runningCommands = workingCommands.Select(o =>
                 {
