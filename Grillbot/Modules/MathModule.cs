@@ -1,9 +1,16 @@
 ﻿using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Models.Math;
+using Grillbot.Services;
 using Grillbot.Services.Math;
 using Grillbot.Services.Permissions.Preconditions;
+using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -11,11 +18,12 @@ namespace Grillbot.Modules
     [Name("Počítání")]
     [RequirePermissions]
     [ModuleID("MathModule")]
+    [Group("math")]
     public class MathModule : BotModuleBase
     {
         private MathService Calculator { get; }
 
-        public MathModule(MathService calculator)
+        public MathModule(MathService calculator, PaginationService pagination) : base(paginationService: pagination)
         {
             Calculator = calculator;
         }
@@ -65,6 +73,64 @@ namespace Grillbot.Modules
             embed
                 .AddField("Výsledek", result.Result.ToString(), true)
                 .AddField("Doba zpracování", result.GetComputingTime(), true);
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("sessions")]
+        [Summary("Výpočetní sessions")]
+        public async Task SessionsListAsync()
+        {
+            var boosterSessions = Calculator.Sessions.Where(o => o.ForBooster);
+            var otherSessions = Calculator.Sessions.Where(o => !o.ForBooster);
+
+            var embed = new PaginatedEmbed()
+            {
+                Pages = new List<PaginatedEmbedPage>()
+                {
+                    RenderPage(boosterSessions, true),
+                    RenderPage(otherSessions, false)
+                },
+                ResponseFor = Context.User,
+                Title = "Výpočetní sessions"
+            };
+
+            await SendPaginatedEmbedAsync(embed);
+        }
+
+        private PaginatedEmbedPage RenderPage(IEnumerable<MathSession> sessions, bool booster)
+        {
+            var page = new PaginatedEmbedPage(booster ? "Server booster" : "Ostatní sessions");
+
+            foreach (var session in sessions)
+            {
+                page.AddField(
+                    $"#{session.ID} {(session.IsUsed ? "(Používá se)" : "")}".Trim(),
+                    $"Čas: **{TimeSpan.FromMilliseconds(session.ComputingTime)}**\nPočet použití: **{session.UsedCount.FormatWithSpaces()}**",
+                    true
+                );
+            }
+
+            return page;
+        }
+
+        [Command("session")]
+        [Summary("Detail výpočetní jednotky.")]
+        public async Task SessionDetailAsync(MathSession session)
+        {
+            var color = session.IsUsed ? Color.Green : Color.LightGrey;
+            var title = $"#{session.ID} {(session.IsUsed ? "(Používá se)" : "")}";
+
+            if (session.ForBooster)
+                title += " (Booster)";
+
+            var embed = new BotEmbed(Context.User, color, title.Trim())
+                .AddField("Výpočetní čas", TimeSpan.FromMilliseconds(session.ComputingTime).ToString(), true)
+                .AddField("Počet použití", session.UsedCount.FormatWithSpaces(), true);
+
+            embed
+                .AddField("Aktuální výraz", session.Expression ?? "-", false)
+                .AddField("Poslední výsledek", session.LastResult?.Format() ?? "-", false);
 
             await ReplyAsync(embed: embed.Build());
         }

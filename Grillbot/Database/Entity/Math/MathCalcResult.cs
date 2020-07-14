@@ -19,5 +19,16 @@ namespace Grillbot.Database.Entity.Math
         {
             return AssingedComputingTime < 1000 ? $"{AssingedComputingTime}ms" : $"{AssingedComputingTime / 1000}s";
         }
+
+        public string Format()
+        {
+            if (IsTimeout)
+                return "Timeout";
+
+            if (!IsValid)
+                return ErrorMessage;
+
+            return $"OK ({GetComputingTime()})";
+        }
     }
 }

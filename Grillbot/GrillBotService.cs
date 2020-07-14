@@ -14,6 +14,7 @@ using Grillbot.Models.Config.AppSettings;
 using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
 using Grillbot.Models;
+using Grillbot.Models.Math;
 
 namespace Grillbot
 {
@@ -58,6 +59,7 @@ namespace Grillbot
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
             Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());
+            Commands.AddTypeReader<MathSession>(new MathSessionTypeReader());
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
         }

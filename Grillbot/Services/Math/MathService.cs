@@ -166,7 +166,7 @@ namespace Grillbot.Services.Math
             using var scope = ServiceProvider.CreateScope();
             using var repository = scope.ServiceProvider.GetRequiredService<ConfigRepository>();
 
-            var configData = repository.FindConfig(guild.Id, "", "solve");
+            var configData = repository.FindConfig(guild.Id, "math", "solve");
             var config = configData?.GetData<MathConfig>();
 
             if (config == null)
