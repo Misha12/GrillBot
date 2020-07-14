@@ -29,13 +29,6 @@ namespace Grillbot.Controllers
             UserService = userService;
         }
 
-        [HttpGet]
-        public IActionResult Index()
-        {
-            var viewModel = new MathViewModel(MathService.Sessions);
-            return View(viewModel);
-        }
-
         [HttpGet("Audit")]
         public async Task<IActionResult> AuditAsync(MathAuditLogFilter filter = null)
         {
