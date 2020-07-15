@@ -1,13 +1,9 @@
 ﻿using Discord.WebSocket;
-using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TempUnverify.Admin;
 using Grillbot.Services.TempUnverify;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using System;
-using System.Linq;
-using System.Security.Claims;
 using System.Threading.Tasks;
 
 namespace Grillbot.Controllers
