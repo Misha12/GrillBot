@@ -10,6 +10,7 @@ using Grillbot.Database.Entity.Users;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
@@ -34,8 +35,10 @@ namespace Grillbot.Modules
 
         [Command("me")]
         [Summary("Upozorni mě.")]
-        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
-        public async Task RemindMeAsync(DateTime at, [Remainder] string message)
+        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.\nDatum a čas se zadává v následujících formátech:" +
+            "\n- *\"dd/MM/yyyy HH:mm\"*,\n- *\"dd/MM/yyyy HH:mm(:ss)\"*,\n- *ISO 8601*,\n- *\"dd. MM. yyyy HH:mm(:ss)\"*\n**Vteřiny jsou nepovinné.\n" +
+            "Nezapomínejte na uvozovky, jinak vám to správně nenačte datum a čas.**")]
+        public async Task RemindMeAsync(string at, [Remainder] string message)
         {
             await RemindUserAsync(Context.User, at, message);
         }
@@ -65,17 +68,21 @@ namespace Grillbot.Modules
 
         [Command("user")]
         [Summary("Upozorni uživatele")]
-        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.")]
-        public async Task RemindUserAsync(IUser user, DateTime at, [Remainder] string message)
+        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.\nDatum a čas se zadává v následujících formátech:" +
+            "\n- *\"dd/MM/yyyy HH:mm\"*,\n- *\"dd/MM/yyyy HH:mm(:ss)\"*,\n- *ISO 8601*,\n- *\"dd. MM. yyyy HH:mm(:ss)\"*\n**Vteřiny jsou nepovinné.\n" +
+            "Nezapomínejte na uvozovky, jinak vám to správně nenačte datum a čas.**")]
+        public async Task RemindUserAsync(IUser user, string at, [Remainder] string message)
         {
             try
             {
-                Reminder.CreateReminder(Context.Guild, Context.User, user, at, message);
+                var dateTimeAt = StringHelper.ParseDateTime(at);
+
+                Reminder.CreateReminder(Context.Guild, Context.User, user, dateTimeAt, message);
                 await ReplyAsync("Upozornění vytvořeno.");
             }
             catch (Exception ex)
             {
-                if (ex is ValidationException)
+                if (ex is ValidationException || ex is FormatException)
                 {
                     await ReplyAsync(ex.Message);
                     return;
@@ -90,6 +97,13 @@ namespace Grillbot.Modules
         public async Task GetAllRemindsAsync()
         {
             var reminders = Reminder.GetAllReminders();
+
+            if (reminders.Count == 0)
+            {
+                await ReplyAsync("Nikdo nemá žádné upozornění.");
+                return;
+            }
+
             var embed = await CreatePaginatedEmbedAsync(reminders, true);
             await SendPaginatedEmbedAsync(embed);
         }
