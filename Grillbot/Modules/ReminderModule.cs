@@ -158,7 +158,7 @@ namespace Grillbot.Modules
                     if (string.IsNullOrEmpty(title))
                         continue;
 
-                    page.AddField(title, $"ID: {reminder.RemindID}\nZpráva: {reminder.Message}\nZa: {(reminder.At - DateTime.Now).ToCzechLongTimeString()}");
+                    page.AddField(title, $"ID: {reminder.RemindID}\nZpráva: {reminder.Message}\nZa: {(reminder.At - DateTime.Now).ToFullCzechTimeString()}");
                 }
 
                 if (page.AnyField())
