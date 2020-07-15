@@ -24,7 +24,7 @@ namespace Grillbot.Database.Repository
                           INNER JOIN sys.allocation_units a ON p.partition_id = a.container_id
                           LEFT OUTER JOIN sys.schemas s ON t.schema_id = s.schema_id
                           WHERE t.NAME NOT LIKE 'dt%'  AND t.is_ms_shipped = 0 AND i.OBJECT_ID > 255 
-                          GROUP BY t.Name, p.Rows ORDER BY  TotalSpaceKB DESC, p.rows DESC, t.Name";
+                          GROUP BY t.Name, p.Rows ORDER BY TotalSpaceKB DESC, p.rows DESC, t.Name";
 
             using var command = Context.Database.GetDbConnection().CreateCommand();
 

@@ -62,7 +62,9 @@ namespace Grillbot.Handlers
             var commandName = command.IsSpecified ? $"{command.Value.Module.Group} {command.Value.Name}".Trim() : "Unknown command";
 
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
-            InternalStatistics.IncrementCommand(commandName);
+
+            if (command.IsSpecified)
+                InternalStatistics.IncrementCommand(commandName);
 
             if (context.Guild != null && command.IsSpecified)
             {
