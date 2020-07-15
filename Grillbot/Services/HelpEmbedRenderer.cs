@@ -100,11 +100,21 @@ namespace Grillbot.Services
             var result = CommandService.Search(command);
 
             if (!result.IsSuccess)
+            {
+                if (result.Error == CommandError.UnknownCommand && CommandService.Modules.Any(o => o.Group == command))
+                    return await RenderGroupHelp(command, context);
+
                 ProcessSearchError(result, command);
+            }
 
-            var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na **{command.PreventMassTags()}**");
+            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context);
+        }
 
-            foreach (var cmd in result.Commands.Select(o => o.Command))
+        private async Task<BotEmbed> RenderEmbedAsync(string prefix, IEnumerable<CommandInfo> commands, ICommandContext context)
+        {
+            var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na **{prefix.PreventMassTags()}**");
+
+            foreach (var cmd in commands)
             {
                 var access = await cmd.CheckPreconditionsAsync(context, ServiceProvider);
 
@@ -115,7 +125,7 @@ namespace Grillbot.Services
             }
 
             if (embed.FieldsEmpty)
-                embed.WithDescription($"Na metodu **{command.PreventMassTags()}** nemáš žádná potřebná oprávnění.");
+                embed.WithDescription($"Na metodu **{prefix.PreventMassTags()}** nemáš žádná potřebná oprávnění.");
 
             return embed;
         }
@@ -124,7 +134,7 @@ namespace Grillbot.Services
         {
             var builder = new StringBuilder();
 
-            if(command.Parameters.Count > 0)
+            if (command.Parameters.Count > 0)
             {
                 builder
                     .Append("Parametry: ")
@@ -134,7 +144,7 @@ namespace Grillbot.Services
             if (!string.IsNullOrEmpty(command.Summary))
                 builder.AppendLine(command.Summary);
 
-            if(!string.IsNullOrEmpty(command.Remarks))
+            if (!string.IsNullOrEmpty(command.Remarks))
                 builder.Append("Poznámka: ").AppendLine(command.Remarks.Replace("{prefix}", CommandPrefix));
 
             return new EmbedFieldBuilder()
@@ -151,6 +161,12 @@ namespace Grillbot.Services
                 case CommandError.UnmetPrecondition:
                     throw new UnauthorizedAccessException(result.ErrorReason.PreventMassTags());
             }
+        }
+
+        private async Task<BotEmbed> RenderGroupHelp(string group, ICommandContext context)
+        {
+            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group);
+            return await RenderEmbedAsync(group, module.Commands, context);
         }
     }
 }
