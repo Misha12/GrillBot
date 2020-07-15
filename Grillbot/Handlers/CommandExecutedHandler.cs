@@ -98,7 +98,7 @@ namespace Grillbot.Handlers
             var module = CommandService.Modules.FirstOrDefault(o => o.Group == group);
 
             if (module != null)
-                await context.Channel.SendMessageAsync($"Toto je skupina příkazů. Pro více se podívej do nápovědy.");
+                await SendCommandHelp(context, 1);
         }
     }
 }
