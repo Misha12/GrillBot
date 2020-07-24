@@ -1,6 +1,5 @@
 ﻿using Discord.WebSocket;
 using DBUserChannel = Grillbot.Database.Entity.Users.UserChannel;
-using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Users;

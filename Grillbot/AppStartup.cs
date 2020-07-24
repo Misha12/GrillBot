@@ -61,7 +61,8 @@ namespace Grillbot
             services
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
-                .AddSingleton<InitService>();
+                .AddSingleton<InitService>()
+                .AddSingleton(new BotState());
 
             services
                 .AddAutoReply()
@@ -105,5 +106,5 @@ namespace Grillbot
 
             serviceProvider.GetRequiredService<InitService>().Init();
         }
-        }
+    }
 }
