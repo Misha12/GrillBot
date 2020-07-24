@@ -18,6 +18,8 @@ namespace Grillbot.Modules
     [Group("points")]
     [Alias("body", "punkty")]
     [ModuleID("PointsModule")]
+    [Remarks("Body se počítají podobným způsobem jako MEE6. Jednou za minutu 15-25 bodů za každou zprávu.\nPočítají se i reakce. " +
+        "Princip u reakcí je stejný jako u zprávy. Jen omezení je jednou za půl minuty.")]
     public class PointsModule : BotModuleBase
     {
         private PointsService PointsService { get; }
@@ -27,9 +29,9 @@ namespace Grillbot.Modules
             PointsService = pointsService;
         }
 
-        [Command("")]
+        [Command("where")]
         [Summary("Aktuální stav bodů uživatele.")]
-        [Alias("where", "gde", "kde", "gdzie")]
+        [Alias("gde", "kde", "gdzie")]
         public async Task MyPointsAsync(IUser user = null)
         {
             var userEntity = user ?? Context.User;
@@ -62,7 +64,7 @@ namespace Grillbot.Modules
 
         [Command("leaderboard")]
         [Summary("Leaderboard bodů")]
-        [Alias("board", "list", "tabule", "seznam", "top10")]
+        [Alias("board", "list", "top10")]
         public async Task PointsLeaderboardAsync(int page = 1)
         {
             var leaderboard = PointsService.GetPointsLeaderboard(Context.Guild, false, page);
@@ -73,7 +75,7 @@ namespace Grillbot.Modules
 
         [Command("noleaderboard")]
         [Summary("Leaderboard bodů obráceně")]
-        [Alias("boardASC", "listASC", "obracenaTabule", "obracenySeznam", "top10^-1", "bajkar")]
+        [Alias("boardASC", "listASC", "obracenyList", "top10^-1", "bajkar")]
         public async Task PointsAscLeaderboardAsync(int page = 1)
         {
             var leaderboard = PointsService.GetPointsLeaderboard(Context.Guild, true, page);
