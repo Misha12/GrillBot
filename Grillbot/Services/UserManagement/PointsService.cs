@@ -85,7 +85,7 @@ namespace Grillbot.Services.UserManagement
                 return;
 
             var user = UsersRepository.GetOrCreateUser(guild.Id, reaction.UserId, false, false, false, false, false);
-            user.Points += Random.Next(0, 3);
+            user.Points += Random.Next(0, 5);
 
             UsersRepository.SaveChanges();
             UpdateLastCalculation(guild, reaction.User.Value, 0.5d);
