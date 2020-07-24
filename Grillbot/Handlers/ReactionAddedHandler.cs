@@ -1,5 +1,6 @@
 ﻿using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
@@ -33,14 +34,17 @@ namespace Grillbot.Handlers
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
             InternalStatistics.IncrementEvent("ReactionAdded");
-
             EmoteStats.IncrementFromReaction(reaction);
-            await PaginationService.HandleReactionAsync(reaction);
-            UserService.IncrementReaction(reaction);
 
-            if(channel is SocketTextChannel textChannel)
+            if (reaction.User.IsSpecified && reaction.User.Value.IsUser())
             {
-                IncrementPoints(textChannel.Guild, reaction);
+                await PaginationService.HandleReactionAsync(reaction);
+                UserService.IncrementReaction(reaction);
+
+                if (channel is SocketTextChannel textChannel)
+                {
+                    IncrementPoints(textChannel.Guild, reaction);
+                }
             }
         }
 
