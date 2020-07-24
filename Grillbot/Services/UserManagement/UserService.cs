@@ -20,7 +20,6 @@ namespace Grillbot.Services.UserManagement
         private IServiceProvider Services { get; }
         public Dictionary<string, DateTime> LastPointsCalculatedAt { get; set; }
         private static readonly object locker = new object();
-        private Random Random { get; }
         private IMessageCache MessageCache { get; }
         private DiscordSocketClient DiscordClient { get; }
 
@@ -29,7 +28,6 @@ namespace Grillbot.Services.UserManagement
             Services = services;
             MessageCache = messageCache;
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
-            Random = new Random();
             DiscordClient = discordClient;
         }
 
@@ -109,17 +107,6 @@ namespace Grillbot.Services.UserManagement
                     channelEntity.LastMessageAt = DateTime.Now;
                 }
 
-                if (CanIncrementPoints(guild, guildUser))
-                {
-                    user.Points += Random.Next(15, 25);
-
-                    var key = GenerateKey(guild, guildUser);
-                    if (LastPointsCalculatedAt.ContainsKey(key))
-                        LastPointsCalculatedAt[key] = DateTime.Now;
-                    else
-                        LastPointsCalculatedAt.Add(key, DateTime.Now);
-                }
-
                 repository.SaveChanges();
             }
         }
@@ -143,24 +130,6 @@ namespace Grillbot.Services.UserManagement
                 repository.SaveChanges();
             }
         }
-
-        private bool CanIncrementPoints(SocketGuild guild, SocketGuildUser user)
-        {
-            var key = GenerateKey(guild, user);
-
-            lock (locker)
-            {
-                if (!LastPointsCalculatedAt.ContainsKey(key))
-                    return true;
-
-                var lastMessageAt = LastPointsCalculatedAt[key];
-
-                return (DateTime.Now - lastMessageAt).TotalMinutes > 1.0;
-            }
-        }
-
-        private string GenerateKey(IGuild guild, IUser user) => GenerateKey(guild.Id, user.Id);
-        private string GenerateKey(ulong guildID, ulong userID) => $"{userID}|{guildID}";
 
         public void IncrementReaction(SocketReaction reaction)
         {
