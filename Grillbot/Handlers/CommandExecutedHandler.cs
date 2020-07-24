@@ -97,7 +97,7 @@ namespace Grillbot.Handlers
         private async Task ProcessUnknownCommandAsync(ICommandContext context)
         {
             var group = context.Message.Content.Substring(1);
-            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group);
+            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group || o.Aliases.Contains(group));
 
             if (module != null)
                 await SendCommandHelp(context, 1);

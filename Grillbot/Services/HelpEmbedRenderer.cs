@@ -86,11 +86,12 @@ namespace Grillbot.Services
         private string ProcessSummary(CommandInfo command)
         {
             if (string.IsNullOrEmpty(command.Summary))
-                return "-";
+                return "_ _";
 
             return (command.Summary.ToLower()) switch
             {
                 "<frommodule(name)>" => command.Module.Name,
+                "<frommodule(remarks)" => command.Module.Remarks,
                 _ => command.Summary,
             };
         }
@@ -101,16 +102,21 @@ namespace Grillbot.Services
 
             if (!result.IsSuccess)
             {
-                if (result.Error == CommandError.UnknownCommand && CommandService.Modules.Any(o => o.Group == command))
+                if (result.Error == CommandError.UnknownCommand && CommandService.Modules.Any(o => o.Group == command || o.Aliases.Contains(command)))
                     return await RenderGroupHelp(command, context);
 
                 ProcessSearchError(result, command);
             }
 
-            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context);
+            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context, result.Commands.First().Command.Module.Remarks);
         }
 
-        private async Task<BotEmbed> RenderEmbedAsync(string prefix, IEnumerable<CommandInfo> commands, ICommandContext context)
+        private async Task<BotEmbed> RenderEmbedAsync(string prefix, ModuleInfo module, ICommandContext context)
+        {
+            return await RenderEmbedAsync(prefix, module.Commands, context, module.Remarks);
+        }
+
+        private async Task<BotEmbed> RenderEmbedAsync(string prefix, IEnumerable<CommandInfo> commands, ICommandContext context, string remarks)
         {
             var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na **{prefix.PreventMassTags()}**");
 
@@ -125,7 +131,14 @@ namespace Grillbot.Services
             }
 
             if (embed.FieldsEmpty)
+            {
                 embed.WithDescription($"Na metodu **{prefix.PreventMassTags()}** nemáš žádná potřebná oprávnění.");
+            }
+            else
+            {
+                if (!string.IsNullOrEmpty(remarks))
+                    embed.WithDescription(remarks);
+            }
 
             return embed;
         }
@@ -148,7 +161,7 @@ namespace Grillbot.Services
                 builder.Append("Poznámka: ").AppendLine(command.Remarks.Replace("{prefix}", CommandPrefix));
 
             return new EmbedFieldBuilder()
-                .WithName(string.Join(", ", command.Aliases))
+                .WithName(FormatAliases(command.Aliases))
                 .WithValue(builder.Length == 0 ? "Bez parametrů a popisu" : builder.ToString());
         }
 
@@ -165,8 +178,32 @@ namespace Grillbot.Services
 
         private async Task<BotEmbed> RenderGroupHelp(string group, ICommandContext context)
         {
-            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group);
-            return await RenderEmbedAsync(group, module.Commands, context);
+            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group || o.Aliases.Contains(group));
+            return await RenderEmbedAsync(group, module, context);
+        }
+
+        private string FormatAliases(IReadOnlyCollection<string> aliases)
+        {
+            var aliasFields = aliases.Select(o => o.Split(' ')).ToList();
+
+            var builder = new List<string>();
+
+            foreach (var group in aliasFields.GroupBy(o => o[0]))
+            {
+                var commands = group.Select(o => o[1]).ToArray();
+                builder.Add($"{group.Key} {string.Join(", ", commands)}");
+            }
+
+            var result = string.Join("\n", builder);
+            return result;
+
+            string lastGroup = null;
+            foreach (var alias in aliasFields)
+            {
+                if (alias[0] != lastGroup)
+                    lastGroup = alias[0];
+
+            }
         }
     }
 }
