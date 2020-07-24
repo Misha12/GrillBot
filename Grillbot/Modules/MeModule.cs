@@ -3,14 +3,12 @@ using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
     [Group("me")]
-    [RequirePermissions]
     [Name("Informace o mě")]
     [ModuleID("MeModule")]
     public class MeModule : BotModuleBase

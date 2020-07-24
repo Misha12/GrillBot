@@ -6,14 +6,12 @@ using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Duck;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
     [Name("Stav Kachny")]
     [Group("kachna")]
-    [RequirePermissions]
     [ModuleID("DuckModule")]
     public class DuckModule : BotModuleBase
     {

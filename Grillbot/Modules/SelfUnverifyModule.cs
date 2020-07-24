@@ -3,7 +3,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -12,7 +11,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Group("selfunverify")]
     [ModuleID("SelfUnverifyModule")]
     [Name("Odebrání přístupu")]

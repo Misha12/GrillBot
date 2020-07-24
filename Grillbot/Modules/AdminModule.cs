@@ -6,14 +6,12 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.MessageCache;
-using Grillbot.Services.Permissions.Preconditions;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [ModuleID("AdminModule")]
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase

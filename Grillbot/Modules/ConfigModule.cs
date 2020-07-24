@@ -11,7 +11,6 @@ using Grillbot.Models;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
@@ -25,7 +24,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("config")]
-    [RequirePermissions]
     [Name("Konfigurace bota")]
     [ModuleID("ConfigModule")]
     public class ConfigModule : BotModuleBase

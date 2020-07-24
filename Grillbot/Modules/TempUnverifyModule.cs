@@ -8,7 +8,6 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using System;
 using System.Collections.Generic;
@@ -19,7 +18,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("unverify")]
-    [RequirePermissions]
     [Name("Odebrání přístupu")]
     [ModuleID("TempUnverifyModule")]
     public class TempUnverifyModule : BotModuleBase

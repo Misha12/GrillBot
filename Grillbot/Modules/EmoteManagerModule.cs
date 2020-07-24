@@ -4,7 +4,6 @@ using Grillbot.Attributes;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
 using System.Collections.Generic;
@@ -15,7 +14,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("emoteinfo")]
-    [RequirePermissions]
     [Name("Správa emotů")]
     [ModuleID("EmoteManagerModule")]
     public class EmoteManagerModule : BotModuleBase

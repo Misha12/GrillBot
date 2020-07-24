@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
@@ -19,7 +18,6 @@ namespace Grillbot.Modules
 {
     [Group("birthday")]
     [Name("Narozeniny")]
-    [RequirePermissions]
     [ModuleID("BirthdaysModule")]
     public class BirthdaysModule : BotModuleBase
     {

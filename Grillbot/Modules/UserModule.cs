@@ -5,7 +5,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -15,7 +14,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("user")]
-    [RequirePermissions]
     [ModuleID("UserModule")]
     [Name("Správa uživatelů")]
     public class UserModule : BotModuleBase

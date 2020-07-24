@@ -6,7 +6,6 @@ using Grillbot.Extensions;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Group("autoreply")]
     [ModuleID("AutoReplyModule")]
     [Name("Ovládání automatických odpovědí")]

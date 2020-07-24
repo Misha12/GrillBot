@@ -7,7 +7,6 @@ using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Channelboard;
-using Grillbot.Services.Permissions.Preconditions;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -15,7 +14,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Group("guild")]
     [Name("Správa discord serveru")]
     [ModuleID("GuildModule")]

@@ -1,6 +1,5 @@
 ﻿using Discord.Commands;
 using System.Threading.Tasks;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
 using System.IO;
@@ -10,7 +9,6 @@ using Grillbot.Models.Config.Dynamic;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [ModuleID("MemeImageModule")]
     [Name("Nudes a další zajímavé fotky")]
     public class MemeImageModule : BotModuleBase

@@ -7,7 +7,6 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
@@ -15,7 +14,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("roleinfo")]
-    [RequirePermissions]
     [Name("Správa rolí")]
     [ModuleID("RoleManagerModule")]
     public class RoleManagerModule : BotModuleBase

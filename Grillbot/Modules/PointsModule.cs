@@ -4,7 +4,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.UserManagement;
 using System;
 using System.Collections.Generic;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Name("Práce s body")]
-    [RequirePermissions]
     [Group("points")]
     [Alias("body", "punkty")]
     [ModuleID("PointsModule")]
