@@ -13,14 +13,12 @@ using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TeamSearch;
 using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
     [Group("hledam")]
-    [RequirePermissions]
     [Name("Hledání týmů")]
     [ModuleID("TeamSearchModule")]
     public class TeamSearchModule : BotModuleBase

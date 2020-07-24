@@ -3,7 +3,6 @@ using Discord.Commands;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Grillbot.Services.Permissions.Preconditions;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Newtonsoft.Json;
@@ -15,7 +14,6 @@ using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Name("Channel leaderboards")]
     [ModuleID("ChannelboardModule")]
     public class ChannelboardModule : BotModuleBase

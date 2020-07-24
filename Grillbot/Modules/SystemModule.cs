@@ -4,7 +4,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.TempUnverify;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
@@ -14,7 +13,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Group("system")]
     [Name("Interní správa bota")]
     [ModuleID("SystemModule")]

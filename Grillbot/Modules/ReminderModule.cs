@@ -13,12 +13,10 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.Reminder;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [ModuleID("ReminderModule")]
     [Name("Upozornění")]
     [Group("remind")]

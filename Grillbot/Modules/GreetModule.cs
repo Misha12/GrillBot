@@ -2,7 +2,6 @@
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Database.Repository;
@@ -13,7 +12,6 @@ using Grillbot.Enums;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [Name("Pozdrav bota")]
     [ModuleID("GreetModule")]
     public class GreetModule : BotModuleBase

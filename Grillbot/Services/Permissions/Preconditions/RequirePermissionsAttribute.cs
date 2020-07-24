@@ -13,16 +13,16 @@ namespace Grillbot.Services.Permissions.Preconditions
             using var scope = services.CreateScope();
             using var permsManager = (PermissionsManager)scope.ServiceProvider.GetService(typeof(PermissionsManager));
 
-            return (permsManager.CheckPermissions(context, command)) switch
+            return Task.FromResult((permsManager.CheckPermissions(context, command)) switch
             {
-                PermissionsResult.MethodNotFound => Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění.")),
-                PermissionsResult.MissingPermissions => Task.FromResult(PreconditionResult.FromError("Na tento příkaz nemáš dostatečnou roli.")),
-                PermissionsResult.OnlyAdmins => Task.FromResult(PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota.")),
-                PermissionsResult.PMNotAllowed => Task.FromResult(PreconditionResult.FromError("Tento příkaz nelze provést v soukromé konverzaci.")),
-                PermissionsResult.UserIsBanned => Task.FromResult(PreconditionResult.FromError("Tento příkaz nemůžeš použít.")),
-                PermissionsResult.NoPermissions => Task.FromResult(PreconditionResult.FromError("Tento příkaz nemá nakonfigurované oprávnění.")),
-                _ => Task.FromResult(PreconditionResult.FromSuccess()),
-            };
+                PermissionsResult.MethodNotFound => PreconditionResult.FromError("Tento příkaz nelze zpracovat. V konfiguraci chybí definice oprávnění."),
+                PermissionsResult.MissingPermissions => PreconditionResult.FromError("Na tento příkaz nemáš dostatečnou roli."),
+                PermissionsResult.OnlyAdmins => PreconditionResult.FromError("Tento příkaz je povolen pouze pro administrátory bota."),
+                PermissionsResult.PMNotAllowed => PreconditionResult.FromError("Tento příkaz nelze provést v soukromé konverzaci."),
+                PermissionsResult.UserIsBanned => PreconditionResult.FromError("Tento příkaz nemůžeš použít."),
+                PermissionsResult.NoPermissions => PreconditionResult.FromError("Tento příkaz nemá nakonfigurované oprávnění."),
+                _ => PreconditionResult.FromSuccess(),
+            });
         }
     }
 }

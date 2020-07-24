@@ -7,7 +7,6 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -17,7 +16,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("modules")]
-    [RequirePermissions]
     [Name("Správa modulů")]
     [ModuleID("ModulesModule")]
     public class ModulesModule : BotModuleBase

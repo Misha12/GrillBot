@@ -1,7 +1,6 @@
 ﻿using Discord.Commands;
 using System;
 using System.Threading.Tasks;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services;
@@ -13,7 +12,6 @@ namespace Grillbot.Modules
     [Name("Nápověda")]
     [Group("grillhelp")]
     [Alias("help")]
-    [RequirePermissions]
     [ModuleID("HelpModule")]
     public class HelpModule : BotModuleBase
     {

@@ -10,7 +10,6 @@ using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.Math;
 using Grillbot.Services;
 using Grillbot.Services.Math;
-using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -20,7 +19,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Name("Počítání")]
-    [RequirePermissions]
     [ModuleID("MathModule")]
     [Group("math")]
     public class MathModule : BotModuleBase

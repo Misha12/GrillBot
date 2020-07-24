@@ -4,7 +4,6 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Models.Embed;
 using Grillbot.Services;
-using Grillbot.Services.Permissions.Preconditions;
 using Grillbot.Services.Statistics;
 using System;
 using System.Diagnostics;
@@ -13,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [RequirePermissions]
     [ModuleID("ReportModule")]
     [Name("Reporting")]
     [Group("report")]
