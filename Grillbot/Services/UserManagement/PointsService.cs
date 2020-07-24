@@ -1,10 +1,14 @@
 ﻿using Discord;
+using Discord.WebSocket;
+using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
+using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -12,11 +16,15 @@ namespace Grillbot.Services.UserManagement
     {
         private UsersRepository UsersRepository { get; }
         private ILogger<PointsService> Logger { get; }
+        private BotState BotState { get; }
+        private Random Random { get; }
 
-        public PointsService(UsersRepository usersRepository, ILogger<PointsService> logger)
+        public PointsService(UsersRepository usersRepository, ILogger<PointsService> logger, BotState botState)
         {
             UsersRepository = usersRepository;
             Logger = logger;
+            BotState = botState;
+            Random = new Random();
         }
 
         public Tuple<long, int> GetPoints(IGuild guild, IUser user)
@@ -69,6 +77,52 @@ namespace Grillbot.Services.UserManagement
             var skip = (page <= 1 ? 0 : page - 1) * limit;
             var users = UsersRepository.GetUsersWithPointsOrder(guild.Id, skip, limit, asc).ToList();
             return users.Select((o, i) => new Tuple<ulong, long, int>(o.UserIDSnowflake, o.Points, skip + i + 1)).ToList();
+        }
+
+        public void IncrementPoints(SocketGuild guild, SocketReaction reaction)
+        {
+            if (!reaction.User.IsSpecified || !CanIncrementPoints(guild, reaction.User.Value, 0.5d))
+                return;
+
+            var user = UsersRepository.GetOrCreateUser(guild.Id, reaction.UserId, false, false, false, false, false);
+            user.Points += Random.Next(0, 3);
+
+            UsersRepository.SaveChanges();
+            UpdateLastCalculation(guild, reaction.User.Value, 0.5d);
+        }
+
+        public void IncrementPoints(SocketGuild guild, SocketMessage message)
+        {
+            if (!CanIncrementPoints(guild, message.Author, 1.0d))
+                return;
+
+            var user = UsersRepository.GetOrCreateUser(guild.Id, message.Author.Id, false, false, false, false, false);
+            user.Points += Random.Next(15, 25);
+
+            UsersRepository.SaveChanges();
+            UpdateLastCalculation(guild, message.Author, 1.0d);
+        }
+
+        private bool CanIncrementPoints(IGuild guild, IUser user, double limit)
+        {
+            var key = $"{guild.Id}|{user.Id}|{limit}";
+
+            if (!BotState.LastPointsCalculation.ContainsKey(key))
+                return true;
+
+            var lastMessageAt = BotState.LastPointsCalculation[key];
+            return (DateTime.Now - lastMessageAt).TotalMinutes >= limit;
+        }
+
+        private void UpdateLastCalculation(IGuild guild, IUser user, double limit)
+        {
+            var key = $"{guild.Id}|{user.Id}|{limit}";
+
+            if (BotState.LastPointsCalculation.ContainsKey(key))
+                BotState.LastPointsCalculation[key] = DateTime.Now;
+            else
+                BotState.LastPointsCalculation.Add(key, DateTime.Now);
+
         }
 
         public void Dispose()

@@ -10,6 +10,7 @@ using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
@@ -64,6 +65,7 @@ namespace Grillbot.Handlers
             {
                 if (context.Guild != null)
                 {
+                    IncrementPoints(context.Guild, message);
                     UserService.IncrementMessage(context.User as SocketGuildUser, context.Guild, context.Channel as SocketGuildChannel);
                     await AutoReply.TryReplyAsync(context.Guild, userMessage).ConfigureAwait(false);
                 }
@@ -87,6 +89,14 @@ namespace Grillbot.Handlers
 
             socketUserMessage = userMessage;
             return true;
+        }
+
+        private void IncrementPoints(SocketGuild guild, SocketMessage message)
+        {
+            using var scope = Services.CreateScope();
+            using var pointsService = scope.ServiceProvider.GetService<PointsService>();
+
+            pointsService.IncrementPoints(guild, message);
         }
 
         public void Dispose()
