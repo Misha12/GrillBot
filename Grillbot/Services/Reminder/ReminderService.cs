@@ -48,10 +48,10 @@ namespace Grillbot.Services.Reminder
         private void ValidateReminderCreation(DateTime at, string message)
         {
             if (DateTime.Now > at)
-                throw new ValidationException("Datum a Ëas notifikace musÌ b˝t v budoucnosti.");
+                throw new ValidationException("Datum a ƒças notifikace mus√≠ b√Ωt v budoucnosti.");
 
             if (string.IsNullOrEmpty(message))
-                throw new ValidationException("Text musÌ b˝t uveden.");
+                throw new ValidationException("Text mus√≠ b√Ωt uveden.");
         }
 
         public async Task<List<ReminderEntity>> GetRemindersAsync(IGuild guild, IUser user)
@@ -59,7 +59,7 @@ namespace Grillbot.Services.Reminder
             var userId = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
 
             if (userId == null)
-                throw new NotFoundException("é·dn· data pro tohoto uûivatele nebyly nalezeny.");
+                throw new NotFoundException("≈Ω√°dn√° data pro tohoto u≈æivatele nebyly nalezeny.");
 
             return ReminderRepository.GetReminders(userId);
         }
@@ -74,11 +74,11 @@ namespace Grillbot.Services.Reminder
             var remind = ReminderRepository.FindReminderByID(id);
 
             if (remind == null)
-                throw new InvalidOperationException("Toto upozornÏnÌ neexistuje.");
+                throw new InvalidOperationException("Toto upozornƒõn√≠ neexistuje.");
 
             var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
             if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
-                throw new UnauthorizedAccessException("Na tuto operaci nem·ö pr·va.");
+                throw new UnauthorizedAccessException("Na tuto operaci nem√°≈° pr√°va.");
 
             ReminderTaskService.RemoveTask(id);
             ReminderRepository.RemoveRemind(id);
@@ -89,14 +89,19 @@ namespace Grillbot.Services.Reminder
             var remind = ReminderRepository.FindReminderByID(id);
 
             if (remind == null)
-                throw new InvalidOperationException("Toto upozornÏnÌ neexistuje.");
+                throw new InvalidOperationException("Toto upozornƒõn√≠ neexistuje.");
 
             var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
             if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
-                throw new UnauthorizedAccessException("Na tuto operaci nem·ö pr·va.");
+                throw new UnauthorizedAccessException("Na tuto operaci nem√°≈° pr√°va.");
 
             await ReminderTaskService.ProcessReminderForclyAsync(id);
             ReminderTaskService.RemoveTask(id);
+        }
+
+        public async Task PostponeReminderAsync(IUserMessage message, SocketReaction reaction)
+        {
+
         }
 
         public void Dispose()
