@@ -8,6 +8,7 @@ using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.MessageCache;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
@@ -18,17 +19,19 @@ namespace Grillbot.Services.Reminder
         private ReminderTaskService ReminderTaskService { get; }
         private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
+        private IMessageCache MessageCache { get; }
 
         public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository,
-            DiscordSocketClient discord)
+            DiscordSocketClient discord, IMessageCache messageCache)
         {
             ReminderRepository = reminderRepository;
             ReminderTaskService = reminderTaskService;
             UsersRepository = usersRepository;
             Discord = discord;
+            MessageCache = messageCache;
         }
 
-        public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message)
+        public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
         {
             ValidateReminderCreation(at, message);
 
@@ -41,7 +44,8 @@ namespace Grillbot.Services.Reminder
             {
                 At = at,
                 FromUserID = fromUser == toUser ? (long?)null : fromUserEntity.ID,
-                Message = message
+                Message = message,
+                OriginalMessageIDSnowflake = originalMessage.Id
             };
 
             toUserEntity.Reminders.Add(remindEntity);
@@ -166,6 +170,33 @@ namespace Grillbot.Services.Reminder
             var containsUser = users.Any(o => o.Id == reaction.User.Value.Id);
 
             return containsBot && containsUser;
+        }
+
+        public async Task HandleRemindCopyAsync(SocketReaction reaction)
+        {
+            if (!(reaction.Emote is Emoji emoji)) return;
+            if (emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name) return;
+            if (!reaction.User.IsSpecified) return;
+
+            var originalMessage = ReminderRepository.FindReminderByOriginalMessage(reaction.MessageId);
+            if (originalMessage == null) return;
+
+            var originalGuild = Discord.GetGuild(originalMessage.User.GuildIDSnowflake);
+            if (originalGuild == null) return;
+
+            var author = await originalGuild.GetUserFromGuildAsync(originalMessage.User.UserIDSnowflake);
+            if (author == null) return;
+
+            var origMessageData = reaction.Message.IsSpecified ? reaction.Message.Value : (await MessageCache.GetAsync(reaction.Channel.Id, reaction.MessageId));
+
+            try
+            {
+                CreateReminder(originalGuild, author, reaction.User.Value, originalMessage.At, originalMessage.Message, origMessageData);
+            }
+            catch (ValidationException ex)
+            {
+                await reaction.Channel.SendMessageAsync($"{reaction.User.Value.Mention} {ex.Message}");
+            }
         }
 
         public void Dispose()

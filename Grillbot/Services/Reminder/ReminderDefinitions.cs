@@ -21,5 +21,7 @@ namespace Grillbot.Services.Reminder
             { FourHours, 4 },
             { FiveHours, 5 }
         };
+
+        public static Emoji CopyRemindEmoji => new Emoji("🙋");
     }
 }

@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
@@ -41,6 +41,7 @@ namespace Grillbot.Handlers
             {
                 await PaginationService.HandleReactionAsync(reaction);
                 UserService.IncrementReaction(reaction);
+                await HandleRemindCopyAsync(reaction);
 
                 if (channel is SocketTextChannel textChannel)
                 {
@@ -68,6 +69,14 @@ namespace Grillbot.Handlers
             using var remindService = scope.ServiceProvider.GetService<ReminderService>();
 
             await remindService.PostponeReminderAsync(message, reaction);
+        }
+
+        private async Task HandleRemindCopyAsync(SocketReaction reaction)
+        {
+            using var scope = Provider.CreateScope();
+            using var remindService = scope.ServiceProvider.GetService<ReminderService>();
+
+            await remindService.HandleRemindCopyAsync(reaction);
         }
 
         public void Dispose()

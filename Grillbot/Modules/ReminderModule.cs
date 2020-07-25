@@ -77,8 +77,8 @@ namespace Grillbot.Modules
             {
                 var dateTimeAt = StringHelper.ParseDateTime(at);
 
-                Reminder.CreateReminder(Context.Guild, Context.User, user, dateTimeAt, message);
-                await ReplyAsync("Upozornění vytvořeno.");
+                Reminder.CreateReminder(Context.Guild, Context.User, user, dateTimeAt, message, Context.Message);
+                await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {ReminderDefinitions.CopyRemindEmoji.Name}");
             }
             catch (Exception ex)
             {
