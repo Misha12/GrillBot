@@ -97,7 +97,7 @@ namespace Grillbot.Services.Reminder
 
             try
             {
-                var embed = CreateEmbedMessage(fromUser, reminder.Message, force);
+                var embed = CreateEmbedMessage(fromUser, reminder.Message, reminder.RemindID, force);
                 var message = await toUser.SendMessageAsync(embed: embed.Build());
 
                 if (!force)
@@ -123,12 +123,13 @@ namespace Grillbot.Services.Reminder
             }
         }
 
-        private BotEmbed CreateEmbedMessage(SocketGuildUser fromUser, string message, bool force)
+        private BotEmbed CreateEmbedMessage(SocketGuildUser fromUser, string message, long remindID, bool force)
         {
-            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okamžité u" : "U") + "pozornění");
+            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okamžité u" : "U") + "pozornění")
+                .AddField("ID", $"#{remindID}", true);
 
             if (fromUser != null)
-                embed.AddField("Od uživatele", fromUser.GetFullName(), false);
+                embed.AddField("Od uživatele", fromUser.GetFullName(), true);
 
             embed
                 .AddField("Zpráva", message, false)
