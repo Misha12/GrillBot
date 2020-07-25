@@ -178,20 +178,27 @@ namespace Grillbot.Services.Reminder
             if (emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name) return;
             if (!reaction.User.IsSpecified) return;
 
-            var originalMessage = ReminderRepository.FindReminderByOriginalMessage(reaction.MessageId);
-            if (originalMessage == null) return;
+            var originalRemind = ReminderRepository.FindReminderByOriginalMessage(reaction.MessageId);
+            if (originalRemind == null) return;
 
-            var originalGuild = Discord.GetGuild(originalMessage.User.GuildIDSnowflake);
+            var originalGuild = Discord.GetGuild(originalRemind.User.GuildIDSnowflake);
             if (originalGuild == null) return;
 
-            var author = await originalGuild.GetUserFromGuildAsync(originalMessage.User.UserIDSnowflake);
+            var author = await originalGuild.GetUserFromGuildAsync(originalRemind.User.UserIDSnowflake);
             if (author == null) return;
 
+            if (author.Id == reaction.User.Value.Id)
+            {
+                await reaction.Channel.SendMessageAsync($"{reaction.User.Value.Mention} Nemůžeš vytvořit kopii ze svého upozornění.");
+                return;
+            }
+
+            if (originalRemind.At < DateTime.Now) return;
             var origMessageData = reaction.Message.IsSpecified ? reaction.Message.Value : (await MessageCache.GetAsync(reaction.Channel.Id, reaction.MessageId));
 
             try
             {
-                CreateReminder(originalGuild, author, reaction.User.Value, originalMessage.At, originalMessage.Message, origMessageData);
+                CreateReminder(originalGuild, author, reaction.User.Value, originalRemind.At, originalRemind.Message, origMessageData);
             }
             catch (ValidationException ex)
             {
