@@ -10,11 +10,11 @@ using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Database.Repository;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using System.Text;
 using Discord.Net;
 using Grillbot.Enums;
 using Discord;
 using Grillbot.Services.Initiable;
+using Grillbot.Models.Embed;
 
 namespace Grillbot.Services.Reminder
 {
@@ -97,8 +97,19 @@ namespace Grillbot.Services.Reminder
 
             try
             {
-                var message = CreateMessage(fromUser, reminder.Message, force);
-                await toUser.SendMessageAsync(message);
+                var embed = CreateEmbedMessage(fromUser, reminder.Message, force);
+                var message = await toUser.SendMessageAsync(embed: embed.Build());
+
+                if (!force)
+                {
+                    await message.AddReactionsAsync(new[]{
+                        new Emoji("1Ô∏è‚É£"),
+                        new Emoji("2Ô∏è‚É£"),
+                        new Emoji("3Ô∏è‚É£"),
+                        new Emoji("4Ô∏è‚É£"),
+                        new Emoji("5Ô∏è‚É£")
+                    });
+                }
             }
             catch (HttpException ex)
             {
@@ -112,23 +123,18 @@ namespace Grillbot.Services.Reminder
             }
         }
 
-        private string CreateMessage(SocketGuildUser fromUser, string message, bool force)
+        private BotEmbed CreateEmbedMessage(SocketGuildUser fromUser, string message, bool force)
         {
-            var builder = new StringBuilder()
-                .AppendLine("Ahoj");
+            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okam≈æit√© u" : "U") + "pozornƒõn√≠");
 
-            if (force)
-                builder.AppendLine("Je to sice p¯edËasnÈ, ale.");
+            if (fromUser != null)
+                embed.AddField("Od u≈æivatele", fromUser.GetFullName(), false);
 
-            if (fromUser == null)
-                builder.AppendLine("UpozorÚuji tÏ, ûe sis nastavil upozornÏnÌ.");
-            else
-                builder.AppendLine($"UpozorÚuji tÏ, ûe m·ö od uûivatele {fromUser.GetFullName()} upozornÏnÌ.");
+            embed
+                .AddField("Zpr√°va", message, false)
+                .AddField("Mo≈ænosti", "Pokud si p≈ôeje≈° toto upozornƒõn√≠ posunout, tak klikni na p≈ô√≠slu≈°nou emoji reakci podle poƒçtu hodin.", false);
 
-            return builder
-                .Append("M·ö k tomu i zpr·vu: ")
-                .AppendLine(message)
-                .ToString();
+            return embed;
         }
 
         public void Init()
