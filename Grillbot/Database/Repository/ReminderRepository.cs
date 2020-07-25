@@ -1,5 +1,6 @@
 using Grillbot.Database.Entity.Users;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -68,6 +69,21 @@ namespace Grillbot.Database.Repository
         public bool ExistsReminder(long id)
         {
             return GetBaseQuery(false).Any(o => o.RemindID == id);
+        }
+
+        public List<Tuple<ulong, ulong, int>> GetLeaderboard()
+        {
+            return GetBaseQuery(true)
+                .AsEnumerable()
+                .GroupBy(o => o.UserID)
+                .Select(o =>
+                {
+                    var item = o.First().User;
+                    return Tuple.Create(item.GuildIDSnowflake, item.UserIDSnowflake, o.Sum(o => o.PostponeCounter));
+                })
+                .Take(10)
+                .OrderByDescending(o => o.Item3)
+                .ToList();
         }
     }
 }
