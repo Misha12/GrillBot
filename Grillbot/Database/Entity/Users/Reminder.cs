@@ -14,7 +14,7 @@ namespace Grillbot.Database.Entity.Users
         public long UserID { get; set; }
 
         [ForeignKey("UserID")]
-        public DiscordUser User { get;set; }
+        public DiscordUser User { get; set; }
 
         public long? FromUserID { get; set; }
 
@@ -24,5 +24,17 @@ namespace Grillbot.Database.Entity.Users
         public DateTime At { get; set; }
 
         public string Message { get; set; }
+
+        public int PostponeCounter { get; set; }
+
+        [StringLength(30)]
+        public string RemindMessageID { get; set; }
+
+        [NotMapped]
+        public ulong? RemindMessageIDSnowflake
+        {
+            get => string.IsNullOrEmpty(RemindMessageID) ? (ulong?)null : Convert.ToUInt64(RemindMessageID);
+            set => RemindMessageID = value?.ToString();
+        }
     }
 }

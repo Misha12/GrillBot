@@ -66,8 +66,10 @@ namespace Grillbot.Services.Reminder
             if (remind == null)
                 return;
 
-            await NotifyUserAsync(remind, force);
-            remindersRepository.RemoveRemind(data.ID);
+            var message = await NotifyUserAsync(remind, force);
+
+            remind.RemindMessageIDSnowflake = message.Id;
+            remindersRepository.SaveChanges();
         }
 
         public async Task ProcessReminderForclyAsync(long id)
@@ -85,54 +87,55 @@ namespace Grillbot.Services.Reminder
             });
         }
 
-        private async Task NotifyUserAsync(ReminderEntity reminder, bool force)
+        private async Task<IUserMessage> NotifyUserAsync(ReminderEntity reminder, bool force)
         {
             var guild = Discord.GetGuild(reminder.User.GuildIDSnowflake);
 
             if (guild == null)
-                return;
+                return null;
 
             var toUser = await guild.GetUserFromGuildAsync(reminder.User.UserIDSnowflake);
             var fromUser = reminder.FromUser == null ? null : await guild.GetUserFromGuildAsync(reminder.FromUser.UserIDSnowflake);
 
             try
             {
-                var embed = CreateEmbedMessage(fromUser, reminder.Message, reminder.RemindID, force);
+                var embed = CreateEmbedMessage(fromUser, reminder, force);
                 var message = await toUser.SendMessageAsync(embed: embed.Build());
 
                 if (!force)
                 {
-                    await message.AddReactionsAsync(new[]{
-                        new Emoji("1️⃣"),
-                        new Emoji("2️⃣"),
-                        new Emoji("3️⃣"),
-                        new Emoji("4️⃣"),
-                        new Emoji("5️⃣")
-                    });
+                    await message.AddReactionsAsync(ReminderDefinitions.AllHourEmojis);
                 }
+
+                return message;
             }
             catch (HttpException ex)
             {
                 if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (int)DiscordJsonCodes.CannotSendPM)
                 {
                     Logger.LogInformation($"Cannot send private message to user {toUser.GetFullName()} ({toUser.Id}). User have disabled PM.");
-                    return;
+                    return null;
                 }
 
                 throw;
             }
         }
 
-        private BotEmbed CreateEmbedMessage(SocketGuildUser fromUser, string message, long remindID, bool force)
+        private BotEmbed CreateEmbedMessage(SocketGuildUser fromUser, ReminderEntity reminder, bool force)
         {
-            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okamžité u" : "U") + "pozornění")
-                .AddField("ID", $"#{remindID}", true);
+            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okamžité u" : "U") + "pozornění");
+
+            if (reminder.PostponeCounter > 0)
+                embed.AddField("Pozor", $"Toto připomenutí bylo odloženo **{reminder.PostponeCounter}x**.", false);
+
+            embed
+                .AddField("ID", $"#{reminder.RemindID}", true);
 
             if (fromUser != null)
                 embed.AddField("Od uživatele", fromUser.GetFullName(), true);
 
             embed
-                .AddField("Zpráva", message, false)
+                .AddField("Zpráva", reminder.Message, false)
                 .AddField("Možnosti", "Pokud si přeješ toto upozornění posunout, tak klikni na příslušnou emoji reakci podle počtu hodin.", false);
 
             return embed;
