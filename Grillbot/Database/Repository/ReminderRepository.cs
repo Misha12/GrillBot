@@ -69,7 +69,9 @@ namespace Grillbot.Database.Repository
             if (userId != null)
                 query = query.Where(o => o.UserID == userId.Value);
 
-            return query.ToList();
+            return query
+                .Where(o => o.At > DateTime.Now)
+                .ToList();
         }
 
         public bool ExistsReminder(long id)
