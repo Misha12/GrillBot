@@ -1,14 +1,11 @@
 ﻿using Discord;
 using Discord.WebSocket;
-using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Microsoft.EntityFrameworkCore.Scaffolding.Metadata;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement
 {
