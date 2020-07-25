@@ -1,11 +1,13 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
+using Grillbot.Extensions.Discord;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
@@ -15,12 +17,15 @@ namespace Grillbot.Services.Reminder
         private ReminderRepository ReminderRepository { get; }
         private ReminderTaskService ReminderTaskService { get; }
         private UsersRepository UsersRepository { get; }
+        private DiscordSocketClient Discord { get; }
 
-        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository)
+        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository,
+            DiscordSocketClient discord)
         {
             ReminderRepository = reminderRepository;
             ReminderTaskService = reminderTaskService;
             UsersRepository = usersRepository;
+            Discord = discord;
         }
 
         public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message)
@@ -81,7 +86,6 @@ namespace Grillbot.Services.Reminder
                 throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
 
             ReminderTaskService.RemoveTask(id);
-            ReminderRepository.RemoveRemind(id);
         }
 
         public async Task CancelReminderWithNotificationAsync(long id, SocketGuildUser user)
@@ -101,7 +105,44 @@ namespace Grillbot.Services.Reminder
 
         public async Task PostponeReminderAsync(IUserMessage message, SocketReaction reaction)
         {
+            if (!(await CanPostponeRemindAsync(message, reaction)))
+                return;
 
+            var remind = ReminderRepository.FindReminderByMessageId(message.Id);
+
+            if (remind == null)
+                return;
+
+            var hours = ReminderDefinitions.EmojiToHourNumberMapping[reaction.Emote as Emoji];
+
+            remind.RemindMessageIDSnowflake = null;
+            remind.At = DateTime.Now.AddHours(hours);
+            remind.PostponeCounter++;
+
+            await message.DeleteMessageAsync();
+
+            ReminderTaskService.AddReminder(remind);
+            ReminderRepository.SaveChanges();
+        }
+
+        private async Task<bool> CanPostponeRemindAsync(IUserMessage message, SocketReaction reaction)
+        {
+            if (
+                message.Embeds.Count != 1 ||
+                !(message.Channel is IPrivateChannel) ||
+                !(reaction.Emote is Emoji emoji) ||
+                !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
+                !reaction.User.IsSpecified ||
+                (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
+            )
+                return false;
+
+            var users = await message.GetReactionUsersAsync(emoji, 5).FlattenAsync();
+
+            var containsBot = users.Any(o => o.Id == Discord.CurrentUser.Id);
+            var containsUser = users.Any(o => o.Id == reaction.User.Value.Id);
+
+            return containsBot && containsUser;
         }
 
         public void Dispose()

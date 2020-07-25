@@ -28,6 +28,7 @@ namespace Grillbot.Database.Repository
         public List<Reminder> GetRemindersForInit()
         {
             return GetBaseQuery(false)
+                .Where(o => o.RemindMessageID == null)
                 .ToList();
         }
 
@@ -35,6 +36,12 @@ namespace Grillbot.Database.Repository
         {
             return GetBaseQuery(true)
                 .SingleOrDefault(o => o.RemindID == id);
+        }
+
+        public Reminder FindReminderByMessageId(ulong messageId)
+        {
+            return GetBaseQuery(true)
+                .SingleOrDefault(o => o.RemindMessageID == messageId.ToString());
         }
 
         public void RemoveRemind(long id)
