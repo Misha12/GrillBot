@@ -17,7 +17,7 @@ namespace Grillbot.Modules
     [Alias("body", "punkty")]
     [ModuleID("PointsModule")]
     [Remarks("Body se počítají podobným způsobem jako MEE6. Jednou za minutu 15-25 bodů za každou zprávu.\nPočítají se i reakce. " +
-        "Princip u reakcí je stejný jako u zprávy. Jen omezení je jednou za půl minuty.")]
+        "Princip u reakcí je stejný jako u zprávy. Jen omezení je jednou za půl minuty a rozsah je 0-5 bodů.")]
     public class PointsModule : BotModuleBase
     {
         private PointsService PointsService { get; }
