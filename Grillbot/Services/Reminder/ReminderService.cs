@@ -125,6 +125,29 @@ namespace Grillbot.Services.Reminder
             ReminderRepository.SaveChanges();
         }
 
+        public async Task<List<Tuple<SocketGuildUser, int>>> GetLeaderboard()
+        {
+            var stats = ReminderRepository.GetLeaderboard();
+            var result = new List<Tuple<SocketGuildUser, int>>();
+
+            foreach (var statItem in stats)
+            {
+                var guild = Discord.GetGuild(statItem.Item1);
+
+                if (guild == null)
+                    continue;
+
+                var user = await guild.GetUserFromGuildAsync(statItem.Item2);
+
+                if (user == null)
+                    continue;
+
+                result.Add(Tuple.Create(user, statItem.Item3));
+            }
+
+            return result;
+        }
+
         private async Task<bool> CanPostponeRemindAsync(IUserMessage message, SocketReaction reaction)
         {
             if (

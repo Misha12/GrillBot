@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -11,6 +12,7 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Reminder;
@@ -147,6 +149,25 @@ namespace Grillbot.Modules
 
                 throw;
             }
+        }
+
+        [Command("leaderboard")]
+        [Summary("Leaderboard uživatelů, kteří nejvíc odkládají připomenutí.")]
+        public async Task RemindPostponeLeaderboardAsync()
+        {
+            var leaderboard = await Reminder.GetLeaderboard();
+
+            var builder = new StringBuilder();
+            for (int i = 0; i < leaderboard.Count; i++)
+            {
+                var user = leaderboard[i];
+                builder.AppendLine($"> {(i + 1)}: *{user.Item1.GetDisplayName()}*: **{user.Item2.FormatWithSpaces()}x**");
+            }
+
+            var embed = new BotEmbed(Context.User, title: "Leaderboard nejvíce odkládajících osob.")
+                .WithDescription(builder.ToString());
+
+            await ReplyAsync(embed: embed.Build());
         }
 
         private async Task<PaginatedEmbed> CreatePaginatedEmbedAsync(List<Reminder> reminders, bool full = false)
