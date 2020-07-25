@@ -196,14 +196,6 @@ namespace Grillbot.Services
 
             var result = string.Join("\n", builder);
             return result;
-
-            string lastGroup = null;
-            foreach (var alias in aliasFields)
-            {
-                if (alias[0] != lastGroup)
-                    lastGroup = alias[0];
-
-            }
         }
     }
 }
