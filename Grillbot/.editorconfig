@@ -1,4 +1,5 @@
 ﻿[*.cs]
+charset = utf-8
 
 # S1075: URIs should not be hardcoded
 dotnet_diagnostic.S1075.severity = none
