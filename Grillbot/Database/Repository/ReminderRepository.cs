@@ -45,6 +45,12 @@ namespace Grillbot.Database.Repository
                 .SingleOrDefault(o => o.RemindMessageID == messageId.ToString());
         }
 
+        public Reminder FindReminderByOriginalMessage(ulong messageId)
+        {
+            return GetBaseQuery(true)
+                .SingleOrDefault(o => o.OriginalMessageID == messageId.ToString());
+        }
+
         public void RemoveRemind(long id)
         {
             var remind = FindReminderByID(id);

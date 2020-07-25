@@ -36,5 +36,16 @@ namespace Grillbot.Database.Entity.Users
             get => string.IsNullOrEmpty(RemindMessageID) ? (ulong?)null : Convert.ToUInt64(RemindMessageID);
             set => RemindMessageID = value?.ToString();
         }
+
+        [StringLength(30)]
+        [Required]
+        public string OriginalMessageID { get; set; }
+
+        [NotMapped]
+        public ulong OriginalMessageIDSnowflake
+        {
+            get => Convert.ToUInt64(OriginalMessageID);
+            set => OriginalMessageID = value.ToString();
+        }
     }
 }
