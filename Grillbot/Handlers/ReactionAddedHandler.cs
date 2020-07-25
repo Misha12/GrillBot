@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
 using Grillbot.Services.Initiable;
+using Grillbot.Services.Reminder;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.UserManagement;
 using Microsoft.Extensions.DependencyInjection;
@@ -45,6 +46,11 @@ namespace Grillbot.Handlers
                 {
                     IncrementPoints(textChannel.Guild, reaction);
                 }
+
+                if (message.HasValue)
+                {
+                    await PostponeReminderAsync(reaction, message.Value);
+                }
             }
         }
 
@@ -54,6 +60,14 @@ namespace Grillbot.Handlers
             using var pointsService = scope.ServiceProvider.GetService<PointsService>();
 
             pointsService.IncrementPoints(guild, reaction);
+        }
+
+        private async Task PostponeReminderAsync(SocketReaction reaction, IUserMessage message)
+        {
+            using var scope = Provider.CreateScope();
+            using var remindService = scope.ServiceProvider.GetService<ReminderService>();
+
+            await remindService.PostponeReminderAsync(message, reaction);
         }
 
         public void Dispose()
