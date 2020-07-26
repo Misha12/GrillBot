@@ -82,6 +82,7 @@ namespace Grillbot.Database.Repository
         public List<Tuple<ulong, ulong, int>> GetLeaderboard()
         {
             return GetBaseQuery(true)
+                .Where(o => o.PostponeCounter > 0)
                 .AsEnumerable()
                 .GroupBy(o => o.UserID)
                 .Select(o =>
