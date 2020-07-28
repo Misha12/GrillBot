@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
@@ -118,7 +118,7 @@ namespace Grillbot.Services
 
         private async Task<BotEmbed> RenderEmbedAsync(string prefix, IEnumerable<CommandInfo> commands, ICommandContext context, string remarks)
         {
-            var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na **{prefix.PreventMassTags()}**");
+            var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na \"**{prefix.PreventMassTags()}**\"");
 
             foreach (var cmd in commands)
             {
@@ -154,8 +154,9 @@ namespace Grillbot.Services
                     .AppendLine(string.Join(", ", command.Parameters.Select(o => o.Name)));
             }
 
-            if (!string.IsNullOrEmpty(command.Summary))
-                builder.AppendLine(command.Summary);
+            var summary = ProcessSummary(command);
+            if (!string.IsNullOrEmpty(summary))
+                builder.AppendLine(summary);
 
             if (!string.IsNullOrEmpty(command.Remarks))
                 builder.Append("Poznámka: ").AppendLine(command.Remarks.Replace("{prefix}", CommandPrefix));
@@ -190,7 +191,11 @@ namespace Grillbot.Services
 
             foreach (var group in aliasFields.GroupBy(o => o[0]))
             {
-                var commands = group.Select(o => o[1]).ToArray();
+                var commands = group
+                    .Where(o => o.Length >= 2)
+                    .Select(o => o[1])
+                    .ToArray();
+
                 builder.Add($"{group.Key} {string.Join(", ", commands)}");
             }
 
