@@ -9,6 +9,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.MessageCache;
+using Microsoft.Extensions.Logging;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
@@ -20,15 +21,17 @@ namespace Grillbot.Services.Reminder
         private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
         private IMessageCache MessageCache { get; }
+        private ILogger<ReminderService> Logger { get; }
 
         public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository,
-            DiscordSocketClient discord, IMessageCache messageCache)
+            DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger)
         {
             ReminderRepository = reminderRepository;
             ReminderTaskService = reminderTaskService;
             UsersRepository = usersRepository;
             Discord = discord;
             MessageCache = messageCache;
+            Logger = logger;
         }
 
         public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
@@ -109,8 +112,16 @@ namespace Grillbot.Services.Reminder
 
         public async Task PostponeReminderAsync(IUserMessage message, SocketReaction reaction)
         {
-            if (!(await CanPostponeRemindAsync(message, reaction)))
+            if (!(message.Channel is IPrivateChannel))
                 return;
+
+            if (!(await CanPostponeRemindAsync(message, reaction)))
+            {
+                var logMessage = $"Embeds: {message.Embeds.Count}, IsEmoji: {reaction.Emote is Emoji}, Time: {DateTime.UtcNow - message.CreatedAt}";
+                Logger.LogInformation($"Skipped postpone remind for {(reaction.User.IsSpecified ? $"UnknownUser({reaction.UserId})" : reaction.User.Value.Username)}\n{logMessage}");
+
+                return;
+            }
 
             var remind = ReminderRepository.FindReminderByMessageId(message.Id);
 
@@ -156,7 +167,6 @@ namespace Grillbot.Services.Reminder
         {
             if (
                 message.Embeds.Count != 1 ||
-                !(message.Channel is IPrivateChannel) ||
                 !(reaction.Emote is Emoji emoji) ||
                 !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
                 !reaction.User.IsSpecified ||
