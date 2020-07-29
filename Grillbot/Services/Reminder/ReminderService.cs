@@ -4,8 +4,10 @@ using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
+using Grillbot.Enums;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.MessageCache;
@@ -165,21 +167,28 @@ namespace Grillbot.Services.Reminder
 
         private async Task<bool> CanPostponeRemindAsync(IUserMessage message, SocketReaction reaction)
         {
-            if (
-                message.Embeds.Count != 1 ||
-                !(reaction.Emote is Emoji emoji) ||
-                !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
-                !reaction.User.IsSpecified ||
-                (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
-            )
+            try
+            {
+                if (
+                    message.Embeds.Count != 1 ||
+                    !(reaction.Emote is Emoji emoji) ||
+                    !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
+                    !reaction.User.IsSpecified ||
+                    (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
+                )
+                    return false;
+
+                var users = await message.GetReactionUsersAsync(emoji, 5).FlattenAsync();
+
+                var containsBot = users.Any(o => o.Id == Discord.CurrentUser.Id);
+                var containsUser = users.Any(o => o.Id == reaction.User.Value.Id);
+
+                return containsBot && containsUser;
+            }
+            catch (HttpException ex) when (ex.DiscordCode != null && ex.DiscordCode == (int)DiscordJsonCodes.UnknownMessage)
+            {
                 return false;
-
-            var users = await message.GetReactionUsersAsync(emoji, 5).FlattenAsync();
-
-            var containsBot = users.Any(o => o.Id == Discord.CurrentUser.Id);
-            var containsUser = users.Any(o => o.Id == reaction.User.Value.Id);
-
-            return containsBot && containsUser;
+            }
         }
 
         public async Task HandleRemindCopyAsync(SocketReaction reaction)
