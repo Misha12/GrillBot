@@ -1,8 +1,9 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Channelboard;
 using Grillbot.Models.Math;
+using Grillbot.Services.InviteTracker;
 using System.Collections.Generic;
 using System.Linq;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
@@ -25,6 +26,7 @@ namespace Grillbot.Models.Users
         public List<MathAuditItem> MathAuditItems { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
         public StatisticItem Statistics { get; set; }
+        public InviteModel UsedInvite { get; set; }
 
         public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
         {
@@ -45,7 +47,7 @@ namespace Grillbot.Models.Users
                 .ToList();
 
             UnverifyHistory = unverifyHistory;
-            
+
             MathAuditItems = dbUser.MathAudit
                 .OrderByDescending(o => o.ID)
                 .Select(o => new MathAuditItem(o, guild))
@@ -53,6 +55,12 @@ namespace Grillbot.Models.Users
 
             if (dbUser.Statistics != null)
                 Statistics = new StatisticItem(dbUser.Statistics);
+
+            if (dbUser.UsedInvite != null)
+            {
+                var inviteCreator = guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake).Result;
+                UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
+            }
         }
 
         public string FormatReactions()

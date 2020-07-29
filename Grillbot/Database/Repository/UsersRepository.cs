@@ -39,7 +39,8 @@ namespace Grillbot.Database.Repository
             {
                 query = query
                     .Include(o => o.CreatedInvites)
-                    .Include(o => o.UsedInvite);
+                    .Include(o => o.UsedInvite)
+                    .ThenInclude(o => o.Creator);
             }
 
             return query;

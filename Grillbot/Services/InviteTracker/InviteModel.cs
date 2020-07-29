@@ -1,4 +1,6 @@
+using Discord;
 using Discord.Rest;
+using Grillbot.Database.Entity.Users;
 using System;
 
 namespace Grillbot.Services.InviteTracker
@@ -8,8 +10,16 @@ namespace Grillbot.Services.InviteTracker
         public string Code { get; set; }
         public ulong ChannelId { get; set; }
         public DateTimeOffset? CreatedAt { get; set; }
-        public RestUser Creator { get; set; }
+        public IUser Creator { get; set; }
         public int? Uses { get; set; }
+
+        public InviteModel(Invite entity, IUser creator)
+        {
+            Code = entity.Code;
+            ChannelId = entity.ChannelIdSnowflake;
+            CreatedAt = entity.CreatedAt.HasValue ? new DateTimeOffset(entity.CreatedAt.Value) : (DateTimeOffset?)null;
+            Creator = creator;
+        }
 
         public InviteModel(RestInviteMetadata metadata)
         {
