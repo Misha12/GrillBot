@@ -1,11 +1,11 @@
 using Discord.WebSocket;
+using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.InviteTracker;
-using Microsoft.EntityFrameworkCore.Internal;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
@@ -131,9 +131,12 @@ namespace Grillbot.Services
                 return;
             }
 
-            // TODO Vanity
-            var inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
-            UsersRepository.SaveChangesIfAny();
+            DiscordUser inviteCreator = null;
+            if (usedInvite.Creator != null)
+            {
+                inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
+                UsersRepository.SaveChangesIfAny();
+            }
 
             InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
 

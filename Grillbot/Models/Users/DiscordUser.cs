@@ -58,7 +58,10 @@ namespace Grillbot.Models.Users
 
             if (dbUser.UsedInvite != null)
             {
-                var inviteCreator = guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake).Result;
+                SocketGuildUser inviteCreator = null;
+                if (dbUser.UsedInvite.Creator != null)
+                    inviteCreator = guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake).Result;
+
                 UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
             }
         }

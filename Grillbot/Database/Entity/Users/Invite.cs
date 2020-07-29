@@ -25,7 +25,7 @@ namespace Grillbot.Database.Entity.Users
 
         public DateTime? CreatedAt { get; set; }
 
-        public long CreatorId { get; set; }
+        public long? CreatorId { get; set; }
 
         [ForeignKey("CreatorId")]
         public DiscordUser Creator { get; set; }
