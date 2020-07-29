@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using DBUserChannel = Grillbot.Database.Entity.Users.UserChannel;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
@@ -85,7 +85,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var user = repository.GetOrCreateUser(guild.Id, guildUser.Id, true, false, false, false, false);
+                var user = repository.GetOrCreateUser(guild.Id, guildUser.Id, true, false, false, false, false, false);
                 var channelEntity = user.Channels.FirstOrDefault(o => o.ChannelIDSnowflake == channel.Id);
 
                 if (channelEntity == null)
@@ -117,7 +117,7 @@ namespace Grillbot.Services.UserManagement
             {
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var user = repository.GetUser(guild.Id, guildUser.Id, true, false, false, false, false);
+                var user = repository.GetUser(guild.Id, guildUser.Id, true, false, false, false, false, false);
 
                 if (user == null)
                     return;
@@ -169,8 +169,8 @@ namespace Grillbot.Services.UserManagement
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false, false, false, false, false);
-                var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false, false);
+                var authorEntity = repository.GetOrCreateUser(author.Guild.Id, author.Id, false, false, false, false, false, false);
+                var reactingUserEntity = repository.GetOrCreateUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false, false, false);
 
                 authorEntity.ObtainedReactionsCount++;
                 reactingUserEntity.GivenReactionsCount++;
@@ -189,8 +189,8 @@ namespace Grillbot.Services.UserManagement
                 using var scope = Services.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false, false, false, false, false);
-                var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false, false);
+                var authorEntity = repository.GetUser(author.Guild.Id, author.Id, false, false, false, false, false, false);
+                var reactingUserEntity = repository.GetUser(reactingUser.Guild.Id, reactingUser.Id, false, false, false, false, false, false);
 
                 if (authorEntity != null && authorEntity.ObtainedReactionsCount > 0)
                     authorEntity.ObtainedReactionsCount--;

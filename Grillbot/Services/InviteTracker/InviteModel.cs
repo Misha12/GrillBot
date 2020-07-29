@@ -9,7 +9,7 @@ namespace Grillbot.Services.InviteTracker
         public ulong ChannelId { get; set; }
         public DateTimeOffset? CreatedAt { get; set; }
         public RestUser Creator { get; set; }
-        public int? UsesCount { get; set; }
+        public int? Uses { get; set; }
 
         public InviteModel(RestInviteMetadata metadata)
         {
@@ -17,6 +17,7 @@ namespace Grillbot.Services.InviteTracker
             ChannelId = metadata.ChannelId;
             CreatedAt = metadata.CreatedAt;
             Creator = metadata.Inviter;
+            Uses = metadata.Uses;
         }
     }
 }
