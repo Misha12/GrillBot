@@ -46,7 +46,8 @@ namespace Grillbot.Services
                 .AddTransient<MathRepository>()
                 .AddTransient<UserStatisticsRepository>()
                 .AddTransient<GlobalConfigRepository>()
-                .AddTransient<ReminderRepository>();
+                .AddTransient<ReminderRepository>()
+                .AddTransient<InviteRepository>();
 
             return services;
         }

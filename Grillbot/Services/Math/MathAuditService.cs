@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Repository;
@@ -26,7 +26,7 @@ namespace Grillbot.Services.Math
                 SessionID = session.ID
             };
 
-            var dbUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, true, false, false);
+            var dbUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, true, false, false, false);
 
             dbUser.MathAudit.Add(new MathAuditLogItem()
             {

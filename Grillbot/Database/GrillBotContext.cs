@@ -88,5 +88,6 @@ namespace Grillbot.Database
         public virtual DbSet<MathAuditLogItem> MathAuditLogs { get; set; }
         public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
         public virtual DbSet<Reminder> Reminders { get; set; }
+        public virtual DbSet<Invite> Invites { get; set; }
     }
 }
