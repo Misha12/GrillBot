@@ -131,6 +131,7 @@ namespace Grillbot.Services
                 return;
             }
 
+            // TODO Vanity
             var inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
             UsersRepository.SaveChangesIfAny();
 
