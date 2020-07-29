@@ -1,4 +1,4 @@
-﻿using Grillbot.Database;
+using Grillbot.Database;
 using Grillbot.Database.Repository;
 using Grillbot.Handlers;
 using Grillbot.Modules.AutoReply;
@@ -225,7 +225,8 @@ namespace Grillbot.Services
         public static IServiceCollection AddDiscordAdminServices(this IServiceCollection services)
         {
             services
-                .AddTransient<PinManagement>();
+                .AddTransient<PinManagement>()
+                .AddTransient<InviteTrackerService>();
 
             return services;
         }
