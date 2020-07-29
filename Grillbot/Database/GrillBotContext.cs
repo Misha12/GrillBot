@@ -1,4 +1,4 @@
-﻿using Grillbot.Database.Entity;
+using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.Config;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Entity.MethodConfig;
@@ -45,6 +45,14 @@ namespace Grillbot.Database
                 builder
                     .HasMany(o => o.Reminders)
                     .WithOne(o => o.User);
+
+                builder
+                    .HasOne(o => o.UsedInvite)
+                    .WithMany(o => o.UsedUsers);
+
+                builder
+                    .HasMany(o => o.CreatedInvites)
+                    .WithOne(o => o.Creator);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
