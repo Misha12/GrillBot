@@ -22,7 +22,7 @@ namespace Grillbot.Database.Repository
                     ChannelIdSnowflake = invite.ChannelId,
                     Code = invite.Code,
                     CreatedAt = invite.CreatedAt.HasValue ? invite.CreatedAt.Value.UtcDateTime : (DateTime?)null,
-                    CreatorId = creator.ID
+                    CreatorId = creator?.ID
                 };
 
                 Context.Invites.Add(inviteEntity);
