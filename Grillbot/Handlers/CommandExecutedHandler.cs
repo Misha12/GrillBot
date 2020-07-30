@@ -1,4 +1,5 @@
-﻿using Discord.Commands;
+using Discord;
+using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Services;
@@ -46,6 +47,9 @@ namespace Grillbot.Handlers
                         break;
                     case CommandError.UnknownCommand:
                         await ProcessUnknownCommandAsync(context);
+                        break;
+                    case CommandError.ObjectNotFound when result is ParseResult parseResult && typeof(IUser).IsAssignableFrom(parseResult.ErrorParameter.Type):
+                        await context.Channel.SendMessageAsync($"{context.User.Mention} Zadaný uživatel nebyl nalezen.");
                         break;
                 }
             }
