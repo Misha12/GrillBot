@@ -1,11 +1,14 @@
 using Discord.WebSocket;
-using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Models.Users;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.InviteTracker;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
@@ -14,6 +17,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Net.Http;
 using System.Threading.Tasks;
+using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
 namespace Grillbot.Services
 {
@@ -43,10 +47,17 @@ namespace Grillbot.Services
 
         public async Task InitAsync()
         {
+            await RefreshInvitesAsync();
+        }
+
+        public async Task<string> RefreshInvitesAsync()
+        {
             var invites = await GetLatestInvitesAwait();
             Logger.LogInformation($"Invite tracker loaded. Loaded invites: {invites.Sum(o => o.Value.Count)} on {invites.Count} guild{(invites.Count > 1 ? "s" : "")}");
 
             UpdateInvites(invites);
+
+            return $"Pozvánky obnoveny.\nPozvánek: **{invites.Sum(o => o.Value.Count).FormatWithSpaces()}**\nPočet serverů: **{invites.Count.FormatWithSpaces()}**";
         }
 
         private void UpdateInvites(Dictionary<ulong, List<InviteModel>> invites)
@@ -131,7 +142,7 @@ namespace Grillbot.Services
                 return;
             }
 
-            DiscordUser inviteCreator = null;
+            DBDiscordUser inviteCreator = null;
             if (usedInvite.Creator != null)
             {
                 inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
@@ -165,6 +176,46 @@ namespace Grillbot.Services
                 return diffInvite;
 
             return latestInvites.Find(invite => !guildInvites.Any(x => x.Code == invite.Code));
+        }
+
+        public async Task AssignInviteToUserAsync(SocketUser user, SocketGuild guild, string code)
+        {
+            var latestInvites = await GetLatestInvitesOfGuildAsync(guild);
+            var usedInvite = latestInvites.Find(o => o.Code == code);
+
+            if (usedInvite == null)
+                throw new NotFoundException($"Pozvánka s kódem `{code}` neexistuje");
+
+            DBDiscordUser inviteCreator = null;
+            if (usedInvite.Creator != null)
+            {
+                inviteCreator = UsersRepository.GetOrCreateUser(guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
+                UsersRepository.SaveChangesIfAny();
+            }
+
+            InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
+
+            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false, false, true);
+            userEntity.UsedInviteCode = code;
+
+            InviteRepository.SaveChanges();
+            UsersRepository.SaveChanges();
+
+            BotState.InviteCache[guild.Id].Clear();
+            BotState.InviteCache[guild.Id].AddRange(latestInvites);
+        }
+
+        public async Task<List<DiscordUser>> GetUsersWithCodeAsync(SocketGuild guild, string code)
+        {
+            var users = await UsersRepository.GetUsersWithUsedCode(guild.Id, code).ToListAsync();
+
+            var result = new List<DiscordUser>();
+            foreach (var user in users)
+            {
+                result.Add(await UserHelper.MapUserAsync(Discord, user, null));
+            }
+
+            return result;
         }
 
         public void Dispose()

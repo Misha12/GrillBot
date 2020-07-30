@@ -43,7 +43,7 @@ namespace Grillbot.Helpers
             {
                 if (user.UsedInvite.Code == context.Guild.VanityURLCode)
                 {
-                    embed.AddField("Použitý invite", $"Vanity invite ({user.UsedInvite.Code})", false);
+                    embed.AddField("Použitá pozvánka", $"Vanity invite ({user.UsedInvite.Code})", false);
                 }
                 else
                 {
@@ -51,7 +51,7 @@ namespace Grillbot.Helpers
                     var createdAtDateTime = user.UsedInvite.CreatedAt?.LocalDateTime;
                     var createdAt = createdAtDateTime == null ? "Nevím kdy" : createdAtDateTime.Value.ToLocaleDatetime();
 
-                    embed.AddField("Použitý invite", $"Kód: **{user.UsedInvite.Code}**\nVytvořil: **{inviteCreator} ({createdAt})**", false);
+                    embed.AddField("Použitá pozvánka", $"Kód: **{user.UsedInvite.Code}**\nVytvořil: **{inviteCreator} ({createdAt})**", false);
                 }
             }
 

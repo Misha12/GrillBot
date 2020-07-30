@@ -35,7 +35,7 @@ namespace Grillbot.Database.Repository
             if (includeReminders)
                 query = query.Include(o => o.Reminders);
 
-            if(includeInvites)
+            if (includeInvites)
             {
                 query = query
                     .Include(o => o.CreatedInvites)
@@ -184,6 +184,12 @@ namespace Grillbot.Database.Repository
             return query
                 .Skip(skip)
                 .Take(take);
+        }
+
+        public IQueryable<DiscordUser> GetUsersWithUsedCode(ulong guildID, string code)
+        {
+            return Context.Users.AsQueryable()
+                .Where(o => o.GuildID == guildID.ToString() && o.UsedInviteCode == code);
         }
     }
 }
