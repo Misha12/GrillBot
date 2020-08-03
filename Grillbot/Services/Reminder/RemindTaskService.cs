@@ -27,15 +27,18 @@ namespace Grillbot.Services.Reminder
         private ILogger<ReminderTaskService> Logger { get; }
         private IServiceProvider Provider { get; }
         private DiscordSocketClient Discord { get; }
+        private BotLoggingService LoggingService { get; }
 
         public List<ReminderData> Data { get; set; }
 
-        public ReminderTaskService(ILogger<ReminderTaskService> logger, IServiceProvider provider, DiscordSocketClient discord)
+        public ReminderTaskService(ILogger<ReminderTaskService> logger, IServiceProvider provider, DiscordSocketClient discord,
+            BotLoggingService loggingService)
         {
             Logger = logger;
             Data = new List<ReminderData>();
             Provider = provider;
             Discord = discord;
+            LoggingService = loggingService;
 
             var timeout = TimeSpan.FromMinutes(1);
             Timer = new Timer(ReminderCallback, null, timeout, timeout);
@@ -56,20 +59,28 @@ namespace Grillbot.Services.Reminder
 
         private async Task ProcessReminderAsync(ReminderData data, bool force = false)
         {
-            Logger.LogInformation($"Reminder event triggered: {data.ID} ({data.At})");
+            try
+            {
+                Logger.LogInformation($"Reminder event triggered: {data.ID} ({data.At})");
 
-            using var scope = Provider.CreateScope();
-            using var remindersRepository = scope.ServiceProvider.GetService<ReminderRepository>();
+                using var scope = Provider.CreateScope();
+                using var remindersRepository = scope.ServiceProvider.GetService<ReminderRepository>();
 
-            var remind = remindersRepository.FindReminderByID(data.ID);
+                var remind = remindersRepository.FindReminderByID(data.ID);
 
-            if (remind == null)
-                return;
+                if (remind == null)
+                    return;
 
-            var message = await NotifyUserAsync(remind, force);
+                var message = await NotifyUserAsync(remind, force);
 
-            remind.RemindMessageIDSnowflake = message?.Id;
-            remindersRepository.SaveChanges();
+                remind.RemindMessageIDSnowflake = message?.Id;
+                remindersRepository.SaveChanges();
+            }
+            catch(Exception ex)
+            {
+                var message = new LogMessage(LogSeverity.Error, typeof(ReminderTaskService).Name, $"An error occured when executing reminder {data?.ID ?? 0}. (Force: {force})", ex);
+                await LoggingService.OnLogAsync(message);
+            }
         }
 
         public async Task ProcessReminderForclyAsync(long id)
