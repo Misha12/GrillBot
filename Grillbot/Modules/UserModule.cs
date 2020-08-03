@@ -125,6 +125,13 @@ namespace Grillbot.Modules
             embed
                 .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);
 
+            if(userDetail.Statistics != null)
+            {
+                embed
+                    .AddField("Počet volání API", userDetail.Statistics.ApiCallsCount.FormatWithSpaces(), true)
+                    .AddField("Počet přihlášení", userDetail.Statistics.WebAdminLoginCount.FormatWithSpaces(), true);
+            }
+
             await ReplyAsync(embed: embed.Build());
         }
     }
