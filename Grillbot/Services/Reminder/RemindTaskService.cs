@@ -68,7 +68,7 @@ namespace Grillbot.Services.Reminder
 
             var message = await NotifyUserAsync(remind, force);
 
-            remind.RemindMessageIDSnowflake = message.Id;
+            remind.RemindMessageIDSnowflake = message?.Id;
             remindersRepository.SaveChanges();
         }
 
