@@ -38,7 +38,7 @@ namespace Grillbot.Services
             Services = services;
         }
 
-        private async Task OnLogAsync(LogMessage message)
+        public async Task OnLogAsync(LogMessage message)
         {
             await PostException(message).ConfigureAwait(false);
             Write(message.Severity, message.Message, message.Source, message.Exception);
