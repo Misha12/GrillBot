@@ -53,6 +53,10 @@ namespace Grillbot.Database
                 builder
                     .HasMany(o => o.CreatedInvites)
                     .WithOne(o => o.Creator);
+
+                builder
+                    .HasMany(o => o.UsedEmotes)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
