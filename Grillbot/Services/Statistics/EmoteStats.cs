@@ -1,21 +1,17 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
-using Grillbot.Models.Users;
-using Grillbot.Services.Initiable;
-using Microsoft.AspNetCore.Razor.Language.Intermediate;
 using Microsoft.Extensions.DependencyInjection;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text;
-using System.Threading;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Statistics
@@ -43,32 +39,33 @@ namespace Grillbot.Services.Statistics
             lock (Locker)
             {
                 using var scope = Provider.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
+                using var userRepository = scope.ServiceProvider.GetService<UsersRepository>();
+
+                var userEntity = userRepository.GetOrCreateUser(context.Guild.Id, context.User.Id, false, false, false, false, false, false, true);
 
                 if (mentionedEmotes.Count == 0)
                 {
-                    TryIncrementUnicodeFromMessage(context.Message.Content, context.Guild, repository);
-                    repository.SaveChanges();
+                    TryIncrementUnicodeFromMessage(context.Message.Content, userEntity);
+                    userRepository.SaveChanges();
                     return;
                 }
 
-                var serverEmotes = context.Guild.Emotes;
                 foreach (var emote in mentionedEmotes)
                 {
                     if (emote is Emoji emoji)
                     {
-                        IncrementCounter(emoji.Name, true, context.Guild, repository);
+                        IncrementCounter(emoji.Name, true, userEntity);
                     }
                     else
                     {
                         var emoteId = emote.ToString();
 
-                        if (serverEmotes.Any(o => o.ToString() == emoteId))
-                            IncrementCounter(emoteId, false, context.Guild, repository);
+                        if (context.Guild.Emotes.Any(o => o.ToString() == emoteId))
+                            IncrementCounter(emoteId, false, userEntity);
                     }
                 }
 
-                repository.SaveChanges();
+                userRepository.SaveChanges();
             }
         }
 
@@ -77,23 +74,23 @@ namespace Grillbot.Services.Statistics
             if (!(reaction.Channel is SocketGuildChannel channel)) return;
             if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
-            var serverEmotes = channel.Guild.Emotes;
-
             lock (Locker)
             {
                 using var scope = Provider.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+
+                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    IncrementCounter(emoji.Name, true, channel.Guild, repository);
+                    IncrementCounter(emoji.Name, true, userEntity);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
 
-                    if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        IncrementCounter(reaction.Emote.ToString(), false, channel.Guild, repository);
+                    if (channel.Guild.Emotes.Any(o => o.ToString() == emoteId))
+                        IncrementCounter(reaction.Emote.ToString(), false, userEntity);
                 }
 
                 repository.SaveChanges();
@@ -127,7 +124,7 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        private void TryIncrementUnicodeFromMessage(string content, SocketGuild guild, EmoteStatsRepository repository)
+        private void TryIncrementUnicodeFromMessage(string content, DiscordUser user)
         {
             var emojis = content
                 .Split(' ')
@@ -136,11 +133,11 @@ namespace Grillbot.Services.Statistics
 
             foreach (var emoji in emojis)
             {
-                IncrementCounter(emoji, true, guild, repository);
+                IncrementCounter(emoji, true, user);
             }
         }
 
-        private void IncrementCounter(string emoteId, bool isUnicode, SocketGuild guild, EmoteStatsRepository repository)
+        private void IncrementCounter(string emoteId, bool isUnicode, DiscordUser user)
         {
             if (isUnicode)
             {
@@ -148,7 +145,26 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            repository.AddOrIncrementEmoteNoCommit(guild, emoteId, isUnicode);
+            var userEmote = user.UsedEmotes.FirstOrDefault(o => o.EmoteID == emoteId);
+
+            if(userEmote == null)
+            {
+                userEmote = new EmoteStatItem()
+                {
+                    EmoteID = emoteId,
+                    FirstOccuredAt = DateTime.Now,
+                    IsUnicode = isUnicode,
+                    LastOccuredAt = DateTime.Now,
+                    UseCount = 1,
+                };
+
+                user.UsedEmotes.Add(userEmote);
+            }
+            else
+            {
+                userEmote.UseCount++;
+                userEmote.LastOccuredAt = DateTime.Now;
+            }
         }
 
         private void DecrementCounter(string emoteId, bool isUnicode, SocketGuild guild, EmoteStatsRepository repository)

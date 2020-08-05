@@ -26,7 +26,7 @@ namespace Grillbot.Services.UserManagement
 
         public Tuple<long, int> GetPoints(IGuild guild, IUser user)
         {
-            var userEntity = UsersRepository.GetUser(guild.Id, user.Id, false, false, false, false, false, false);
+            var userEntity = UsersRepository.GetUser(guild.Id, user.Id, false, false, false, false, false, false, false);
 
             if (userEntity == null)
                 return null;
@@ -38,7 +38,7 @@ namespace Grillbot.Services.UserManagement
         public void GivePoints(IUser fromUser, IUser toUser, IGuild guild, long amount)
         {
             Logger.LogInformation($"User {fromUser.GetFullName()} gives {toUser.GetFullName()} {amount} points in guild {guild}");
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, false, false);
+            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, false, false, false);
 
             userEntity.Points += amount;
             UsersRepository.SaveChanges();
@@ -49,12 +49,12 @@ namespace Grillbot.Services.UserManagement
             if (from == to)
                 throw new InvalidOperationException("Nelze převést body mezi stejnými účty.");
 
-            var fromUserEntity = UsersRepository.GetUser(guild.Id, from.Id, false, false, false, false, false, false);
+            var fromUserEntity = UsersRepository.GetUser(guild.Id, from.Id, false, false, false, false, false, false, false);
 
             if (fromUserEntity == null)
                 throw new InvalidOperationException("Nelze převést body z účtu, který ještě neexistuje v databázi.");
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, to.Id, false, false, false, false, false, false);
+            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, to.Id, false, false, false, false, false, false, false);
 
             var transferedPoints = amount > 0 ? System.Math.Min(amount, fromUserEntity.Points) : fromUserEntity.Points;
 
@@ -81,7 +81,7 @@ namespace Grillbot.Services.UserManagement
             if (!reaction.User.IsSpecified || !CanIncrementPoints(guild, reaction.User.Value, 0.5d))
                 return;
 
-            var user = UsersRepository.GetOrCreateUser(guild.Id, reaction.UserId, false, false, false, false, false, false);
+            var user = UsersRepository.GetOrCreateUser(guild.Id, reaction.UserId, false, false, false, false, false, false, false);
             user.Points += Random.Next(0, 5);
 
             UsersRepository.SaveChanges();
@@ -93,7 +93,7 @@ namespace Grillbot.Services.UserManagement
             if (!CanIncrementPoints(guild, message.Author, 1.0d))
                 return;
 
-            var user = UsersRepository.GetOrCreateUser(guild.Id, message.Author.Id, false, false, false, false, false, false);
+            var user = UsersRepository.GetOrCreateUser(guild.Id, message.Author.Id, false, false, false, false, false, false, false);
             user.Points += Random.Next(15, 25);
 
             UsersRepository.SaveChanges();
