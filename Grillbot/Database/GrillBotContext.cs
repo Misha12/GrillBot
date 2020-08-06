@@ -93,5 +93,6 @@ namespace Grillbot.Database
         public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
+        public virtual DbSet<EmoteStatItem> EmoteStatistics { get; set; }
     }
 }

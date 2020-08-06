@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Models.Embed;
@@ -31,7 +31,7 @@ namespace Grillbot.Modules
         {
             var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
-                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
+                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()))
                 .ToList();
 
             if(fields.Count == 0)
@@ -81,7 +81,7 @@ namespace Grillbot.Modules
             var fields = EmoteStats.GetAllValues(descOrder, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
-                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()));
+                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
 
             var embed = new BotEmbed(Context.Message.Author)
                 .WithFields(fields);
@@ -119,7 +119,7 @@ namespace Grillbot.Modules
             }
 
             var embed = new BotEmbed(Context.Message.Author)
-                .AddField(o => o.WithName(emoteInfo.GetRealId()).WithValue(emoteInfo.GetFormatedInfo()));
+                .AddField(o => o.WithName(emoteInfo.RealID).WithValue(emoteInfo.GetFormatedInfo()));
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
@@ -140,12 +140,6 @@ namespace Grillbot.Modules
                 case "unicode":
                     await GetEmoteInfoOnlyUnicode();
                     return true;
-                case "emoteMergeList":
-                    await GetMergeListAsync();
-                    return true;
-                case "processEmoteMerge":
-                    await ProcessEmoteMergeAsync();
-                    return true;
                 case "cleanOldEmotes":
                     await CleanOldEmotes();
                     return true;
@@ -158,53 +152,35 @@ namespace Grillbot.Modules
         [Summary("Vypíše TOP25 statistika unicode emojis.")]
         private async Task GetEmoteInfoOnlyUnicode()
         {
-            var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, false)
-                .Where(o => o.IsUnicode)
-                .Take(EmbedBuilder.MaxFieldCount)
-                .Select(o => new EmbedFieldBuilder().WithName(o.GetRealId()).WithValue(o.GetFormatedInfo()))
-                .ToList();
+            var fields = EmoteStats.GetAllUnicodeValues(true, Context.Guild.Id)
+                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
 
-            if(fields.Count == 0)
+            if(!fields.Any())
             {
                 await ReplyAsync("Ještě nebyl použit žádný unicode emote.");
                 return;
             }
 
-            var embed = new BotEmbed(Context.Message.Author)
-                .WithFields(fields);
+            var pages = new List<PaginatedEmbedPage>();
 
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-        }
-
-        [Command("emoteMergeList")]
-        [Summary("Seznam potenciálních emotů, které by měli být sloučeny.")]
-        public async Task GetMergeListAsync()
-        {
-            var list = EmoteStats.GetMergeList(Context.Guild);
-
-            if (list.Count == 0)
+            const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
+            var pagesCount = Math.Ceiling((float)fields.Count() / maxFieldsCount);
+            for (int i = 0; i < pagesCount; i++)
             {
-                await ReplyAsync("Aktuálně není nic ke sloučení.");
-                return;
+                var page = new PaginatedEmbedPage(null);
+                page.AddFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
+
+                pages.Add(page);
             }
 
-            var embed = new BotEmbed(Context.Message.Author, title: "Seznam potenciálních sloučení emotů");
-
-            embed.WithFields(list.Select(o => new EmbedFieldBuilder()
+            var embed = new PaginatedEmbed()
             {
-                Name = $"Target: \\{o.MergeTo}",
-                Value = $"Sources: {Environment.NewLine}{string.Join(Environment.NewLine, o.Emotes.Select(x => $"[\\{x.Key}, {x.Value}]"))}"
-            }));
+                Title = "Kompletní statistika unicode emotů",
+                Pages = pages,
+                ResponseFor = Context.User
+            };
 
-            await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
-        }
-
-        [Command("processEmoteMerge")]
-        [Summary("Provede sloučení stejných emotů ve statistikách.")]
-        public async Task ProcessEmoteMergeAsync()
-        {
-            EmoteStats.MergeEmotes(Context.Guild);
-            await ReplyAsync("Sloučení dokončeno").ConfigureAwait(false);
+            await SendPaginatedEmbedAsync(embed);
         }
 
         [Command("cleanOldEmotes")]

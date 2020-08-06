@@ -1,12 +1,11 @@
 using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models;
+using Grillbot.Models.EmoteStats;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
@@ -102,22 +101,23 @@ namespace Grillbot.Services.Statistics
             if (!(reaction.Channel is SocketGuildChannel channel)) return;
             if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
-            var serverEmotes = channel.Guild.Emotes;
             lock (Locker)
             {
                 using var scope = Provider.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
+                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+
+                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
 
                 if (reaction.Emote is Emoji emoji)
                 {
-                    DecrementCounter(reaction.Emote.Name, true, channel.Guild, repository);
+                    DecrementCounter(reaction.Emote.Name, true, userEntity);
                 }
                 else
                 {
                     var emoteId = reaction.Emote.ToString();
 
-                    if (serverEmotes.Any(o => o.ToString() == emoteId))
-                        DecrementCounter(emoteId, false, channel.Guild, repository);
+                    if (channel.Guild.Emotes.Any(o => o.ToString() == emoteId))
+                        DecrementCounter(emoteId, false, userEntity);
                 }
 
                 repository.SaveChanges();
@@ -167,7 +167,7 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        private void DecrementCounter(string emoteId, bool isUnicode, SocketGuild guild, EmoteStatsRepository repository)
+        private void DecrementCounter(string emoteId, bool isUnicode, DiscordUser user)
         {
             if (isUnicode)
             {
@@ -175,64 +175,36 @@ namespace Grillbot.Services.Statistics
                 emoteId = Convert.ToBase64String(bytes);
             }
 
-            repository.DecrementEmote(guild, emoteId);
+            var userEmote = user.UsedEmotes.FirstOrDefault(o => o.EmoteID == emoteId);
+
+            if (userEmote == null || userEmote.UseCount == 0)
+                return;
+
+            userEmote.UseCount--;
         }
 
-        public EmoteStat GetValue(SocketGuild guild, string emoteId)
+        public GroupedEmoteItem GetValue(SocketGuild guild, string emoteId)
         {
             using var scope = Provider.CreateScope();
             using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
-            return repository.GetEmoteStat(guild, emoteId);
+
+            return repository.GetStatsOfEmote(guild.Id, emoteId);
         }
 
-        public List<EmoteStat> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)
+        public List<GroupedEmoteItem> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)
         {
             using var scope = Provider.CreateScope();
             using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
-            var query = repository.GetEmoteStats(guildID, excludeUnicode);
 
-            if (descOrder)
-                query = query.OrderByDescending(o => o.Count).ThenByDescending(o => o.LastOccuredAt);
-            else
-                query = query.OrderBy(o => o.Count).ThenBy(o => o.LastOccuredAt);
-
-            if (limit != null)
-                query = query.Take(limit.Value);
-
-            return query.ToList();
+            return repository.GetStatsOfEmotes(guildID, limit, excludeUnicode, descOrder).ToList();
         }
 
-        public List<EmoteMergeListItem> GetMergeList(SocketGuild guild)
+        public List<GroupedEmoteItem> GetAllUnicodeValues(bool descOrder, ulong guildID, int? limit = null)
         {
-            var emotes = GetAllValues(true, guild.Id, true);
-            var data = guild.Emotes.Select(o => new EmoteMergeListItem() { Emote = o }).ToList();
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
-            foreach (var emote in emotes)
-            {
-                var emoteData = Emote.Parse(emote.GetRealId());
-                var serverEmote = data.Find(o => o.Emote.Id == emoteData.Id);
-
-                if (serverEmote != null && emoteData.Name != serverEmote.Emote.Name)
-                {
-                    serverEmote.Emotes.Add(emoteData.ToString(), emote.Count);
-                }
-            }
-
-            return data.FindAll(o => o.Emotes.Count > 0);
-        }
-
-        public void MergeEmotes(SocketGuild guild)
-        {
-            lock (Locker)
-            {
-                using var scope = Provider.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
-
-                foreach (var item in GetMergeList(guild))
-                {
-                    repository.MergeEmotes(guild, item);
-                }
-            }
+            return repository.GetStatsOfEmotes(guildID, limit, false, descOrder, true).ToList();
         }
 
         public async Task<List<string>> CleanOldEmotesAsync(SocketGuild guild)

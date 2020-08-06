@@ -1,10 +1,10 @@
 using System;
 using System.Collections.Generic;
 using System.Linq;
-using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Grillbot.Models;
+using Grillbot.Database.Entity.Users;
+using Grillbot.Models.EmoteStats;
 using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Database.Repository
@@ -40,15 +40,80 @@ namespace Grillbot.Database.Repository
             }
         }
 
-        public void DecrementEmote(SocketGuild guild, string emote)
+        private IQueryable<EmoteStatItem> GetEmoteStatsBaseQuery(ulong guildID)
         {
-            var guildID = guild.Id.ToString();
-            var stat = Context.EmoteStats.FirstOrDefault(o => o.GuildID == guildID && o.EmoteID == emote);
+            var userIDsFromGuild = GetUserIDsWithUsedEmotes(guildID);
 
-            if (stat == null)
-                return;
+            return Context.EmoteStatistics.AsQueryable()
+                .Where(o => userIDsFromGuild.Contains(o.UserID));
+        }
 
-            stat.Count--;
+        public GroupedEmoteItem GetStatsOfEmote(ulong guildID, string emoteId)
+        {
+            return GetEmoteStatsBaseQuery(guildID)
+                .Where(o => o.EmoteID == emoteId)
+                .AsEnumerable()
+                .GroupBy(o => o.EmoteID)
+                .Select(o => new GroupedEmoteItem()
+                {
+                    EmoteID = o.Key,
+                    FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
+                    IsUnicode = o.First().IsUnicode,
+                    LastOccuredAt = o.Max(x => x.LastOccuredAt),
+                    UseCount = o.Sum(x => x.UseCount),
+                    UsersCount = o.Count()
+                })
+                .FirstOrDefault();
+        }
+
+        public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool desc, bool onlyUnicode = false)
+        {
+            var query = GetEmoteStatsBaseQuery(guildID);
+
+            if (onlyUnicode)
+                query = query.Where(o => o.IsUnicode);
+            else if (excludeUnicode)
+                query = query.Where(o => !o.IsUnicode);
+
+            var resultQuery = query.AsEnumerable()
+                .GroupBy(o => o.EmoteID)
+                .Select(o => new GroupedEmoteItem()
+                {
+                    EmoteID = o.Key,
+                    FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
+                    IsUnicode = o.First().IsUnicode,
+                    LastOccuredAt = o.Max(x => x.LastOccuredAt),
+                    UseCount = o.Sum(x => x.UseCount),
+                    UsersCount = o.Count()
+                });
+
+            if(desc)
+            {
+                resultQuery = resultQuery
+                    .OrderByDescending(o => o.UseCount)
+                    .ThenByDescending(o => o.UsersCount);
+            }
+            else
+            {
+                resultQuery = resultQuery
+                    .OrderBy(o => o.UseCount)
+                    .ThenBy(o => o.UsersCount);
+            }
+
+            if (limit != null)
+                resultQuery = resultQuery.Take(limit.Value);
+
+            return resultQuery.AsQueryable();
+        }
+
+
+        private List<long> GetUserIDsWithUsedEmotes(ulong guildID)
+        {
+            return Context.Users.AsQueryable()
+                .Include(o => o.UsedEmotes)
+                .Where(o => o.GuildID == guildID.ToString() && o.UsedEmotes.Any())
+                .Select(o => o.ID)
+                .ToList();
         }
 
         public EmoteStat GetEmoteStat(SocketGuild guild, string emoteId)
@@ -68,42 +133,6 @@ namespace Grillbot.Database.Repository
                 query = query.Where(o => !o.IsUnicode);
 
             return query;
-        }
-
-        public void MergeEmotes(SocketGuild guild, EmoteMergeListItem item)
-        {
-            var guildID = guild.Id.ToString();
-            var destination = Context.EmoteStats.FirstOrDefault(o => o.GuildID == guildID && o.EmoteID == item.MergeTo);
-
-            bool isNew = false;
-            if (destination == null)
-            {
-                destination = new EmoteStat()
-                {
-                    Count = 0,
-                    EmoteID = item.MergeTo,
-                    IsUnicode = false,
-                    GuildID = guildID,
-                    LastOccuredAt = DateTime.MinValue
-                };
-
-                isNew = true;
-            }
-
-            foreach (var source in item.Emotes)
-            {
-                destination.Count += source.Value;
-
-                var oldEmote = Context.EmoteStats.FirstOrDefault(o => o.GuildID == guildID && o.EmoteID == source.Key);
-                if (oldEmote == null) continue;
-
-                Context.EmoteStats.Remove(oldEmote);
-            }
-
-            if (isNew)
-                Context.EmoteStats.Add(destination);
-
-            SaveChanges();
         }
 
         public void RemoveEmojiNoCommit(SocketGuild guild, string emoteId)
