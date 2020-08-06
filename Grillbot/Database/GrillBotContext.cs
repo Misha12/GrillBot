@@ -68,12 +68,6 @@ namespace Grillbot.Database
                     .HasIndex(o => o.DiscordUserID);
             });
 
-            modelBuilder.Entity<EmoteStat>(builder =>
-            {
-                builder
-                    .HasKey(o => new { o.GuildID, o.EmoteID });
-            });
-
             modelBuilder.Entity<Reminder>(builder =>
             {
                 builder
@@ -82,7 +76,6 @@ namespace Grillbot.Database
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
-        public virtual DbSet<EmoteStat> EmoteStats { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
