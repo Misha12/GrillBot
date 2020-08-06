@@ -50,6 +50,7 @@ namespace Grillbot.Database.Entity.Users
         public StatisticItem Statistics { get; set; }
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }
+        public ISet<EmoteStatItem> UsedEmotes { get; set; }
 
         public DiscordUser()
         {
@@ -57,6 +58,7 @@ namespace Grillbot.Database.Entity.Users
             MathAudit = new HashSet<MathAuditLogItem>();
             Reminders = new HashSet<Reminder>();
             CreatedInvites = new HashSet<Invite>();
+            UsedEmotes = new HashSet<EmoteStatItem>();
         }
     }
 }

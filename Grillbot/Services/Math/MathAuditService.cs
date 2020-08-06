@@ -26,7 +26,7 @@ namespace Grillbot.Services.Math
                 SessionID = session.ID
             };
 
-            var dbUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, true, false, false, false);
+            var dbUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, true, false, false, false, false);
 
             dbUser.MathAudit.Add(new MathAuditLogItem()
             {

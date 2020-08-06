@@ -53,6 +53,10 @@ namespace Grillbot.Database
                 builder
                     .HasMany(o => o.CreatedInvites)
                     .WithOne(o => o.Creator);
+
+                builder
+                    .HasMany(o => o.UsedEmotes)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
@@ -64,12 +68,6 @@ namespace Grillbot.Database
                     .HasIndex(o => o.DiscordUserID);
             });
 
-            modelBuilder.Entity<EmoteStat>(builder =>
-            {
-                builder
-                    .HasKey(o => new { o.GuildID, o.EmoteID });
-            });
-
             modelBuilder.Entity<Reminder>(builder =>
             {
                 builder
@@ -78,7 +76,6 @@ namespace Grillbot.Database
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
-        public virtual DbSet<EmoteStat> EmoteStats { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
@@ -89,5 +86,6 @@ namespace Grillbot.Database
         public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
+        public virtual DbSet<EmoteStatItem> EmoteStatistics { get; set; }
     }
 }

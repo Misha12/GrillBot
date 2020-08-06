@@ -4,14 +4,16 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Grillbot.Migrations
 {
     [DbContext(typeof(GrillBotContext))]
-    partial class GrillBotContextModelSnapshot : ModelSnapshot
+    [Migration("20200805190111_PerUserEmoteStats")]
+    partial class PerUserEmoteStats
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -66,6 +68,29 @@ namespace Grillbot.Migrations
                     b.HasKey("Key");
 
                     b.ToTable("GlobalConfig");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.EmoteStat", b =>
+                {
+                    b.Property<string>("GuildID")
+                        .HasColumnType("nvarchar(450)");
+
+                    b.Property<string>("EmoteID")
+                        .HasColumnType("nvarchar(255)")
+                        .HasMaxLength(255);
+
+                    b.Property<long>("Count")
+                        .HasColumnType("bigint");
+
+                    b.Property<bool>("IsUnicode")
+                        .HasColumnType("bit");
+
+                    b.Property<DateTime>("LastOccuredAt")
+                        .HasColumnType("datetime2");
+
+                    b.HasKey("GuildID", "EmoteID");
+
+                    b.ToTable("EmoteStatistics");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Math.MathAuditLogItem", b =>

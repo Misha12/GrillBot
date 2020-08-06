@@ -40,10 +40,10 @@ namespace Grillbot.Services.Reminder
         {
             ValidateReminderCreation(at, message);
 
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, false, false, false, false, true, false);
+            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, false, false, false, false, true, false, false);
             UsersRepository.SaveChangesIfAny();
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, true, false);
+            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, true, false, false);
 
             var remindEntity = new ReminderEntity()
             {

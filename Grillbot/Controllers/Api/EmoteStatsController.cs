@@ -1,4 +1,4 @@
-﻿using System.Linq;
+using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Enums;
 using Grillbot.Services.Permissions.Api;
@@ -25,10 +25,12 @@ namespace Grillbot.Controllers.Api
             var data = EmoteStats.GetAllValues(true, guildID, !withUnicode, limit)
                     .Select(o => new
                     {
-                        Emote = o.GetRealId(),
-                        o.Count,
+                        Emote = o.RealID,
+                        o.UseCount,
+                        o.FirstOccuredAt,
                         o.LastOccuredAt,
-                        o.IsUnicode
+                        o.IsUnicode,
+                        o.UsersCount
                     });
 
             return Ok(data);

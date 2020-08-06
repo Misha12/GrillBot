@@ -145,13 +145,13 @@ namespace Grillbot.Services
             DBDiscordUser inviteCreator = null;
             if (usedInvite.Creator != null)
             {
-                inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
+                inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true, false);
                 UsersRepository.SaveChangesIfAny();
             }
 
             InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
 
-            var joinedUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, false, false, false, true);
+            var joinedUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, false, false, false, false, false, true, false);
             joinedUser.UsedInviteCode = usedInvite.Code;
 
             InviteRepository.SaveChanges();
@@ -189,13 +189,13 @@ namespace Grillbot.Services
             DBDiscordUser inviteCreator = null;
             if (usedInvite.Creator != null)
             {
-                inviteCreator = UsersRepository.GetOrCreateUser(guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true);
+                inviteCreator = UsersRepository.GetOrCreateUser(guild.Id, usedInvite.Creator.Id, false, false, false, false, false, true, false);
                 UsersRepository.SaveChangesIfAny();
             }
 
             InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
 
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false, false, true);
+            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, false, false, false, false, false, true, false);
             userEntity.UsedInviteCode = code;
 
             InviteRepository.SaveChanges();
