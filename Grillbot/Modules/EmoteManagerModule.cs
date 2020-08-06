@@ -180,7 +180,7 @@ namespace Grillbot.Modules
 
             if (!emotes.Any())
             {
-                await ReplyAsync("Ještě nemáš použitý žádný emote.");
+                await ReplyAsync("Tento uživatel ještě nepoužil žádný emote.");
                 return;
             }
 
