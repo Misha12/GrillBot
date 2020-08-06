@@ -73,6 +73,12 @@ namespace Grillbot.Database
                 builder
                     .HasOne(o => o.FromUser);
             });
+
+            modelBuilder.Entity<EmoteStatItem>(builder =>
+            {
+                builder
+                    .HasKey(o => new { o.EmoteID, o.UserID });
+            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
