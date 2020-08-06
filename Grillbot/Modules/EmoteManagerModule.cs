@@ -41,25 +41,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var pages = new List<PaginatedEmbedPage>();
-
-            const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
-            var pagesCount = Math.Ceiling((float)fields.Count / maxFieldsCount);
-            for (int i = 0; i < pagesCount; i++)
-            {
-                var page = new PaginatedEmbedPage(null);
-                page.AddFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
-
-                pages.Add(page);
-            }
-
-            var embed = new PaginatedEmbed()
-            {
-                Title = "Kompletní statistika emotů",
-                Pages = pages,
-                ResponseFor = Context.User
-            };
-
+            var embed = GetPaginatedResult(fields, "Kompletní statistika emotů");
             await SendPaginatedEmbedAsync(embed);
         }
 
@@ -162,25 +144,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var pages = new List<PaginatedEmbedPage>();
-
-            const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
-            var pagesCount = Math.Ceiling((float)fields.Count() / maxFieldsCount);
-            for (int i = 0; i < pagesCount; i++)
-            {
-                var page = new PaginatedEmbedPage(null);
-                page.AddFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
-
-                pages.Add(page);
-            }
-
-            var embed = new PaginatedEmbed()
-            {
-                Title = "Kompletní statistika unicode emotů",
-                Pages = pages,
-                ResponseFor = Context.User
-            };
-
+            var embed = GetPaginatedResult(fields.ToList(), "Kompletní statistika unicode emotů");
             await SendPaginatedEmbedAsync(embed);
         }
 
