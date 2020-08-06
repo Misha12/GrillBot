@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using System.Linq.Expressions;
 using System;
 using Grillbot.Enums;
+using Grillbot.Database.Enums.Includes;
 
 namespace Grillbot.Database.Repository
 {
@@ -15,27 +16,26 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        private IQueryable<DiscordUser> GetBaseQuery(bool includeChannels, bool includeBirthday, bool includeMathAudit,
-            bool includeStatistics, bool includeReminders, bool includeInvites, bool includeEmotes)
+        private IQueryable<DiscordUser> GetBaseQuery(UsersIncludes includes)
         {
             var query = Context.Users.AsQueryable();
 
-            if (includeChannels)
+            if (includes.HasFlag(UsersIncludes.Channels))
                 query = query.Include(o => o.Channels);
 
-            if (includeBirthday)
+            if (includes.HasFlag(UsersIncludes.Birthday))
                 query = query.Include(o => o.Birthday);
 
-            if (includeMathAudit)
+            if (includes.HasFlag(UsersIncludes.MathAudit))
                 query = query.Include(o => o.MathAudit);
 
-            if (includeStatistics)
+            if (includes.HasFlag(UsersIncludes.Statistics))
                 query = query.Include(o => o.Statistics);
 
-            if (includeReminders)
+            if (includes.HasFlag(UsersIncludes.Reminders))
                 query = query.Include(o => o.Reminders);
 
-            if (includeInvites)
+            if (includes.HasFlag(UsersIncludes.Invites))
             {
                 query = query
                     .Include(o => o.CreatedInvites)
@@ -43,7 +43,7 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.Creator);
             }
 
-            if (includeEmotes)
+            if (includes.HasFlag(UsersIncludes.Emotes))
                 query = query.Include(o => o.UsedEmotes);
 
             return query;
@@ -51,7 +51,7 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, List<ulong> userIds)
         {
-            var query = GetBaseQuery(true, false, false, false, false, false, false);
+            var query = GetBaseQuery(UsersIncludes.Channels);
 
             if (guildID != null)
                 query = query.Where(o => o.GuildID == guildID.ToString());
@@ -91,20 +91,18 @@ namespace Grillbot.Database.Repository
                 .ThenBy(o => o.ID);
         }
 
-        public DiscordUser GetUser(ulong guildID, ulong userID, bool includeChannels, bool includeBirthday, bool includeMathAudit, bool includeStatistics,
-            bool includeReminders, bool includeInvites, bool includeEmotes)
+        public DiscordUser GetUser(ulong guildID, ulong userID, UsersIncludes includes)
         {
             var guild = guildID.ToString();
             var user = userID.ToString();
 
-            var query = GetBaseQuery(includeChannels, includeBirthday, includeMathAudit, includeStatistics, includeReminders, includeInvites, includeEmotes);
-            return query.FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
+            return GetBaseQuery(includes)
+                .FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
         }
 
         public DiscordUser GetUserDetail(long id)
         {
-            var query = GetBaseQuery(true, true, true, true, true, true, true);
-            return query.FirstOrDefault(o => o.ID == id);
+            return GetBaseQuery(UsersIncludes.All).FirstOrDefault(o => o.ID == id);
         }
 
         public async Task<long?> FindUserIDFromDiscordIDAsync(ulong guildID, ulong userID)
@@ -112,18 +110,15 @@ namespace Grillbot.Database.Repository
             var guild = guildID.ToString();
             var user = userID.ToString();
 
-            var query = GetBaseQuery(false, false, false, false, false, false, false);
-            var entity = await query
+            var entity = await GetBaseQuery(UsersIncludes.None)
                 .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
 
             return entity?.ID;
         }
 
-        public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, bool includeChannels, bool includeBirthday, bool includeMathAudit,
-            bool includeStatistics, bool includeReminders, bool includeInvites, bool includeEmotes)
+        public DiscordUser GetOrCreateUser(ulong guildID, ulong userID, UsersIncludes includes)
         {
-            var entity = GetUser(guildID, userID, includeChannels, includeBirthday, includeMathAudit, includeStatistics, includeReminders,
-                includeInvites, includeEmotes);
+            var entity = GetUser(guildID, userID, includes);
 
             if (entity == null)
             {
@@ -141,7 +136,7 @@ namespace Grillbot.Database.Repository
 
         public async Task<List<string>> GetUsersForFilterAsync()
         {
-            return await GetBaseQuery(false, false, false, false, false, false, false)
+            return await GetBaseQuery(UsersIncludes.None)
                 .Select(o => o.UserID)
                 .Distinct()
                 .ToListAsync();
@@ -149,22 +144,22 @@ namespace Grillbot.Database.Repository
 
         public DiscordUser FindUserByApiToken(string apiToken)
         {
-            var query = GetBaseQuery(false, false, false, false, false, false, false);
-            return query.FirstOrDefault(o => o.ApiToken == apiToken);
+            return GetBaseQuery(UsersIncludes.None)
+                .FirstOrDefault(o => o.ApiToken == apiToken);
         }
 
         public List<DiscordUser> GetUsersWithBirthday(ulong guildID)
         {
             var guild = guildID.ToString();
 
-            return GetBaseQuery(false, true, false, false, false, false, false)
+            return GetBaseQuery(UsersIncludes.Birthday)
                 .Where(o => o.GuildID == guild && o.Birthday != null)
                 .ToList();
         }
 
         public int CalculatePointsPosition(ulong guildID, long points)
         {
-            var pointsList = GetBaseQuery(false, false, false, false, false, false, false)
+            var pointsList = GetBaseQuery(UsersIncludes.None)
                 .Where(o => o.GuildID == guildID.ToString())
                 .OrderByDescending(o => o.Points)
                 .ThenBy(o => o.ID)
@@ -176,7 +171,7 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<DiscordUser> GetUsersWithPointsOrder(ulong guildID, int skip, int take, bool asc)
         {
-            var query = GetBaseQuery(false, false, false, false, false, false, false)
+            var query = GetBaseQuery(UsersIncludes.None)
                 .Where(o => o.GuildID == guildID.ToString());
 
             if (asc)

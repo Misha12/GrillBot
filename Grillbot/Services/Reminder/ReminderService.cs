@@ -6,6 +6,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Enums;
 using Grillbot.Exceptions;
@@ -40,10 +41,10 @@ namespace Grillbot.Services.Reminder
         {
             ValidateReminderCreation(at, message);
 
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, false, false, false, false, true, false, false);
+            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, UsersIncludes.Reminders);
             UsersRepository.SaveChangesIfAny();
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, false, false, false, false, true, false, false);
+            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, UsersIncludes.Reminders);
 
             var remindEntity = new ReminderEntity()
             {

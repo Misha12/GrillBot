@@ -15,6 +15,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
+using Grillbot.Database.Enums.Includes;
 
 namespace Grillbot.Services.Statistics
 {
@@ -43,7 +44,7 @@ namespace Grillbot.Services.Statistics
                 using var scope = Provider.CreateScope();
                 using var userRepository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var userEntity = userRepository.GetOrCreateUser(context.Guild.Id, context.User.Id, false, false, false, false, false, false, true);
+                var userEntity = userRepository.GetOrCreateUser(context.Guild.Id, context.User.Id, UsersIncludes.Emotes);
 
                 TryIncrementUnicodeFromMessage(context.Message.Content, userEntity);
                 foreach (var emote in mentionedEmotes)
@@ -75,7 +76,7 @@ namespace Grillbot.Services.Statistics
                 using var scope = Provider.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
+                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
 
                 if (reaction.Emote is DiscordEmoji emoji)
                 {
@@ -103,7 +104,7 @@ namespace Grillbot.Services.Statistics
                 using var scope = Provider.CreateScope();
                 using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
+                var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
 
                 if (reaction.Emote is DiscordEmoji emoji)
                 {
@@ -258,7 +259,7 @@ namespace Grillbot.Services.Statistics
             using var scope = Provider.CreateScope();
             using var usersRepository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var userEntity = usersRepository.GetUser(guild.Id, user.Id, false, false, false, false, false, false, true);
+            var userEntity = usersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Emotes);
 
             if (userEntity == null)
                 return new List<EmoteStatItem>();

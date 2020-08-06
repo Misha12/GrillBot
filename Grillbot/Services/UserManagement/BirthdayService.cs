@@ -1,4 +1,5 @@
 using Discord.WebSocket;
+using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Users;
@@ -24,7 +25,7 @@ namespace Grillbot.Services.UserManagement
 
         public void SetBirthday(SocketGuild guild, SocketUser user, DateTime dateTime, bool acceptAge)
         {
-            var dbUser = UsersRepository.GetOrCreateUser(guild.Id, user.Id, false, true, false, false, false, false, false);
+            var dbUser = UsersRepository.GetOrCreateUser(guild.Id, user.Id, UsersIncludes.Birthday);
 
             if (dbUser.Birthday != null)
                 throw new ValidationException("Tento uživatel již má uložené datum narození.");
@@ -40,7 +41,7 @@ namespace Grillbot.Services.UserManagement
 
         public void ClearBirthday(SocketGuild guild, SocketUser user)
         {
-            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, false, true, false, false, false, false, false);
+            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Birthday);
 
             if (dbUser?.Birthday == null)
                 throw new ValidationException("Tento uživatel nemá uložené datum narození.");
@@ -67,7 +68,7 @@ namespace Grillbot.Services.UserManagement
 
         public async Task<bool> HaveUserBirthday(SocketGuild guild, SocketUser user)
         {
-            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, false, true, false, false, false, false, false);
+            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Birthday);
             return dbUser?.Birthday != null;
         }
 
