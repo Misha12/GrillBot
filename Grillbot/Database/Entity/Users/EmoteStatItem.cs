@@ -9,7 +9,7 @@ namespace Grillbot.Database.Entity.Users
     public class EmoteStatItem
     {
         [Key]
-        [StringLength(150)]
+        [StringLength(255)]
         public string EmoteID { get; set; }
 
         public long UserID { get; set; }
