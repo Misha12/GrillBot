@@ -1,8 +1,6 @@
-using System;
 using System.Collections.Generic;
 using System.Linq;
 using Discord.WebSocket;
-using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.Users;
 using Grillbot.Models.EmoteStats;
 using Microsoft.EntityFrameworkCore;
@@ -13,31 +11,6 @@ namespace Grillbot.Database.Repository
     {
         public EmoteStatsRepository(GrillBotContext context) : base(context)
         {
-        }
-
-        public void AddOrIncrementEmoteNoCommit(SocketGuild guild, string emote, bool isUnicode)
-        {
-            var guildID = guild.Id.ToString();
-            var stat = Context.EmoteStats.FirstOrDefault(o => o.GuildID == guildID && o.EmoteID == emote);
-
-            if (stat == null)
-            {
-                stat = new EmoteStat()
-                {
-                    Count = 1,
-                    EmoteID = emote,
-                    GuildID = guildID,
-                    IsUnicode = isUnicode,
-                    LastOccuredAt = DateTime.Now
-                };
-
-                Context.EmoteStats.Add(stat);
-            }
-            else
-            {
-                stat.Count++;
-                stat.LastOccuredAt = DateTime.Now;
-            }
         }
 
         private IQueryable<EmoteStatItem> GetEmoteStatsBaseQuery(ulong guildID)
@@ -116,33 +89,16 @@ namespace Grillbot.Database.Repository
                 .ToList();
         }
 
-        public EmoteStat GetEmoteStat(SocketGuild guild, string emoteId)
-        {
-            var guildID = guild.Id.ToString();
-
-            return Context.EmoteStats
-                .FirstOrDefault(o => o.GuildID == guildID && o.EmoteID == emoteId);
-        }
-
-        public IQueryable<EmoteStat> GetEmoteStats(ulong guildID, bool excludeUnicode)
-        {
-            var query = Context.EmoteStats.AsQueryable()
-                .Where(o => o.GuildID == guildID.ToString());
-
-            if (excludeUnicode)
-                query = query.Where(o => !o.IsUnicode);
-
-            return query;
-        }
-
         public void RemoveEmojiNoCommit(SocketGuild guild, string emoteId)
         {
-            var stat = GetEmoteStat(guild, emoteId);
+            var emotes = GetEmoteStatsBaseQuery(guild.Id)
+                .Where(o => o.EmoteID == emoteId)
+                .ToList();
 
-            if (stat == null)
+            if (emotes.Count == 0)
                 return;
 
-            Context.EmoteStats.Remove(stat);
+            Context.EmoteStatistics.RemoveRange(emotes);
         }
     }
 }

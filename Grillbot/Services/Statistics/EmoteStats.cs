@@ -209,7 +209,7 @@ namespace Grillbot.Services.Statistics
 
         public async Task<List<string>> CleanOldEmotesAsync(SocketGuild guild)
         {
-            await guild.SyncGuildAsync().ConfigureAwait(false);
+            await guild.SyncGuildAsync();
 
             lock (Locker)
             {
@@ -217,7 +217,7 @@ namespace Grillbot.Services.Statistics
                 using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
                 var removed = new List<string>();
 
-                var emoteClearCandidates = repository.GetEmoteStats(guild.Id, false).ToList();
+                var emoteClearCandidates = repository.GetStatsOfEmotes(guild.Id, null, false, true).ToList();
 
                 if (emoteClearCandidates.Count == 0)
                     return new List<string>();
@@ -226,26 +226,28 @@ namespace Grillbot.Services.Statistics
                 {
                     if(candidate.IsUnicode)
                     {
-                        if (candidate.Count > 0)
+                        if (candidate.UseCount > 0)
                             continue;
 
                         var lastUsedDelta = DateTime.Now - candidate.LastOccuredAt;
 
                         if(lastUsedDelta.TotalDays >= 14.0)
                         {
-                            removed.Add($"Smazán unicode emote **{candidate.GetRealId()}**. Použití: 0, Naposledy použit: {candidate.LastOccuredAt.ToLocaleDatetime()}");
+                            var formatedFirstOccured = candidate.FirstOccuredAt.ToLocaleDatetime();
+                            var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
+
+                            removed.Add($"> Smazán unicode emote **{candidate.RealID}**. Použití: 0, Poprvé použit: {formatedFirstOccured}, Naposledy použit: {formatedLastOccured}");
                             repository.RemoveEmojiNoCommit(guild, candidate.EmoteID);
                         }
 
                         continue;
                     }
 
-                    var parsedEmote = Emote.Parse(candidate.GetRealId());
-
+                    var parsedEmote = Emote.Parse(candidate.RealID);
                     if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                     {
-                        removed.Add($"Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id})");
-                        repository.RemoveEmojiNoCommit(guild, candidate.GetRealId());
+                        removed.Add($"> Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id})");
+                        repository.RemoveEmojiNoCommit(guild, candidate.RealID);
                     }
                 }
 

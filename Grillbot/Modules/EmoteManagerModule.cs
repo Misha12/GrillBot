@@ -140,8 +140,8 @@ namespace Grillbot.Modules
                 case "unicode":
                     await GetEmoteInfoOnlyUnicode();
                     return true;
-                case "cleanOldEmotes":
-                    await CleanOldEmotes();
+                case "clear":
+                    await ClearOldEmotes();
                     return true;
             }
 
@@ -183,14 +183,14 @@ namespace Grillbot.Modules
             await SendPaginatedEmbedAsync(embed);
         }
 
-        [Command("cleanOldEmotes")]
+        [Command("clear")]
         [Summary("Smazání starých statistik k emotům, které již neexistují.")]
-        public async Task CleanOldEmotes()
+        public async Task ClearOldEmotes()
         {
             var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
             await ReplyChunkedAsync(clearedEmotes, 10);
-            await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
+            await ReplyAsync("> Čištění dokončeno.");
         }
     }
 }
