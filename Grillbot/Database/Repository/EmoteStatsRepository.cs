@@ -79,7 +79,6 @@ namespace Grillbot.Database.Repository
             return resultQuery.AsQueryable();
         }
 
-
         private List<long> GetUserIDsWithUsedEmotes(ulong guildID)
         {
             return Context.Users.AsQueryable()

@@ -3,6 +3,7 @@ using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Models.EmoteStats;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
 using System;
@@ -34,7 +35,7 @@ namespace Grillbot.Modules
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()))
                 .ToList();
 
-            if(fields.Count == 0)
+            if (fields.Count == 0)
             {
                 await ReplyAsync("Ještě nebyl použit žádný emote.");
                 return;
@@ -90,8 +91,8 @@ namespace Grillbot.Modules
         }
 
         [Command("")]
-        [Summary("Statistika emotu")]
-        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně.  Parametr 'desc' vypšíše TOP25 sestupně.")]
+        [Summary("Statistika emotů")]
+        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně. Parametr 'desc' vypšíše TOP25 sestupně.")]
         public async Task GetEmoteInfoAsync([Remainder] string emote)
         {
             if (await GetEmoteInfoAsyncRouting(emote))
@@ -155,7 +156,7 @@ namespace Grillbot.Modules
             var fields = EmoteStats.GetAllUnicodeValues(true, Context.Guild.Id)
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
 
-            if(!fields.Any())
+            if (!fields.Any())
             {
                 await ReplyAsync("Ještě nebyl použit žádný unicode emote.");
                 return;
@@ -185,12 +186,64 @@ namespace Grillbot.Modules
 
         [Command("clear")]
         [Summary("Smazání starých statistik k emotům, které již neexistují.")]
+        [Remarks("V případě unicode emoji se smažou ty, které mají 0 použití a nebyly použity déle než 2 týdny.")]
         public async Task ClearOldEmotes()
         {
             var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
             await ReplyChunkedAsync(clearedEmotes, 10);
             await ReplyAsync("> Čištění dokončeno.");
+        }
+
+        [Command("user")]
+        [Summary("Statistika používaných emotů daného uživatele.")]
+        [Remarks("Je možno zadat řazení pomocí `asc` a `desc`. Pokud se nepodaří správně rozeznat formát, tak bude použito výchozí řazení (Desc).")]
+        public async Task GetEmoteInfoOfUser(IUser user, string ascDesc = "desc")
+        {
+            bool desc = !string.Equals(ascDesc, "asc", StringComparison.InvariantCultureIgnoreCase);
+
+            var emotes = EmoteStats.GetEmoteStatsForUser(Context.Guild, user, desc)
+                .Select(o => new GroupedEmoteItem()
+                {
+                    EmoteID = o.EmoteID,
+                    FirstOccuredAt = o.FirstOccuredAt,
+                    IsUnicode = o.IsUnicode,
+                    LastOccuredAt = o.LastOccuredAt,
+                    UseCount = o.UseCount
+                })
+                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo(true)))
+                .ToList();
+
+            if (!emotes.Any())
+            {
+                await ReplyAsync("Ještě nemáš použitý žádný emote.");
+                return;
+            }
+
+            var embed = GetPaginatedResult(emotes, "Kompletní statistika emotů za uživatele");
+            await SendPaginatedEmbedAsync(embed);
+        }
+
+        private PaginatedEmbed GetPaginatedResult(List<EmbedFieldBuilder> fields, string title)
+        {
+            var pages = new List<PaginatedEmbedPage>();
+
+            const int maxFieldsCount = EmbedBuilder.MaxFieldCount - 1;
+            var pagesCount = Math.Ceiling((float)fields.Count / maxFieldsCount);
+            for (int i = 0; i < pagesCount; i++)
+            {
+                var page = new PaginatedEmbedPage(null);
+                page.AddFields(fields.Skip(i * maxFieldsCount).Take(maxFieldsCount));
+
+                pages.Add(page);
+            }
+
+            return new PaginatedEmbed()
+            {
+                Title = title,
+                Pages = pages,
+                ResponseFor = Context.User
+            };
         }
     }
 }

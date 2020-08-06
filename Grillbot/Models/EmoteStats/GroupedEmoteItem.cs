@@ -18,14 +18,17 @@ namespace Grillbot.Models.EmoteStats
             get => IsUnicode ? Encoding.Unicode.GetString(Convert.FromBase64String(EmoteID)) : EmoteID;
         }
 
-        public string GetFormatedInfo()
+        public string GetFormatedInfo(bool noUserCount = false)
         {
-            return new StringBuilder()
+            var builder = new StringBuilder()
                 .Append("Počet použití: ").AppendLine(UseCount.FormatWithSpaces())
                 .Append("Poprvé použito: ").AppendLine(FirstOccuredAt.ToLocaleDatetime())
-                .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime())
-                .Append("Použilo uživatelů: ").AppendLine(UsersCount.FormatWithSpaces())
-                .ToString();
+                .Append("Naposledy použito: ").AppendLine(LastOccuredAt.ToLocaleDatetime());
+
+            if (!noUserCount)
+                builder.Append("Použilo uživatelů: ").AppendLine(UsersCount.FormatWithSpaces());
+
+            return builder.ToString();
         }
     }
 }

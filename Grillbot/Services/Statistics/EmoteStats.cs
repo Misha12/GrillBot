@@ -147,7 +147,7 @@ namespace Grillbot.Services.Statistics
 
             var userEmote = user.UsedEmotes.FirstOrDefault(o => o.EmoteID == emoteId);
 
-            if(userEmote == null)
+            if (userEmote == null)
             {
                 userEmote = new EmoteStatItem()
                 {
@@ -224,14 +224,14 @@ namespace Grillbot.Services.Statistics
 
                 foreach (var candidate in emoteClearCandidates)
                 {
-                    if(candidate.IsUnicode)
+                    if (candidate.IsUnicode)
                     {
                         if (candidate.UseCount > 0)
                             continue;
 
                         var lastUsedDelta = DateTime.Now - candidate.LastOccuredAt;
 
-                        if(lastUsedDelta.TotalDays >= 14.0)
+                        if (lastUsedDelta.TotalDays >= 14.0)
                         {
                             var formatedFirstOccured = candidate.FirstOccuredAt.ToLocaleDatetime();
                             var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
@@ -254,6 +254,22 @@ namespace Grillbot.Services.Statistics
                 repository.SaveChanges();
                 return removed;
             }
+        }
+
+        public List<EmoteStatItem> GetEmoteStatsForUser(SocketGuild guild, IUser user, bool desc)
+        {
+            using var scope = Provider.CreateScope();
+            using var usersRepository = scope.ServiceProvider.GetService<UsersRepository>();
+
+            var userEntity = usersRepository.GetUser(guild.Id, user.Id, false, false, false, false, false, false, true);
+
+            if (userEntity == null)
+                return new List<EmoteStatItem>();
+
+            if (desc)
+                return userEntity.UsedEmotes.OrderByDescending(o => o.UseCount).ToList();
+            else
+                return userEntity.UsedEmotes.OrderBy(o => o.UseCount).ToList();
         }
     }
 }
