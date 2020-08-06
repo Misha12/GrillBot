@@ -1,4 +1,6 @@
-using Discord;
+using DiscordEmoji = Discord.Emoji;
+using TagType = Discord.TagType;
+using Emote = Discord.Emote;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Users;
@@ -7,6 +9,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.EmoteStats;
 using Microsoft.Extensions.DependencyInjection;
+using NeoSmart.Unicode;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -42,16 +45,10 @@ namespace Grillbot.Services.Statistics
 
                 var userEntity = userRepository.GetOrCreateUser(context.Guild.Id, context.User.Id, false, false, false, false, false, false, true);
 
-                if (mentionedEmotes.Count == 0)
-                {
-                    TryIncrementUnicodeFromMessage(context.Message.Content, userEntity);
-                    userRepository.SaveChanges();
-                    return;
-                }
-
+                TryIncrementUnicodeFromMessage(context.Message.Content, userEntity);
                 foreach (var emote in mentionedEmotes)
                 {
-                    if (emote is Emoji emoji)
+                    if (emote is DiscordEmoji emoji)
                     {
                         IncrementCounter(emoji.Name, true, userEntity);
                     }
@@ -80,7 +77,7 @@ namespace Grillbot.Services.Statistics
 
                 var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
 
-                if (reaction.Emote is Emoji emoji)
+                if (reaction.Emote is DiscordEmoji emoji)
                 {
                     IncrementCounter(emoji.Name, true, userEntity);
                 }
@@ -108,7 +105,7 @@ namespace Grillbot.Services.Statistics
 
                 var userEntity = repository.GetOrCreateUser(channel.Guild.Id, reaction.UserId, false, false, false, false, false, false, true);
 
-                if (reaction.Emote is Emoji emoji)
+                if (reaction.Emote is DiscordEmoji emoji)
                 {
                     DecrementCounter(reaction.Emote.Name, true, userEntity);
                 }
@@ -126,10 +123,10 @@ namespace Grillbot.Services.Statistics
 
         private void TryIncrementUnicodeFromMessage(string content, DiscordUser user)
         {
-            var emojis = content
-                .Split(' ')
-                .Where(o => NeoSmart.Unicode.Emoji.IsEmoji(o))
-                .Select(o => o.Trim());
+            var emojis = content.Codepoints()
+                .Where(o => Emoji.IsKnownEmoji(o))
+                .Distinct()
+                .Select(o => o.AsString().Trim());
 
             foreach (var emoji in emojis)
             {
@@ -256,7 +253,7 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        public List<EmoteStatItem> GetEmoteStatsForUser(SocketGuild guild, IUser user, bool desc)
+        public List<EmoteStatItem> GetEmoteStatsForUser(SocketGuild guild, Discord.IUser user, bool desc)
         {
             using var scope = Provider.CreateScope();
             using var usersRepository = scope.ServiceProvider.GetService<UsersRepository>();
