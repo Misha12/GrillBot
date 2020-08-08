@@ -16,7 +16,8 @@ namespace Grillbot.Database.Enums.Includes
         Reminders = 16,
         Invites = 32,
         Emotes = 64,
+        Unverify = 128,
 
-        All = Channels | Birthday | MathAudit | Statistics | Reminders | Invites | Emotes
+        All = Channels | Birthday | MathAudit | Statistics | Reminders | Invites | Emotes | Unverify
     }
 }

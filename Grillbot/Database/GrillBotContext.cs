@@ -57,6 +57,10 @@ namespace Grillbot.Database
                 builder
                     .HasMany(o => o.UsedEmotes)
                     .WithOne(o => o.User);
+
+                builder
+                    .HasOne(o => o.Unverify)
+                    .WithOne(o => o.User);
             });
 
             modelBuilder.Entity<UserChannel>(builder =>
@@ -93,5 +97,6 @@ namespace Grillbot.Database
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
         public virtual DbSet<EmoteStatItem> EmoteStatistics { get; set; }
+        public virtual DbSet<Unverify> Unverifies { get; set; }
     }
 }

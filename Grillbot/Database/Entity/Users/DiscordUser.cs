@@ -51,6 +51,7 @@ namespace Grillbot.Database.Entity.Users
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }
         public ISet<EmoteStatItem> UsedEmotes { get; set; }
+        public Unverify Unverify { get; set; }
 
         public DiscordUser()
         {
