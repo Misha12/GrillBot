@@ -151,7 +151,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddStatistics(this IServiceCollection services)
         {
             services
-                .AddSingleton<EmoteStats>()
+                .AddTransient<EmoteStats>()
                 .AddSingleton<InternalStatistics>();
 
             return services;
