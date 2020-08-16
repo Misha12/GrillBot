@@ -5,18 +5,16 @@
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Misha12/grillbot/graphs/commit-activity)
 
 ## Requirements
-- MSSQL server 
-  - Instalation: https://www.microsoft.com/en-us/sql-server/sql-server-downloads 
-- Microsoft Visual Studio 2019 (or another IDE supports .NET)
-  - Visual studio instalation: https://docs.microsoft.com/cs-cz/visualstudio/install/install-visual-studio?view=vs-2019
-- .NET Core 3.1 (with ASP\.NET Core 3.1)
-  - https://dotnet.microsoft.com/download/dotnet-core/3.1
-- dotnet-ef (For code first migrations)
-  - https://docs.microsoft.com/cs-cz/ef/core/miscellaneous/cli/dotnet
+
+- MSSQL server - [SQL Server Downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
+- Microsoft Visual Studio 2019 (or another IDE supports .NET) - [Install Visual Studio](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2019)
+- .NET Core 3.1 (with ASP\.NET Core 3.1) - [Download .NET Core 3.1 (Linux, macOS, and Windows)](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+- dotnet-ef (For code first migrations) - [EF Core tools reference (.NET CLI) - EF Core](https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/dotnet)
 
 ## Used NuGet packages
 
 ### GrillBot
+
 - [Discord.NET](https://www.nuget.org/packages/Discord.Net/)
 - [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
 - [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
@@ -26,19 +24,23 @@
 - [Microsoft.EntityFrameworkCore.Tools](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Tools/)
 
 ### GrillBotMath
+
 - [Newtonsoft.JSON](https://www.nuget.org/packages/Newtonsoft.Json/)
 - [MathParser.org-mXParser](https://www.nuget.org/packages/MathParser.org-mXparser/)
 
 ## Database
+
 This project using Code first database migrations.
 
 To create database:
+
 - Configure database connection string in appsettings.development.json. If you are using MSSQL LocalDB you can use connection string in appsettings.json.
 - `dotnet tool restore`
 - `dotnet ef database update`
 
 ## Config (appsettings.json/appsettings.development.json)
-**Keys in bold must be setup to develop GrillBot locally**
+
+- **Keys in bold must be setup to develop GrillBot locally**
 - Format: **JSON**
 - Filename: **appsettings(.development).json**
 
@@ -46,6 +48,7 @@ Use appsettings.development.json for development purposes.
 If you edit `appsettings.json` file, write it to pull request.
 
 ### Models
+
 #### Config
 
 | Key                       | Type                              | Description                                                                       |
@@ -58,6 +61,7 @@ If you edit `appsettings.json` file, write it to pull request.
 | ConnectionStrings         | KeyValuePair<string, string>      | Database connection strings                                                       |
 
 #### Config.Discord
+
 For properties **Token** you will need to create your own Discord Application to get a Token for local development.
 
 | Key                 | Type   | Description                                                              |
@@ -71,6 +75,7 @@ For properties **Token** you will need to create your own Discord Application to
 | ErrorLogChannelID   | string | ID of channel for logging errors.                                        |
 
 ## GrillBotMath
+
 To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
 
 ## Features
