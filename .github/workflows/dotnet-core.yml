@@ -28,3 +28,28 @@ jobs:
       with:
         files: .
         args: './README.md ./docs/'
+  UpdateMonitor:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: Build
+        id: projectmetrics
+        run: |
+          yarn
+          yarn build
+          SRC_SIZE=($(du -s src/))
+          SRC_FILES_COUNT=($(find src -type f | wc -l))
+          echo "::set-env name=code_size::$SRC_SIZE"
+          echo "::set-env name=code_files_count::$SRC_FILES_COUNT"
+      - uses: ./
+        name: Update Report for Files Size
+        with:
+          key: code-size
+          value: ${{ env.code_size }}
+          token: ${{ secrets.GITHUB_TOKEN }}
+      - uses: ./
+        name: Update Report for Files Count
+        with:
+          key: files-count
+          value: ${{ env.code_files_count }}
+          token: ${{ secrets.GITHUB_TOKEN }}

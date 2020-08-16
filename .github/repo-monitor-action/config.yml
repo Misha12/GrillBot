@@ -1,0 +1,12 @@
+metrics:
+  code-size:
+    description: Size of all source files in KB
+  files-count:
+    description: Number of source files
+groups:
+  general:
+    name: General
+    description: This section shows code complexity metrics
+    metrics:
+      - code-size
+      - files-count
