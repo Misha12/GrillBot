@@ -26,4 +26,4 @@ jobs:
       uses: nosborn/github-action-markdown-cli@v1.1.1
       with:
         files: .
-        args: '.'
+        args: './README.md ./docs/'
