@@ -2,54 +2,47 @@ name: .NET Core
 
 on:
   push:
-    branches: [ master ]
+    branches: [master]
   pull_request:
-    branches: [ master ]
+    branches: [master]
 
 jobs:
   Build:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: Setup .NET Core
-      uses: actions/setup-dotnet@v1
-      with:
-        dotnet-version: 3.1.301
-    - name: Install dependencies
-      run: dotnet restore
-    - name: Build
-      run: dotnet build --configuration Release --no-restore
+      - uses: actions/checkout@v2
+      - name: Setup .NET Core
+        uses: actions/setup-dotnet@v1
+        with:
+          dotnet-version: 3.1.301
+      - name: Install dependencies
+        run: dotnet restore
+      - name: Build
+        run: dotnet build --configuration Release --no-restore
   MarkdownLint:
     runs-on: ubuntu-latest
     steps:
-    - uses: actions/checkout@v2
-    - name: markdownlint-cli
-      uses: nosborn/github-action-markdown-cli@v1.1.1
-      with:
-        files: .
-        args: './README.md ./docs/'
-  UpdateMonitor:
-    runs-on: ubuntu-latest
-    steps:
       - uses: actions/checkout@v2
-      - name: Build
-        id: projectmetrics
-        run: |
-          yarn
-          yarn build
-          SRC_SIZE=($(du -s src/))
-          SRC_FILES_COUNT=($(find src -type f | wc -l))
-          echo "::set-env name=code_size::$SRC_SIZE"
-          echo "::set-env name=code_files_count::$SRC_FILES_COUNT"
-      - uses: ./
-        name: Update Report for Files Size
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v1.1.1
         with:
-          key: code-size
-          value: ${{ env.code_size }}
-          token: ${{ secrets.GITHUB_TOKEN }}
-      - uses: ./
-        name: Update Report for Files Count
+          files: .
+          args: "./README.md ./docs/"
+  CheckQuality:
+    runs-on: ubuntu-latest
+    name: A job to check my code quality
+    steps:
+      - name: Check code meets quality standards
+        id: code-inspector
+        uses: codeinspectorio/github-action@master
         with:
-          key: files-count
-          value: ${{ env.code_files_count }}
-          token: ${{ secrets.GITHUB_TOKEN }}
+          repo_token: ${{ secrets.GITHUBTOKEN }}
+          code_inspector_access_key: ${{ secrets.CODE_INSPECTOR_ACCESS_KEY }}
+          code_inspector_secret_key: ${{ secrets.CODE_INSPECTOR_SECRET_KEY }}
+          min_quality_grade: "WARNING"
+          min_quality_score: "50"
+          max_defects_rate: "0.0001"
+          max_complex_functions_rate: "0.0001"
+          max_long_functions_rate: "0.0001"
+          project_name: ""
+          max_timeout_sec: "600"
