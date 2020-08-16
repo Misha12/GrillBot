@@ -7,10 +7,8 @@ on:
     branches: [ master ]
 
 jobs:
-  build:
-
+  Build:
     runs-on: ubuntu-latest
-
     steps:
     - uses: actions/checkout@v2
     - name: Setup .NET Core
@@ -18,11 +16,13 @@ jobs:
       with:
         dotnet-version: 3.1.301
     - name: Install dependencies
-      run: dotnet restore -v diag
+      run: dotnet restore
     - name: Build
-      run: dotnet build --configuration Release --no-restore -v diag
-    - name: SonarCloud Scan
-      uses: SonarSource/sonarcloud-github-action@v1.3
-      env:
-        SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
-  
+      run: dotnet build --configuration Release --no-restore
+  MarkdownLint:
+    runs-on: ubuntu-latest
+    steps:
+    - name: markdownlint-cli
+      uses: nosborn/github-action-markdown-cli@v1.1.1
+      with:
+        files: .
