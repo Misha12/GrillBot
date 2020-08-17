@@ -67,12 +67,12 @@ namespace Grillbot.Services.TempUnverify
 
         public void Init() { }
 
-        public TempUnverifyConfig GetConfig(SocketGuild guild)
+        public UnverifyConfig GetConfig(SocketGuild guild)
         {
             using var scope = Provider.CreateScope();
             using var configRepository = scope.ServiceProvider.GetService<ConfigRepository>();
             var config = configRepository.FindConfig(guild.Id, "unverify", "");
-            return config.GetData<TempUnverifyConfig>();
+            return config.GetData<UnverifyConfig>();
         }
     }
 }

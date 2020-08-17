@@ -8,7 +8,7 @@ using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 
-namespace Grillbot.Services.Unverify.Models
+namespace Grillbot.Services.Unverify
 {
     public class UnverifyChecker : IDisposable
     {

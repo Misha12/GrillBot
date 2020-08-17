@@ -1,8 +1,8 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 
 namespace Grillbot.Models.Config.Dynamic
 {
-    public class TempUnverifyConfig
+    public class UnverifyConfig
     {
         public ulong MutedRoleID { get; set; }
     }
