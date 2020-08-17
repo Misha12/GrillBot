@@ -556,15 +556,15 @@ namespace Grillbot.Migrations
             modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
                 {
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "FromUser")
-                        .WithMany("IncomingUnverifyOperations")
+                        .WithMany("OutgoingUnverifyOperations")
                         .HasForeignKey("FromUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "ToUser")
-                        .WithMany("OutgoingUnverifyOperations")
+                        .WithMany("IncomingUnverifyOperations")
                         .HasForeignKey("ToUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

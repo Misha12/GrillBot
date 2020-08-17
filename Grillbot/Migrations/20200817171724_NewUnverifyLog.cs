@@ -26,14 +26,12 @@ namespace Grillbot.Migrations
                         name: "FK_UnverifyLogs_DiscordUsers_FromUserID",
                         column: x => x.FromUserID,
                         principalTable: "DiscordUsers",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ID");
                     table.ForeignKey(
                         name: "FK_UnverifyLogs_DiscordUsers_ToUserID",
                         column: x => x.ToUserID,
                         principalTable: "DiscordUsers",
-                        principalColumn: "ID",
-                        onDelete: ReferentialAction.Cascade);
+                        principalColumn: "ID");
                 });
 
             migrationBuilder.CreateIndex(

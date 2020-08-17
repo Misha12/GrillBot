@@ -27,8 +27,8 @@ namespace Grillbot.Database
                 builder.HasMany(o => o.Reminders).WithOne(o => o.User);
                 builder.HasMany(o => o.CreatedInvites).WithOne(o => o.Creator);
                 builder.HasMany(o => o.UsedEmotes).WithOne(o => o.User);
-                builder.HasMany(o => o.IncomingUnverifyOperations).WithOne(o => o.FromUser);
-                builder.HasMany(o => o.OutgoingUnverifyOperations).WithOne(o => o.ToUser);
+                builder.HasMany(o => o.IncomingUnverifyOperations).WithOne(o => o.ToUser).OnDelete(DeleteBehavior.NoAction);
+                builder.HasMany(o => o.OutgoingUnverifyOperations).WithOne(o => o.FromUser).OnDelete(DeleteBehavior.NoAction);
                 builder.HasOne(o => o.Birthday).WithOne(o => o.User);
                 builder.HasOne(o => o.Statistics).WithOne(o => o.User);
                 builder.HasOne(o => o.UsedInvite).WithMany(o => o.UsedUsers);

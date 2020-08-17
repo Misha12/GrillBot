@@ -10,7 +10,7 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grillbot.Migrations
 {
     [DbContext(typeof(GrillBotContext))]
-    [Migration("20200817162900_NewUnverifyLog")]
+    [Migration("20200817171724_NewUnverifyLog")]
     partial class NewUnverifyLog
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
@@ -558,15 +558,15 @@ namespace Grillbot.Migrations
             modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
                 {
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "FromUser")
-                        .WithMany("IncomingUnverifyOperations")
+                        .WithMany("OutgoingUnverifyOperations")
                         .HasForeignKey("FromUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
 
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "ToUser")
-                        .WithMany("OutgoingUnverifyOperations")
+                        .WithMany("IncomingUnverifyOperations")
                         .HasForeignKey("ToUserID")
-                        .OnDelete(DeleteBehavior.Cascade)
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 
