@@ -1,12 +1,10 @@
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
-using Microsoft.EntityFrameworkCore.Metadata.Internal;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -34,7 +32,7 @@ namespace Grillbot.Services.Unverify
             UsersRepository = usersRepository;
         }
 
-        public async Task<List<string>> SetUnverify(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
+        public async Task<List<string>> SetUnverifyAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
         {
             var unverifyConfig = GetUnverifyConfig(guild);
             var messages = new List<string>();
@@ -45,14 +43,14 @@ namespace Grillbot.Services.Unverify
 
             foreach (var user in users)
             {
-                var message = await SetUnverify(user, time, data, guild, fromUser, false, null, mutedRole);
+                var message = await SetUnverifyAsync(user, time, data, guild, fromUser, false, null, mutedRole);
                 messages.Add(message);
             }
 
             return messages;
         }
 
-        public async Task<string> SetUnverify(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
+        public async Task<string> SetUnverifyAsync(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
             List<string> toKeep)
         {
             var unverifyConfig = GetUnverifyConfig(guild);
@@ -61,15 +59,15 @@ namespace Grillbot.Services.Unverify
 
             var mutedRole = guild.GetRole(unverifyConfig.MutedRoleID);
 
-            return await SetUnverify(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole);
+            return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole);
         }
 
-        private async Task<string> SetUnverify(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
+        private async Task<string> SetUnverifyAsync(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
             List<string> toKeep, SocketRole mutedRole)
         {
             Checker.Validate(user, guild, selfUnverify);
 
-            var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep);
+            var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
 
             if (selfUnverify)
                 UnverifyLogger.LogSelfUnverify(profile, guild);

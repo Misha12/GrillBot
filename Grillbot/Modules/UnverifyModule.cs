@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
@@ -9,6 +9,7 @@ using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Unverify;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -19,21 +20,23 @@ namespace Grillbot.Modules
 {
     [Group("unverify")]
     [Name("Odebrání přístupu")]
-    [ModuleID("TempUnverifyModule")]
-    public class TempUnverifyModule : BotModuleBase
+    [ModuleID("UnverifyModule")]
+    public class UnverifyModule : BotModuleBase
     {
         private TempUnverifyService UnverifyService { get; }
+        private UnverifyService Service { get; }
 
-        public TempUnverifyModule(TempUnverifyService unverifyService, PaginationService paginationService) : base(paginationService: paginationService)
+        public UnverifyModule(TempUnverifyService unverifyService, PaginationService paginationService, UnverifyService service)
+            : base(paginationService: paginationService)
         {
             UnverifyService = unverifyService;
+            Service = service;
         }
 
         [Command("")]
         [Summary("Dočasné odebrání rolí.")]
-        [Remarks("Parametr time je ve formátu {cas}{m/h/d}. Např.: 30m.\nPopis: m: minuty, h: hodiny, d: dny.\n" +
-            "Dále je důvod, proč daná osoba přišla o role. A nakonec seznam (mentions) uživatelů.\n" +
-            "Celý příkaz je pak vypadá např.:\n{prefix}unverify 30m Přišel jsi o role @User1#1234 @User2#1354 ...")]
+        [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, **d**: dny, **M**: měsíce, **y**: roky.\n" +
+            "Dále je důvod, proč daná osoba přišla o přístup\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify 30m Přišel jsi o přístup @User1#1234 @User2#1354 ...`")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
             try
@@ -43,12 +46,11 @@ namespace Grillbot.Modules
 
                 var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
 
-                if (usersToUnverify.Count > 0)
-                {
-                    var message = await UnverifyService.RemoveAccessAsync(usersToUnverify, time,
-                        reasonAndUserMentions, Context.Guild, Context.User).ConfigureAwait(false);
-                    await ReplyAsync(message).ConfigureAwait(false);
-                }
+                if (usersToUnverify.Count == 0)
+                    return;
+
+                var messages = await Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
+                await ReplyChunkedAsync(messages, 1);
             }
             catch (Exception ex)
             {
@@ -173,6 +175,13 @@ namespace Grillbot.Modules
                 .AddField("Celkem", users.Count.FormatWithSpaces(), true);
 
             await ReplyAsync(embed: embed.Build());
+        }
+
+        protected override void AfterExecute(CommandInfo command)
+        {
+            Service.Dispose();
+
+            base.AfterExecute(command);
         }
     }
 }

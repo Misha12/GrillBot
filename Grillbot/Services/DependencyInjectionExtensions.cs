@@ -13,6 +13,7 @@ using Grillbot.Services.Reminder;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.TeamSearch;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Unverify;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -47,7 +48,8 @@ namespace Grillbot.Services
                 .AddTransient<UserStatisticsRepository>()
                 .AddTransient<GlobalConfigRepository>()
                 .AddTransient<ReminderRepository>()
-                .AddTransient<InviteRepository>();
+                .AddTransient<InviteRepository>()
+                .AddTransient<UnverifyRepository>();
 
             return services;
         }
@@ -181,7 +183,7 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddTempUnverify(this IServiceCollection services)
+        public static IServiceCollection AddUnverify(this IServiceCollection services)
         {
             services
                 .AddTransient<TempUnverifyLogService>()
@@ -190,6 +192,15 @@ namespace Grillbot.Services
                 .AddTransient<TempUnverifyReasonParser>()
                 .AddTransient<TempUnverifyTimeParser>()
                 .AddTransient<TempUnverifyRoleManager>();
+
+            services
+                .AddTransient<UnverifyService>()
+                .AddTransient<UnverifyChecker>()
+                .AddTransient<UnverifyLogger>()
+                .AddTransient<UnverifyMessageGenerator>()
+                .AddTransient<UnverifyProfileGenerator>()
+                .AddTransient<UnverifyReasonParser>()
+                .AddTransient<UnverifyTimeParser>();
 
             return services;
         }

@@ -27,7 +27,8 @@ namespace Grillbot.Services.Unverify
             ConfigRepository = configRepository;
         }
 
-        public async Task<UnverifyUserProfile> CreateProfileAsync(SocketGuildUser user, SocketGuild guild, string time, string data, bool isSelfunverify, List<string> toKeep)
+        public async Task<UnverifyUserProfile> CreateProfileAsync(SocketGuildUser user, SocketGuild guild, string time, string data, bool isSelfunverify, List<string> toKeep,
+            SocketRole mutedRole)
         {
             var result = new UnverifyUserProfile()
             {
@@ -42,21 +43,26 @@ namespace Grillbot.Services.Unverify
             if (selfUnverifyConfig == null)
                 throw new InvalidOperationException("Neplatná konfigurace pro selfunverify");
 
-            toKeep = toKeep.Select(o => o.ToLower()).Distinct().ToList();
-            if (toKeep.Count > selfUnverifyConfig.MaxRolesToKeep)
-                throw new ValidationException($"Lze si ponechat maximálně následující počet rolí: {selfUnverifyConfig.MaxRolesToKeep}");
+            if (toKeep != null)
+            {
+                toKeep = toKeep.Select(o => o.ToLower()).Distinct().ToList();
+                if (toKeep.Count > selfUnverifyConfig.MaxRolesToKeep)
+                    throw new ValidationException($"Lze si ponechat maximálně následující počet rolí: {selfUnverifyConfig.MaxRolesToKeep}");
+            }
 
-            await SetRolesAsync(result, user, guild, isSelfunverify, toKeep, selfUnverifyConfig);
+            await SetRolesAsync(result, user, guild, isSelfunverify, toKeep, selfUnverifyConfig, mutedRole);
             SetChannels(result, user, toKeep, selfUnverifyConfig);
 
             return result;
         }
 
         private async Task SetRolesAsync(UnverifyUserProfile profile, SocketGuildUser user, SocketGuild guild, bool selfUnverify, List<string> toKeep,
-            SelfUnverifyConfig selfUnverifyConfig)
+            SelfUnverifyConfig selfUnverifyConfig, SocketRole mutedRole)
         {
             profile.RolesToRemove.AddRange(user.Roles);
+
             await FilterHigherRolesIfSelfunverifyAsync(profile, selfUnverify, guild);
+            FilterUnavailableRoles(profile, mutedRole);
 
             if (toKeep == null)
                 return;
@@ -105,6 +111,18 @@ namespace Grillbot.Services.Unverify
 
             profile.RolesToKeep.AddRange(rolesToKeep);
             profile.RolesToRemove.RemoveAll(o => rolesToKeep.Any(x => x.Id == o.Id));
+        }
+
+        private void FilterUnavailableRoles(UnverifyUserProfile profile, SocketRole mutedRole)
+        {
+            var unavailableRoles = profile.RolesToRemove.FindAll(o => o.IsEveryone || o.IsManaged);
+            unavailableRoles.RemoveAll(o => o.IsEveryone); // Ignore everyone role.
+
+            if (mutedRole != null)
+                unavailableRoles = unavailableRoles.FindAll(o => o.Id != mutedRole.Id);
+
+            profile.RolesToKeep.AddRange(unavailableRoles);
+            profile.RolesToRemove.RemoveAll(o => o.IsEveryone || unavailableRoles.Any(x => x.Id == o.Id));
         }
 
         private SelfUnverifyConfig GetSelfunverifyConfig(SocketGuild guild)

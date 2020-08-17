@@ -25,7 +25,7 @@ namespace Grillbot.Database.Entity.Unverify
         public List<ulong> DeserializedRoles
         {
             get => JsonConvert.DeserializeObject<List<ulong>>(Roles);
-            set => JsonConvert.SerializeObject(value ?? new List<ulong>());
+            set => Roles = JsonConvert.SerializeObject(value ?? new List<ulong>());
         }
 
         public string Channels { get; set; }
@@ -34,7 +34,7 @@ namespace Grillbot.Database.Entity.Unverify
         public List<ChannelOverride> DeserializedChannels
         {
             get => JsonConvert.DeserializeObject<List<ChannelOverride>>(Channels);
-            set => JsonConvert.SerializeObject(value ?? new List<ChannelOverride>());
+            set => Channels = JsonConvert.SerializeObject(value ?? new List<ChannelOverride>());
         }
     }
 }
