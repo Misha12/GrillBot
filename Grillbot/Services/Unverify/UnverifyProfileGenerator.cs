@@ -149,7 +149,7 @@ namespace Grillbot.Services.Unverify
         private void CheckDefinitions(SelfUnverifyConfig selfUnverifyConfig, string name)
         {
             if (!ExistsInKeepDefinition(selfUnverifyConfig.RolesToKeep, name))
-                throw new ValidationException($"Role `{name.ToUpper()}` není ponechatelné.");
+                throw new ValidationException($"`{name.ToUpper()}` není ponechatelné.");
         }
 
         public void Dispose()

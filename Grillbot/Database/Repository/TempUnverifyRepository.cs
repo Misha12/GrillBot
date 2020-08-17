@@ -1,9 +1,8 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.UnverifyLog;
 using Microsoft.EntityFrameworkCore;
-using Microsoft.EntityFrameworkCore.Infrastructure;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;

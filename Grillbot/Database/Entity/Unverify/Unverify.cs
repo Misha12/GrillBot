@@ -3,8 +3,9 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
+using Grillbot.Database.Entity.Users;
 
-namespace Grillbot.Database.Entity.Users
+namespace Grillbot.Database.Entity.Unverify
 {
     [Table("Unverifies")]
     public class Unverify
