@@ -1,9 +1,10 @@
-﻿using Discord.Commands;
+using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Unverify;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -16,19 +17,21 @@ namespace Grillbot.Modules
     [Name("Odebrání přístupu")]
     public class SelfUnverifyModule : BotModuleBase
     {
-        private TempUnverifyService UnverifyService { get; }
         private TempUnverifyRoleManager RoleManager { get; }
+        private UnverifyService Service { get; }
 
-        public SelfUnverifyModule(TempUnverifyService unverifyService, TempUnverifyRoleManager roleManager)
+        public SelfUnverifyModule(TempUnverifyRoleManager roleManager, UnverifyService service)
         {
-            UnverifyService = unverifyService;
             RoleManager = roleManager;
+            Service = service;
         }
 
         [Command("")]
         [Summary("Odebrání práv sám sobě.")]
-        [Remarks("Parametr time je ve formátu {cas}{m/h/d}. Např.: 30m.\nPopis: m: minuty, h: hodiny, d: dny.\nJe možné zadat maximálně 5 rolí " +
-            ", které bude možné si během doby odebraného přístupu ponechat.\nMinimální doba pro selfunverify je půl hodiny.")]
+        [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, " +
+            "**d**: dny, **M**: měsíce, **y**: roky.\n\nJe možné si ponechat určité množství přístupů. Možnosti jsou k dispozici pomocí `{prefix}selfunverify defs`" +
+            ", které bude možné si během doby odebraného přístupu ponechat.\nMinimální doba pro selfunverify je půl hodiny.\n\nCelý příkaz je pak vypadá např.:\n`{prefix}selfunverify 30m`, nebo " +
+            "`{prefix}selfunverify 30m IPT ...`")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
             if (await SelfUnverifyRoutingAsync(time))
@@ -36,8 +39,10 @@ namespace Grillbot.Modules
 
             try
             {
-                var user = await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-                var message = await UnverifyService.SetSelfUnverify(user, Context.Guild, time, subjects);
+                if (!(Context.User is SocketGuildUser user))
+                    return;
+
+                var message = await Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
                 await ReplyAsync(message);
             }
             catch (Exception ex)
@@ -56,7 +61,7 @@ namespace Grillbot.Modules
         {
             switch (route)
             {
-                case "roles":
+                case "defs":
                     await GetSubjectListAsync();
                     return true;
             }
@@ -64,14 +69,14 @@ namespace Grillbot.Modules
             return false;
         }
 
-        [Command("roles")]
-        [Summary("Seznam rolí, co si může osoba ponechat.")]
+        [Command("defs")]
+        [Summary("Definice přístupů, co si může osoba ponechat.")]
         public async Task GetSubjectListAsync()
         {
             var config = RoleManager.GetSelfUnverifyConfig(Context.Guild);
 
-            var embed = new BotEmbed(Context.User, title: "Ponechatelné role")
-                .AddField("Počet ponechatelných", config.MaxRolesToKeep.FormatWithSpaces(), false);
+            var embed = new BotEmbed(Context.User, title: "Ponechatelné role a kanály")
+                .AddField("Max. počet ponechatelných", config.MaxRolesToKeep.FormatWithSpaces(), false);
 
             foreach (var group in config.RolesToKeep)
             {
@@ -87,12 +92,12 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void AfterExecute(CommandInfo command)
         {
-            if (disposing)
-                RoleManager.Dispose();
+            RoleManager.Dispose();
+            Service.Dispose();
 
-            base.Dispose(disposing);
+            base.AfterExecute(command);
         }
     }
 }
