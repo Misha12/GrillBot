@@ -76,20 +76,11 @@ namespace Grillbot.Modules
                     if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
                     await RemoveUnverifyAsync(Convert.ToInt32(parameters.Split(' ')[0])).ConfigureAwait(false);
                     return true;
-                case "update":
-                    if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
-                    var fields = parameters.Split(' ');
-                    if (fields.Length < 2)
-                    {
-                        await ReplyAsync("Chybí parametry.");
-                        return true;
-                    }
-
-                    await UpdateUnverifyAsync(Convert.ToInt32(fields[0]), fields[1]).ConfigureAwait(false);
-                    return true;
                 case "stats":
                     await StatsAsync();
                     return true;
+                case "update":
+                    throw new ThrowHelpException();
             }
 
             return false;
@@ -150,16 +141,24 @@ namespace Grillbot.Modules
 
         [Command("update")]
         [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
-        public async Task UpdateUnverifyAsync(int id, string time)
+        [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, **d**: dny, **M**: měsíce, **y**: roky.\n" +
+            "Zadává se identifikace uživatele. To znamená ID uživatele, tag, nebo jméno (username, nebo alias).\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify update @GrillBot 45m`")]
+        public async Task UpdateUnverifyAsync(SocketGuildUser user, string time)
         {
             try
             {
-                var message = await UnverifyService.UpdateUnverifyAsync(id, time, Context.User).ConfigureAwait(false);
+                var message = await Service.UpdateUnverifyAsync(user, Context.Guild, time, Context.User);
                 await ReplyAsync(message).ConfigureAwait(false);
             }
-            catch (NotFoundException ex)
+            catch (Exception ex)
             {
-                await ReplyAsync(ex.Message);
+                if (ex is NotFoundException || ex is ValidationException)
+                {
+                    await ReplyAsync(ex.Message);
+                    return;
+                }
+
+                throw;
             }
         }
 

@@ -46,6 +46,9 @@ namespace Grillbot.Database.Repository
             if (includes.HasFlag(UsersIncludes.Emotes))
                 query = query.Include(o => o.UsedEmotes);
 
+            if (includes.HasFlag(UsersIncludes.Unverify))
+                query = query.Include(o => o.Unverify);
+
             return query;
         }
 

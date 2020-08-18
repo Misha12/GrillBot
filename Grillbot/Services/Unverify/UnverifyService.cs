@@ -3,10 +3,12 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
 using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -20,9 +22,12 @@ namespace Grillbot.Services.Unverify
         private UnverifyMessageGenerator MessageGenerator { get; }
         private ConfigRepository ConfigRepository { get; }
         private UsersRepository UsersRepository { get; }
+        private UnverifyTimeParser TimeParser { get; }
+        private BotState BotState { get; }
 
         public UnverifyService(UnverifyChecker checker, UnverifyProfileGenerator profileGenerator, UnverifyLogger logger,
-            UnverifyMessageGenerator messageGenerator, ConfigRepository configRepository, UsersRepository usersRepository)
+            UnverifyMessageGenerator messageGenerator, ConfigRepository configRepository, UsersRepository usersRepository,
+            UnverifyTimeParser timeParser, BotState botState)
         {
             Checker = checker;
             UnverifyProfileGenerator = profileGenerator;
@@ -30,6 +35,8 @@ namespace Grillbot.Services.Unverify
             MessageGenerator = messageGenerator;
             ConfigRepository = configRepository;
             UsersRepository = usersRepository;
+            TimeParser = timeParser;
+            BotState = botState;
         }
 
         public async Task<List<string>> SetUnverifyAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
@@ -97,6 +104,7 @@ namespace Grillbot.Services.Unverify
             };
 
             UsersRepository.SaveChanges();
+            BotState.UnverifyCache.Add(CreateUnverifyCacheKey(guild, user), profile.EndDateTime);
 
             var pmMessage = MessageGenerator.CreateUnverifyPMMessage(profile, guild);
             await user.SendPrivateMessageAsync(pmMessage);
@@ -108,6 +116,37 @@ namespace Grillbot.Services.Unverify
         {
             var config = ConfigRepository.FindConfig(guild.Id, "unverify", null);
             return config.GetData<UnverifyConfig>();
+        }
+
+        private string CreateUnverifyCacheKey(SocketGuild guild, SocketGuildUser user)
+        {
+            return $"{guild.Id}|{user.Id}";
+        }
+
+        public async Task<string> UpdateUnverifyAsync(SocketGuildUser user, SocketGuild guild, string time, SocketUser fromUser)
+        {
+            var cacheKey = CreateUnverifyCacheKey(guild, user);
+            if (!BotState.UnverifyCache.ContainsKey(cacheKey))
+                throw new NotFoundException("Aktualizace času nelze pro hledaného uživatele provést. Unverify nenalezeno.");
+
+            if ((BotState.UnverifyCache[cacheKey] - DateTime.Now).TotalSeconds < 30.0D)
+                throw new ValidationException("Aktualizace data a času již není možná. Zbývá méně, než půl minuty.");
+
+            var endDateTime = TimeParser.Parse(time, minimumMinutes: 10);
+            UnverifyLogger.LogUpdate(DateTime.Now, endDateTime, guild, fromUser, user);
+
+            var userEntity = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Unverify);
+
+            userEntity.Unverify.EndDateTime = endDateTime;
+            userEntity.Unverify.StartDateTime = DateTime.Now;
+            UsersRepository.SaveChanges();
+
+            BotState.UnverifyCache[cacheKey] = endDateTime;
+
+            var pmMessage = MessageGenerator.CreateUpdatePMMessage(guild, endDateTime);
+            await user.SendPrivateMessageAsync(pmMessage);
+
+            return MessageGenerator.CreateUpdateChannelMessage(user, endDateTime);
         }
 
         public void Dispose()
