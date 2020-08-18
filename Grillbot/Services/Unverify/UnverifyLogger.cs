@@ -1,5 +1,6 @@
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
@@ -24,7 +25,7 @@ namespace Grillbot.Services.Unverify
             UnverifyRepository = unverifyRepository;
         }
 
-        public void LogUnverify(UnverifyUserProfile profile, IGuild guild, IUser fromUser)
+        public UnverifyLog LogUnverify(UnverifyUserProfile profile, IGuild guild, IUser fromUser)
         {
             var data = UnverifyLogSet.FromProfile(profile);
 
@@ -32,17 +33,17 @@ namespace Grillbot.Services.Unverify
             var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
             UsersRepository.SaveChangesIfAny();
 
-            UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Unverify, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+            return UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Unverify, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
-        public void LogSelfUnverify(UnverifyUserProfile profile, IGuild guild)
+        public UnverifyLog LogSelfUnverify(UnverifyUserProfile profile, IGuild guild)
         {
             var data = UnverifyLogSet.FromProfile(profile);
 
             var userEntity = UsersRepository.GetOrCreateUser(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
             UsersRepository.SaveChangesIfAny();
 
-            UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Selfunverify, data.ToJObject(), userEntity.ID, userEntity.ID);
+            return UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Selfunverify, data.ToJObject(), userEntity.ID, userEntity.ID);
         }
 
         public void LogAutoRemove(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IUser toUser, IGuild guild)

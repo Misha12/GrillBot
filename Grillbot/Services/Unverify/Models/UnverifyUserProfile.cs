@@ -15,6 +15,7 @@ namespace Grillbot.Services.Unverify.Models
         public List<ChannelOverwrite> ChannelsToRemove { get; set; }
         public List<ChannelOverwrite> ChannelsToKeep { get; set; }
         public string Reason { get; set; }
+        public bool IsSelfUnverify { get; set; }
 
         public UnverifyUserProfile()
         {

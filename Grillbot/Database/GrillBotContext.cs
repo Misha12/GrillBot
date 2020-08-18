@@ -2,7 +2,7 @@ using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.Config;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Entity.MethodConfig;
-using Grillbot.Database.Entity.UnverifyLog;
+using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Entity.Users;
 using Microsoft.EntityFrameworkCore;
 
@@ -53,12 +53,17 @@ namespace Grillbot.Database
             {
                 builder.HasKey(o => new { o.EmoteID, o.UserID });
             });
+
+            modelBuilder.Entity<Unverify>(builder =>
+            {
+                builder.HasOne(o => o.SetLogOperation).WithOne(o => o.Unverify);
+            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
         public virtual DbSet<AutoReplyItem> AutoReply { get; set; }
         public virtual DbSet<TempUnverifyItem> TempUnverify { get; set; }
-        public virtual DbSet<UnverifyLog> UnverifyLog { get; set; }
+        public virtual DbSet<Entity.UnverifyLog.UnverifyLog> UnverifyLog { get; set; }
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }
         public virtual DbSet<UserChannel> UserChannels { get; set; }
@@ -67,7 +72,7 @@ namespace Grillbot.Database
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
         public virtual DbSet<EmoteStatItem> EmoteStatistics { get; set; }
-        public virtual DbSet<Entity.Unverify.Unverify> Unverifies { get; set; }
-        public virtual DbSet<Entity.Unverify.UnverifyLog> UnverifyLogs { get; set; }
+        public virtual DbSet<Unverify> Unverifies { get; set; }
+        public virtual DbSet<UnverifyLog> UnverifyLogs { get; set; }
     }
 }

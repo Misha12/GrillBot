@@ -4,14 +4,16 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.EntityFrameworkCore.Infrastructure;
 using Microsoft.EntityFrameworkCore.Metadata;
+using Microsoft.EntityFrameworkCore.Migrations;
 using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 
 namespace Grillbot.Migrations
 {
     [DbContext(typeof(GrillBotContext))]
-    partial class GrillBotContextModelSnapshot : ModelSnapshot
+    [Migration("20200818214838_ConnectUnverifyAndLog")]
+    partial class ConnectUnverifyAndLog
     {
-        protected override void BuildModel(ModelBuilder modelBuilder)
+        protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
@@ -251,7 +253,7 @@ namespace Grillbot.Migrations
                     b.Property<string>("Roles")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<long?>("SetLogOperationID")
+                    b.Property<long>("SetLogOperationID")
                         .HasColumnType("bigint");
 
                     b.Property<DateTime>("StartDateTime")
@@ -260,8 +262,7 @@ namespace Grillbot.Migrations
                     b.HasKey("UserID");
 
                     b.HasIndex("SetLogOperationID")
-                        .IsUnique()
-                        .HasFilter("[SetLogOperationID] IS NOT NULL");
+                        .IsUnique();
 
                     b.ToTable("Unverifies");
                 });
@@ -555,7 +556,9 @@ namespace Grillbot.Migrations
                 {
                     b.HasOne("Grillbot.Database.Entity.Unverify.UnverifyLog", "SetLogOperation")
                         .WithOne("Unverify")
-                        .HasForeignKey("Grillbot.Database.Entity.Unverify.Unverify", "SetLogOperationID");
+                        .HasForeignKey("Grillbot.Database.Entity.Unverify.Unverify", "SetLogOperationID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
 
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "User")
                         .WithOne("Unverify")

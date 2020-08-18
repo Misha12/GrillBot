@@ -35,7 +35,8 @@ namespace Grillbot.Services.Unverify
                 StartDateTime = DateTime.Now,
                 Reason = ReasonParser.Parse(data),
                 EndDateTime = TimeParser.Parse(time),
-                DestinationUser = user
+                DestinationUser = user,
+                IsSelfUnverify = isSelfunverify
             };
 
             var selfUnverifyConfig = GetSelfunverifyConfig(guild);
@@ -134,8 +135,8 @@ namespace Grillbot.Services.Unverify
         private void SetChannels(UnverifyUserProfile profile, SocketGuildUser user, List<string> toKeep, SelfUnverifyConfig selfUnverifyConfig)
         {
             var channels = user.Guild.Channels
-                .Select(channel => new ChannelOverwrite() { Channel = channel, Permissions = channel.GetPermissionOverwrite(user) })
-                .Where(channel => channel.Permissions != null && (channel.Perms.AllowValue > 0 || channel.Perms.DenyValue > 0))
+                .Select(channel => new ChannelOverwrite(channel, channel.GetPermissionOverwrite(user)))
+                .Where(channel => channel.Permissions != null && (channel.AllowValue > 0 || channel.DenyValue > 0))
                 .ToList();
 
             profile.ChannelsToRemove.AddRange(channels);

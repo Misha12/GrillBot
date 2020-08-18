@@ -31,6 +31,8 @@ namespace Grillbot.Database.Entity.Unverify
 
         public string JsonData { get; set; }
 
+        public Unverify Unverify { get; set; }
+
         #region NotMapped objects
 
         [NotMapped]

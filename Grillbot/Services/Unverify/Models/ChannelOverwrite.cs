@@ -16,10 +16,28 @@ namespace Grillbot.Services.Unverify.Models
 
         #region JSON fields
 
-        public ulong ChannelID => Channel.Id;
-        public ulong AllowValue => Perms.AllowValue;
-        public ulong DenyValue => Perms.DenyValue;
+        public ulong ChannelID { get; set; }
+        public ulong AllowValue { get; set; }
+        public ulong DenyValue { get; set; }
 
         #endregion
+
+        public ChannelOverwrite() { }
+
+        public ChannelOverwrite(IChannel channel, OverwritePermissions? perms)
+        {
+            Channel = channel;
+
+            if (channel != null)
+                ChannelID = channel.Id;
+
+            Permissions = perms;
+
+            if (perms != null)
+            {
+                AllowValue = Perms.AllowValue;
+                DenyValue = Perms.DenyValue;
+            }
+        }
     }
 }

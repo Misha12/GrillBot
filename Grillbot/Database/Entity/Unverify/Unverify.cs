@@ -21,6 +21,11 @@ namespace Grillbot.Database.Entity.Unverify
         public string Reason { get; set; }
         public string Roles { get; set; }
 
+        public long? SetLogOperationID { get; set; }
+
+        [ForeignKey("SetLogOperationID")]
+        public UnverifyLog SetLogOperation { get; set; }
+
         [NotMapped]
         public List<ulong> DeserializedRoles
         {

@@ -47,7 +47,12 @@ namespace Grillbot.Database.Repository
                 query = query.Include(o => o.UsedEmotes);
 
             if (includes.HasFlag(UsersIncludes.Unverify))
-                query = query.Include(o => o.Unverify);
+            {
+                query = query
+                    .Include(o => o.Unverify)
+                    .ThenInclude(o => o.SetLogOperation)
+                    .ThenInclude(o => o.FromUser);
+            }
 
             return query;
         }
@@ -191,6 +196,12 @@ namespace Grillbot.Database.Repository
         {
             return Context.Users.AsQueryable()
                 .Where(o => o.GuildID == guildID.ToString() && o.UsedInviteCode == code);
+        }
+
+        public IQueryable<DiscordUser> GetUsersWithUnverify(ulong guildID)
+        {
+            return GetBaseQuery(UsersIncludes.Unverify)
+                .Where(o => o.GuildID == guildID.ToString() && o.Unverify != null);
         }
     }
 }

@@ -102,12 +102,12 @@ namespace Grillbot.Modules
         }
 
         [Command("list")]
-        [Summary("Seznam všech lidí, co má dočasně odebrané role.")]
+        [Summary("Seznam všech lidí, co má dočasně odebraný přístup.")]
         public async Task ListUnverifyAsync()
         {
-            var users = await UnverifyService.ListPersonsAsync(Context.Guild);
+            var profiles = await Service.GetCurrentUnverifies(Context.Guild);
 
-            if (users.Count == 0)
+            if (profiles.Count == 0)
             {
                 await ReplyAsync("Nikdo zatím nemá odebraný přístup.");
                 return;
@@ -115,16 +115,28 @@ namespace Grillbot.Modules
 
             var pages = new List<PaginatedEmbedPage>();
 
-            foreach (var user in users)
+            foreach (var profile in profiles)
             {
-                var page = new PaginatedEmbedPage($"**{user.Username}**");
+                var page = new PaginatedEmbedPage($"**{profile.DestinationUser.GetFullName()}**", thumbnail: profile.DestinationUser.GetUserAvatarUrl());
 
-                page.AddField(new EmbedFieldBuilder().WithName("ID").WithValue(user.ID));
-                page.AddField(new EmbedFieldBuilder().WithName("Do kdy").WithValue(user.EndDateTime.ToLocaleDatetime()));
-                page.AddField(new EmbedFieldBuilder().WithName("Role").WithValue(string.Join(", ", user.Roles)));
-                page.AddField(new EmbedFieldBuilder().WithName("Extra kanály").WithValue(user.ChannelOverrideList));
-                page.AddField(new EmbedFieldBuilder().WithName("Důvod").WithValue(user.Reason));
+                page.AddField("ID", profile.DestinationUser.Id.ToString());
+                page.AddField("Začátek", profile.StartDateTime.ToLocaleDatetime(), true);
+                page.AddField("Konec", profile.EndDateTime.ToLocaleDatetime(), true);
+                page.AddField("Končí za", (profile.EndDateTime - profile.StartDateTime).ToFullCzechTimeString(), true);
 
+                if (profile.RolesToKeep.Count > 0)
+                    page.AddField("Ponechané role", string.Join(", ", profile.RolesToKeep.Select(o => o.Mention)));
+
+                if (profile.RolesToRemove.Count > 0)
+                    page.AddField("Odebrané role", string.Join(", ", profile.RolesToRemove.Select(o => o.Mention)));
+
+                if (profile.ChannelsToKeep.Count > 0)
+                    page.AddField("Ponechané kanály", string.Join(", ", profile.ChannelsToKeep.Select(o => $"<#{o.Channel.Id}>")));
+
+                if (profile.ChannelsToRemove.Count > 0)
+                    page.AddField("Odebrané kanály", string.Join(", ", profile.ChannelsToRemove.Select(o => $"<#{o.Channel.Id}>")));
+
+                page.AddField("Důvod", profile.Reason);
                 pages.Add(page);
             }
 
@@ -166,12 +178,12 @@ namespace Grillbot.Modules
         [Summary("Statistiky unverify")]
         public async Task StatsAsync()
         {
-            var users = await UnverifyService.ListPersonsAsync(Context.Guild);
+            var unverifies = await Service.GetCurrentUnverifies(Context.Guild);
 
             var embed = new BotEmbed(Context.User, title: "Statistiky unverify")
-                .AddField("SelfUnverify", users.Count(o => o.IsSelfUnverify).FormatWithSpaces(), true)
-                .AddField("Unverify", users.Count(o => !o.IsSelfUnverify).FormatWithSpaces(), true)
-                .AddField("Celkem", users.Count.FormatWithSpaces(), true);
+                .AddField("SelfUnverify", unverifies.Count(o => o.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("Unverify", unverifies.Count(o => !o.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("Celkem", unverifies.Count.FormatWithSpaces(), true);
 
             await ReplyAsync(embed: embed.Build());
         }

@@ -11,7 +11,7 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public void SaveLogOperation(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
+        public UnverifyLog SaveLogOperation(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
         {
             var entity = new UnverifyLog()
             {
@@ -24,6 +24,8 @@ namespace Grillbot.Database.Repository
 
             Context.UnverifyLogs.Add(entity);
             Context.SaveChanges();
+
+            return entity;
         }
     }
 }

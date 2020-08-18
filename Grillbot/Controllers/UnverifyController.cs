@@ -1,9 +1,12 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TempUnverify.Admin;
 using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Unverify;
+using Grillbot.Services.Unverify.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Grillbot.Controllers
@@ -15,19 +18,29 @@ namespace Grillbot.Controllers
         private TempUnverifyService TempUnverifyService { get; }
         private TempUnverifyLogService TempUnverifyLogService { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private UnverifyService UnverifyService { get; }
 
-        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, TempUnverifyService tempUnverifyService, DiscordSocketClient discordClient)
+        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, TempUnverifyService tempUnverifyService, DiscordSocketClient discordClient,
+            UnverifyService unverifyService)
         {
             TempUnverifyService = tempUnverifyService;
             TempUnverifyLogService = tempUnverifyLogService;
             DiscordClient = discordClient;
+            UnverifyService = unverifyService;
         }
 
         [HttpGet]
         public async Task<IActionResult> IndexAsync()
         {
-            var unverified = await TempUnverifyService.ListPersonsAsync(null);
-            return View(new UnverifyCurrentStatusViewModel(unverified));
+            var unverifiesData = new List<UnverifyUserProfile>();
+
+            foreach (var guild in DiscordClient.Guilds)
+            {
+                var unverifies = await UnverifyService.GetCurrentUnverifies(guild);
+                unverifiesData.AddRange(unverifies);
+            }
+
+            return View(new UnverifyCurrentStatusViewModel(unverifiesData));
         }
 
         [HttpGet("RemoveAccess/{id}")]
@@ -48,7 +61,7 @@ namespace Grillbot.Controllers
 
             return View(viewModel);
         }
-        
+
         [HttpPost("Audit")]
         public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterRequest request)
         {
@@ -60,9 +73,10 @@ namespace Grillbot.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
             {
                 TempUnverifyLogService.Dispose();
+                UnverifyService.Dispose();
             }
 
             base.Dispose(disposing);

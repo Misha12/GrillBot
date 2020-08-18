@@ -1,11 +1,15 @@
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.Unverify;
+using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Services.Unverify.Models;
+using Grillbot.Services.Unverify.Models.Log;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -76,10 +80,11 @@ namespace Grillbot.Services.Unverify
 
             var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
 
+            UnverifyLog unverifyLogEntity;
             if (selfUnverify)
-                UnverifyLogger.LogSelfUnverify(profile, guild);
+                unverifyLogEntity = UnverifyLogger.LogSelfUnverify(profile, guild);
             else
-                UnverifyLogger.LogUnverify(profile, guild, fromUser);
+                unverifyLogEntity = UnverifyLogger.LogUnverify(profile, guild, fromUser);
 
             if (mutedRole != null)
                 await user.SetRoleAsync(mutedRole);
@@ -100,7 +105,8 @@ namespace Grillbot.Services.Unverify
                 DeserializedRoles = profile.RolesToRemove.Select(o => o.Id).ToList(),
                 EndDateTime = profile.EndDateTime,
                 Reason = profile.Reason,
-                StartDateTime = profile.StartDateTime
+                StartDateTime = profile.StartDateTime,
+                SetLogOperation = unverifyLogEntity
             };
 
             UsersRepository.SaveChanges();
@@ -147,6 +153,40 @@ namespace Grillbot.Services.Unverify
             await user.SendPrivateMessageAsync(pmMessage);
 
             return MessageGenerator.CreateUpdateChannelMessage(user, endDateTime);
+        }
+
+        public async Task<List<UnverifyUserProfile>> GetCurrentUnverifies(SocketGuild guild)
+        {
+            var usersWithUnverify = UsersRepository.GetUsersWithUnverify(guild.Id);
+
+            var result = new List<UnverifyUserProfile>();
+
+            foreach (var userEntity in usersWithUnverify)
+            {
+                var user = await guild.GetUserFromGuildAsync(userEntity.UserIDSnowflake);
+                var logData = userEntity.Unverify.SetLogOperation.Json.ToObject<UnverifyLogSet>();
+
+                var profile = new UnverifyUserProfile()
+                {
+                    Reason = userEntity.Unverify.Reason,
+                    EndDateTime = userEntity.Unverify.EndDateTime,
+                    StartDateTime = userEntity.Unverify.StartDateTime,
+                    DestinationUser = user,
+                    RolesToKeep = logData.RolesToKeep.Select(o => guild.GetRole(o)).Where(o => o != null).ToList(),
+                    RolesToRemove = logData.RolesToRemove.Select(o => guild.GetRole(o)).Where(o => o != null).ToList(),
+                    IsSelfUnverify = userEntity.Unverify.SetLogOperation.Operation == UnverifyLogOperation.Selfunverify
+                };
+
+                profile.ChannelsToKeep = logData.ChannelsToKeep.Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
+                    .Where(o => o.Channel != null).ToList();
+
+                profile.ChannelsToRemove = logData.ChannelsToRemove.Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
+                    .Where(o => o.Channel != null).ToList();
+
+                result.Add(profile);
+            }
+
+            return result;
         }
 
         public void Dispose()
