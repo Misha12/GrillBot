@@ -329,6 +329,12 @@ namespace Grillbot.Services.Unverify
             BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(guild, user));
         }
 
+        public void OnUserLeftGuild(SocketGuildUser user)
+        {
+            BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(user.Guild, user));
+            UnverifyRepository.RemoveUnverify(user.Guild.Id, user.Id);
+        }
+
         public void Dispose()
         {
             Checker.Dispose();
