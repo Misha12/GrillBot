@@ -1,9 +1,10 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
+using Grillbot.Database.Repository;
 using Grillbot.Extensions;
+using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Embed;
-using Grillbot.Services.TempUnverify;
 using Grillbot.Services.Unverify;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -17,12 +18,10 @@ namespace Grillbot.Modules
     [Name("Odebrání přístupu")]
     public class SelfUnverifyModule : BotModuleBase
     {
-        private TempUnverifyRoleManager RoleManager { get; }
         private UnverifyService Service { get; }
 
-        public SelfUnverifyModule(TempUnverifyRoleManager roleManager, UnverifyService service)
+        public SelfUnverifyModule(UnverifyService service, ConfigRepository configRepository) : base(configRepository: configRepository)
         {
-            RoleManager = roleManager;
             Service = service;
         }
 
@@ -73,19 +72,19 @@ namespace Grillbot.Modules
         [Summary("Definice přístupů, co si může osoba ponechat.")]
         public async Task GetSubjectListAsync()
         {
-            var config = RoleManager.GetSelfUnverifyConfig(Context.Guild);
+            var config = GetMethodConfig<SelfUnverifyConfig>("selfunverify", null);
 
             var embed = new BotEmbed(Context.User, title: "Ponechatelné role a kanály")
                 .AddField("Max. počet ponechatelných", config.MaxRolesToKeep.FormatWithSpaces(), false);
 
-            foreach (var group in config.RolesToKeep)
+            foreach (var group in config.RolesToKeep.GroupBy(o => string.Join("|", o.Value)))
             {
-                var parts = group.Value.SplitInParts(50);
-                var key = group.Key == "_" ? "Ostatní" : group.Key;
+                var keys = string.Join(", ", group.AsEnumerable().Select(o => o.Key == "_" ? "Ostatní" : o.Key));
+                var parts = group.First().Value.SplitInParts(50);
 
                 foreach (var part in parts)
                 {
-                    embed.AddField(key, string.Join(", ", part.Select(o => o.ToUpper())), false);
+                    embed.AddField(keys, string.Join(", ", part.Select(o => o.ToUpper())), false);
                 }
             }
 
@@ -94,7 +93,6 @@ namespace Grillbot.Modules
 
         protected override void AfterExecute(CommandInfo command)
         {
-            RoleManager.Dispose();
             Service.Dispose();
 
             base.AfterExecute(command);

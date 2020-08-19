@@ -34,7 +34,7 @@ namespace Grillbot.Modules
         }
 
         [Command("")]
-        [Summary("Dočasné odebrání rolí.")]
+        [Summary("Dočasné odebrání přístupu.")]
         [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, **d**: dny, **M**: měsíce, **y**: roky.\n" +
             "Dále je důvod, proč daná osoba přišla o přístup\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify 30m Přišel jsi o přístup @User1#1234 @User2#1354 ...`")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
@@ -87,7 +87,7 @@ namespace Grillbot.Modules
         }
 
         [Command("remove")]
-        [Summary("Předčasné vrácení rolí.")]
+        [Summary("Předčasné vrácení přístupu.")]
         public async Task RemoveUnverifyAsync(int id)
         {
             try
@@ -152,7 +152,7 @@ namespace Grillbot.Modules
         }
 
         [Command("update")]
-        [Summary("Aktualizace času u záznamu o dočasném odebrání rolí.")]
+        [Summary("Aktualizace času u záznamu o dočasném odebrání přístupu.")]
         [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, **d**: dny, **M**: měsíce, **y**: roky.\n" +
             "Zadává se identifikace uživatele. To znamená ID uživatele, tag, nebo jméno (username, nebo alias).\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify update @GrillBot 45m`")]
         public async Task UpdateUnverifyAsync(SocketGuildUser user, string time)
