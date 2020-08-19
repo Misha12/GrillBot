@@ -1,9 +1,10 @@
-﻿using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Reflection;
+using System.Runtime;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Initiable
@@ -21,7 +22,9 @@ namespace Grillbot.Services.Initiable
 
         public void Init()
         {
-            foreach (var service in GetInitiables())
+            using var scope = Provider.CreateScope();
+
+            foreach (var service in GetInitiables(scope))
             {
                 service.Init();
                 Logger.LogInformation($"Initialized service {service.GetType().Name} (sync).");
@@ -30,7 +33,9 @@ namespace Grillbot.Services.Initiable
 
         public async Task InitAsync()
         {
-            var tasks = GetInitiables()
+            using var scope = Provider.CreateScope();
+
+            var tasks = GetInitiables(scope)
                 .Select(o => InitServiceAsync(o))
                 .ToArray();
 
@@ -43,11 +48,10 @@ namespace Grillbot.Services.Initiable
             Logger.LogInformation($"Initialized service {service.GetType().Name} (async).");
         }
 
-        private List<IInitiable> GetInitiables()
+        private List<IInitiable> GetInitiables(IServiceScope scope)
         {
             var initiableName = typeof(IInitiable).Name;
 
-            using var scope = Provider.CreateScope();
             return Assembly.GetExecutingAssembly().GetTypes()
                 .Where(t => t.GetInterface(initiableName) != null)
                 .Select(t => (IInitiable)scope.ServiceProvider.GetService(t))
