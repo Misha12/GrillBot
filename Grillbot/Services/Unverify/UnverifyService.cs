@@ -6,19 +6,23 @@ using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
+using Microsoft.AspNetCore.ResponseCompression;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
-    public class UnverifyService : IDisposable
+    public class UnverifyService : IDisposable, IInitiable
     {
         private UnverifyChecker Checker { get; }
         private UnverifyProfileGenerator UnverifyProfileGenerator { get; }
@@ -28,10 +32,11 @@ namespace Grillbot.Services.Unverify
         private UsersRepository UsersRepository { get; }
         private UnverifyTimeParser TimeParser { get; }
         private BotState BotState { get; }
+        private DiscordSocketClient DiscordClient { get; }
 
         public UnverifyService(UnverifyChecker checker, UnverifyProfileGenerator profileGenerator, UnverifyLogger logger,
             UnverifyMessageGenerator messageGenerator, ConfigRepository configRepository, UsersRepository usersRepository,
-            UnverifyTimeParser timeParser, BotState botState)
+            UnverifyTimeParser timeParser, BotState botState, DiscordSocketClient discord)
         {
             Checker = checker;
             UnverifyProfileGenerator = profileGenerator;
@@ -41,6 +46,7 @@ namespace Grillbot.Services.Unverify
             UsersRepository = usersRepository;
             TimeParser = timeParser;
             BotState = botState;
+            DiscordClient = discord;
         }
 
         public async Task<List<string>> SetUnverifyAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
@@ -196,6 +202,28 @@ namespace Grillbot.Services.Unverify
             UnverifyLogger.Dispose();
             ConfigRepository.Dispose();
             UsersRepository.Dispose();
+        }
+
+        public void Init() { }
+
+        public async Task InitAsync()
+        {
+            if (BotState.UnverifyCache.Count > 0)
+                BotState.UnverifyCache.Clear();
+
+            foreach (var guild in DiscordClient.Guilds)
+            {
+                var unverifies = UsersRepository.GetUsersWithUnverify(guild.Id).ToList();
+                if (unverifies.Count == 0) continue;
+
+                foreach (var unverify in unverifies)
+                {
+                    var user = await guild.GetUserFromGuildAsync(unverify.UserIDSnowflake);
+                    var key = CreateUnverifyCacheKey(guild, user);
+
+                    BotState.UnverifyCache.Add(key, unverify.Unverify.EndDateTime);
+                }
+            }
         }
     }
 }
