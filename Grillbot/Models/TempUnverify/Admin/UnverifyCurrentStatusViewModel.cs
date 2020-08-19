@@ -1,13 +1,12 @@
-using Grillbot.Services.Unverify.Models;
 using System.Collections.Generic;
 
 namespace Grillbot.Models.TempUnverify.Admin
 {
     public class UnverifyCurrentStatusViewModel
     {
-        public List<UnverifyUserProfile> Unverifies { get; }
+        public List<UnverifyInfo> Unverifies { get; }
 
-        public UnverifyCurrentStatusViewModel(List<UnverifyUserProfile> unverifies)
+        public UnverifyCurrentStatusViewModel(List<UnverifyInfo> unverifies)
         {
             Unverifies = unverifies;
         }

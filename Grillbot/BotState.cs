@@ -1,3 +1,4 @@
+using Discord;
 using Grillbot.Services.InviteTracker;
 using System;
 using System.Collections.Generic;
@@ -18,11 +19,14 @@ namespace Grillbot
         // Value is end datetime of unverify.
         public Dictionary<string, DateTime> UnverifyCache { get; set; }
 
+        public List<IUser> CurrentReturningUnverifyFor { get; set; }
+
         public BotState()
         {
             LastPointsCalculation = new Dictionary<string, DateTime>();
             InviteCache = new Dictionary<ulong, List<InviteModel>>();
             UnverifyCache = new Dictionary<string, DateTime>();
+            CurrentReturningUnverifyFor = new List<IUser>();
         }
     }
 }

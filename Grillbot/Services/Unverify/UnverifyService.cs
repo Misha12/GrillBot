@@ -6,18 +6,17 @@ using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
-using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
-using Microsoft.AspNetCore.ResponseCompression;
+using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Runtime.Serialization;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
@@ -33,10 +32,14 @@ namespace Grillbot.Services.Unverify
         private UnverifyTimeParser TimeParser { get; }
         private BotState BotState { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private BotLoggingService Logger { get; }
+        private UnverifyRepository UnverifyRepository { get; }
+        private ILogger<UnverifyService> AppLogger { get; }
 
         public UnverifyService(UnverifyChecker checker, UnverifyProfileGenerator profileGenerator, UnverifyLogger logger,
             UnverifyMessageGenerator messageGenerator, ConfigRepository configRepository, UsersRepository usersRepository,
-            UnverifyTimeParser timeParser, BotState botState, DiscordSocketClient discord)
+            UnverifyTimeParser timeParser, BotState botState, DiscordSocketClient discord, BotLoggingService loggingService,
+            UnverifyRepository unverifyRepository, ILogger<UnverifyService> appLogger)
         {
             Checker = checker;
             UnverifyProfileGenerator = profileGenerator;
@@ -47,6 +50,9 @@ namespace Grillbot.Services.Unverify
             TimeParser = timeParser;
             BotState = botState;
             DiscordClient = discord;
+            Logger = loggingService;
+            UnverifyRepository = unverifyRepository;
+            AppLogger = appLogger;
         }
 
         public async Task<List<string>> SetUnverifyAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
@@ -161,11 +167,11 @@ namespace Grillbot.Services.Unverify
             return MessageGenerator.CreateUpdateChannelMessage(user, endDateTime);
         }
 
-        public async Task<List<UnverifyUserProfile>> GetCurrentUnverifies(SocketGuild guild)
+        public async Task<List<UnverifyInfo>> GetCurrentUnverifies(SocketGuild guild)
         {
             var usersWithUnverify = UsersRepository.GetUsersWithUnverify(guild.Id);
 
-            var result = new List<UnverifyUserProfile>();
+            var result = new List<UnverifyInfo>();
 
             foreach (var userEntity in usersWithUnverify)
             {
@@ -189,10 +195,138 @@ namespace Grillbot.Services.Unverify
                 profile.ChannelsToRemove = logData.ChannelsToRemove.Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
                     .Where(o => o.Channel != null).ToList();
 
-                result.Add(profile);
+                result.Add(new UnverifyInfo()
+                {
+                    ID = userEntity.ID,
+                    Profile = profile
+                });
             }
 
             return result;
+        }
+
+        public async Task AutoUnverifyRemoveAsync(string guildID, string userID)
+        {
+            try
+            {
+                var guildIDSnowflake = Convert.ToUInt64(guildID);
+                var userIDSnowflake = Convert.ToUInt64(userID);
+
+                var guild = DiscordClient.GetGuild(guildIDSnowflake);
+
+                if (guild == null)
+                {
+                    UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
+                    throw new InvalidOperationException($"Error occured in AutoUnverifyReturn. Guild {guildID} not found. Unverify is lost.");
+                }
+
+                var user = await guild.GetUserFromGuildAsync(userIDSnowflake);
+
+                if (user == null)
+                {
+                    UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
+                    throw new InvalidOperationException($"Error occured in AutoUnverifyReturn. User cannot be found in '{guild.Name}' guild. Unverify is lost.");
+                }
+
+                await RemoveUnverifyAsync(guild, user, DiscordClient.CurrentUser, true);
+            }
+            catch (Exception ex)
+            {
+                var message = new LogMessage(LogSeverity.Error, nameof(UnverifyService), $"An error occured when unverify returning access.", ex);
+                await Logger.OnLogAsync(message);
+            }
+        }
+
+        public async Task<string> RemoveUnverifyAsync(SocketGuild guild, SocketGuildUser user, SocketUser fromUser, bool isAuto = false)
+        {
+            try
+            {
+                BotState.CurrentReturningUnverifyFor.Add(user);
+
+                var userEntity = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Unverify);
+
+                if (userEntity?.Unverify == null)
+                {
+                    UnverifyRepository.RemoveUnverify(guild.Id, user.Id);
+                    throw new InvalidOperationException("An error occured in ReturnUnverify. User or unverify record in database wasn't found. Unverify is lost.");
+                }
+
+                var unverifyConfig = ConfigRepository.FindConfig(guild.Id, "unverify", null)?.GetData<UnverifyConfig>();
+                var mutedRole = unverifyConfig == null ? null : guild.GetRole(unverifyConfig.MutedRoleID);
+
+                var rolesToReturn = userEntity.Unverify.DeserializedRoles.Where(o => !user.Roles.Any(x => x.Id == o))
+                    .Select(o => guild.GetRole(o)).Where(role => role != null).ToList();
+
+                var channelsToReturn = userEntity.Unverify.DeserializedChannels
+                    .Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelIdSnowflake), o.GetPermissions()))
+                    .Where(o => o.Channel != null).ToList();
+
+                if (isAuto)
+                    UnverifyLogger.LogAutoRemove(rolesToReturn, channelsToReturn, user, guild);
+                else
+                    UnverifyLogger.LogRemove(rolesToReturn, channelsToReturn, guild, user, fromUser);
+
+                var tasks = new List<Task>();
+
+                tasks.AddRange(channelsToReturn.Select(o => (o.Channel as SocketGuildChannel)?.AddPermissionOverwriteAsync(user, o.Perms)).Where(o => o != null));
+                tasks.Add(user.AddRolesAsync(rolesToReturn));
+
+                if (mutedRole != null && user.Roles.Any(x => x == mutedRole))
+                    tasks.Add(user.RemoveRoleAsync(mutedRole));
+
+                await Task.WhenAll(tasks.ToArray());
+                UnverifyRepository.RemoveUnverify(guild.Id, user.Id);
+
+                if (!isAuto)
+                {
+                    var message = MessageGenerator.CreateRemoveAccessManuallyPMMessage(guild);
+                    await user.SendPrivateMessageAsync(message);
+                }
+
+                return MessageGenerator.CreateRemoveAccessManuallyToChannel(user);
+            }
+            catch (Exception ex)
+            {
+                if (!isAuto)
+                    throw;
+
+                var message = new LogMessage(LogSeverity.Error, nameof(UnverifyService), $"An error occured when unverify returning access.", ex);
+                await Logger.OnLogAsync(message);
+                return MessageGenerator.CreateRemoveAccessManuallyFailed(user, ex);
+            }
+            finally
+            {
+                BotState.CurrentReturningUnverifyFor.RemoveAll(o => o.Id == user.Id);
+            }
+        }
+
+        public async Task RemoveUnverifyFromWebAsync(long userId, SocketGuildUser fromUser)
+        {
+            var unverify = UnverifyRepository.FindUnverifyByID(userId);
+
+            if (unverify == null)
+                return;
+
+            var guild = DiscordClient.GetGuild(unverify.User.GuildIDSnowflake);
+
+            if (guild == null)
+            {
+                UnverifyRepository.RemoveUnverify(unverify.User.GuildIDSnowflake, unverify.User.UserIDSnowflake);
+                BotState.UnverifyCache.Remove($"{unverify.User.GuildID}|{unverify.User.UserID}");
+                return;
+            }
+
+            var user = await guild.GetUserFromGuildAsync(unverify.User.UserIDSnowflake);
+
+            if (user == null)
+            {
+                UnverifyRepository.RemoveUnverify(guild.Id, unverify.User.UserIDSnowflake);
+                BotState.UnverifyCache.Remove($"{guild.Id}|{unverify.User.UserID}");
+                return;
+            }
+
+            await RemoveUnverifyAsync(guild, user, fromUser);
+            BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(guild, user));
         }
 
         public void Dispose()
@@ -202,6 +336,7 @@ namespace Grillbot.Services.Unverify
             UnverifyLogger.Dispose();
             ConfigRepository.Dispose();
             UsersRepository.Dispose();
+            UnverifyRepository.Dispose();
         }
 
         public void Init() { }
@@ -224,6 +359,8 @@ namespace Grillbot.Services.Unverify
                     BotState.UnverifyCache.Add(key, unverify.Unverify.EndDateTime);
                 }
             }
+
+            AppLogger.LogInformation($"Unverify loaded. Loaded entities: {BotState.UnverifyCache.Count}");
         }
     }
 }

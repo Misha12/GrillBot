@@ -186,8 +186,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddUnverify(this IServiceCollection services)
         {
             services
-                .AddTransient<TempUnverifyLogService>()
-                .AddSingleton<TempUnverifyService>();
+                .AddTransient<TempUnverifyLogService>();
 
             services
                 .AddTransient<UnverifyService>()
@@ -196,7 +195,8 @@ namespace Grillbot.Services
                 .AddTransient<UnverifyMessageGenerator>()
                 .AddTransient<UnverifyProfileGenerator>()
                 .AddTransient<UnverifyReasonParser>()
-                .AddTransient<UnverifyTimeParser>();
+                .AddTransient<UnverifyTimeParser>()
+                .AddSingleton<UnverifyTaskService>();
 
             return services;
         }

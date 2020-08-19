@@ -1,4 +1,3 @@
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
@@ -8,7 +7,6 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Grillbot.Services.TempUnverify;
 using Grillbot.Services.Unverify;
 using System;
 using System.Collections.Generic;
@@ -23,13 +21,10 @@ namespace Grillbot.Modules
     [ModuleID("UnverifyModule")]
     public class UnverifyModule : BotModuleBase
     {
-        private TempUnverifyService UnverifyService { get; }
         private UnverifyService Service { get; }
 
-        public UnverifyModule(TempUnverifyService unverifyService, PaginationService paginationService, UnverifyService service)
-            : base(paginationService: paginationService)
+        public UnverifyModule(PaginationService paginationService, UnverifyService service) : base(paginationService: paginationService)
         {
-            UnverifyService = unverifyService;
             Service = service;
         }
 
@@ -41,7 +36,7 @@ namespace Grillbot.Modules
         {
             try
             {
-                if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
+                if (await SetUnverifyRoutingAsync(time))
                     return;
 
                 var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketGuildUser>().ToList();
@@ -64,7 +59,7 @@ namespace Grillbot.Modules
             }
         }
 
-        private async Task<bool> SetUnverifyRoutingAsync(string route, string parameters)
+        private async Task<bool> SetUnverifyRoutingAsync(string route)
         {
             // Simply hack, because command routing cannot distinguish between a parameter and a function.
             switch (route)
@@ -72,14 +67,11 @@ namespace Grillbot.Modules
                 case "list":
                     await ListUnverifyAsync();
                     return true;
-                case "remove":
-                    if (string.IsNullOrEmpty(parameters)) throw new ThrowHelpException();
-                    await RemoveUnverifyAsync(Convert.ToInt32(parameters.Split(' ')[0])).ConfigureAwait(false);
-                    return true;
                 case "stats":
                     await StatsAsync();
                     return true;
                 case "update":
+                case "remove":
                     throw new ThrowHelpException();
             }
 
@@ -88,17 +80,11 @@ namespace Grillbot.Modules
 
         [Command("remove")]
         [Summary("Předčasné vrácení přístupu.")]
-        public async Task RemoveUnverifyAsync(int id)
+        [Remarks("Zadává se identifikace uživatele. To znamená ID uživatele, tag, nebo jméno (username, nebo alias).\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify remove @GrillBot`")]
+        public async Task RemoveUnverifyAsync(SocketGuildUser user)
         {
-            try
-            {
-                var message = await UnverifyService.ReturnAccessAsync(id, Context.User).ConfigureAwait(false);
-                await ReplyAsync(message).ConfigureAwait(false);
-            }
-            catch (NotFoundException ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
+            var message = await Service.RemoveUnverifyAsync(Context.Guild, user, Context.User);
+            await ReplyAsync(message);
         }
 
         [Command("list")]
@@ -115,7 +101,7 @@ namespace Grillbot.Modules
 
             var pages = new List<PaginatedEmbedPage>();
 
-            foreach (var profile in profiles)
+            foreach (var profile in profiles.Select(o => o.Profile))
             {
                 var page = new PaginatedEmbedPage($"**{profile.DestinationUser.GetFullName()}**", thumbnail: profile.DestinationUser.GetUserAvatarUrl());
 
@@ -181,8 +167,8 @@ namespace Grillbot.Modules
             var unverifies = await Service.GetCurrentUnverifies(Context.Guild);
 
             var embed = new BotEmbed(Context.User, title: "Statistiky unverify")
-                .AddField("SelfUnverify", unverifies.Count(o => o.IsSelfUnverify).FormatWithSpaces(), true)
-                .AddField("Unverify", unverifies.Count(o => !o.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("SelfUnverify", unverifies.Count(o => o.Profile.IsSelfUnverify).FormatWithSpaces(), true)
+                .AddField("Unverify", unverifies.Count(o => !o.Profile.IsSelfUnverify).FormatWithSpaces(), true)
                 .AddField("Celkem", unverifies.Count.FormatWithSpaces(), true);
 
             await ReplyAsync(embed: embed.Build());

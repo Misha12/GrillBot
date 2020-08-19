@@ -37,5 +37,25 @@ namespace Grillbot.Services.Unverify
 
             return $"Reset konce odebrání přístupu pro uživatele **{username}** byl aktualizován.\nPřístup bude navrácen **{formatedEnd}**";
         }
+
+        public string CreateRemoveAccessManuallyPMMessage(SocketGuild guild)
+        {
+            return $"Byl ti předčasně vrácen přístup na serveru **{guild.Name}**";
+        }
+
+        public string CreateRemoveAccessManuallyToChannel(SocketGuildUser user)
+        {
+            var username = user.GetFullName();
+
+            return $"Předčasné vrácení přístupu pro uživatele **{username}** bylo dokončeno.";
+        }
+
+        public string CreateRemoveAccessManuallyFailed(SocketGuildUser user, Exception ex)
+        {
+            var username = user.GetFullName();
+            var message = ex.GetFullMessage();
+
+            return $"Předčasné vrácení přístupu pro uživatele **{username}** selhalo. ({message})";
+        }
     }
 }

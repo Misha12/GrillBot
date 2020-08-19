@@ -1,9 +1,9 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models;
 using Grillbot.Models.TempUnverify.Admin;
 using Grillbot.Services.TempUnverify;
 using Grillbot.Services.Unverify;
-using Grillbot.Services.Unverify.Models;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
@@ -15,15 +15,12 @@ namespace Grillbot.Controllers
     [Route("Admin/Unverify")]
     public class UnverifyController : Controller
     {
-        private TempUnverifyService TempUnverifyService { get; }
         private TempUnverifyLogService TempUnverifyLogService { get; }
         private DiscordSocketClient DiscordClient { get; }
         private UnverifyService UnverifyService { get; }
 
-        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, TempUnverifyService tempUnverifyService, DiscordSocketClient discordClient,
-            UnverifyService unverifyService)
+        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, DiscordSocketClient discordClient, UnverifyService unverifyService)
         {
-            TempUnverifyService = tempUnverifyService;
             TempUnverifyLogService = tempUnverifyLogService;
             DiscordClient = discordClient;
             UnverifyService = unverifyService;
@@ -32,22 +29,22 @@ namespace Grillbot.Controllers
         [HttpGet]
         public async Task<IActionResult> IndexAsync()
         {
-            var unverifiesData = new List<UnverifyUserProfile>();
+            var data = new List<UnverifyInfo>();
 
             foreach (var guild in DiscordClient.Guilds)
             {
                 var unverifies = await UnverifyService.GetCurrentUnverifies(guild);
-                unverifiesData.AddRange(unverifies);
+                data.AddRange(unverifies);
             }
 
-            return View(new UnverifyCurrentStatusViewModel(unverifiesData));
+            return View(new UnverifyCurrentStatusViewModel(data));
         }
 
         [HttpGet("RemoveAccess/{id}")]
         public async Task<IActionResult> RemoveAccessAsync(int id)
         {
             var loggedUser = await DiscordClient.GetUserFromClaimsAsync(User);
-            await TempUnverifyService.ReturnAccessAsync(id, loggedUser);
+            await UnverifyService.RemoveUnverifyFromWebAsync(id, loggedUser);
 
             return RedirectToAction("Index");
         }

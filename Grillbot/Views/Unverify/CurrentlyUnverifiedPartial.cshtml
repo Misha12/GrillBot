@@ -1,75 +1,75 @@
-﻿@model Grillbot.Services.Unverify.Models.UnverifyUserProfile;
+﻿@model Grillbot.Models.UnverifyInfo;
 
 <div class="card mr-4 mb-4" style="width: 500px">
     <div class="card-body">
         <div class="row">
             <div class="col-4 font-weight-bold">ID</div>
-            <div class="col">@Model.DestinationUser.Id</div>
+            <div class="col">@Model.Profile.DestinationUser.Id (@Model.ID)</div>
         </div>
 
         <div class="row">
             <div class="col-4 font-weight-bold">Uživatel:</div>
-            <div class="col">@Model.DestinationUser.GetFullName()</div>
+            <div class="col">@Model.Profile.DestinationUser.GetFullName()</div>
         </div>
 
         <div class="row">
             <div class="col-4 font-weight-bold">Start:</div>
-            <div class="col">@Model.StartDateTime.ToLocaleDatetime()</div>
+            <div class="col">@Model.Profile.StartDateTime.ToLocaleDatetime()</div>
         </div>
 
         <div class="row">
             <div class="col-4 font-weight-bold">Konec:</div>
-            <div class="col">@Model.EndDateTime.ToLocaleDatetime()</div>
+            <div class="col">@Model.Profile.EndDateTime.ToLocaleDatetime()</div>
         </div>
 
         <div class="row">
             <div class="col-4 font-weight-bold">Konec za:</div>
-            <div class="col">@((Model.EndDateTime - Model.StartDateTime).ToFullCzechTimeString())</div>
+            <div class="col">@((Model.Profile.EndDateTime - Model.Profile.StartDateTime).ToFullCzechTimeString())</div>
         </div>
 
         <div class="row">
             <div class="col-4 font-weight-bold">Důvod:</div>
-            <div class="col">@Model.Reason</div>
+            <div class="col">@Model.Profile.Reason</div>
         </div>
 
-        @if (Model.RolesToKeep.Count > 0)
+        @if (Model.Profile.RolesToKeep.Count > 0)
         {
             <div class="row mt-3">
                 <div class="col-4 font-weight-bold">Ponechané role:</div>
                 <div class="col">
-                    @string.Join(", ", Model.RolesToKeep.Select(o => o.Name))
+                    @string.Join(", ", Model.Profile.RolesToKeep.Select(o => o.Name))
                 </div>
             </div>
         }
 
-        @if (Model.RolesToRemove.Count > 0)
+        @if (Model.Profile.RolesToRemove.Count > 0)
         {
             <div class="row mt-3">
                 <div class="col-4 font-weight-bold">Odebrané role:</div>
                 <div class="col">
-                    @string.Join(", ", Model.RolesToRemove.Select(o => o.Name))
+                    @string.Join(", ", Model.Profile.RolesToRemove.Select(o => o.Name))
                 </div>
             </div>
         }
 
-        @if (Model.ChannelsToKeep.Count > 0)
+        @if (Model.Profile.ChannelsToKeep.Count > 0)
         {
             <div class="row">
                 <div class="col-4 font-weight-bold">Ponechané kanály:</div>
-                <div class="col">@string.Join(", ", Model.ChannelsToKeep.Select(o => o.Channel.Name))</div>
+                <div class="col">@string.Join(", ", Model.Profile.ChannelsToKeep.Select(o => o.Channel.Name))</div>
             </div>
         }
 
-        @if (Model.ChannelsToRemove.Count > 0)
+        @if (Model.Profile.ChannelsToRemove.Count > 0)
         {
             <div class="row">
                 <div class="col-4 font-weight-bold">Odebrané kanály:</div>
-                <div class="col">@string.Join(", ", Model.ChannelsToRemove.Select(o => o.Channel.Name))</div>
+                <div class="col">@string.Join(", ", Model.Profile.ChannelsToRemove.Select(o => o.Channel.Name))</div>
             </div>
         }
     </div>
 
     <div class="card-footer">
-        <a class="btn btn-danger" asp-action="RemoveAccess" asp-route-id="@Model.DestinationUser.Id">Vrátit přístup</a>
+        <a class="btn btn-danger" asp-action="RemoveAccess" asp-route-id="@Model.ID">Vrátit přístup</a>
     </div>
 </div>
