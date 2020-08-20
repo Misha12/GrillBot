@@ -19,7 +19,8 @@ namespace Grillbot.Helpers
 
             var joinedAt = user.User.JoinedAt?.LocalDateTime.ToLocaleDatetime();
             var joinPosition = await user.Guild.CalculateJoinPositionAsync(user.User);
-            var selfUnverifies = user.UnverifyHistory.Where(o => o.IsSelfUnverify);
+            // TODO: Unverify history
+            //var selfUnverifies = user.UnverifyHistory.Where(o => o.IsSelfUnverify);
 
             embed
                 .AddField("ID", user.User.Id.ToString(), true)
@@ -37,7 +38,7 @@ namespace Grillbot.Helpers
                 .AddField("Body", user.Points.FormatWithSpaces(), true)
                 .AddField("Reakce (Rozdané/Získané)", user.FormatReactions(), true)
                 .AddField("Počet zpráv", user.TotalMessageCount.FormatWithSpaces(), true)
-                .AddField("Počet unverify (z toho self)", $"{user.UnverifyHistory.Count.FormatWithSpaces()} ({selfUnverifies.Count().FormatWithSpaces()})", true);
+                .AddField("Počet unverify (z toho self)", $"0 (0)", true);//TODO
 
             if (user.UsedInvite != null)
             {

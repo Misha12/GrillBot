@@ -4,11 +4,14 @@ using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
+using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
+using Grillbot.Services.Unverify.WebAdmin;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
@@ -17,12 +20,15 @@ namespace Grillbot.Services.Unverify
         private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
         private UnverifyRepository UnverifyRepository { get; }
+        private UnverifyModelConverter Converter { get; }
 
-        public UnverifyLogger(UsersRepository usersRepository, DiscordSocketClient discord, UnverifyRepository unverifyRepository)
+        public UnverifyLogger(UsersRepository usersRepository, DiscordSocketClient discord, UnverifyRepository unverifyRepository,
+            UnverifyModelConverter converter)
         {
             UsersRepository = usersRepository;
             Discord = discord;
             UnverifyRepository = unverifyRepository;
+            Converter = converter;
         }
 
         public UnverifyLog LogUnverify(UnverifyUserProfile profile, IGuild guild, IUser fromUser)
@@ -89,6 +95,14 @@ namespace Grillbot.Services.Unverify
             UsersRepository.SaveChangesIfAny();
 
             UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Update, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+        }
+
+        public async Task<List<UnverifyLogItem>> GetLogsAsync(UnverifyAuditFilterFormData formData)
+        {
+            var filter = await Converter.ConvertAuditFilter(formData);
+            var data = UnverifyRepository.GetLogs(filter).ToList();
+
+            return data.Select(o => new UnverifyLogItem(o, Discord)).ToList();
         }
 
         public void Dispose()

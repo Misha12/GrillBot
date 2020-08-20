@@ -1,6 +1,6 @@
 using Grillbot.Services.Unverify.Models;
 
-namespace Grillbot.Models
+namespace Grillbot.Models.Unverify
 {
     public class UnverifyInfo
     {

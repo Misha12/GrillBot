@@ -1,6 +1,6 @@
 using System.Collections.Generic;
 
-namespace Grillbot.Models.TempUnverify.Admin
+namespace Grillbot.Models.Unverify
 {
     public class UnverifyCurrentStatusViewModel
     {

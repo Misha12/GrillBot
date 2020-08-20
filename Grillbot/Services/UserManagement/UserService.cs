@@ -9,8 +9,6 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Discord;
-using Grillbot.Services.TempUnverify;
 using Grillbot.Helpers;
 using Grillbot.Database.Enums.Includes;
 
@@ -44,7 +42,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in dbUsers)
             {
-                var mappedUser = await UserHelper.MapUserAsync(DiscordClient, user, null);
+                var mappedUser = await UserHelper.MapUserAsync(DiscordClient, user);
                 if (mappedUser != null)
                     users.Add(mappedUser);
             }
@@ -56,15 +54,13 @@ namespace Grillbot.Services.UserManagement
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-            using var unverifyLogService = scope.ServiceProvider.GetService<TempUnverifyLogService>();
 
             var userData = repository.GetUserDetail(id);
 
             if (userData == null)
                 return null;
 
-            var unverifyHistory = await unverifyLogService.GetUnverifyHistoryOfUserAsync(userData);
-            return await UserHelper.MapUserAsync(DiscordClient, userData, unverifyHistory);
+            return await UserHelper.MapUserAsync(DiscordClient, userData);
         }
 
         public async Task<DiscordUser> GetUserDetailAsync(SocketGuild guild, SocketUser user)

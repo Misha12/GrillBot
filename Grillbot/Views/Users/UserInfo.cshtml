@@ -17,12 +17,6 @@
             _ => "secondary"
         };
     }
-
-    bool isDark(Color color)
-    {
-        var hsp = Math.Sqrt((0.299 * Math.Pow(color.R, 2)) + (0.587 * Math.Pow(color.G, 2)) + (0.114 * Math.Pow(color.B, 2)));
-        return !(hsp > 127.5);
-    }
 }
 
 <section class="mt-3">
@@ -210,7 +204,7 @@
                     <div>
                         @foreach (var role in Model.User.User.Roles)
                         {
-                            <span class="badge @(isDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                            <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
                                 @role.Name
                             </span>
                         }
@@ -263,31 +257,7 @@
                             </tr>
                         </thead>
                         <tbody>
-                            @if (Model.User.UnverifyHistory == null || Model.User.UnverifyHistory.Count == 0)
-                            {
-                                <tr class="text-center">
-                                    <th colspan="4">Zadaný uživatel ještě neobdržel unverify.</th>
-                                </tr>
-                            }
-                            else
-                            {
-                                foreach (var item in Model.User.UnverifyHistory)
-                                {
-                                    <tr>
-                                        <td>@item.AuditID</td>
-                                        <td>@item.Time</td>
-                                        @if (item.IsSelfUnverify)
-                                        {
-                                            <td colspan="2">Selfunverify</td>
-                                        }
-                                        else
-                                        {
-                                            <td>@item.FromUser</td>
-                                            <td>@item.Reason</td>
-                                        }
-                                    </tr>
-                                }
-                            }
+                            TODO: Unverify history
                         </tbody>
                     </table>
                 </div>

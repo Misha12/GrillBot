@@ -1,8 +1,6 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models;
-using Grillbot.Models.TempUnverify.Admin;
-using Grillbot.Services.TempUnverify;
+using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -15,13 +13,11 @@ namespace Grillbot.Controllers
     [Route("Admin/Unverify")]
     public class UnverifyController : Controller
     {
-        private TempUnverifyLogService TempUnverifyLogService { get; }
         private DiscordSocketClient DiscordClient { get; }
         private UnverifyService UnverifyService { get; }
 
-        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, DiscordSocketClient discordClient, UnverifyService unverifyService)
+        public UnverifyController(DiscordSocketClient discordClient, UnverifyService unverifyService)
         {
-            TempUnverifyLogService = tempUnverifyLogService;
             DiscordClient = discordClient;
             UnverifyService = unverifyService;
         }
@@ -52,18 +48,18 @@ namespace Grillbot.Controllers
         [HttpGet("Audit")]
         public async Task<IActionResult> AuditAsync()
         {
-            var request = new UnverifyAuditFilterRequest();
-            var logItems = await TempUnverifyLogService.GetAuditLogAsync(request);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logItems, request);
+            var formData = new UnverifyAuditFilterFormData(DiscordClient);
+            var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
 
             return View(viewModel);
         }
 
         [HttpPost("Audit")]
-        public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterRequest request)
+        public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterFormData formData)
         {
-            var logItems = await TempUnverifyLogService.GetAuditLogAsync(request);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logItems, request);
+            var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
 
             return View(viewModel);
         }
@@ -72,7 +68,6 @@ namespace Grillbot.Controllers
         {
             if (disposing)
             {
-                TempUnverifyLogService.Dispose();
                 UnverifyService.Dispose();
             }
 

@@ -7,8 +7,8 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Models.Unverify;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
@@ -25,7 +25,7 @@ namespace Grillbot.Services.Unverify
     {
         private UnverifyChecker Checker { get; }
         private UnverifyProfileGenerator UnverifyProfileGenerator { get; }
-        private UnverifyLogger UnverifyLogger { get; }
+        public UnverifyLogger UnverifyLogger { get; }
         private UnverifyMessageGenerator MessageGenerator { get; }
         private ConfigRepository ConfigRepository { get; }
         private UsersRepository UsersRepository { get; }

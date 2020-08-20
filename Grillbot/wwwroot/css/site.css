@@ -26,3 +26,21 @@ h2 {
     margin: 0;
     padding-left: 30px;
 }
+
+.form-row label {
+    margin-bottom: 0;
+}
+
+.bottom-bold-border {
+    border-bottom: 2px solid;
+}
+
+.only-border-left {
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
+}
+
+.two-px-border {
+    border-width: 6px;
+}
