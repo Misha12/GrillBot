@@ -54,6 +54,15 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.FromUser);
             }
 
+            if (includes.HasFlag(UsersIncludes.UnverifyLog))
+            {
+                query = query
+                    .Include(o => o.OutgoingUnverifyOperations)
+                    .ThenInclude(o => o.ToUser)
+                    .Include(o => o.IncomingUnverifyOperations)
+                    .ThenInclude(o => o.FromUser);
+            }
+
             return query;
         }
 

@@ -1,7 +1,6 @@
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Users;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
@@ -21,7 +20,7 @@ namespace Grillbot.Helpers
             if (socketUser == null)
                 return null;
 
-            return new DiscordUser(guild, socketUser, dBUser);
+            return new DiscordUser(guild, socketUser, dBUser, discord);
         }
     }
 }

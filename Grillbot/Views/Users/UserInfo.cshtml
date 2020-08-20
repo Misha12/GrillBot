@@ -19,7 +19,7 @@
     }
 }
 
-<section class="mt-3">
+<section class="mt-3" style="max-width: 1920px; margin-left:auto; margin-right: auto">
     <div class="row mr-0">
         <div class="col-md-6">
             <div class="card">
@@ -140,7 +140,7 @@
                         </div>
                     </div>
 
-                    @if(Model.User.Statistics != null)
+                    @if (Model.User.Statistics != null)
                     {
                         <div class="row mt-2">
                             <div class="col-4">
@@ -239,29 +239,6 @@
                     }
                 </div>
             </div>
-
-            <div class="card mt-3">
-                <div class="card-header d-flex justify-content-between">
-                    <h4 class="card-title mb-0">Unverify</h4>
-                    <a class="btn btn-dark btn-sm" data-toggle="collapse" href="#unverifyCollapse" role="button" aria-controls="unverifyCollapse" aria-expanded="true">Skrýt/Zobrazit</a>
-                </div>
-
-                <div class="card-body collapse show" id="unverifyCollapse">
-                    <table class="table table-sm table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID Auditu</th>
-                                <th>Čas</th>
-                                <th>Od</th>
-                                <th>Důvod</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            TODO: Unverify history
-                        </tbody>
-                    </table>
-                </div>
-            </div>
         </div>
     </div>
 
@@ -269,32 +246,34 @@
         <div class="col-12">
             <div class="card mt-3">
                 <div class="card-header d-flex justify-content-between">
-                    <h4 class="card-title mb-0">Matematické výpočty</h4>
-                    <a class="btn btn-dark btn-sm" data-toggle="collapse" href="#mathCollapse" role="button" aria-controls="mathCollapse" aria-expanded="true">Skrýt/Zobrazit</a>
+                    <h4 class="card-title mb-0">Historie unverify</h4>
+                    <a class="btn btn-dark btn-sm" data-toggle="collapse" href="#unverifyCollapse" role="button" aria-controls="unverifyCollapse" aria-expanded="true">Skrýt/Zobrazit</a>
                 </div>
 
-                <div class="card-body collapse show" id="mathCollapse">
+                <div class="card-body collapse show" id="unverifyCollapse">
                     <table class="table table-sm table-bordered table-striped">
                         <thead>
                             <tr>
                                 <th>ID</th>
-                                <th>Výraz</th>
                                 <th>Kdy</th>
-                                <th>Kanál</th>
-                                <th>Jednotka</th>
-                                <th>Výsledek</th>
+                                <th>Provedl</th>
+                                <th>Čas</th>
+                                <th>Důvod</th>
+                                <th>Poč. rolí</th>
+                                <th>Poč. kanálů</th>
                             </tr>
                         </thead>
                         <tbody>
-                            @foreach (var item in Model.User.MathAuditItems)
+                            @foreach (var unverify in Model.User.UnverifyHistory)
                             {
                                 <tr>
-                                    <td>@item.ID</td>
-                                    <td title="@item.Expression">@item.Expression.Substring(0, Math.Min(item.Expression.Length, 150))</td>
-                                    <td>@item.DateTime.ToLocaleDatetime()</td>
-                                    <td>#@item.Channel.Name</td>
-                                    <td>@item.UnitInfo</td>
-                                    <td>@item.Result</td>
+                                    <td>@unverify.ID</td>
+                                    <td>@unverify.DateTime</td>
+                                    <td>@unverify.FromUser.GetFullName()</td>
+                                    <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
+                                    <td>@unverify.Profile.Reason</td>
+                                    <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
+                                    <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
                                 </tr>
                             }
                         </tbody>
@@ -302,5 +281,4 @@
                 </div>
             </div>
         </div>
-    </div>
 </section>
