@@ -69,7 +69,7 @@ namespace Grillbot.Modules
         }
 
         [Command("defs")]
-        [Summary("Definice přístupů, co si může osoba ponechat.")]
+        [Summary("Definice přístupů, co si může uživatel ponechat.")]
         public async Task GetSubjectListAsync()
         {
             var config = GetMethodConfig<SelfUnverifyConfig>("selfunverify", null);

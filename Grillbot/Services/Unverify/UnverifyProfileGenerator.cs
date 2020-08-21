@@ -41,10 +41,10 @@ namespace Grillbot.Services.Unverify
 
             var selfUnverifyConfig = GetSelfunverifyConfig(guild);
 
-            if (selfUnverifyConfig == null)
+            if (isSelfunverify && selfUnverifyConfig == null)
                 throw new InvalidOperationException("Neplatná konfigurace pro selfunverify");
 
-            if (toKeep != null)
+            if (toKeep != null && selfUnverifyConfig != null)
             {
                 toKeep = toKeep.Select(o => o.ToLower()).Distinct().ToList();
                 if (toKeep.Count > selfUnverifyConfig.MaxRolesToKeep)
@@ -65,7 +65,7 @@ namespace Grillbot.Services.Unverify
             await FilterHigherRolesIfSelfunverifyAsync(profile, selfUnverify, guild);
             FilterUnavailableRoles(profile, mutedRole);
 
-            if (toKeep == null)
+            if (toKeep == null || selfUnverifyConfig == null)
                 return;
 
             foreach (var toKeepItem in toKeep)
@@ -141,7 +141,7 @@ namespace Grillbot.Services.Unverify
 
             profile.ChannelsToRemove.AddRange(channels);
 
-            if (toKeep == null)
+            if (toKeep == null || selfUnverifyConfig == null)
                 return;
 
             foreach (var itemToKeep in toKeep)
