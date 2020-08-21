@@ -1,4 +1,4 @@
-# Meme images
+# Features: Meme images
 
 ## Peepolove
 
@@ -12,7 +12,7 @@ Command peepolove needs configuration to generate images.
 
 #### Model
 
-```
+```text
 {
     "ProfilePicSize": ushort, // Discord avatar size
     "BasePath": string, // Path to image templates.
@@ -26,6 +26,7 @@ Command peepolove needs configuration to generate images.
 ```
 
 ##### Config example
+
 ```json
 {
     "ProfilePicSize": 256,

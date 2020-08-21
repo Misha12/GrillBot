@@ -59,7 +59,7 @@ namespace Grillbot.Modules
         {
             var users = await InviteTracker.GetUsersWithCodeAsync(Context.Guild, code);
 
-            var message = users.Select(o => o.User.GetFullName());
+            var message = users.Where(o => o?.User != null).Select(o => o.User.GetFullName());
             if (message.Count() > 25)
             {
                 var fileContent = string.Join(Environment.NewLine, message);

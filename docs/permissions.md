@@ -29,7 +29,7 @@ First configuration from discord requires bot administrator permission. Bot admi
 | PermType  | INT         | Type of ID saved in column `DiscordID`. PermType = { Role = 0, User = 1 } |
 | AllowType | INT         | Flag that describes allowed or banned access.                             |
 
-## Discord commands to manage permissions.
+## Discord commands to manage permissions
 
 All commands to manage with permissions are stored in group named `config`.
 

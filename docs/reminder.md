@@ -1,4 +1,4 @@
-# Reminder
+# Features: Reminder
 
 Reminder is feature for notification user at specific time.
 
@@ -7,7 +7,6 @@ When a reminder is sent, the user can postpone it for up to five hours.
 ## Database table
 
 Reminder data are stored in table `Reminders`. Table have relation with table `DiscordUsers`.
-
 
 | Column            | Type         | Description                                                                                         |
 | ----------------- | ------------ | --------------------------------------------------------------------------------------------------- |

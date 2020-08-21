@@ -1,4 +1,6 @@
-# Unverify
+# Features: Unverify
+
+## Unverify
 
 Unverify is a functionality that allows the user on the server to remove all rights for a certain period of time.
 
