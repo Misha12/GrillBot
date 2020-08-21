@@ -74,13 +74,13 @@ Roles is alias for items. It will later renamed to `Items`.
 
 ### unverify `{time}` `{reason}` `{[tags]}`
 
-Removes all rights from the user for a period of time. 
+Removes all rights from the user for a period of time.
 
-| Parameter | Type   | Description                                                                                                                                                                         |
-| --------- | ------ | ----------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
-| time      | string | Time of unverify. Format is `{time}{m/h/d/M/y}`, or `ISO 8601`. For example: `30m` or `2020-08-17T23:59:59`. **m**: minutes, **h**: hours, **d**: days, **M**: months, **y**: years |
-| reason    | string | Reason of unverify.                                                                                                                                                                 |
-| tags      | User[] | Field to indicate the users to whom access is to be removed.                                                                                                                        |
+| Parameter | Type   | Description                                                                                                                                                                          |
+| --------- | ------ | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------------ |
+| time      | string | Time of unverify. Format is `{time}{m/h/d/M/y}`, or `ISO 8601`. For example: `30m` or `2020-08-17T23:59:59`. **m**: minutes, **h**: hours, **d**: days, **M**: months, **y**: years. |
+| reason    | string | Reason of unverify.                                                                                                                                                                  |
+| tags      | User[] | Field to indicate the users to whom access is to be removed.                                                                                                                         |
 
 ### unverify remove `{identification}`
 
