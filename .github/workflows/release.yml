@@ -3,6 +3,7 @@ name: Publish
 on:
   release:
     branches: [master]
+    types: [created]
 
 jobs:
   ReleaseBuild:
@@ -29,8 +30,8 @@ jobs:
         run: |
           # Define some variables for things we need
           tag=$(git describe --tags --abbrev=0)
-          bot_release_name="Bot-$tag-${{ matrix.target }}"
-          math_release_name="Math-$tag-${{ matrix.target }}"
+          bot_release_name="Bot-$tag-${{ matrix.target }}-Release"
+          math_release_name="Math-$tag-${{ matrix.target }}-Release"
 
           # Build everything
           dotnet publish Grillbot/Grillbot.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$bot_release_name"
@@ -49,6 +50,8 @@ jobs:
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: "*"
+          files: |
+            "*-Release.zip",
+            "*-Release.tar.gz"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
