@@ -220,11 +220,17 @@ namespace Grillbot.Services.InviteTracker
 
         public async Task<List<InviteModel>> GetStoredInvitesAsync(SocketGuild guild)
         {
-            var invites = await InviteRepository.GetInvitesAsync(guild, true, true);
+            var invites = await InviteRepository.GetInvitesAsync(guild, true, false);
             var result = new List<InviteModel>();
 
-            foreach (var invite in invites)
+            foreach (var invite in invites.Where(o => o != null))
             {
+                if (invite.Creator == null)
+                {
+                    result.Add(new InviteModel(invite, null, invite.UsedUsers.Count));
+                    continue;
+                }
+
                 var creator = await guild.GetUserFromGuildAsync(invite.Creator.UserIDSnowflake);
                 result.Add(new InviteModel(invite, creator, invite.UsedUsers.Count));
             }

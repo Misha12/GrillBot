@@ -17,7 +17,7 @@ namespace Grillbot.Services.InviteTracker
         {
             Code = entity.Code;
             ChannelId = entity.ChannelIdSnowflake;
-            CreatedAt = entity.CreatedAt.HasValue ? new DateTimeOffset(entity.CreatedAt.Value) : (DateTimeOffset?)null;
+            CreatedAt = entity.CreatedAt != null ? new DateTimeOffset(entity.CreatedAt.Value) : (DateTimeOffset?)null;
             Creator = creator;
             Uses = uses;
         }
