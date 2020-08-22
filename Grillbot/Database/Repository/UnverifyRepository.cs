@@ -5,6 +5,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -87,6 +88,12 @@ namespace Grillbot.Database.Repository
             return query
                 .Skip(filter.Skip)
                 .Take(filter.Take);
+        }
+
+        public Task<bool> HaveUnverifyAsync(long userID)
+        {
+            return Context.Unverifies.AsQueryable()
+                .AnyAsync(o => o.UserID == userID);
         }
     }
 }

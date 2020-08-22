@@ -1,5 +1,4 @@
 using Discord.WebSocket;
-using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
@@ -7,6 +6,7 @@ using Microsoft.Extensions.Options;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
@@ -14,19 +14,21 @@ namespace Grillbot.Services.Unverify
     {
         private Configuration Configuration { get; }
         private UsersRepository UsersRepository { get; }
+        private UnverifyRepository UnverifyRepository { get; }
 
-        public UnverifyChecker(IOptions<Configuration> options, UsersRepository repository)
+        public UnverifyChecker(IOptions<Configuration> options, UsersRepository repository, UnverifyRepository unverifyRepository)
         {
             Configuration = options.Value;
             UsersRepository = repository;
+            UnverifyRepository = unverifyRepository;
         }
 
-        public void Validate(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
+        public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
         {
             ValidateServerOwner(guild, user);
             ValidateBotAdmin(user, selfUnverify);
             ValidateRoles(guild, user, selfUnverify);
-            ValidateIfNotUnverified(guild, user);
+            await ValidateIfNotUnverifiedAsync(guild, user);
         }
 
         private void ValidateServerOwner(SocketGuild guild, SocketGuildUser user)
@@ -57,17 +59,19 @@ namespace Grillbot.Services.Unverify
             }
         }
 
-        private void ValidateIfNotUnverified(SocketGuild guild, SocketGuildUser user)
+        private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
-            var userEntity = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Unverify);
+            var userID = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var haveUnverify = await UnverifyRepository.HaveUnverifyAsync(userID.Value);
 
-            if (userEntity?.Unverify != null)
+            if (haveUnverify)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
         }
 
         public void Dispose()
         {
             UsersRepository.Dispose();
+            UnverifyRepository.Dispose();
         }
     }
 }

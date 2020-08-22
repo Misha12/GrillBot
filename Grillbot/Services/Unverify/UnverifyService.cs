@@ -88,7 +88,7 @@ namespace Grillbot.Services.Unverify
         private async Task<string> SetUnverifyAsync(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
             List<string> toKeep, SocketRole mutedRole)
         {
-            Checker.Validate(user, guild, selfUnverify);
+            await Checker.ValidateAsync(user, guild, selfUnverify);
 
             var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
 
