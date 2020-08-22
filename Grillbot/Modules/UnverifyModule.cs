@@ -108,7 +108,7 @@ namespace Grillbot.Modules
                 page.AddField("ID", profile.DestinationUser.Id.ToString());
                 page.AddField("Začátek", profile.StartDateTime.ToLocaleDatetime(), true);
                 page.AddField("Konec", profile.EndDateTime.ToLocaleDatetime(), true);
-                page.AddField("Končí za", (profile.EndDateTime - profile.StartDateTime).ToFullCzechTimeString(), true);
+                page.AddField("Končí za", (profile.EndDateTime - DateTime.Now).ToFullCzechTimeString(), true);
 
                 if (profile.RolesToKeep.Count > 0)
                     page.AddField("Ponechané role", string.Join(", ", profile.RolesToKeep.Select(o => o.Mention)));

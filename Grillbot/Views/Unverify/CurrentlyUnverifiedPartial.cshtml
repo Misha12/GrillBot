@@ -24,7 +24,7 @@
 
         <div class="row">
             <div class="col-4 font-weight-bold">Konec za:</div>
-            <div class="col">@((Model.Profile.EndDateTime - Model.Profile.StartDateTime).ToFullCzechTimeString())</div>
+            <div class="col">@((Model.Profile.EndDateTime - DateTime.Now).ToFullCzechTimeString())</div>
         </div>
 
         <div class="row">
