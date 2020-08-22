@@ -75,7 +75,7 @@ namespace Grillbot
                 .AddPaginationServices()
                 .AddMemeImages()
                 .AddChannelboard()
-                .AddTempUnverify()
+                .AddUnverify()
                 .AddTeamSearch()
                 .AddUserManagement()
                 .AddDiscordAdminServices()

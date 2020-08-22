@@ -12,7 +12,8 @@ using Grillbot.Services.Permissions;
 using Grillbot.Services.Reminder;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.TeamSearch;
-using Grillbot.Services.TempUnverify;
+using Grillbot.Services.Unverify;
+using Grillbot.Services.Unverify.WebAdmin;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
@@ -41,13 +42,13 @@ namespace Grillbot.Services
                 .AddTransient<EmoteStatsRepository>()
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<TeamSearchRepository>()
-                .AddTransient<TempUnverifyRepository>()
                 .AddTransient<UsersRepository>()
                 .AddTransient<MathRepository>()
                 .AddTransient<UserStatisticsRepository>()
                 .AddTransient<GlobalConfigRepository>()
                 .AddTransient<ReminderRepository>()
-                .AddTransient<InviteRepository>();
+                .AddTransient<InviteRepository>()
+                .AddTransient<UnverifyRepository>();
 
             return services;
         }
@@ -181,15 +182,18 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddTempUnverify(this IServiceCollection services)
+        public static IServiceCollection AddUnverify(this IServiceCollection services)
         {
             services
-                .AddTransient<TempUnverifyLogService>()
-                .AddSingleton<TempUnverifyService>()
-                .AddTransient<TempUnverifyChecker>()
-                .AddTransient<TempUnverifyReasonParser>()
-                .AddTransient<TempUnverifyTimeParser>()
-                .AddTransient<TempUnverifyRoleManager>();
+                .AddTransient<UnverifyService>()
+                .AddTransient<UnverifyChecker>()
+                .AddTransient<UnverifyLogger>()
+                .AddTransient<UnverifyMessageGenerator>()
+                .AddTransient<UnverifyProfileGenerator>()
+                .AddTransient<UnverifyReasonParser>()
+                .AddTransient<UnverifyTimeParser>()
+                .AddSingleton<UnverifyTaskService>()
+                .AddTransient<UnverifyModelConverter>();
 
             return services;
         }
@@ -218,7 +222,8 @@ namespace Grillbot.Services
                 .AddTransient<PointsService>()
                 .AddTransient<BirthdayService>()
                 .AddTransient<ReminderService>()
-                .AddSingleton<ReminderTaskService>();
+                .AddSingleton<ReminderTaskService>()
+                .AddTransient<UserSearchService>();
 
             return services;
         }

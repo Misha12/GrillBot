@@ -194,76 +194,67 @@ namespace Grillbot.Migrations
                     b.ToTable("TeamSearch");
                 });
 
-            modelBuilder.Entity("Grillbot.Database.Entity.TempUnverifyItem", b =>
+            modelBuilder.Entity("Grillbot.Database.Entity.Unverify.Unverify", b =>
                 {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                    b.Property<long>("UserID")
+                        .HasColumnType("bigint");
 
-                    b.Property<string>("ChannelOverrides")
-                        .IsRequired()
+                    b.Property<string>("Channels")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("GuildID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                    b.Property<DateTime>("EndDateTime")
+                        .HasColumnType("datetime2");
 
                     b.Property<string>("Reason")
-                        .IsRequired()
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<string>("RolesToReturn")
-                        .IsRequired()
+                    b.Property<string>("Roles")
                         .HasColumnType("nvarchar(max)");
 
-                    b.Property<DateTime>("StartAt")
+                    b.Property<long?>("SetLogOperationID")
+                        .HasColumnType("bigint");
+
+                    b.Property<DateTime>("StartDateTime")
                         .HasColumnType("datetime2");
 
-                    b.Property<int>("TimeFor")
-                        .HasColumnType("int");
+                    b.HasKey("UserID");
 
-                    b.Property<string>("UserID")
-                        .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                    b.HasIndex("SetLogOperationID")
+                        .IsUnique()
+                        .HasFilter("[SetLogOperationID] IS NOT NULL");
 
-                    b.HasKey("ID");
-
-                    b.ToTable("TempUnverify");
+                    b.ToTable("Unverifies");
                 });
 
-            modelBuilder.Entity("Grillbot.Database.Entity.UnverifyLog.UnverifyLog", b =>
+            modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
                 {
-                    b.Property<int>("ID")
+                    b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
+                        .HasColumnType("bigint")
                         .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
 
-                    b.Property<string>("Data")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<DateTime>("DateTime")
+                    b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
 
-                    b.Property<string>("DestUserID")
+                    b.Property<long>("FromUserID")
+                        .HasColumnType("bigint");
+
+                    b.Property<string>("JsonData")
                         .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("FromUserID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
-
-                    b.Property<string>("GuildID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
 
                     b.Property<int>("Operation")
                         .HasColumnType("int");
 
+                    b.Property<long>("ToUserID")
+                        .HasColumnType("bigint");
+
                     b.HasKey("ID");
 
-                    b.ToTable("UnverifyLog");
+                    b.HasIndex("FromUserID");
+
+                    b.HasIndex("ToUserID");
+
+                    b.ToTable("UnverifyLogs");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.BirthdayDate", b =>
@@ -316,6 +307,8 @@ namespace Grillbot.Migrations
                         .HasColumnType("nvarchar(max)");
 
                     b.HasKey("ID");
+
+                    b.HasIndex("GuildID");
 
                     b.HasIndex("UsedInviteCode");
 
@@ -483,6 +476,34 @@ namespace Grillbot.Migrations
                         .WithMany("Permissions")
                         .HasForeignKey("MethodID")
                         .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.Unverify.Unverify", b =>
+                {
+                    b.HasOne("Grillbot.Database.Entity.Unverify.UnverifyLog", "SetLogOperation")
+                        .WithOne("Unverify")
+                        .HasForeignKey("Grillbot.Database.Entity.Unverify.Unverify", "SetLogOperationID");
+
+                    b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "User")
+                        .WithOne("Unverify")
+                        .HasForeignKey("Grillbot.Database.Entity.Unverify.Unverify", "UserID")
+                        .OnDelete(DeleteBehavior.Cascade)
+                        .IsRequired();
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
+                {
+                    b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "FromUser")
+                        .WithMany("OutgoingUnverifyOperations")
+                        .HasForeignKey("FromUserID")
+                        .OnDelete(DeleteBehavior.NoAction)
+                        .IsRequired();
+
+                    b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "ToUser")
+                        .WithMany("IncomingUnverifyOperations")
+                        .HasForeignKey("ToUserID")
+                        .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
                 });
 

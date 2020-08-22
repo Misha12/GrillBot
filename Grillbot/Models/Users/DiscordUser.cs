@@ -1,8 +1,10 @@
 using Discord.WebSocket;
+using Grillbot.Database.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Channelboard;
 using Grillbot.Models.Math;
+using Grillbot.Models.Unverify;
 using Grillbot.Services.InviteTracker;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,14 +23,14 @@ namespace Grillbot.Models.Users
         public bool WebAdminAccess { get; set; }
         public bool ApiAccess { get; set; }
         public List<ChannelStatItem> Channels { get; set; }
-        public List<UserUnverifyHistoryItem> UnverifyHistory { get; set; }
         public UserBirthday Birthday { get; set; }
         public List<MathAuditItem> MathAuditItems { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
         public StatisticItem Statistics { get; set; }
         public InviteModel UsedInvite { get; set; }
+        public List<UnverifyLogItem> UnverifyHistory { get; set; }
 
-        public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, List<UserUnverifyHistoryItem> unverifyHistory)
+        public DiscordUser(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, DiscordSocketClient discordClient)
         {
             Guild = guild;
             User = user;
@@ -46,8 +48,6 @@ namespace Grillbot.Models.Users
                 .OrderByDescending(o => o.Count)
                 .ToList();
 
-            UnverifyHistory = unverifyHistory;
-
             MathAuditItems = dbUser.MathAudit
                 .OrderByDescending(o => o.ID)
                 .Select(o => new MathAuditItem(o, guild))
@@ -63,6 +63,13 @@ namespace Grillbot.Models.Users
                     inviteCreator = guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake).Result;
 
                 UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
+            }
+
+            if (dbUser.IncomingUnverifyOperations.Count > 0)
+            {
+                UnverifyHistory = dbUser.IncomingUnverifyOperations
+                    .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
+                    .Select(o => new UnverifyLogItem(o, discordClient)).ToList();
             }
         }
 

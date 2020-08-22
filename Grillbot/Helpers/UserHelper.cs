@@ -1,7 +1,6 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Users;
-using System.Collections.Generic;
 using System.Threading.Tasks;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
@@ -9,7 +8,7 @@ namespace Grillbot.Helpers
 {
     public static class UserHelper
     {
-        public static async Task<DiscordUser> MapUserAsync(DiscordSocketClient discord, DBDiscordUser dBUser, List<UserUnverifyHistoryItem> unverifyHistory)
+        public static async Task<DiscordUser> MapUserAsync(DiscordSocketClient discord, DBDiscordUser dBUser)
         {
             var guild = discord.GetGuild(dBUser.GuildIDSnowflake);
 
@@ -21,7 +20,7 @@ namespace Grillbot.Helpers
             if (socketUser == null)
                 return null;
 
-            return new DiscordUser(guild, socketUser, dBUser, unverifyHistory);
+            return new DiscordUser(guild, socketUser, dBUser, discord);
         }
     }
 }

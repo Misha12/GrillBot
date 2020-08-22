@@ -57,7 +57,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in usersWithBirthday.Where(o => UserBirthday.HaveTodayBirthday(o.Birthday.Date)))
             {
-                var mappedUser = await UserHelper.MapUserAsync(Discord, user, null);
+                var mappedUser = await UserHelper.MapUserAsync(Discord, user);
 
                 if (mappedUser != null)
                     result.Add(mappedUser);

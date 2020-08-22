@@ -1,9 +1,10 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.TempUnverify.Admin;
-using Grillbot.Services.TempUnverify;
+using Grillbot.Models.Unverify;
+using Grillbot.Services.Unverify;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System.Collections.Generic;
 using System.Threading.Tasks;
 
 namespace Grillbot.Controllers
@@ -12,29 +13,34 @@ namespace Grillbot.Controllers
     [Route("Admin/Unverify")]
     public class UnverifyController : Controller
     {
-        private TempUnverifyService TempUnverifyService { get; }
-        private TempUnverifyLogService TempUnverifyLogService { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private UnverifyService UnverifyService { get; }
 
-        public UnverifyController(TempUnverifyLogService tempUnverifyLogService, TempUnverifyService tempUnverifyService, DiscordSocketClient discordClient)
+        public UnverifyController(DiscordSocketClient discordClient, UnverifyService unverifyService)
         {
-            TempUnverifyService = tempUnverifyService;
-            TempUnverifyLogService = tempUnverifyLogService;
             DiscordClient = discordClient;
+            UnverifyService = unverifyService;
         }
 
         [HttpGet]
         public async Task<IActionResult> IndexAsync()
         {
-            var unverified = await TempUnverifyService.ListPersonsAsync(null);
-            return View(new UnverifyCurrentStatusViewModel(unverified));
+            var data = new List<UnverifyInfo>();
+
+            foreach (var guild in DiscordClient.Guilds)
+            {
+                var unverifies = await UnverifyService.GetCurrentUnverifies(guild);
+                data.AddRange(unverifies);
+            }
+
+            return View(new UnverifyCurrentStatusViewModel(data));
         }
 
         [HttpGet("RemoveAccess/{id}")]
         public async Task<IActionResult> RemoveAccessAsync(int id)
         {
             var loggedUser = await DiscordClient.GetUserFromClaimsAsync(User);
-            await TempUnverifyService.ReturnAccessAsync(id, loggedUser);
+            await UnverifyService.RemoveUnverifyFromWebAsync(id, loggedUser);
 
             return RedirectToAction("Index");
         }
@@ -42,27 +48,27 @@ namespace Grillbot.Controllers
         [HttpGet("Audit")]
         public async Task<IActionResult> AuditAsync()
         {
-            var request = new UnverifyAuditFilterRequest();
-            var logItems = await TempUnverifyLogService.GetAuditLogAsync(request);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logItems, request);
+            var formData = new UnverifyAuditFilterFormData(DiscordClient);
+            var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
 
             return View(viewModel);
         }
-        
+
         [HttpPost("Audit")]
-        public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterRequest request)
+        public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterFormData formData)
         {
-            var logItems = await TempUnverifyLogService.GetAuditLogAsync(request);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logItems, request);
+            var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
 
             return View(viewModel);
         }
 
         protected override void Dispose(bool disposing)
         {
-            if(disposing)
+            if (disposing)
             {
-                TempUnverifyLogService.Dispose();
+                UnverifyService.Dispose();
             }
 
             base.Dispose(disposing);

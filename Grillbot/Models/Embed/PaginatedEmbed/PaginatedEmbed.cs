@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using System.Collections.Generic;
 
 namespace Grillbot.Models.Embed.PaginatedEmbed
@@ -19,7 +19,7 @@ namespace Grillbot.Models.Embed.PaginatedEmbed
                 return null;
 
             var page = Pages[CurrentPage - 1];
-            var botEmbed = new BotEmbed(ResponseFor, Color, page.Title, Thumbnail ?? page.Thumbnail)
+            var botEmbed = new BotEmbed(ResponseFor, Color, page.Title, page.Thumbnail ?? Thumbnail)
                 .WithFields(page.Fields)
                 .PrependFooter($"Strana {CurrentPage}/{Pages.Count}");
 

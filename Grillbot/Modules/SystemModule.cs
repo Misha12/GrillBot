@@ -1,10 +1,9 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
-using Grillbot.Services.TempUnverify;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -21,15 +20,14 @@ namespace Grillbot.Modules
         private ILogger<SystemModule> Logger { get; }
         private IHostApplicationLifetime Lifetime { get; }
         private BotStatusService BotStatus { get; }
-        private TempUnverifyService TempUnverify { get; }
+        private BotState BotState { get; }
 
-        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotStatusService botStatus,
-            TempUnverifyService tempUnverify)
+        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotStatusService botStatus, BotState botState)
         {
             Logger = logger;
             Lifetime = lifetime;
             BotStatus = botStatus;
-            TempUnverify = tempUnverify;
+            BotState = botState;
         }
 
         [Command("send")]
@@ -68,9 +66,9 @@ namespace Grillbot.Modules
                 cannotShutdownData.AddRange(runningCommands);
             }
 
-            if (TempUnverify.ReturningAcccessFor.Count > 0)
+            if (BotState.CurrentReturningUnverifyFor.Count > 0)
             {
-                var users = TempUnverify.ReturningAcccessFor.Select(o => $"> `{o.GetFullName()}` ({o.Id})");
+                var users = BotState.CurrentReturningUnverifyFor.Select(o => $"> `{o.GetFullName()}` ({o.Id})");
 
                 cannotShutdownData.Add("**Vracení přístupu pro uživatele**:");
                 cannotShutdownData.AddRange(users);

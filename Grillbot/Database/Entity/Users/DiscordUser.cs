@@ -51,6 +51,9 @@ namespace Grillbot.Database.Entity.Users
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }
         public ISet<EmoteStatItem> UsedEmotes { get; set; }
+        public Unverify.Unverify Unverify { get; set; }
+        public ISet<Unverify.UnverifyLog> OutgoingUnverifyOperations { get; set; }
+        public ISet<Unverify.UnverifyLog> IncomingUnverifyOperations { get; set; }
 
         public DiscordUser()
         {
@@ -59,6 +62,8 @@ namespace Grillbot.Database.Entity.Users
             Reminders = new HashSet<Reminder>();
             CreatedInvites = new HashSet<Invite>();
             UsedEmotes = new HashSet<EmoteStatItem>();
+            OutgoingUnverifyOperations = new HashSet<Unverify.UnverifyLog>();
+            IncomingUnverifyOperations = new HashSet<Unverify.UnverifyLog>();
         }
     }
 }

@@ -1,4 +1,3 @@
-﻿using Discord;
 using System;
 
 namespace Grillbot.Extensions

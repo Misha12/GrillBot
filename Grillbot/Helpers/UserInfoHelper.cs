@@ -1,4 +1,5 @@
 using Discord.Commands;
+using Grillbot.Database.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
@@ -19,7 +20,7 @@ namespace Grillbot.Helpers
 
             var joinedAt = user.User.JoinedAt?.LocalDateTime.ToLocaleDatetime();
             var joinPosition = await user.Guild.CalculateJoinPositionAsync(user.User);
-            var selfUnverifies = user.UnverifyHistory.Where(o => o.IsSelfUnverify);
+            var selfUnverifies = user.UnverifyHistory.Where(o => o.Operation == UnverifyLogOperation.Selfunverify);
 
             embed
                 .AddField("ID", user.User.Id.ToString(), true)

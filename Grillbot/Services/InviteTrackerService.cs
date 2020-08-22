@@ -213,7 +213,7 @@ namespace Grillbot.Services
             var result = new List<DiscordUser>();
             foreach (var user in users)
             {
-                result.Add(await UserHelper.MapUserAsync(Discord, user, null));
+                result.Add(await UserHelper.MapUserAsync(Discord, user));
             }
 
             return result;
