@@ -8,7 +8,6 @@ using Grillbot.Helpers;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Users;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.InviteTracker;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
@@ -20,7 +19,7 @@ using System.Net.Http;
 using System.Threading.Tasks;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
-namespace Grillbot.Services
+namespace Grillbot.Services.InviteTracker
 {
     public class InviteTrackerService : IInitiable, IDisposable
     {
@@ -214,6 +213,20 @@ namespace Grillbot.Services
             foreach (var user in users)
             {
                 result.Add(await UserHelper.MapUserAsync(Discord, user));
+            }
+
+            return result;
+        }
+
+        public async Task<List<InviteModel>> GetStoredInvitesAsync(SocketGuild guild)
+        {
+            var invites = await InviteRepository.GetInvitesAsync(guild, true, true);
+            var result = new List<InviteModel>();
+
+            foreach (var invite in invites)
+            {
+                var creator = await guild.GetUserFromGuildAsync(invite.Creator.UserIDSnowflake);
+                result.Add(new InviteModel(invite, creator, invite.UsedUsers.Count));
             }
 
             return result;

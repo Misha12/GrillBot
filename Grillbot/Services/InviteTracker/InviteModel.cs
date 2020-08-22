@@ -13,12 +13,13 @@ namespace Grillbot.Services.InviteTracker
         public IUser Creator { get; set; }
         public int? Uses { get; set; }
 
-        public InviteModel(Invite entity, IUser creator)
+        public InviteModel(Invite entity, IUser creator, int? uses = null)
         {
             Code = entity.Code;
             ChannelId = entity.ChannelIdSnowflake;
             CreatedAt = entity.CreatedAt.HasValue ? new DateTimeOffset(entity.CreatedAt.Value) : (DateTimeOffset?)null;
             Creator = creator;
+            Uses = uses;
         }
 
         public InviteModel(RestInviteMetadata metadata)

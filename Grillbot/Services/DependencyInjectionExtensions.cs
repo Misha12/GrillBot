@@ -5,6 +5,7 @@ using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Duck;
+using Grillbot.Services.InviteTracker;
 using Grillbot.Services.Math;
 using Grillbot.Services.MemeImages;
 using Grillbot.Services.MessageCache;

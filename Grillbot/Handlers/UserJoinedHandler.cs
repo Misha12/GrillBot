@@ -3,8 +3,8 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
-using Grillbot.Services;
 using Grillbot.Services.Initiable;
+using Grillbot.Services.InviteTracker;
 using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -39,7 +39,11 @@ namespace Grillbot.Handlers
                 await user.SendPrivateMessageAsync(message).ConfigureAwait(false);
 
             await Logger.OnUserJoined(user).ConfigureAwait(false);
+            await ProcessInviteTrackerAsync(user);
+        }
 
+        private async Task ProcessInviteTrackerAsync(SocketGuildUser user)
+        {
             using var scope = Services.CreateScope();
             using var inviteTracker = scope.ServiceProvider.GetService<InviteTrackerService>();
 

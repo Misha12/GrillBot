@@ -1,12 +1,11 @@
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Exceptions;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services;
+using Grillbot.Services.InviteTracker;
 using System;
-using System.Collections.Generic;
 using System.IO;
 using System.Linq;
 using System.Text;
@@ -70,6 +69,29 @@ namespace Grillbot.Modules
             }
 
             await ReplyChunkedAsync(message.Select(o => $"> {o}"), 10);
+        }
+
+        [Command("list")]
+        [Summary("Seznam všech pozvánek, které byly použity.")]
+        public async Task ListInvitesAsync()
+        {
+            var invites = await InviteTracker.GetStoredInvitesAsync(Context.Guild);
+
+            if (invites.Count == 0)
+            {
+                await ReplyAsync("Ještě nebyla použita žádná poznámka.");
+                return;
+            }
+
+            var messages = invites.Select(o =>
+            {
+                if (o.Code == Context.Guild.VanityURLCode)
+                    return $"> {o.Code,-15}{(o.Uses ?? 0).FormatWithSpaces()}";
+
+                return $"> {o.Code,-15}{o.CreatedAt.Value.LocalDateTime.ToLocaleDatetime()}\t{o.Creator?.GetFullName() ?? "Neznámý uživatel"}\t{(o.Uses ?? 0).FormatWithSpaces()}";
+            });
+
+            await ReplyChunkedAsync(messages, 10);
         }
 
         protected override void Dispose(bool disposing)
