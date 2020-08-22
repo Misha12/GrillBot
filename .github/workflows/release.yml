@@ -50,8 +50,6 @@ jobs:
       - name: Publish
         uses: softprops/action-gh-release@v1
         with:
-          files: |
-            "*-Release.zip",
-            "*-Release.tar.gz"
+          files: "*-Release.*"
         env:
           GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
