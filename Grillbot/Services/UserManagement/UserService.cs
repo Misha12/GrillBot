@@ -50,30 +50,47 @@ namespace Grillbot.Services.UserManagement
             return users;
         }
 
-        public async Task<DiscordUser> GetUserAsync(long id)
+        public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user, bool full = false)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            using var inviteRepository = scope.ServiceProvider.GetService<InviteRepository>();
 
-            var userData = repository.GetUserDetail(id);
+            var userID = await repository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
 
-            if (userData == null)
+            if (userID == null)
                 return null;
 
-            return await UserHelper.MapUserAsync(DiscordClient, userData);
+            var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
+
+            if (full)
+                includes |= UsersIncludes.Birthday | UsersIncludes.Statistics;
+            
+            var entity = await repository.GetUserAsync(userID.Value, includes);
+
+            if(!string.IsNullOrEmpty(entity.UsedInviteCode))
+                entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
+
+            return await UserHelper.MapUserAsync(DiscordClient, entity);
         }
 
-        public async Task<DiscordUser> GetUserDetailAsync(SocketGuild guild, SocketUser user)
+        public async Task<DiscordUser> GetUserInfoAsync(long userID, bool full = false)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            using var inviteRepository = scope.ServiceProvider.GetService<InviteRepository>();
 
-            var userId = await repository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
 
-            if (userId == null)
-                return null;
+            if (full)
+                includes |= UsersIncludes.Birthday | UsersIncludes.Statistics;
 
-            return await GetUserAsync(userId.Value);
+            var entity = await repository.GetUserAsync(userID, includes);
+
+            if (!string.IsNullOrEmpty(entity.UsedInviteCode))
+                entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
+
+            return await UserHelper.MapUserAsync(DiscordClient, entity);
         }
 
         public void IncrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)

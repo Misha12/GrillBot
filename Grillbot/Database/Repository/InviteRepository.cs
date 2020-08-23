@@ -52,5 +52,12 @@ namespace Grillbot.Database.Repository
             query = !includeUsers ? query : query.Include(o => o.UsedUsers);
             return await query.ToListAsync();
         }
+
+        public Task<Invite> FindInviteAsync(string code)
+        {
+            return Context.Invites
+                .Include(o => o.Creator)
+                .SingleOrDefaultAsync(o => o.Code == code);
+        }
     }
 }

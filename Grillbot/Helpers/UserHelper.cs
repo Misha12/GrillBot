@@ -20,7 +20,7 @@ namespace Grillbot.Helpers
             if (socketUser == null)
                 return null;
 
-            return new DiscordUser(guild, socketUser, dBUser, discord);
+            return await DiscordUser.CreateAsync(guild, socketUser, dBUser, discord);
         }
     }
 }

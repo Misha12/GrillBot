@@ -29,19 +29,17 @@ namespace Grillbot.Controllers
 
             var guilds = Client.Guilds.ToList();
 
-            var getUsersTask = UserService.GetUsersList(filter);
-            var getUsersFilterTask = UserService.GetUsersForFilterAsync();
+            var users = await UserService.GetUsersList(filter);
+            var usersForFilter = await UserService.GetUsersForFilterAsync();
 
-            await Task.WhenAll(getUsersTask, getUsersFilterTask);
-
-            var viewModel = new WebAdminUserListViewModel(await getUsersTask, guilds, filter, await getUsersFilterTask);
+            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, usersForFilter);
             return View(viewModel);
         }
 
         [HttpGet("UserInfo")]
         public async Task<IActionResult> UserInfoAsync([FromQuery] int userId)
         {
-            var user = await UserService.GetUserAsync(userId);
+            var user = await UserService.GetUserInfoAsync(userId, true);
             return View(new WebAdminUserInfoViewModel(user));
         }
     }

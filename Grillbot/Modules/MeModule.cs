@@ -25,15 +25,15 @@ namespace Grillbot.Modules
         public async Task InfoAboutMeAsync()
         {
             var user = Context.User is SocketGuildUser usr ? usr : await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-            var userDetail = await UserService.GetUserDetailAsync(Context.Guild, user);
+            var detail = await UserService.GetUserInfoAsync(Context.Guild, user);
 
-            if(userDetail == null)
+            if(detail == null)
             {
                 await ReplyAsync("Uživatel nebyl v databázi nalezen. Buď ještě není na tomto serveu, nebo neprojevil aktivitu.");
                 return;
             }
 
-            var embed = await UserInfoHelper.CreateSimpleEmbedAsync(userDetail, Context);
+            var embed = await UserInfoHelper.CreateSimpleEmbedAsync(detail, Context);
             await ReplyAsync(embed: embed.Build());
         }
     }

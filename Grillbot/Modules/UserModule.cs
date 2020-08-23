@@ -95,7 +95,7 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var userDetail = await UserService.GetUserDetailAsync(Context.Guild, user);
+            var userDetail = await UserService.GetUserInfoAsync(Context.Guild, user, true);
 
             if (userDetail == null)
             {

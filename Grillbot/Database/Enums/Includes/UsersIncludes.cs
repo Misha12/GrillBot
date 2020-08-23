@@ -17,8 +17,7 @@ namespace Grillbot.Database.Enums.Includes
         Invites = 32,
         Emotes = 64,
         Unverify = 128,
-        UnverifyLog = 256,
-
-        All = Channels | Birthday | MathAudit | Statistics | Reminders | Invites | Emotes | Unverify | UnverifyLog
+        UnverifyLogIncoming = 256,
+        UnverifyLogOutgoing = 512,
     }
 }

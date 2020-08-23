@@ -54,13 +54,18 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.FromUser);
             }
 
-            if (includes.HasFlag(UsersIncludes.UnverifyLog))
+            if (includes.HasFlag(UsersIncludes.UnverifyLogIncoming))
+            {
+                query = query
+                    .Include(o => o.IncomingUnverifyOperations)
+                    .ThenInclude(o => o.FromUser);
+            }
+
+            if (includes.HasFlag(UsersIncludes.UnverifyLogOutgoing))
             {
                 query = query
                     .Include(o => o.OutgoingUnverifyOperations)
-                    .ThenInclude(o => o.ToUser)
-                    .Include(o => o.IncomingUnverifyOperations)
-                    .ThenInclude(o => o.FromUser);
+                    .ThenInclude(o => o.ToUser);
             }
 
             return query;
@@ -117,9 +122,10 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
         }
 
-        public DiscordUser GetUserDetail(long id)
+        public Task<DiscordUser> GetUserAsync(long userID, UsersIncludes includes)
         {
-            return GetBaseQuery(UsersIncludes.All).FirstOrDefault(o => o.ID == id);
+            return GetBaseQuery(includes)
+                .FirstOrDefaultAsync(o => o.ID == userID);
         }
 
         public async Task<long?> FindUserIDFromDiscordIDAsync(ulong guildID, ulong userID)
@@ -128,6 +134,7 @@ namespace Grillbot.Database.Repository
             var user = userID.ToString();
 
             var entity = await GetBaseQuery(UsersIncludes.None)
+                .Select(o => new { o.GuildID, o.UserID, o.ID })
                 .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
 
             return entity?.ID;

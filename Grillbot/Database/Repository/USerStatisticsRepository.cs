@@ -1,4 +1,4 @@
-﻿using Grillbot.Database.Entity.Users;
+using Grillbot.Database.Entity.Users;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
