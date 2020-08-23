@@ -60,12 +60,9 @@ namespace Grillbot.Models.Users
                 result.UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
             }
 
-            if (dbUser.IncomingUnverifyOperations.Count > 0)
-            {
-                result.UnverifyHistory = dbUser.IncomingUnverifyOperations
+            result.UnverifyHistory = dbUser.IncomingUnverifyOperations
                     .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
                     .Select(o => new UnverifyLogItem(o, discordClient)).ToList();
-            }
 
             return result;
         }
