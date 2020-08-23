@@ -26,14 +26,13 @@ namespace Grillbot.Controllers
         {
             if (filter == null)
                 filter = new WebAdminUserListFilter();
+            if (filter.GuildID == default)
+                filter.GuildID = Client.Guilds.FirstOrDefault()?.Id ?? 0;
 
             var guilds = Client.Guilds.ToList();
-
             var users = await UserService.GetUsersList(filter);
-            var usersForFilter = await UserService.GetUsersForFilterAsync();
 
-            var viewModel = new WebAdminUserListViewModel(users, guilds, filter, usersForFilter);
-            return View(viewModel);
+            return View(new WebAdminUserListViewModel(users, guilds, filter));
         }
 
         [HttpGet("UserInfo")]

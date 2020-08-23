@@ -30,7 +30,6 @@
                     <div class="col-md-4 mb-3">
                         <label for="FormData.GuildID">Server</label>
                         <select class="form-control" asp-for="FormData.GuildID">
-                            <option value="">Vše</option>
                             @foreach (var guild in Model.Guilds)
                             {
                                 <option value="@guild.Id">@guild.Name</option>
@@ -74,7 +73,7 @@
                     <div class="col-md-2 d-flex justify-content-center">
                         <div class="form-group mb-0">
                             <label for="FormData.Page" class="m-0"><small>Strana</small></label>
-                            <input type="number" class="form-control form-control-sm" asp-for="FormData.Page">
+                            <input type="number" class="form-control form-control-sm" asp-for="FormData.Page" min="0">
                         </div>
                     </div>
 

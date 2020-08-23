@@ -1,7 +1,6 @@
 using Discord.WebSocket;
 using DBUserChannel = Grillbot.Database.Entity.Users.UserChannel;
 using Grillbot.Database.Repository;
-using Grillbot.Extensions.Discord;
 using Grillbot.Models.Users;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.DependencyInjection;
@@ -11,6 +10,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Database.Enums.Includes;
+using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -21,13 +21,15 @@ namespace Grillbot.Services.UserManagement
         private static readonly object locker = new object();
         private IMessageCache MessageCache { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private UserSearchService UserSearchService { get; }
 
-        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient)
+        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, UserSearchService userSearchService)
         {
             Services = services;
             MessageCache = messageCache;
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
             DiscordClient = discordClient;
+            UserSearchService = userSearchService;
         }
 
         public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter filter)
@@ -37,8 +39,18 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var userIds = filter.UserID == null ? null : new List<ulong>() { filter.UserID.Value };
-            var dbUsers = repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, filter.Limit, userIds).ToList();
+            var guild = DiscordClient.GetGuild(filter.GuildID);
+
+            if (guild == null)
+                return users;
+
+            var discordUsers = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
+            var userIds = discordUsers.Select(o => o.Id).ToList();
+
+            const int pageSize = 25;
+            var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * pageSize;
+
+            var dbUsers = await repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, userIds, filter.UsedInviteCode, skip, pageSize).ToListAsync();
 
             foreach (var user in dbUsers)
             {
@@ -65,10 +77,10 @@ namespace Grillbot.Services.UserManagement
 
             if (full)
                 includes |= UsersIncludes.Birthday | UsersIncludes.Statistics;
-            
+
             var entity = await repository.GetUserAsync(userID.Value, includes);
 
-            if(!string.IsNullOrEmpty(entity.UsedInviteCode))
+            if (!string.IsNullOrEmpty(entity.UsedInviteCode))
                 entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
 
             return await UserHelper.MapUserAsync(DiscordClient, entity);
@@ -214,29 +226,6 @@ namespace Grillbot.Services.UserManagement
 
                 repository.SaveChanges();
             }
-        }
-
-        public async Task<Dictionary<ulong, string>> GetUsersForFilterAsync()
-        {
-            var dict = new Dictionary<ulong, string>();
-
-            using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-            var users = await repository.GetUsersForFilterAsync();
-
-            foreach (var guild in DiscordClient.Guilds)
-                await guild.SyncGuildAsync();
-
-            foreach (var user in users)
-            {
-                var userID = Convert.ToUInt64(user);
-                var dcUser = DiscordClient.GetUser(userID);
-
-                if (dcUser != null && !dict.ContainsKey(userID))
-                    dict.Add(userID, dcUser.GetShortName());
-            }
-
-            return dict;
         }
     }
 }

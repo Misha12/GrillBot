@@ -71,20 +71,21 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong? guildID, int limit, List<ulong> userIds)
+        public IQueryable<DiscordUser> GetUsers(WebAdminUserOrder order, bool desc, ulong guildID, List<ulong> userIds, string usedInviteCode, int skip, int take)
         {
-            var query = GetBaseQuery(UsersIncludes.Channels);
+            var query = GetBaseQuery(UsersIncludes.Channels | UsersIncludes.Invites)
+                .Where(o => o.GuildID == guildID.ToString());
 
-            if (guildID != null)
-                query = query.Where(o => o.GuildID == guildID.ToString());
-
-            if (userIds != null)
+            if (userIds.Count > 0)
             {
                 var ids = userIds.Select(o => o.ToString()).ToList();
                 query = query.Where(o => ids.Contains(o.UserID));
             }
 
-            return OrderUsers(query, desc, order).Take(limit);
+            if (!string.IsNullOrEmpty(usedInviteCode))
+                query = query.Where(o => o.UsedInviteCode.Contains(usedInviteCode));
+
+            return OrderUsers(query, desc, order).Skip(skip).Take(take);
         }
 
         private IQueryable<DiscordUser> OrderUsers(IQueryable<DiscordUser> query, bool desc, WebAdminUserOrder order)
@@ -156,14 +157,6 @@ namespace Grillbot.Database.Repository
             }
 
             return entity;
-        }
-
-        public async Task<List<string>> GetUsersForFilterAsync()
-        {
-            return await GetBaseQuery(UsersIncludes.None)
-                .Select(o => o.UserID)
-                .Distinct()
-                .ToListAsync();
         }
 
         public DiscordUser FindUserByApiToken(string apiToken)
