@@ -29,16 +29,16 @@ namespace Grillbot.Services.Unverify
                 .Where(o => (o.Value - DateTime.Now).TotalSeconds <= 0.0F)
                 .Select(o => o.Key.Split('|'));
 
+            foreach (var key in keysOfUsers)
+            {
+                BotState.UnverifyCache.Remove(string.Join("|", key));
+            }
+
             var unverifiesToReturn = keysOfUsers
                 .Select(o => service.AutoUnverifyRemoveAsync(o[0], o[1]))
                 .ToArray();
 
             Task.WaitAll(unverifiesToReturn);
-
-            foreach (var key in keysOfUsers)
-            {
-                BotState.UnverifyCache.Remove(string.Join("|", key));
-            }
         }
 
         public void Dispose()
