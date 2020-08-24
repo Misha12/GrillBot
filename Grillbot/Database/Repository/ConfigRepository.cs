@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
@@ -27,12 +27,12 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public MethodsConfig FindConfig(ulong guildID, string group, string command)
+        public MethodsConfig FindConfig(ulong guildID, string group, string command, bool withPerms = true)
         {
             CorrectValue(ref group);
             CorrectValue(ref command);
 
-            var query = GetBaseQuery(true);
+            var query = GetBaseQuery(withPerms);
             return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
 

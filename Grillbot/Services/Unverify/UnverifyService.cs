@@ -217,7 +217,7 @@ namespace Grillbot.Services.Unverify
                 if (guild == null)
                 {
                     UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
-                    throw new InvalidOperationException($"Error occured in AutoUnverifyReturn. Guild {guildID} not found. Unverify is lost.");
+                    return;
                 }
 
                 var user = await guild.GetUserFromGuildAsync(userIDSnowflake);
@@ -225,7 +225,7 @@ namespace Grillbot.Services.Unverify
                 if (user == null)
                 {
                     UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
-                    throw new InvalidOperationException($"Error occured in AutoUnverifyReturn. User cannot be found in '{guild.Name}' guild. Unverify is lost.");
+                    return;
                 }
 
                 await RemoveUnverifyAsync(guild, user, DiscordClient.CurrentUser, true);
@@ -246,12 +246,9 @@ namespace Grillbot.Services.Unverify
                 var userEntity = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Unverify);
 
                 if (userEntity?.Unverify == null)
-                {
-                    UnverifyRepository.RemoveUnverify(guild.Id, user.Id);
-                    throw new InvalidOperationException("An error occured in ReturnUnverify. User or unverify record in database wasn't found. Unverify is lost.");
-                }
+                    return MessageGenerator.CreateRemoveAccessUnverifyNotFound(user);
 
-                var unverifyConfig = ConfigRepository.FindConfig(guild.Id, "unverify", null)?.GetData<UnverifyConfig>();
+                var unverifyConfig = ConfigRepository.FindConfig(guild.Id, "unverify", null, false)?.GetData<UnverifyConfig>();
                 var mutedRole = unverifyConfig == null ? null : guild.GetRole(unverifyConfig.MutedRoleID);
 
                 var rolesToReturn = userEntity.Unverify.DeserializedRoles.Where(o => !user.Roles.Any(x => x.Id == o))

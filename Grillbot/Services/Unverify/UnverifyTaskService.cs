@@ -25,20 +25,22 @@ namespace Grillbot.Services.Unverify
             using var scope = Provider.CreateScope();
             using var service = scope.ServiceProvider.GetService<UnverifyService>();
 
+            // Select all users who will be allowed access and are no longer being processed.
             var keysOfUsers = BotState.UnverifyCache
                 .Where(o => (o.Value - DateTime.Now).TotalSeconds <= 0.0F)
-                .Select(o => o.Key.Split('|'));
-
-            foreach (var key in keysOfUsers)
-            {
-                BotState.UnverifyCache.Remove(string.Join("|", key));
-            }
+                .Select(o => o.Key.Split('|'))
+                .Where(o => !BotState.CurrentReturningUnverifyFor.Any(x => x.Id.ToString() == o[1]));
 
             var unverifiesToReturn = keysOfUsers
                 .Select(o => service.AutoUnverifyRemoveAsync(o[0], o[1]))
                 .ToArray();
 
             Task.WaitAll(unverifiesToReturn);
+
+            foreach (var key in keysOfUsers)
+            {
+                BotState.UnverifyCache.Remove(string.Join("|", key));
+            }
         }
 
         public void Dispose()

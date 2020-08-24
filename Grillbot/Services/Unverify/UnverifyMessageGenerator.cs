@@ -57,5 +57,12 @@ namespace Grillbot.Services.Unverify
 
             return $"Předčasné vrácení přístupu pro uživatele **{username}** selhalo. ({message})";
         }
+
+        public string CreateRemoveAccessUnverifyNotFound(SocketGuildUser user)
+        {
+            var username = user.GetFullName();
+
+            return $"Předčasné vrácení přístupu pro uživatele **{username}** nelze provést. Unverify nebylo nalezeno.";
+        }
     }
 }
