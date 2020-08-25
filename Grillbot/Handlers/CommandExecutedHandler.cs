@@ -54,7 +54,15 @@ namespace Grillbot.Handlers
                 }
             }
 
-            LogCommand(command, context);
+            try
+            {
+                LogCommand(command, context);
+            }
+            catch (Exception ex)
+            {
+                Logger.LogError(ex, "");
+            }
+
             BotStatus.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
