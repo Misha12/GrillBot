@@ -41,7 +41,6 @@ namespace Grillbot.Database
             modelBuilder.Entity<UserChannel>(builder =>
             {
                 builder.HasIndex(o => o.UserID);
-                builder.HasIndex(o => o.DiscordUserID);
             });
 
             modelBuilder.Entity<Reminder>(builder =>

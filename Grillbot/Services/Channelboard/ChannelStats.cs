@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using System;
 using System.Collections.Generic;
@@ -83,20 +83,22 @@ namespace Grillbot.Services.Channelboard
 
             using var scope = Provider.CreateScope();
             using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
-            var channels = repository.GetAllChannels(guild.Id);
+
+            var channelList = guild.TextChannels.Select(o => o.Id).ToList();
+            var channels = repository.GetAllChannels(guild.Id, channelList);
 
             foreach (var channelID in channels)
             {
-                var channelIdSnowflake = Convert.ToUInt64(channelID);
-                var discordChannel = guild.GetChannel(channelIdSnowflake);
+                var discordChannel = guild.GetChannel(channelID);
 
                 if (discordChannel == null)
                 {
-                    removed.Add($"Kanál {channelID} byl smazán.");
-                    repository.RemoveChannel(channelIdSnowflake);
+                    removed.Add($"> Kanál {channelID} byl smazán.");
+                    repository.RemoveChannel(channelID);
                 }
             }
 
+            repository.SaveChanges();
             return removed.Count == 0 ? null : removed.ToList();
         }
 
