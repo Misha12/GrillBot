@@ -1,29 +1,75 @@
-﻿using Discord.Commands;
+using Discord.Commands;
+using System.Threading.Tasks;
+using Grillbot.Services.MemeImages;
+using Grillbot.Attributes;
+using System.IO;
+using System.Drawing.Imaging;
+using Grillbot.Database.Repository;
+using Grillbot.Models.Config.Dynamic;
+using Grillbot.Extensions.Discord;
+using Grillbot.Enums;
 using System;
 using System.Linq;
-using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Grillbot.Extensions.Discord;
-using Grillbot.Database.Repository;
-using Grillbot.Models.Config.AppSettings;
-using Grillbot.Models.Config.Dynamic;
-using Grillbot.Attributes;
-using Grillbot.Enums;
 
 namespace Grillbot.Modules
 {
-    [Name("Pozdrav bota")]
-    [ModuleID("GreetModule")]
-    public class GreetModule : BotModuleBase
+    [ModuleID("MemeModule")]
+    [Name("Ostatní zbytečnosti")]
+    public class MemeModule : BotModuleBase
     {
-        public GreetModule(IOptions<Configuration> config, ConfigRepository repository) : base(config, repository)
+        private MemeImagesService Service { get; }
+
+        public MemeModule(MemeImagesService service, ConfigRepository config) : base(configRepository: config)
         {
+            Service = service;
+        }
+
+        [Command("nudes")]
+        public async Task SendNudeAsync()
+        {
+            await SendAsync("nudes").ConfigureAwait(false);
+        }
+
+        [Command("notnudes")]
+        public async Task SendNotNudesAsync()
+        {
+            await SendAsync("notnudes").ConfigureAwait(false);
+        }
+
+        private async Task SendAsync(string category)
+        {
+            var file = Service.GetRandomFile(Context.Guild, category);
+
+            if (file == null)
+            {
+                await ReplyAsync("Nemám žádný obrázek.");
+                return;
+            }
+
+            await Context.Channel.SendFileAsync(file);
+        }
+
+        [Command("peepolove")]
+        public async Task PeepoloveAsync(Discord.IUser forUser = null)
+        {
+            if (forUser == null)
+                forUser = Context.User;
+
+            var config = GetMethodConfig<PeepoloveConfig>(null, "peepolove");
+
+            using var bitmap = await Service.CreatePeepoloveAsync(forUser, config);
+            using var ms = new MemoryStream();
+
+            bitmap.Save(ms, ImageFormat.Png);
+            ms.Position = 0;
+
+            await Context.Channel.SendFileAsync(ms, "peepolove.png");
         }
 
         [Command("grillhi"), Alias("hi")]
         public async Task GreetAsync()
         {
-            await GreetAsync(null).ConfigureAwait(false);
+            await GreetAsync(null);
         }
 
         [Command("grillhi"), Alias("hi")]
@@ -55,7 +101,7 @@ namespace Grillbot.Modules
                     break;
             }
 
-            await ReplyAsync(message).ConfigureAwait(false);
+            await ReplyAsync(message);
         }
 
         [Command("grillhi"), Alias("hi")]
@@ -71,12 +117,20 @@ namespace Grillbot.Modules
             var message = config.MessageTemplate.Replace("{person}", Context.User.GetFullName());
             var converted = ConvertToBinOrHexa(message, @base);
 
-            await ReplyAsync(converted).ConfigureAwait(false);
+            await ReplyAsync(converted);
         }
 
         private string ConvertToBinOrHexa(string message, int @base)
         {
             return string.Join(" ", message.Select(o => Convert.ToString(o, @base)));
+        }
+
+        protected override void Dispose(bool disposing)
+        {
+            if (disposing)
+                Service.Dispose();
+
+            base.Dispose(disposing);
         }
     }
 }
