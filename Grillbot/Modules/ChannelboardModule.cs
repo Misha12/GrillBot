@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using System.Linq;
 using System.Text;
@@ -14,6 +14,7 @@ using Grillbot.Attributes;
 
 namespace Grillbot.Modules
 {
+    [Group("channelboard")]
     [Name("Channel leaderboards")]
     [ModuleID("ChannelboardModule")]
     public class ChannelboardModule : BotModuleBase
@@ -27,7 +28,9 @@ namespace Grillbot.Modules
             ChannelboardWeb = channelboardWeb;
         }
 
-        [Command("channelboard")]
+        [Command("get")]
+        [Summary("Počet zpráv v kanálech na serveru.")]
+        [Remarks("Posílá statistiku do PM.")]
         public async Task ChannelboardAsync()
         {
             var data = await Stats.GetChannelboardDataAsync(Context.Guild, Context.User, ChannelStats.ChannelboardTakeTop);
@@ -51,7 +54,7 @@ namespace Grillbot.Modules
             await Context.Message.Author.SendPrivateMessageAsync(embedBuilder: embed.GetBuilder());
         }
 
-        [Command("channelboardweb")]
+        [Command("web")]
         [Summary("Webový leaderboard.")]
         public async Task ChannelboardWebAsync()
         {
@@ -61,9 +64,9 @@ namespace Grillbot.Modules
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
         }
 
-        [Command("channelboard", true)]
+        [Command("get", true)]
         [Summary("Počet zpráv v místnosti.")]
-        public async Task ChannelboardForRoomAsync()
+        public async Task ChannelboardForRoomAsync(IChannel _channelMention = null)
         {
             if (Context.Message.Tags.Count == 0)
             {
@@ -96,27 +99,27 @@ namespace Grillbot.Modules
             await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
         }
 
-        [Command("cleanOldChannels")]
+        [Command("clean")]
+        [Summary("Úklid starých kanálů.")]
         public async Task CleanOldChannels()
         {
             var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
 
             if (clearedChannels == null)
             {
-                await ReplyAsync("Není co čistit.");
+                await ReplyAsync("> Není co čistit.");
                 return;
             }
 
             await ReplyChunkedAsync(clearedChannels, 10);
-            await ReplyAsync("Čištění dokončeno.").ConfigureAwait(false);
+            await ReplyAsync("> Čištění dokončeno.").ConfigureAwait(false);
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void AfterExecute(CommandInfo command)
         {
-            if (disposing)
-                ChannelboardWeb.Dispose();
+            ChannelboardWeb.Dispose();
 
-            base.Dispose(disposing);
+            base.AfterExecute(command);
         }
     }
 }

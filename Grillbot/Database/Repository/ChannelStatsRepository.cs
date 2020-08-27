@@ -1,5 +1,5 @@
-﻿using Grillbot.Database.Entity.Users;
-using Microsoft.EntityFrameworkCore;
+using Grillbot.Database.Entity.Users;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -18,18 +18,20 @@ namespace Grillbot.Database.Repository
                 .ToList();
 
             Context.UserChannels.RemoveRange(channels);
-            Context.SaveChanges();
         }
 
-        public List<string> GetAllChannels(ulong guildID)
+        public List<ulong> GetAllChannels(ulong guildID, List<ulong> currentChannels)
         {
-            var guild = guildID.ToString();
+            var channelsInGuild = currentChannels.Select(o => o.ToString()).ToList();
+
+            var userIdsInGuild = Context.Users.AsQueryable()
+                .Where(o => o.GuildID == guildID.ToString())
+                .Select(o => o.ID).Distinct().ToList();
 
             return Context.UserChannels.AsQueryable()
-                .Where(o => o.GuildID == guild)
-                .Select(o => o.ChannelID)
-                .Distinct()
-                .ToList();
+                .Where(o => userIdsInGuild.Contains(o.UserID) && !channelsInGuild.Contains(o.ChannelID))
+                .Select(o => o.ChannelID).Distinct()
+                .AsEnumerable().Select(o => Convert.ToUInt64(o)).ToList();
         }
 
         public List<UserChannel> GetGroupedStats(ulong guildID)
