@@ -60,19 +60,25 @@ namespace Grillbot.Modules
             };
 
             var methods = ConfigRepository.GetAllMethods(Context.Guild, true);
-            var chunks = methods.SplitInParts(EmbedBuilder.MaxFieldCount);
 
-            foreach (var chunk in chunks)
+            foreach(var group in methods.GroupBy(o => o.Group))
             {
-                var fields = chunk.Select(o =>
-                {
-                    return new EmbedFieldBuilder()
-                        .WithName($"{o.Group}/{o.Command} ({o.ID})")
-                        .WithValue($"OnlyAdmins: **{o.OnlyAdmins.TranslateToCz()}**\nPočet oprávnění: **{o.Permissions.Count.FormatWithSpaces()}**\n" +
-                            $"Počet použití: **{o.UsedCount.FormatWithSpaces()}**");
-                }).ToList();
+                var page = new PaginatedEmbedPage(null);
 
-                embed.Pages.Add(new PaginatedEmbedPage(null, fields));
+                foreach(var method in group)
+                {
+                    var value = string.Join("\n", new[]
+                    {
+                        $"ID: **{method.ID}**",
+                        $"Počet oprávnění: **{method.Permissions.Count.FormatWithSpaces()}**",
+                        $"Počet použití: **{method.UsedCount.FormatWithSpaces()}**"
+                    });
+
+                    page.AddField($"{method.Group}/{method.Command}", value);
+                }
+
+                if (page.AnyField())
+                    embed.Pages.Add(page);
             }
 
             await SendPaginatedEmbedAsync(embed);
