@@ -126,14 +126,6 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddCReference(this IServiceCollection services)
-        {
-            services
-                .AddSingleton<CReferenceService>();
-
-            return services;
-        }
-
         public static IServiceCollection AddWebAdminServices(this IServiceCollection services)
         {
             services

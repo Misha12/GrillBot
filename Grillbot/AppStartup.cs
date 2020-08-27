@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Services;
@@ -68,7 +68,6 @@ namespace Grillbot
                 .AddAutoReply()
                 .AddMath()
                 .AddEmoteChain()
-                .AddCReference()
                 .AddWebAdminServices()
                 .AddStatistics()
                 .AddPermissionsServices()
