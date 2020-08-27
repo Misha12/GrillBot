@@ -1,10 +1,46 @@
-# Features: Meme images
+# Features: Meme
+
+## Nudes
+
+Sends a random image of grilled meat.
+
+Command: `$nudes`
+
+### Configuration
+
+#### Model
+
+```text
+{
+    "Path": string, // Path to directory with images.
+    "AllowedImageTypes": string[] // List of extensions that are supported.
+}
+```
+
+#### Example
+
+```json
+{
+    "Path": "/images",
+    "AllowedImageTypes": [ ".jpg", ".png", ".gif" ]
+}
+```
+
+## Not nudes
+
+Sends a random image of grilled vegetables.
+
+Command: `$notnudes`
+
+### Configuration
+
+Configuration is same as `nudes` command.
 
 ## Peepolove
 
 Generates peepo image with users avatar in his hands.
 
-### Command: `$peepolove`
+Command: `$peepolove`
 
 ### Configuration
 
@@ -39,3 +75,16 @@ Command peepolove needs configuration to generate images.
     "CropRect": "0, 115, 512, 397"
 }
 ```
+
+## Greet
+
+Sends a greet with caller mention.
+
+Command: `$grillhi`
+Alias: `$hi`, `@GrillBot hi`
+
+### Command: `$hi {mode}`
+
+| Parameter | Type   | Description                                                      |
+| --------- | ------ | ---------------------------------------------------------------- |
+| mode      | string | Allowed modes are `text`, `bin`, `hex`, `2`, `8`, `10`, or `16`. |
