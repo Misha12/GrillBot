@@ -125,12 +125,11 @@ namespace Grillbot.Modules
             return string.Join(" ", message.Select(o => Convert.ToString(o, @base)));
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void AfterExecute(CommandInfo command)
         {
-            if (disposing)
-                Service.Dispose();
+            Service.Dispose();
 
-            base.Dispose(disposing);
+            base.AfterExecute(command);
         }
     }
 }
