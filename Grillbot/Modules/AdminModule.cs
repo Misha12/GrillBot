@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
@@ -12,6 +12,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [Group("admin")]
     [ModuleID("AdminModule")]
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
