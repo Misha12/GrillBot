@@ -32,7 +32,7 @@ namespace Grillbot.Services.UserManagement
             if (userEntity == null)
                 return null;
 
-            var position = UsersRepository.CalculatePointsPosition(guild.Id, userEntity.Points) + 1;
+            var position = UsersRepository.CalculatePointsPosition(guild.Id, userEntity.ID) + 1;
             return new Tuple<long, int>(userEntity.Points, position);
         }
 

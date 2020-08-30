@@ -18,12 +18,9 @@ namespace Grillbot.Services.Channelboard
 
         private IServiceProvider Provider { get; }
 
-        private DiscordSocketClient Discord { get; }
-
-        public ChannelStats(IServiceProvider provider, DiscordSocketClient discord)
+        public ChannelStats(IServiceProvider provider)
         {
             Provider = provider;
-            Discord = discord;
         }
 
         public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketUser socketUser)

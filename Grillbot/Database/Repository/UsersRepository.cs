@@ -174,22 +174,22 @@ namespace Grillbot.Database.Repository
                 .ToList();
         }
 
-        public int CalculatePointsPosition(ulong guildID, long points)
+        public int CalculatePointsPosition(ulong guildID, long userID)
         {
             var pointsList = GetBaseQuery(UsersIncludes.None)
-                .Where(o => o.GuildID == guildID.ToString())
+                .Where(o => o.GuildID == guildID.ToString() && o.Points > 0)
                 .OrderByDescending(o => o.Points)
                 .ThenBy(o => o.ID)
-                .Select(o => o.Points)
+                .Select(o => new { o.ID, o.Points })
                 .ToList();
 
-            return pointsList.FindIndex(o => o == points);
+            return pointsList.FindIndex(o => o.ID == userID);
         }
 
         public IQueryable<DiscordUser> GetUsersWithPointsOrder(ulong guildID, int skip, int take, bool asc)
         {
             var query = GetBaseQuery(UsersIncludes.None)
-                .Where(o => o.GuildID == guildID.ToString());
+                .Where(o => o.GuildID == guildID.ToString() && o.Points > 0);
 
             if (asc)
                 query = query.OrderBy(o => o.Points).ThenByDescending(o => o.ID);

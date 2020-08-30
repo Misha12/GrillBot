@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
@@ -35,7 +35,7 @@ namespace Grillbot.Modules
             var userEntity = user ?? Context.User;
             var (points, position) = PointsService.GetPoints(Context.Guild, userEntity);
 
-            var message = $"Uživatel `{userEntity.GetFullName()}` má {FormatPointsValue(points)} a drží se na {position.FormatWithSpaces()}. pozici.";
+            var message = $"Uživatel `{userEntity.GetFullName()}` má {FormatPointsValue(points)} a drží se na **{position.FormatWithSpaces()}.** pozici.";
             await ReplyAsync(message);
         }
 
@@ -101,7 +101,7 @@ namespace Grillbot.Modules
                 var position = item.Item3.FormatWithSpaces();
                 var username = user == null ? "Neexistující uživatel" : user.GetDisplayName();
 
-                builder.AppendLine($"{position}: {username}: {FormatPointsValue(item.Item2)}");
+                builder.AppendLine($"> {position}: {username}: {FormatPointsValue(item.Item2)}");
             }
 
             embed.WithDescription(builder.ToString());
@@ -127,12 +127,11 @@ namespace Grillbot.Modules
             return points == 1 ? "**1** bod" : $"**{points.FormatWithSpaces()}** body";
         }
 
-        protected override void Dispose(bool disposing)
+        protected override void AfterExecute(CommandInfo command)
         {
-            if (disposing)
-                PointsService.Dispose();
+            PointsService.Dispose();
 
-            base.Dispose(disposing);
+            base.AfterExecute(command);
         }
     }
 }
