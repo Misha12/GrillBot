@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Channelboard;
@@ -22,7 +22,7 @@ namespace Grillbot.Services.Channelboard
         public string GetWebUrl(SocketCommandContext context)
         {
             var random = new Random();
-            var config = ConfigRepository.FindConfig(context.Guild.Id, "", "channelboardweb").GetData<ChannelboardConfig>();
+            var config = ConfigRepository.FindConfig(context.Guild.Id, "channelboard", "web").GetData<ChannelboardConfig>();
 
             var key = StringHelper.CreateRandomString(random.Next(10, 50));
             var item = new ChannelboardWebCacheItem() { GuildID = context.Guild.Id, UserID = context.User.Id };

@@ -1,11 +1,7 @@
 using Discord;
 using Discord.Commands;
-using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
-using Discord.WebSocket;
-using Grillbot.Exceptions;
-using Newtonsoft.Json;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
 using Grillbot.Models.Embed;
@@ -28,7 +24,7 @@ namespace Grillbot.Modules
             ChannelboardWeb = channelboardWeb;
         }
 
-        [Command("get")]
+        [Command("")]
         [Summary("Počet zpráv v kanálech na serveru.")]
         [Remarks("Posílá statistiku do PM.")]
         public async Task ChannelboardAsync()
@@ -64,26 +60,10 @@ namespace Grillbot.Modules
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
         }
 
-        [Command("get", true)]
+        [Command("")]
         [Summary("Počet zpráv v místnosti.")]
-        public async Task ChannelboardForRoomAsync(IChannel _channelMention = null)
+        public async Task ChannelboardForRoomAsync(IChannel channel)
         {
-            if (Context.Message.Tags.Count == 0)
-            {
-                await ReplyAsync("Nic jsi netagnul.");
-                return;
-            }
-
-            var channelMention = Context.Message.Tags.FirstOrDefault(o => o.Type == TagType.ChannelMention);
-            if (channelMention == null)
-            {
-                await ReplyAsync("Netagnul jsi žádný kanál");
-                return;
-            }
-
-            if (!(channelMention.Value is ISocketMessageChannel channel))
-                throw new BotException($"Discord.NET uznal, že je to ChannelMention, ale nepovedlo se mi to načíst jako kanál. Prověřte to někdo. (Message: {Context.Message.Content}, Tags: {JsonConvert.SerializeObject(Context.Message.Tags)})");
-
             var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
 
             if (value == null)
@@ -93,7 +73,7 @@ namespace Grillbot.Modules
             }
 
             var formatedMessageCount = value.Item2.FormatWithSpaces();
-            var message = $"Aktuální počet zpráv v místnosti **{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
+            var message = $"Aktuální počet zpráv v místnosti **#{channel.Name}** je **{formatedMessageCount}** a v příčce se drží na **{value.Item1}**. pozici.";
 
             await Context.Message.Author.SendPrivateMessageAsync(message);
             await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
