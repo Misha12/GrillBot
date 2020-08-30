@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using Grillbot.Models.Auth;
 using Grillbot.Services.Permissions;
 using Microsoft.AspNetCore.Authentication;
@@ -51,7 +51,7 @@ namespace Grillbot.Controllers
                     RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
                 });
 
-            return RedirectToAction("Index", "Admin");
+            return RedirectToAction("Index", "Unverify");
         }
 
         [AllowAnonymous]

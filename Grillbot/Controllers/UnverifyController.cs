@@ -10,6 +10,8 @@ using System.Threading.Tasks;
 namespace Grillbot.Controllers
 {
     [Authorize]
+    [Route("/")]
+    [Route("Admin")]
     [Route("Admin/Unverify")]
     public class UnverifyController : Controller
     {

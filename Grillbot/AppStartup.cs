@@ -100,7 +100,7 @@ namespace Grillbot
                 {
                     endpoints.MapControllers();
                     endpoints.MapRazorPages();
-                    endpoints.MapControllerRoute(name: "default", pattern: "{controller=Admin}/{action=Index}/{id?}");
+                    endpoints.MapControllerRoute(name: "default", pattern: "{controller=Unverify}/{action=Index}/{id?}");
                 });
 
             serviceProvider.GetRequiredService<InitService>().Init();
