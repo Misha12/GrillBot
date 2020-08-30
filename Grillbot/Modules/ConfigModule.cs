@@ -47,7 +47,7 @@ namespace Grillbot.Modules
             await ReplyAsync($"Konfigurační záznam `{command},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
         }
 
-        [Command("listMethods")]
+        [Command("list")]
         [Summary("Seznam metod")]
         public async Task ListMethodsAsync()
         {
@@ -56,7 +56,7 @@ namespace Grillbot.Modules
                 Pages = new List<PaginatedEmbedPage>(),
                 ResponseFor = Context.User,
                 Thumbnail = Context.Client.CurrentUser.GetUserAvatarUrl(),
-                Title = "Konfigurace metod."
+                Title = "Konfigurace metod"
             };
 
             var methods = ConfigRepository.GetAllMethods(Context.Guild, true);
