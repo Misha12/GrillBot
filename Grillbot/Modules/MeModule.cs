@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("me")]
-    [Name("Informace o mě")]
+    [Name("Informace o mně")]
     [ModuleID("MeModule")]
     public class MeModule : BotModuleBase
     {
