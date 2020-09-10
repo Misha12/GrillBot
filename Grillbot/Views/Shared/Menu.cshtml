@@ -14,15 +14,8 @@
                     <a asp-controller="Unverify" asp-action="Audit" class="dropdown-item">Audit log</a>
                 </div>
             </li>
-            <li class="nav-item dropdown">
-                <a class="nav-link dropdown-toggle text-white" href="#" id="internal_navbarDropdown" role="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">
-                    Interní
-                </a>
-                <div class="dropdown-menu" aria-labelledby="internal_navbarDropdown">
-                    <a asp-controller="Admin" asp-action="CallStats" class="dropdown-item">Statistiky volání</a>
-                </div>
-            </li>
             <a asp-controller="Users" asp-action="Index" class="nav-item nav-link active mr-2">Uživatelé</a>
+            <a asp-controller="ErrorLog" asp-action="Index" class="nav-item nav-link active mr-2">Chyby</a>
         </ul>
         <span class="navbar-text">
             <span class="dropdown">

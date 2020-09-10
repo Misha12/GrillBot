@@ -1,5 +1,7 @@
 using Grillbot.Database.Entity;
+using Microsoft.EntityFrameworkCore;
 using System;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -21,6 +23,12 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
 
             return entity;
+        }
+
+        public Task<ErrorLogItem> FindLogByIDAsync(long id)
+        {
+            return Context.Errors
+                .SingleOrDefaultAsync(o => o.ID == id);
         }
     }
 }
