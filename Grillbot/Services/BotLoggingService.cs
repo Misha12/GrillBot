@@ -4,7 +4,6 @@ using Discord.WebSocket;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Extensions;
 using System.Net.WebSockets;
 using Discord.Net;
 using Microsoft.Extensions.Options;
@@ -31,6 +30,7 @@ namespace Grillbot.Services
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
         private ILogger<BotLoggingService> Logger { get; }
+        private Configuration Config { get; }
 
         private ulong? LogRoom { get; set; }
 
@@ -41,6 +41,7 @@ namespace Grillbot.Services
             Logger = logger;
             LogRoom = config.Value.Discord.ErrorLogChannelID;
             Services = services;
+            Config = config.Value;
         }
 
         public async Task OnLogAsync(LogMessage message)
@@ -73,10 +74,19 @@ namespace Grillbot.Services
             using var service = scope.ServiceProvider.GetService<ErrorLogRepository>();
             var logEmbedCreator = scope.ServiceProvider.GetService<LogEmbedCreator>();
 
-            // TODO: Failed DB errors
-            var entityRecord = service.CreateRecord(message.ToString());
-            var embed = logEmbedCreator.CreateErrorEmbed(message, entityRecord);
+            ErrorLogItem entityRecord = null;
+            string backupFilename = null;
+            try
+            {
+                entityRecord = service.CreateRecord(message.ToString());
+            }
+            catch (Exception)
+            {
+                backupFilename = Path.Combine(Config.BackupErrors, $"{DateTime.Now.Ticks}.log");
+                File.WriteAllText(backupFilename, message.ToString());
+            }
 
+            var embed = logEmbedCreator.CreateErrorEmbed(message, entityRecord, backupFilename);
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
                 await channel.SendMessageAsync(embed: embed.Build());
         }
@@ -138,13 +148,7 @@ namespace Grillbot.Services
             if (exception == null)
                 return true;
 
-            if (exception is CommandException ce)
-            {
-                if (IsThrowHelpException(ce) || IsConfigException(ce))
-                    return false;
-            }
-
-            return true;
+            return !(exception is CommandException ce) || !IsThrowHelpException(ce) && !IsConfigException(ce);
         }
 
         private bool IsThrowHelpException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ThrowHelpException;
