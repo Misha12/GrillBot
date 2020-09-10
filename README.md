@@ -9,18 +9,23 @@
 ## Requirements
 
 - MSSQL server - [SQL Server Downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- Microsoft Visual Studio 2019 (or another IDE supports .NET) - [Install Visual Studio](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2019)
 - .NET Core 3.1 (with ASP\.NET Core 3.1) - [Download .NET Core 3.1 (Linux, macOS, and Windows)](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+
+### Development requirements
+
+- Microsoft Visual Studio 2019 (or another IDE supports .NET) - [Install Visual Studio](https://docs.microsoft.com/en-us/visualstudio/install/install-visual-studio?view=vs-2019)
 - dotnet-ef (For code first migrations) - [EF Core tools reference (.NET CLI) - EF Core](https://docs.microsoft.com/en-us/ef/core/miscellaneous/cli/dotnet)
 
 ## Used NuGet packages
+
+All packages are distributed using the NuGet packaging system and will be installed at build.
 
 ### GrillBot
 
 - [Discord.NET](https://www.nuget.org/packages/Discord.Net/)
 - [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
 - [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
-- [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/5.0.0-preview.3.20207.1)
+- [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/3.1.3)
 - [UnicodeEmoji.NET](https://www.nuget.org/packages/UnicodeEmoji.net/)
 - [BCrypt.Net-Next](https://www.nuget.org/packages/BCrypt.Net-Next/)
 - [Microsoft.EntityFrameworkCore.Tools](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Tools/)
@@ -32,7 +37,7 @@
 
 ## Database
 
-This project using Code first database migrations.
+GrillBot project using Code first database migrations.
 
 To create database:
 
@@ -53,14 +58,15 @@ If you edit `appsettings.json` file, write it to pull request.
 
 #### Config
 
-| Key                       | Type                              | Description                                                                       |
-| ------------------------- | --------------------------------- | --------------------------------------------------------------------------------- |
-| AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.              |
-| CommandPrefix             | string                            | Message content, that must starts to invoke command.                              |
-| Administrators            | ulong[]                           | List of bot administrators. Can use bot independently of roles. Value is user ID. |
-| EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                       |
-| Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                             |
-| ConnectionStrings         | KeyValuePair<string, string>      | Database connection strings                                                       |
+| Key                       | Type                              | Description                                                                                       |
+| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
+| AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.                              |
+| CommandPrefix             | string                            | Message content, that must starts to invoke command.                                              |
+| Administrators            | ulong[]                           | List of bot administrators. Can use bot independently of roles. Value is user ID.                 |
+| EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                                       |
+| BackupErrors              | string                            | Path to the directory where the error log files will be saved when saving to the database failed. |
+| Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                                             |
+| ConnectionStrings         | KeyValuePair<string, string>      | Database connection strings                                                                       |
 
 #### Config.Discord
 
