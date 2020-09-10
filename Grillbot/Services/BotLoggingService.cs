@@ -15,6 +15,11 @@ using Grillbot.Services.Initiable;
 using System.IO;
 using System.Net.Sockets;
 using System.Net.Http;
+using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Database.Repository;
+using Grillbot.Models.Embed;
+using Grillbot.Database.Entity;
+using Grillbot.Services.ErrorHandling;
 
 namespace Grillbot.Services
 {
@@ -64,16 +69,16 @@ namespace Grillbot.Services
                 }
             }
 
-            var exceptionMessage = message.Exception.ToString();
-            var parts = exceptionMessage.SplitInParts(MessageSizeForException).ToArray();
+            using var scope = Services.CreateScope();
+            using var service = scope.ServiceProvider.GetService<ErrorLogRepository>();
+            var logEmbedCreator = scope.ServiceProvider.GetService<LogEmbedCreator>();
+
+            // TODO: Failed DB errors
+            var entityRecord = service.CreateRecord(message.ToString());
+            var embed = logEmbedCreator.CreateErrorEmbed(message, entityRecord);
 
             if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
-            {
-                foreach (var part in parts)
-                {
-                    await channel.SendMessageAsync($"```{part}```");
-                }
-            }
+                await channel.SendMessageAsync(embed: embed.Build());
         }
 
         private bool CanSendExceptionToDiscord(LogMessage message) => message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);

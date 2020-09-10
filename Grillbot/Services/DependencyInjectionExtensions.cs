@@ -5,6 +5,7 @@ using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Duck;
+using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.InviteTracker;
 using Grillbot.Services.Math;
 using Grillbot.Services.MemeImages;
@@ -49,7 +50,8 @@ namespace Grillbot.Services
                 .AddTransient<GlobalConfigRepository>()
                 .AddTransient<ReminderRepository>()
                 .AddTransient<InviteRepository>()
-                .AddTransient<UnverifyRepository>();
+                .AddTransient<UnverifyRepository>()
+                .AddTransient<ErrorLogRepository>();
 
             return services;
         }
@@ -113,7 +115,8 @@ namespace Grillbot.Services
 
             services
                 .AddSingleton<BotLoggingService>()
-                .AddSingleton<Logger.Logger>();
+                .AddSingleton<Logger.Logger>()
+                .AddTransient<LogEmbedCreator>();
 
             return services;
         }
