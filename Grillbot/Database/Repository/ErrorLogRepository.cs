@@ -30,5 +30,16 @@ namespace Grillbot.Database.Repository
             return Context.Errors
                 .SingleOrDefaultAsync(o => o.ID == id);
         }
+
+        public async Task RemoveItemAsync(long id)
+        {
+            var item = await FindLogByIDAsync(id);
+
+            if (item == null)
+                return;
+
+            Context.Errors.Remove(item);
+            Context.SaveChanges();
+        }
     }
 }
