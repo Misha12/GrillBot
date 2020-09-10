@@ -35,6 +35,13 @@ namespace Grillbot.Controllers
             return View(viewModel);
         }
 
+        [HttpGet("{id}")]
+        public async Task<IActionResult> RemoveItem(long id)
+        {
+            await ErrorLogRepository.RemoveItemAsync(id);
+            return RedirectToAction("Index");
+        }
+
         protected override void Dispose(bool disposing)
         {
             ErrorLogRepository.Dispose();

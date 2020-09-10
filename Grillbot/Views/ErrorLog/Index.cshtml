@@ -30,7 +30,8 @@
     {
         <div class="card mt-3 alert alert-secondary">
             <div class="card-body pl-0 pr-0 pt-2 pb-2">
-                <h5 class="card-title">@Model.LogItem.CreatedAt.ToLocaleDatetime()</h5>
+                <h5 class="card-title d-inline-block mr-2">@Model.LogItem.CreatedAt.ToLocaleDatetime()</h5>
+                <a class="badge badge-danger" asp-action="RemoveItem" asp-route-id="@Model.LogItem.ID">Smazat</a>
 
                 <pre>@Model.LogItem.Data</pre>
             </div>
