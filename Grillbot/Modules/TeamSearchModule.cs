@@ -9,6 +9,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
+using Grillbot.Helpers;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.TeamSearch;
@@ -40,11 +41,11 @@ namespace Grillbot.Modules
             try
             {
                 TeamSearchService.CreateSearch(Context.Guild, Context.User, Context.Channel, Context.Message);
-                await Context.Message.AddReactionAsync(new Emoji("✅"));
+                await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
             }
             catch (Exception ex)
             {
-                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                await Context.Message.AddReactionAsync(ReactHelpers.NOKEmoji);
 
                 if (ex is ValidationException)
                 {
@@ -118,13 +119,13 @@ namespace Grillbot.Modules
             {
                 if (Context.User is SocketGuildUser user)
                 {
-                    TeamSearchService.RemoveSearch(searchId, user);
-                    await Context.Message.AddReactionAsync(new Emoji("✅"));
+                    await TeamSearchService.RemoveSearchAsync(searchId, user);
+                    await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
                 }
             }
             catch (Exception ex)
             {
-                await Context.Message.AddReactionAsync(new Emoji("❌"));
+                await Context.Message.AddReactionAsync(ReactHelpers.NOKEmoji);
 
                 if (ex is ValidationException || ex is UnauthorizedAccessException)
                 {

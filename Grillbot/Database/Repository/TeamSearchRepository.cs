@@ -1,5 +1,6 @@
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 
@@ -41,22 +42,24 @@ namespace Grillbot.Database.Repository
             Context.SaveChanges();
         }
 
-        public void RemoveSearch(int id)
+        public async Task RemoveSearchAsync(int id)
         {
-            var entity = FindSearchByID(id);
-            RemoveSearch(entity);
+            var entity = await FindSearchByIDAsync(id);
+            await RemoveSearchAsync(entity);
         }
 
-        public void RemoveSearch(TeamSearch entity)
+        public Task RemoveSearchAsync(TeamSearch entity)
         {
-            if (entity == null) return;
+            if (entity == null) return Task.CompletedTask;
+
             Context.TeamSearch.Remove(entity);
-            Context.SaveChanges();
+            return Context.SaveChangesAsync();
         }
 
-        public TeamSearch FindSearchByID(int id)
+        public Task<TeamSearch> FindSearchByIDAsync(int id)
         {
-            return Context.TeamSearch.FirstOrDefault(o => o.Id == id);
+            return Context.TeamSearch.AsQueryable()
+                .FirstOrDefaultAsync(o => o.Id == id);
         }
     }
 }

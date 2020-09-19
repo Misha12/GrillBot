@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
@@ -54,7 +54,7 @@ namespace Grillbot.Services.TeamSearch
 
             if (guild == null)
             {
-                Repository.RemoveSearch(dbItem.Id);
+                await Repository.RemoveSearchAsync(dbItem.Id);
                 return null;
             }
 
@@ -62,7 +62,7 @@ namespace Grillbot.Services.TeamSearch
 
             if (channel == null)
             {
-                Repository.RemoveSearch(dbItem.Id);
+                await Repository.RemoveSearchAsync(dbItem.Id);
                 return null;
             }
 
@@ -70,7 +70,7 @@ namespace Grillbot.Services.TeamSearch
 
             if (message == null)
             {
-                Repository.RemoveSearch(dbItem.Id);
+                await Repository.RemoveSearchAsync(dbItem.Id);
                 return null;
             }
 
@@ -92,18 +92,18 @@ namespace Grillbot.Services.TeamSearch
             Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
         }
 
-        public void RemoveSearch(int searchID, SocketGuildUser executor)
+        public async Task RemoveSearchAsync(int searchID, SocketGuildUser executor)
         {
-            var search = Repository.FindSearchByID(searchID);
+            var search = await Repository.FindSearchByIDAsync(searchID);
 
             if (search == null)
-                throw new NotFoundException("Hledaná zpráva neexistuje.");
+                return;
 
             var guildPerms = executor.GuildPermissions.Administrator || executor.GuildPermissions.ManageMessages;
             if (!guildPerms && executor.Id != search.UserIDSnowflake)
                 throw new UnauthorizedAccessException("Na provedení tohoto příkazu nemáš právo.");
 
-            Repository.RemoveSearch(search);
+            await Repository.RemoveSearchAsync(search);
         }
 
         public async Task BatchCleanAsync(int[] ids, Func<string, Task> reply)
@@ -114,6 +114,8 @@ namespace Grillbot.Services.TeamSearch
 
         private async Task BatchCleanAsync(List<Database.Entity.TeamSearch> searches, Func<string, Task> reply)
         {
+            var tasks = new List<Task>();
+
             foreach (var search in searches)
             {
                 var message = await MessageCache.GetAsync(search.ChannelIDSnowflake, search.MessageIDSnowflake);
@@ -123,8 +125,10 @@ namespace Grillbot.Services.TeamSearch
                 else
                     await reply($"Mažu hledání s ID **{search.Id}** od **{message.Author.GetFullName()}**");
 
-                Repository.RemoveSearch(search);
+                tasks.Add(Repository.RemoveSearchAsync(search));
             }
+
+            await Task.WhenAll(tasks);
         }
 
         public async Task BatchCleanChannelAsync(ulong channelID, Func<string, Task> reply)
