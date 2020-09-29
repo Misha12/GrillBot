@@ -79,7 +79,7 @@ namespace Grillbot.Modules
             await Context.Message.DeleteAsync(new RequestOptions() { AuditLogReason = "Channelboard security" }).ConfigureAwait(false);
         }
 
-        [Command("clean")]
+        [Command("clear")]
         [Summary("Úklid starých kanálů.")]
         public async Task CleanOldChannels()
         {
