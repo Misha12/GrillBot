@@ -1,7 +1,8 @@
-﻿using Discord;
+using Discord;
+using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
-using System;
+using Grillbot.Enums;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +21,7 @@ namespace Grillbot.Extensions.Discord
             if (ulong.TryParse(userIdentification, out ulong userID))
                 return await GetUserFromGuildAsync(guild, userID);
 
-            if(userIdentification.Contains("#"))
+            if (userIdentification.Contains("#"))
             {
                 var parts = userIdentification.Split('#');
                 return await GetUserFromGuildAsync(guild, parts[0], parts[1]);
@@ -88,6 +89,18 @@ namespace Grillbot.Extensions.Discord
                 .ToList();
 
             return positions.FindIndex(o => o == user) + 1;
+        }
+
+        public static async Task<RestBan> FindBanAsync(this SocketGuild guild, IUser user)
+        {
+            try
+            {
+                return await guild.GetBanAsync(user);
+            }
+            catch (HttpException ex) when (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (int)DiscordJsonCodes.UnknownBan)
+            {
+                return null;
+            }
         }
     }
 }

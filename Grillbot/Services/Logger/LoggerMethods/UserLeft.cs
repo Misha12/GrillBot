@@ -1,6 +1,7 @@
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 
@@ -15,7 +16,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
         public async Task ProcessAsync(SocketGuildUser user)
         {
             var logEmbedBuilder = new LogEmbedBuilder("Uživatel opustil server.", LogEmbedType.UserLeft);
-            var ban = await user.Guild.GetBanAsync(user);
+            var ban = await user.Guild.FindBanAsync(user);
 
             logEmbedBuilder = logEmbedBuilder
                 .SetAuthor(user)
