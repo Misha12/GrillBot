@@ -122,7 +122,8 @@ namespace Grillbot.Services
 
         private async Task<BotEmbed> RenderEmbedAsync(string prefix, IEnumerable<CommandInfo> commands, ICommandContext context, string remarks)
         {
-            var embed = new BotEmbed(context.User, title: $"Tady máš různé varianty příkazů na \"**{prefix.PreventMassTags()}**\"");
+            const string baseMessage = "Tady máš různé varianty příkazů na \"**{0}**\"";
+            var embed = new BotEmbed(context.User, title: string.Format(baseMessage, prefix.Cut(EmbedBuilder.MaxTitleLength - baseMessage.Length - 5)));
 
             foreach (var cmd in commands)
             {
