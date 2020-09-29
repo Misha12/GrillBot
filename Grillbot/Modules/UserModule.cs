@@ -5,8 +5,10 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Grillbot.Models.Embed;
 using Grillbot.Services.UserManagement;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -125,11 +127,38 @@ namespace Grillbot.Modules
             embed
                 .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);
 
-            if(userDetail.Statistics != null)
+            if (userDetail.Statistics != null)
             {
                 embed
                     .AddField("Počet volání API", userDetail.Statistics.ApiCallsCount.FormatWithSpaces(), true)
                     .AddField("Počet přihlášení", userDetail.Statistics.WebAdminLoginCount.FormatWithSpaces(), true);
+            }
+
+            await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("access")]
+        [Summary("Zjištění, kam zadaný uživatel vidí.")]
+        public async Task GetAccessListAsync(IUser user)
+        {
+            var guildUser = user as SocketGuildUser;
+            await Context.Guild.SyncGuildAsync();
+
+            var textChannels = Context.Guild.TextChannels.Where(o => o.HaveAccess(guildUser)).Select(o => $"<#{o.Id}>");
+            var voiceChannels = Context.Guild.VoiceChannels.Where(o => o.HaveAccess(guildUser)).Select(o => $"<#{o.Id}>");
+
+            var roleWithColor = guildUser.Roles.FindHighestRoleWithColor();
+            var embed = new BotEmbed(Context.User, roleWithColor?.Color, "Seznam přístupů")
+                .AddField("Jméno", user.GetFullName(), false);
+
+            foreach (var chunk in textChannels.SplitInParts(30))
+            {
+                embed.AddField("Textové kanály", string.Join(", ", chunk), false);
+            }
+
+            foreach (var chunk in voiceChannels.SplitInParts(30))
+            {
+                embed.AddField("Hlasové kanály", string.Join(", ", chunk), false);
             }
 
             await ReplyAsync(embed: embed.Build());
