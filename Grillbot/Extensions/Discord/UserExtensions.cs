@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Net;
 using Discord.WebSocket;
 using Grillbot.Enums;
@@ -69,12 +69,14 @@ namespace Grillbot.Extensions.Discord
             }
         }
 
-        public static string GetDisplayName(this IUser user)
+        public static string GetDisplayName(this IUser user, bool noDiscriminator = false)
         {
+            var shortName = noDiscriminator ? user.Username : user.GetShortName();
+
             if (user is SocketGuildUser socketGuildUser)
-                return string.IsNullOrEmpty(socketGuildUser.Nickname) ? socketGuildUser.GetShortName() : socketGuildUser.Nickname;
+                return string.IsNullOrEmpty(socketGuildUser.Nickname) ? shortName : socketGuildUser.Nickname;
             else
-                return user.GetShortName();
+                return shortName;
         }
 
         public static async Task<byte[]> DownloadAvatarAsync(this IUser user, ushort size = 128)

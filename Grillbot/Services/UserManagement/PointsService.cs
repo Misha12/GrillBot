@@ -6,7 +6,9 @@ using Grillbot.Extensions.Discord;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -16,16 +18,18 @@ namespace Grillbot.Services.UserManagement
         private ILogger<PointsService> Logger { get; }
         private BotState BotState { get; }
         private Random Random { get; }
+        private PointsRenderService Renderer { get; }
 
-        public PointsService(UsersRepository usersRepository, ILogger<PointsService> logger, BotState botState)
+        public PointsService(UsersRepository usersRepository, ILogger<PointsService> logger, BotState botState, PointsRenderService renderer)
         {
             UsersRepository = usersRepository;
             Logger = logger;
             BotState = botState;
             Random = new Random();
+            Renderer = renderer;
         }
 
-        public Tuple<long, int> GetPoints(IGuild guild, IUser user)
+        public async Task<Bitmap> GetPointsAsync(IGuild guild, IUser user)
         {
             var userEntity = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.None);
 
@@ -33,7 +37,7 @@ namespace Grillbot.Services.UserManagement
                 return null;
 
             var position = UsersRepository.CalculatePointsPosition(guild.Id, userEntity.ID) + 1;
-            return new Tuple<long, int>(userEntity.Points, position);
+            return await Renderer.RenderAsync(user, position, userEntity.Points);
         }
 
         public void GivePoints(IUser fromUser, IUser toUser, IGuild guild, long amount)

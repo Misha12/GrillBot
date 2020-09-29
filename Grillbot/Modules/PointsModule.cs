@@ -7,6 +7,7 @@ using Grillbot.Models.Embed;
 using Grillbot.Services.UserManagement;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -33,10 +34,13 @@ namespace Grillbot.Modules
         public async Task MyPointsAsync(IUser user = null)
         {
             var userEntity = user ?? Context.User;
-            var (points, position) = PointsService.GetPoints(Context.Guild, userEntity);
+            
+            using var image = await PointsService.GetPointsAsync(Context.Guild, userEntity);
+            using var ms = new MemoryStream();
+            image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
 
-            var message = $"Uživatel `{userEntity.GetFullName()}` má {FormatPointsValue(points)} a drží se na **{position.FormatWithSpaces()}.** pozici.";
-            await ReplyAsync(message);
+            await Context.Channel.SendFileAsync(ms, $"points_{userEntity.Username}.png");
         }
 
         [Command("give")]

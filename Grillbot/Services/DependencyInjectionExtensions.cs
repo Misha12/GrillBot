@@ -216,6 +216,7 @@ namespace Grillbot.Services
             services
                 .AddSingleton<UserService>()
                 .AddTransient<PointsService>()
+                .AddTransient<PointsRenderService>()
                 .AddTransient<BirthdayService>()
                 .AddTransient<ReminderService>()
                 .AddSingleton<ReminderTaskService>()
