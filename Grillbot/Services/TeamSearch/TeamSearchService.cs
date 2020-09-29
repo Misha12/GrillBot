@@ -8,6 +8,7 @@ using Grillbot.Services.MessageCache;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.TeamSearch
@@ -68,7 +69,7 @@ namespace Grillbot.Services.TeamSearch
 
             var message = await MessageCache.GetAsync(dbItem.ChannelIDSnowflake, dbItem.MessageIDSnowflake);
 
-            if (message == null)
+            if (IsEmptyMessage(message))
             {
                 await Repository.RemoveSearchAsync(dbItem.Id);
                 return null;
@@ -82,6 +83,14 @@ namespace Grillbot.Services.TeamSearch
                 MessageLink = message.GetJumpUrl(),
                 ChannelName = channel.Name
             };
+        }
+
+        /// <summary>
+        /// Checks for non existing messages, empty messages and messages contains only "{prefix}hledam add".
+        /// </summary>
+        private bool IsEmptyMessage(IMessage message)
+        {
+            return string.IsNullOrEmpty(message?.Content) || Regex.IsMatch(message.Content, "(^.)hledam add$");
         }
 
         public void CreateSearch(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
