@@ -111,16 +111,36 @@ namespace Grillbot.Modules
                 page.AddField("Končí za", (profile.EndDateTime - DateTime.Now).ToFullCzechTimeString(), true);
 
                 if (profile.RolesToKeep.Count > 0)
-                    page.AddField("Ponechané role", string.Join(", ", profile.RolesToKeep.Select(o => o.Mention)));
+                {
+                    foreach (var chunk in profile.RolesToKeep.Select(o => o.Mention).SplitInParts(40))
+                    {
+                        page.AddField("Ponechané role", string.Join(", ", chunk));
+                    }
+                }
 
                 if (profile.RolesToRemove.Count > 0)
-                    page.AddField("Odebrané role", string.Join(", ", profile.RolesToRemove.Select(o => o.Mention)));
+                {
+                    foreach (var chunk in profile.RolesToRemove.Select(o => o.Mention).SplitInParts(40))
+                    {
+                        page.AddField("Odebrané role", string.Join(", ", chunk));
+                    }
+                }
 
                 if (profile.ChannelsToKeep.Count > 0)
-                    page.AddField("Ponechané kanály", string.Join(", ", profile.ChannelsToKeep.Select(o => $"<#{o.Channel.Id}>")));
+                {
+                    foreach (var chunk in profile.ChannelsToKeep.Select(o => $"<#{o.Channel.Id}>").SplitInParts(40))
+                    {
+                        page.AddField("Ponechané kanály", string.Join(", ", chunk));
+                    }
+                }
 
                 if (profile.ChannelsToRemove.Count > 0)
-                    page.AddField("Odebrané kanály", string.Join(", ", profile.ChannelsToRemove.Select(o => $"<#{o.Channel.Id}>")));
+                {
+                    foreach (var chunk in profile.ChannelsToRemove.Select(o => $"<#{o.Channel.Id}>").SplitInParts(40))
+                    {
+                        page.AddField("Odebrané kanály", string.Join(", ", chunk));
+                    }
+                }
 
                 page.AddField("Důvod", profile.Reason);
                 pages.Add(page);
