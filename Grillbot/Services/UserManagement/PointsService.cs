@@ -83,7 +83,7 @@ namespace Grillbot.Services.UserManagement
                 return;
 
             var user = UsersRepository.GetOrCreateUser(guild.Id, reaction.UserId, UsersIncludes.None);
-            user.Points += Random.Next(0, 5);
+            user.Points += Random.Next(0, 10);
 
             UsersRepository.SaveChanges();
             UpdateLastCalculation(guild, reaction.User.Value, 0.5d);
@@ -91,7 +91,7 @@ namespace Grillbot.Services.UserManagement
 
         public void IncrementPoints(SocketGuild guild, SocketMessage message)
         {
-            if (!CanIncrementPoints(guild, message.Author, 1.0d))
+            if (!CanIncrementPoints(guild, message.Author, 1.0d) || string.IsNullOrEmpty(message.Content) || message.Content.Length < 5)
                 return;
 
             var user = UsersRepository.GetOrCreateUser(guild.Id, message.Author.Id, UsersIncludes.None);
