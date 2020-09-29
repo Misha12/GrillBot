@@ -32,12 +32,12 @@ namespace Grillbot.Handlers
             await RemoveUnverifyIfExistsAsync(user);
         }
 
-        private Task RemoveUnverifyIfExistsAsync(SocketGuildUser user)
+        private async Task RemoveUnverifyIfExistsAsync(SocketGuildUser user)
         {
             using var scope = Provider.CreateScope();
             using var service = scope.ServiceProvider.GetService<UnverifyService>();
 
-            return service.OnUserLeftGuildAsync(user);
+            await service.OnUserLeftGuildAsync(user);
         }
 
         public void Dispose()

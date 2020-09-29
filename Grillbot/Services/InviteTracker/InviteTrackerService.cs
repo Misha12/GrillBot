@@ -163,6 +163,9 @@ namespace Grillbot.Services.InviteTracker
 
         private InviteModel FindUsedInvite(SocketGuild guild, List<InviteModel> latestInvites)
         {
+            if (!BotState.InviteCache.ContainsKey(guild.Id))
+                return null;
+
             var guildInvites = BotState.InviteCache[guild.Id];
 
             // Different count of invite use.
