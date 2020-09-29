@@ -32,17 +32,17 @@ namespace Grillbot.Database.Repository
             return entity;
         }
 
-        public void RemoveUnverify(ulong guildID, ulong userID)
+        public async Task RemoveUnverifyAsync(ulong guildID, ulong userID)
         {
-            var unverify = Context.Unverifies
+            var unverify = await Context.Unverifies.AsQueryable()
                 .Include(o => o.User)
-                .FirstOrDefault(o => o.User.GuildID == guildID.ToString() && o.User.UserID == userID.ToString());
+                .FirstOrDefaultAsync(o => o.User.GuildID == guildID.ToString() && o.User.UserID == userID.ToString());
 
             if (unverify == null)
                 return;
 
             Context.Unverifies.Remove(unverify);
-            Context.SaveChanges();
+            await Context.SaveChangesAsync();
         }
 
         public Unverify FindUnverifyByID(long id)

@@ -216,7 +216,7 @@ namespace Grillbot.Services.Unverify
 
                 if (guild == null)
                 {
-                    UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
+                    await UnverifyRepository.RemoveUnverifyAsync(guildIDSnowflake, userIDSnowflake);
                     return;
                 }
 
@@ -224,7 +224,7 @@ namespace Grillbot.Services.Unverify
 
                 if (user == null)
                 {
-                    UnverifyRepository.RemoveUnverify(guildIDSnowflake, userIDSnowflake);
+                    await UnverifyRepository.RemoveUnverifyAsync(guildIDSnowflake, userIDSnowflake);
                     return;
                 }
 
@@ -272,7 +272,7 @@ namespace Grillbot.Services.Unverify
                     tasks.Add(user.RemoveRoleAsync(mutedRole));
 
                 await Task.WhenAll(tasks.ToArray());
-                UnverifyRepository.RemoveUnverify(guild.Id, user.Id);
+                await UnverifyRepository.RemoveUnverifyAsync(guild.Id, user.Id);
 
                 if (!isAuto)
                 {
@@ -308,7 +308,7 @@ namespace Grillbot.Services.Unverify
 
             if (guild == null)
             {
-                UnverifyRepository.RemoveUnverify(unverify.User.GuildIDSnowflake, unverify.User.UserIDSnowflake);
+                await UnverifyRepository.RemoveUnverifyAsync(unverify.User.GuildIDSnowflake, unverify.User.UserIDSnowflake);
                 BotState.UnverifyCache.Remove($"{unverify.User.GuildID}|{unverify.User.UserID}");
                 return;
             }
@@ -317,7 +317,7 @@ namespace Grillbot.Services.Unverify
 
             if (user == null)
             {
-                UnverifyRepository.RemoveUnverify(guild.Id, unverify.User.UserIDSnowflake);
+                await UnverifyRepository.RemoveUnverifyAsync(guild.Id, unverify.User.UserIDSnowflake);
                 BotState.UnverifyCache.Remove($"{guild.Id}|{unverify.User.UserID}");
                 return;
             }
@@ -326,10 +326,10 @@ namespace Grillbot.Services.Unverify
             BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(guild, user));
         }
 
-        public void OnUserLeftGuild(SocketGuildUser user)
+        public Task OnUserLeftGuildAsync(SocketGuildUser user)
         {
             BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(user.Guild, user));
-            UnverifyRepository.RemoveUnverify(user.Guild.Id, user.Id);
+            return UnverifyRepository.RemoveUnverifyAsync(user.Guild.Id, user.Id);
         }
 
         public void Dispose()
