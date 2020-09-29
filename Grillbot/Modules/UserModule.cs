@@ -6,6 +6,8 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Services;
 using Grillbot.Services.UserManagement;
 using System;
 using System.Collections.Generic;
@@ -22,7 +24,7 @@ namespace Grillbot.Modules
     {
         private UserService UserService { get; }
 
-        public UserModule(UserService userService)
+        public UserModule(UserService userService, PaginationService pagination) : base(paginationService: pagination)
         {
             UserService = userService;
         }
@@ -144,24 +146,37 @@ namespace Grillbot.Modules
             var guildUser = user as SocketGuildUser;
             await Context.Guild.SyncGuildAsync();
 
-            var textChannels = Context.Guild.TextChannels.Where(o => o.HaveAccess(guildUser)).Select(o => $"<#{o.Id}>");
-            var voiceChannels = Context.Guild.VoiceChannels.Where(o => o.HaveAccess(guildUser)).Select(o => $"<#{o.Id}>");
+            var textChannels = Context.Guild.TextChannels
+                .OrderBy(o => o.Position)
+                .Where(o => o.HaveAccess(guildUser))
+                .GroupBy(o => o.Category?.Name ?? "Neznámá kategorie")
+                .Select(o => new { Category = o.Key, Channels = o.SplitInParts(30).Select(x => x.Select(t => $"<#{t.Id}>")) });
 
-            var roleWithColor = guildUser.Roles.FindHighestRoleWithColor();
-            var embed = new BotEmbed(Context.User, roleWithColor?.Color, "Seznam přístupů")
-                .AddField("Jméno", user.GetFullName(), false);
+            var voiceChannels = Context.Guild.VoiceChannels
+                .OrderBy(o => o.Position)
+                .Where(o => o.HaveAccess(guildUser))
+                .GroupBy(o => o.Category?.Name ?? "Neznámá kategorie")
+                .Select(o => new { Category = o.Key, Channels = o.SplitInParts(30).Select(x => x.Select(t => $"<#{t.Id}>")) });
 
-            foreach (var chunk in textChannels.SplitInParts(30))
+            var finalList = textChannels.ToList();
+            finalList.AddRange(voiceChannels);
+
+            var pages = finalList.SplitInParts(10).Select(o =>
             {
-                embed.AddField("Textové kanály", string.Join(", ", chunk), false);
-            }
+                var fields = o.SelectMany(x => x.Channels.Select(t => new EmbedFieldBuilder().WithName(x.Category).WithValue(string.Join(", ", t)))).ToList();
+                return new PaginatedEmbedPage(null, fields);
+            });
 
-            foreach (var chunk in voiceChannels.SplitInParts(30))
+            var embed = new PaginatedEmbed()
             {
-                embed.AddField("Hlasové kanály", string.Join(", ", chunk), false);
-            }
+                Color = guildUser.Roles.FindHighestRoleWithColor()?.Color,
+                Pages = pages.ToList(),
+                ResponseFor = Context.User,
+                Thumbnail = user.GetUserAvatarUrl(),
+                Title = $"Seznam přístupů uživatele {user.GetFullName()}"
+            };
 
-            await ReplyAsync(embed: embed.Build());
+            await SendPaginatedEmbedAsync(embed);
         }
     }
 }
