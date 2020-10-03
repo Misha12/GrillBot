@@ -16,11 +16,13 @@ namespace Grillbot.Services.UserManagement
     {
         private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
+        private BotState BotState { get; }
 
-        public BirthdayService(UsersRepository usersRepository, DiscordSocketClient discord)
+        public BirthdayService(UsersRepository usersRepository, DiscordSocketClient discord, BotState botState)
         {
             UsersRepository = usersRepository;
             Discord = discord;
+            BotState = botState;
         }
 
         public void SetBirthday(SocketGuild guild, SocketUser user, DateTime dateTime, bool acceptAge)
@@ -57,7 +59,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in usersWithBirthday.Where(o => UserBirthday.HaveTodayBirthday(o.Birthday.Date)))
             {
-                var mappedUser = await UserHelper.MapUserAsync(Discord, user);
+                var mappedUser = await UserHelper.MapUserAsync(Discord, BotState, user);
 
                 if (mappedUser != null)
                     result.Add(mappedUser);

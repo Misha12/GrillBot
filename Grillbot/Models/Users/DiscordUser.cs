@@ -1,3 +1,4 @@
+using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database.Enums;
 using Grillbot.Extensions;
@@ -7,6 +8,7 @@ using Grillbot.Models.Unverify;
 using Grillbot.Services.InviteTracker;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.Xml;
 using System.Threading.Tasks;
 using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
@@ -28,8 +30,16 @@ namespace Grillbot.Models.Users
         public StatisticItem Statistics { get; set; }
         public InviteModel UsedInvite { get; set; }
         public List<UnverifyLogItem> UnverifyHistory { get; set; }
+        public long Flags { get; set; }
 
-        public static async Task<DiscordUser> CreateAsync(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, DiscordSocketClient discordClient)
+        #region FlagFields
+
+        public bool IsBotAdmin => (Flags & (long)UserFlags.BotAdmin) != 0;
+
+        #endregion
+
+        public static async Task<DiscordUser> CreateAsync(SocketGuild guild, SocketGuildUser user, DBDiscordUser dbUser, DiscordSocketClient discordClient,
+            RestApplication botAppInfo)
         {
             var result = new DiscordUser()
             {
@@ -42,8 +52,12 @@ namespace Grillbot.Models.Users
                 ObtainedReactionsCount = dbUser.ObtainedReactionsCount,
                 WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword),
                 Birthday = dbUser.Birthday == null ? null : new UserBirthday(dbUser.Birthday),
-                Statistics = dbUser.Statistics == null ? null : new StatisticItem(dbUser.Statistics)
+                Statistics = dbUser.Statistics == null ? null : new StatisticItem(dbUser.Statistics),
+                Flags = dbUser.Flags
             };
+
+            if (botAppInfo.Owner.Id == user.Id)
+                result.Flags |= (long)UserFlags.BotAdmin;
 
             result.Channels = dbUser.Channels
                 .Select(o => new ChannelStatItem(guild.GetChannel(o.ChannelIDSnowflake), o))
@@ -55,14 +69,15 @@ namespace Grillbot.Models.Users
             {
                 SocketGuildUser inviteCreator = null;
                 if (dbUser.UsedInvite.Creator != null)
-                    inviteCreator = guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake).Result;
+                    inviteCreator = await guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake);
 
                 result.UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
             }
 
             result.UnverifyHistory = dbUser.IncomingUnverifyOperations
                     .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
-                    .Select(o => new UnverifyLogItem(o, discordClient)).ToList();
+                    .Select(o => new UnverifyLogItem(o, discordClient))
+                    .ToList();
 
             return result;
         }
@@ -104,6 +119,9 @@ namespace Grillbot.Models.Users
 
             if (Birthday != null)
                 flags.Add("Birthday");
+
+            if (IsBotAdmin)
+                flags.Add("BotAdmin");
 
             return flags;
         }

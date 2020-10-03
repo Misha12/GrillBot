@@ -74,6 +74,11 @@
                             {
                                 <span class="badge badge-success" title="Uživatel má uloženy narozeniny.">Birthday</span>
                             }
+
+                            @if (Model.User.IsBotAdmin)
+                            {
+                                <span class="badge badge-success" title="Nejvyšší administrátor bota">BotAdmin</span>
+                            }
                         </div>
                     </div>
                 </div>

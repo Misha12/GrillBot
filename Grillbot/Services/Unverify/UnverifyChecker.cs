@@ -1,4 +1,6 @@
 using Discord.WebSocket;
+using Grillbot.Database.Enums;
+using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.AppSettings;
@@ -26,7 +28,7 @@ namespace Grillbot.Services.Unverify
         public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
         {
             ValidateServerOwner(guild, user);
-            ValidateBotAdmin(user, selfUnverify);
+            await ValidateBotAdminAsync(user, guild, selfUnverify);
             ValidateRoles(guild, user, selfUnverify);
             await ValidateIfNotUnverifiedAsync(guild, user);
         }
@@ -37,10 +39,14 @@ namespace Grillbot.Services.Unverify
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je vlastník serveru.");
         }
 
-        private void ValidateBotAdmin(SocketGuildUser user, bool selfUnverify)
+        private async Task ValidateBotAdminAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
         {
-            if (!selfUnverify && Configuration.IsUserBotAdmin(user.Id))
-                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
+            if (selfUnverify) return;
+
+            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+
+            if (dbUser != null && (dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
+                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je nejvyšší administrátor bota.");
         }
 
         private void ValidateRoles(SocketGuild guild, SocketGuildUser user, bool selfUnverify)

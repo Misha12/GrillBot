@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using System;
@@ -28,9 +28,10 @@ namespace Grillbot
         private Configuration Config { get; }
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
+        private BotState BotState { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            InternalStatistics internalStatistics, InitService initService)
+            InternalStatistics internalStatistics, InitService initService, BotState botState)
         {
             Services = services;
             Client = client;
@@ -38,6 +39,7 @@ namespace Grillbot
             Config = config.Value;
             InternalStatistics = internalStatistics;
             InitService = initService;
+            BotState = botState;
 
             Client.Ready += OnClientReadyAsync;
         }
@@ -56,6 +58,8 @@ namespace Grillbot
             await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
             await Client.StartAsync();
             await SetActivity(Config.Discord.Activity);
+
+            BotState.AppInfo = await Client.GetApplicationInfoAsync();
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
             Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());

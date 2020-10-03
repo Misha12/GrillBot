@@ -1,4 +1,5 @@
 using Discord;
+using Discord.Rest;
 using Grillbot.Services.InviteTracker;
 using System;
 using System.Collections.Generic;
@@ -20,6 +21,8 @@ namespace Grillbot
         public Dictionary<string, DateTime> UnverifyCache { get; set; }
 
         public List<IUser> CurrentReturningUnverifyFor { get; set; }
+
+        public RestApplication AppInfo { get; set; }
 
         public BotState()
         {

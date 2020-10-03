@@ -1,32 +1,42 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Database.Enums;
+using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Enums;
-using Grillbot.Models.Config.AppSettings;
-using Microsoft.Extensions.Options;
 using System;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Services.Permissions
 {
     public class PermissionsManager : IDisposable
     {
-        private Configuration Config { get; }
         private ConfigRepository Repository { get; }
+        private BotState BotState { get; }
+        private UsersRepository UsersRepository { get; }
 
-        public PermissionsManager(IOptions<Configuration> options, ConfigRepository repository)
+        public PermissionsManager(ConfigRepository repository, BotState botState, UsersRepository usersRepository)
         {
-            Config = options.Value;
             Repository = repository;
+            BotState = botState;
+            UsersRepository = usersRepository;
         }
 
-        public PermissionsResult CheckPermissions(ICommandContext context, CommandInfo command)
+        public async Task<PermissionsResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command)
         {
             if (context.Guild == null)
                 return PermissionsResult.PMNotAllowed;
 
-            if (Config.IsUserBotAdmin(context.User.Id))
+            if (BotState.AppInfo.Owner.Id == context.User.Id)
+                return PermissionsResult.Success;
+
+            var dbUser = await UsersRepository.GetUserAsync(context.Guild.Id, context.User.Id, UsersIncludes.None);
+
+            if (dbUser == null)
+                return PermissionsResult.MissingPermissions;
+
+            if ((dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
                 return PermissionsResult.Success;
 
             var config = Repository.FindConfig(context.Guild.Id, command.Module.Group, command.Name);
@@ -69,6 +79,7 @@ namespace Grillbot.Services.Permissions
         public void Dispose()
         {
             Repository.Dispose();
+            UsersRepository.Dispose();
         }
     }
 }
