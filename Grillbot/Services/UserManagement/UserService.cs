@@ -11,6 +11,7 @@ using System.Threading.Tasks;
 using Grillbot.Helpers;
 using Grillbot.Database.Enums.Includes;
 using Microsoft.EntityFrameworkCore;
+using Grillbot.Database.Enums;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -22,14 +23,17 @@ namespace Grillbot.Services.UserManagement
         private IMessageCache MessageCache { get; }
         private DiscordSocketClient DiscordClient { get; }
         private UserSearchService UserSearchService { get; }
+        private BotState BotState { get; }
 
-        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, UserSearchService userSearchService)
+        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, UserSearchService userSearchService,
+            BotState botState)
         {
             Services = services;
             MessageCache = messageCache;
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
             DiscordClient = discordClient;
             UserSearchService = userSearchService;
+            BotState = botState;
         }
 
         public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter filter)
@@ -54,7 +58,7 @@ namespace Grillbot.Services.UserManagement
 
             foreach (var user in dbUsers)
             {
-                var mappedUser = await UserHelper.MapUserAsync(DiscordClient, user);
+                var mappedUser = await UserHelper.MapUserAsync(DiscordClient, BotState, user);
                 if (mappedUser != null)
                     users.Add(mappedUser);
             }
@@ -83,7 +87,7 @@ namespace Grillbot.Services.UserManagement
             if (!string.IsNullOrEmpty(entity.UsedInviteCode))
                 entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
 
-            return await UserHelper.MapUserAsync(DiscordClient, entity);
+            return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }
 
         public async Task<DiscordUser> GetUserInfoAsync(long userID, bool full = false)
@@ -102,7 +106,7 @@ namespace Grillbot.Services.UserManagement
             if (!string.IsNullOrEmpty(entity.UsedInviteCode))
                 entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
 
-            return await UserHelper.MapUserAsync(DiscordClient, entity);
+            return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }
 
         public void IncrementMessage(SocketGuildUser guildUser, SocketGuild guild, SocketGuildChannel channel)
@@ -224,6 +228,21 @@ namespace Grillbot.Services.UserManagement
 
                 repository.SaveChanges();
             }
+        }
+
+        public async Task SetAdminAsync(SocketGuild guild, SocketGuildUser user, bool isAdmin)
+        {
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+
+            var entity = await repository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
+
+            if (isAdmin)
+                entity.Flags |= (long)UserFlags.BotAdmin;
+            else
+                entity.Flags &= ~(long)UserFlags.BotAdmin;
+
+            await repository.SaveChangesAsync();
         }
     }
 }

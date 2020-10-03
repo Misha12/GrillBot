@@ -9,16 +9,5 @@ namespace Grillbot.Models.Config.AppSettings
         public int EmoteChain_CheckLastCount { get; set; }
         public DiscordConfig Discord { get; set; }
         public string BackupErrors { get; set; }
-        public List<ulong> Administrators { get; set; }
-
-        public Configuration()
-        {
-            Administrators = new List<ulong>();
-        }
-
-        public bool IsUserBotAdmin(ulong id)
-        {
-            return Administrators.Contains(id);
-        }
     }
 }

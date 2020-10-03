@@ -86,5 +86,10 @@ namespace Grillbot.Extensions.Discord
             using var client = new WebClient();
             return await client.DownloadDataTaskAsync(new Uri(link));
         }
+
+        public static async Task<SocketGuildUser> ConvertToGuildUserAsync(this IUser user, SocketGuild guild)
+        {
+            return user is SocketGuildUser usr ? usr : (await guild.GetUserFromGuildAsync(user.Id));
+        }
     }
 }

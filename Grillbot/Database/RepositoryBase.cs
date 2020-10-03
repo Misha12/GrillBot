@@ -1,4 +1,5 @@
-﻿using System;
+using System;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database
 {
@@ -27,6 +28,11 @@ namespace Grillbot.Database
                 return 0;
 
             return Context.SaveChanges();
+        }
+
+        public Task<int> SaveChangesAsync()
+        {
+            return Context.SaveChangesAsync();
         }
     }
 }

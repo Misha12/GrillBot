@@ -215,7 +215,7 @@ namespace Grillbot.Services.InviteTracker
             var result = new List<DiscordUser>();
             foreach (var user in users)
             {
-                result.Add(await UserHelper.MapUserAsync(Discord, user));
+                result.Add(await UserHelper.MapUserAsync(Discord, BotState, user));
             }
 
             return result;

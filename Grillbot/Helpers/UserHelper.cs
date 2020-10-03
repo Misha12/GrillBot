@@ -8,7 +8,7 @@ namespace Grillbot.Helpers
 {
     public static class UserHelper
     {
-        public static async Task<DiscordUser> MapUserAsync(DiscordSocketClient discord, DBDiscordUser dBUser)
+        public static async Task<DiscordUser> MapUserAsync(DiscordSocketClient discord, BotState state, DBDiscordUser dBUser)
         {
             var guild = discord.GetGuild(dBUser.GuildIDSnowflake);
 
@@ -20,7 +20,7 @@ namespace Grillbot.Helpers
             if (socketUser == null)
                 return null;
 
-            return await DiscordUser.CreateAsync(guild, socketUser, dBUser, discord);
+            return await DiscordUser.CreateAsync(guild, socketUser, dBUser, discord, state.AppInfo);
         }
     }
 }

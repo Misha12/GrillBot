@@ -38,8 +38,8 @@ namespace Grillbot.Database.Entity.Users
         public long ObtainedReactionsCount { get; set; }
         public string WebAdminPassword { get; set; }
         public string ApiToken { get; set; }
-
         public string UsedInviteCode { get; set; }
+        public long Flags { get; set; }
 
         [ForeignKey("UsedInviteCode")]
         public Invite UsedInvite { get; set; }

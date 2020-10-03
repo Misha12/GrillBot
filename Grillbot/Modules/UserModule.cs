@@ -178,5 +178,15 @@ namespace Grillbot.Modules
 
             await SendPaginatedEmbedAsync(embed);
         }
+
+        [Command("setBotAdmin")]
+        [Summary("Nastavení nejvyššího přístupu k botovi.")]
+        public async Task SetBotAdminAsync(IUser user, bool isAdmin)
+        {
+            var guildUser = await user.ConvertToGuildUserAsync(Context.Guild);
+
+            await UserService.SetAdminAsync(Context.Guild, guildUser, isAdmin);
+            await ReplyAsync($"Přístup byl úspěšně {(isAdmin ? "udělen" : "odebrán")}");
+        }
     }
 }

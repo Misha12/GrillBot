@@ -123,6 +123,12 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
         }
 
+        public Task<DiscordUser> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
+        {
+            return GetBaseQuery(includes)
+                .FirstOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString());
+        }
+
         public Task<DiscordUser> GetUserAsync(long userID, UsersIncludes includes)
         {
             return GetBaseQuery(includes)
@@ -154,6 +160,24 @@ namespace Grillbot.Database.Repository
                 };
 
                 Context.Users.Add(entity);
+            }
+
+            return entity;
+        }
+
+        public async Task<DiscordUser> GetOrCreateUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
+        {
+            var entity = await GetUserAsync(guildID, userID, includes);
+
+            if(entity == null)
+            {
+                entity = new DiscordUser()
+                {
+                    GuildIDSnowflake = guildID,
+                    UserIDSnowflake = userID
+                };
+
+                await Context.Users.AddAsync(entity);
             }
 
             return entity;

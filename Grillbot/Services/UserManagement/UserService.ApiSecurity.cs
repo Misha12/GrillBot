@@ -49,7 +49,7 @@ namespace Grillbot.Services.UserManagement
             if (user == null)
                 return null;
 
-            return await UserHelper.MapUserAsync(DiscordClient, user);
+            return await UserHelper.MapUserAsync(DiscordClient, BotState, user);
         }
 
         public async Task IncrementApiCallStatistics(string apiToken)
