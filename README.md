@@ -83,7 +83,7 @@ For properties **Token** you will need to create your own Discord Application to
 
 ## GrillBotMath
 
-To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod /solve {"ProcessPath": "<HereYourPath>"}`
+To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod math/solve {"ProcessPath": "<HereYourPath>"}`
 
 ## Features
 
