@@ -34,8 +34,8 @@ jobs:
           math_release_name="App-Math-$tag-${{ matrix.target }}"
 
           # Build everything
-          dotnet publish Grillbot/Grillbot.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$bot_release_name"
-          dotnet publish GrillBotMath/GrillBotMath.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$math_release_name"
+          dotnet publish src/Grillbot/Grillbot.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$bot_release_name"
+          dotnet publish srcPGrillBotMath/GrillBotMath.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$math_release_name"
 
           if [ "${{ matrix.target }}" == "win-x64" ]; then
             7z a -tzip "${bot_release_name}.zip" "./${bot_release_name}/*"
