@@ -15,6 +15,7 @@ using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
 using Grillbot.Models;
 using Grillbot.Models.Math;
+using System.Text;
 
 namespace Grillbot
 {
@@ -44,10 +45,10 @@ namespace Grillbot
             Client.Ready += OnClientReadyAsync;
         }
 
-        private async Task OnClientReadyAsync()
+        private Task OnClientReadyAsync()
         {
             InternalStatistics.IncrementEvent("Ready");
-            await InitService.InitAsync().ConfigureAwait(false);
+            return InitService.InitAsync();
         }
 
         public async Task StartAsync(CancellationToken cancellationToken)
@@ -57,7 +58,6 @@ namespace Grillbot
 
             await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
             await Client.StartAsync();
-            await SetActivity(Config.Discord.Activity);
 
             BotState.AppInfo = await Client.GetApplicationInfoAsync();
 
@@ -66,6 +66,7 @@ namespace Grillbot
             Commands.AddTypeReader<MathSession>(new MathSessionTypeReader());
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            await SetActivityAsync(Config.Discord.Activity);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)
@@ -75,24 +76,22 @@ namespace Grillbot
             Client.Dispose();
         }
 
-        private string FormatActivity(string template)
+        private Task SetActivityAsync(string activityMessage)
         {
-            if (template.Contains("{DateTimeNow:"))
-            {
-                var templateFields = template.Split(new[] { "{DateTimeNow:" }, StringSplitOptions.RemoveEmptyEntries);
-                var otherTemplateFields = templateFields[1].Split("}");
-                template = templateFields[0] + DateTime.Now.ToString(otherTemplateFields[0]) + otherTemplateFields[1];
-            }
+            if (!string.IsNullOrEmpty(activityMessage) && activityMessage == "None")
+                return Client.SetGameAsync(null);
 
-            return template;
-        }
+            var builder = new StringBuilder();
 
-        private async Task SetActivity(string activityMessage)
-        {
             if (!string.IsNullOrEmpty(activityMessage))
-                await Client.SetGameAsync(FormatActivity(activityMessage)).ConfigureAwait(false);
-            else
-                await Client.SetGameAsync(null).ConfigureAwait(false);
+                builder.Append(activityMessage).Append(" | ");
+
+            builder
+                .Append("Running on ")
+                .Append(ThisAssembly.Git.Commit).Append('@').Append(ThisAssembly.Git.Branch).Append(". ")
+                .Append("Latest tag is ").Append(ThisAssembly.Git.BaseTag).Append('.');
+
+            return Client.SetGameAsync(builder.ToString());
         }
     }
 }

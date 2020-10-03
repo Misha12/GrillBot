@@ -71,15 +71,15 @@ If you edit `appsettings.json` file, write it to pull request.
 
 For properties **Token** you will need to create your own Discord Application to get a Token for local development.
 
-| Key                 | Type   | Description                                                              |
-| ------------------- | ------ | ------------------------------------------------------------------------ |
-| Activity            | string | Now playing game info.                                                   |
-| Token               | string | Login token                                                              |
-| UserJoinedMessage   | string | Message, that will be sent, when user joined to guild.                   |
-| LoggerRoomID        | string | ID of channel to send logging data (MessageEdited, MessageDeleted, ...). |
-| ServerBoosterRoleId | string | ID of role with Nitro Server Booster role.                               |
-| AdminChannelID      | string | ID of channel for administration purposes.                               |
-| ErrorLogChannelID   | string | ID of channel for logging errors.                                        |
+| Key                 | Type   | Description                                                                                                                      |
+| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
+| Activity            | string | Now playing info. Includes git latest commit, current branch and lastest tag. If you do not want display any test, enter `None`. |
+| Token               | string | Login token                                                                                                                      |
+| UserJoinedMessage   | string | Message, that will be sent, when user joined to guild.                                                                           |
+| LoggerRoomID        | string | ID of channel to send logging data (MessageEdited, MessageDeleted, ...).                                                         |
+| ServerBoosterRoleId | string | ID of role with Nitro Server Booster role.                                                                                       |
+| AdminChannelID      | string | ID of channel for administration purposes.                                                                                       |
+| ErrorLogChannelID   | string | ID of channel for logging errors.                                                                                                |
 
 ## GrillBotMath
 
