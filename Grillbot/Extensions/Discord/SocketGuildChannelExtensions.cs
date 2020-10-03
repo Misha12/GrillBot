@@ -1,5 +1,7 @@
 using Discord;
 using Discord.WebSocket;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Extensions.Discord
 {
@@ -14,21 +16,35 @@ namespace Grillbot.Extensions.Discord
                 return true; // Default permissions. Access all
 
             var overwrite = channel.GetPermissionOverwrite(user);
+            if (overwrite != null)
+            {
+                // Specific user overwrite
+                if (overwrite.Value.ViewChannel == PermValue.Allow)
+                {
+                    return true;
+                }
+                else if (overwrite.Value.ViewChannel == PermValue.Deny)
+                {
+                    return false;
+                }
+            }
+
             var everyonePerm = channel.GetPermissionOverwrite(user.Guild.EveryoneRole);
+            var isEveryonePerm = everyonePerm != null && (everyonePerm.Value.ViewChannel == PermValue.Allow || everyonePerm.Value.ViewChannel == PermValue.Inherit);
 
-            if (overwrite != null && overwrite.Value.ViewChannel == PermValue.Allow)
-                return true;
-
-            foreach (var role in user.Roles)
+            foreach (var role in user.Roles.Where(o => !o.IsEveryone))
             {
                 var roleOverwrite = channel.GetPermissionOverwrite(role);
                 if (roleOverwrite == null) continue;
+
+                if (roleOverwrite.Value.ViewChannel == PermValue.Deny && isEveryonePerm)
+                    return false;
 
                 if (roleOverwrite.Value.ViewChannel == PermValue.Allow)
                     return true;
             }
 
-            return everyonePerm != null && (everyonePerm.Value.ViewChannel == PermValue.Allow || everyonePerm.Value.ViewChannel == PermValue.Inherit);
+            return isEveryonePerm;
         }
     }
 }
