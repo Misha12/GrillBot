@@ -62,7 +62,6 @@ If you edit `appsettings.json` file, write it to pull request.
 | ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
 | AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.                              |
 | CommandPrefix             | string                            | Message content, that must starts to invoke command.                                              |
-| Administrators            | ulong[]                           | List of bot administrators. Can use bot independently of roles. Value is user ID.                 |
 | EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                                       |
 | BackupErrors              | string                            | Path to the directory where the error log files will be saved when saving to the database failed. |
 | Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                                             |
@@ -92,3 +91,4 @@ To run the math module in bot, you have to build GrillBotMath project and set pa
 - [Unverify](docs/unverify.md)
 - [Meme](docs/meme.md)
 - [Reminder](docs/reminder.md)
+- [Users management](docs/users-management.md)

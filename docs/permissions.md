@@ -3,7 +3,9 @@
 Permissions are stored in database table `MethodPerms`. It have relation to table `MethodsConfig`.
 This implementation provides, that permissions are set only for one guild and cannot be abused with invitation bot to another server.
 
-First configuration from discord requires bot administrator permission. Bot administrators are defined in `appsettings.json` in property `Administrators`.
+First configuration requires bot administrator permission. Bot administrator is user, that created bot in Discord Developer Portal or users defined in DiscordUsers table.
+
+Bot administrator can set another user as bot administrator.
 
 ## DB Table description
 
