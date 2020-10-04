@@ -58,12 +58,20 @@ namespace Grillbot.Modules
             var config = GetMethodConfig<PeepoloveConfig>(null, "peepolove");
 
             using var bitmap = await Service.CreatePeepoloveAsync(forUser, config);
-            using var ms = new MemoryStream();
+            await ReplyImageAsync(bitmap, "peepolove.png");
+        }
 
-            bitmap.Save(ms, ImageFormat.Png);
-            ms.Position = 0;
+        [Command("peepoangry")]
+        [Alias("pcbts", "peepoCantBelieveThisShit")]
+        public async Task PeepoAngryAsync(Discord.IUser forUser = null)
+        {
+            if (forUser == null)
+                forUser = Context.User;
 
-            await Context.Channel.SendFileAsync(ms, "peepolove.png");
+            var config = GetMethodConfig<PeepoAngryConfig>(null, "peepoangry");
+
+            using var bitmap = await Service.PeepoAngryAsync(forUser, config);
+            await ReplyImageAsync(bitmap, "peepoangry.png");
         }
 
         [Command("grillhi"), Alias("hi")]

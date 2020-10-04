@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
@@ -11,6 +12,8 @@ using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
+using System.Drawing;
+using System.IO;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -84,6 +87,16 @@ namespace Grillbot.Modules
 
             await Task.Delay(TimeSpan.FromSeconds(timeout));
             await userMessage.DeleteMessageAsync(deleteOptions);
+        }
+
+        public async Task<RestUserMessage> ReplyImageAsync(System.Drawing.Image bitmap, string filename)
+        {
+            using var ms = new MemoryStream();
+
+            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
+            ms.Position = 0;
+
+            return await Context.Channel.SendFileAsync(ms, filename);
         }
 
         #region IDisposable Support
