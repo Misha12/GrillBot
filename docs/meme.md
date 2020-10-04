@@ -66,7 +66,7 @@ Command peepolove needs configuration to generate images.
 ```json
 {
     "ProfilePicSize": 256,
-    "BasePath": "wwwroot/img/peepolove",
+    "BasePath": "wwwroot/Img/peepolove",
     "BodyFilename": "peepoBody.png",
     "HandsFilename": "peepoHands.png",
     "ProfilePicRect": "5, 312, 180, 180",
@@ -88,3 +88,25 @@ Alias: `$hi`, `@GrillBot hi`
 | Parameter | Type   | Description                                                      |
 | --------- | ------ | ---------------------------------------------------------------- |
 | mode      | string | Allowed modes are `text`, `bin`, `hex`, `2`, `8`, `10`, or `16`. |
+
+## PeepoAngry
+
+Generates PeepoAngry with profile picture of user (Caller or mentioned user).
+
+### Configuration
+
+#### Model
+
+```text
+{
+    "ImagePath": string // Filename of peepoangry image.
+}
+```
+
+##### Config example
+
+```json
+{
+    "ImagePath": "wwwroot/Img/peepoangry.png"
+}
+```
