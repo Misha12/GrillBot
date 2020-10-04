@@ -11,15 +11,14 @@ namespace Grillbot.Services.MemeImages
     {
         public async Task<Bitmap> RenderAsync(IUser user, PeepoAngryConfig config)
         {
-            using var profilePic = await UserHelper.DownloadProfilePictureAsync(user, 128, true);
-
-            var body = new Bitmap(300, 150);
+            var body = new Bitmap(250, 105);
             using var graphics = Graphics.FromImage(body);
 
-            graphics.DrawImage(profilePic, new Point(10, 10));
+            using var profilePic = await UserHelper.DownloadProfilePictureAsync(user, 64, true);
+            graphics.DrawImage(profilePic, new Point(20, 20));
 
             using var peepoImage = Img.FromFile(config.ImagePath);
-            graphics.DrawImage(peepoImage, new Point(170, 40));
+            graphics.DrawImage(peepoImage, new Point(115, -5));
 
             return body;
         }
