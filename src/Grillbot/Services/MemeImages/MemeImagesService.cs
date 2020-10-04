@@ -1,8 +1,9 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Microsoft.Extensions.Options;
@@ -19,13 +20,11 @@ namespace Grillbot.Services.MemeImages
     {
         private ConfigRepository ConfigRepository { get; }
         private Random Random { get; }
-        private Configuration AppConfig { get; }
 
-        public MemeImagesService(ConfigRepository repository, IOptions<Configuration> options)
+        public MemeImagesService(ConfigRepository repository)
         {
             ConfigRepository = repository;
             Random = new Random();
-            AppConfig = options.Value;
         }
 
         public string GetRandomFile(SocketGuild guild, string category)
@@ -46,7 +45,7 @@ namespace Grillbot.Services.MemeImages
 
         public async Task<Img> CreatePeepoloveAsync(IUser forUser, PeepoloveConfig config)
         {
-            using var profileImage = await RenderProfileImageAsync(forUser, config.ProfilePicSize);
+            using var profileImage = await UserHelper.DownloadProfilePictureAsync(forUser, config.ProfilePicSize, true);
 
             // Drawing canvas
             using var body = new Bitmap(config.BodyPath);
@@ -61,13 +60,10 @@ namespace Grillbot.Services.MemeImages
             return (body as Img).CropImage(config.CropRect);
         }
 
-        private async Task<Img> RenderProfileImageAsync(IUser user, ushort size)
+        public Task<Bitmap> PeepoAngryAsync(IUser forUser, PeepoAngryConfig config)
         {
-            var profileImageData = await user.DownloadAvatarAsync(size);
-            using var profileImageStream = new MemoryStream(profileImageData);
-            using var profileImage = Img.FromStream(profileImageStream);
-
-            return profileImage.RoundCorners();
+            var renderer = new PeepoAngryRenderer();
+            return renderer.RenderAsync(forUser, config);
         }
 
         public void Dispose()
