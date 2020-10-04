@@ -63,13 +63,13 @@ namespace Grillbot.Modules
 
         [Command("peepoangry")]
         [Alias("pcbts", "peepoCantBelieveThisShit")]
+        [Summary("PeepoAngry emote zírající na profilovku uživatele.")]
         public async Task PeepoAngryAsync(Discord.IUser forUser = null)
         {
             if (forUser == null)
                 forUser = Context.User;
 
             var config = GetMethodConfig<PeepoAngryConfig>(null, "peepoangry");
-
             using var bitmap = await Service.PeepoAngryAsync(forUser, config);
             await ReplyImageAsync(bitmap, "peepoangry.png");
         }
