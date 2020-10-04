@@ -1,0 +1,22 @@
+name: Check markdown files
+
+on:
+  push:
+    branches: [master],
+    paths:
+    - '**.md'
+  pull_request:
+    branches: [master],
+    paths:
+    - '**.md'
+
+jobs:
+  Check:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v2
+      - name: markdownlint-cli
+        uses: nosborn/github-action-markdown-cli@v1.1.1
+        with:
+          files: .
+          args: "./README.md ./docs/ ./CONTRIBUTING.md ./SECURITY.md"
