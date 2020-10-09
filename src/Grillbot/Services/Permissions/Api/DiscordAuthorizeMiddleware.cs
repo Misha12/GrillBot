@@ -1,10 +1,11 @@
-﻿using Grillbot.Enums;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Linq;
 using System.Net;
 using System.Reflection;
@@ -36,7 +37,7 @@ namespace Grillbot.Services.Permissions.Api
                 return;
             }
 
-            var token = GetAuthorizationToken(context);
+            var token = GetAuthorizationToken(context)?.ToString();
 
             if (string.IsNullOrEmpty(token))
             {
@@ -93,7 +94,7 @@ namespace Grillbot.Services.Permissions.Api
             await Next(context);
         }
 
-        private string GetAuthorizationToken(HttpContext context)
+        private Guid? GetAuthorizationToken(HttpContext context)
         {
             if (context.Request.Headers.TryGetValue("Authorization", out var values))
             {
@@ -105,7 +106,8 @@ namespace Grillbot.Services.Permissions.Api
                 if (!token.StartsWith("GrillBot"))
                     return null;
 
-                return token.Substring("GrillBot".Length).Trim();
+                var tokenData = token.Substring("GrillBot".Length).Trim();
+                return Guid.TryParse(tokenData, out Guid result) ? result : (Guid?)null;
             }
 
             return null;
