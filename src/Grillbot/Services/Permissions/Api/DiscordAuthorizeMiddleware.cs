@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json;
 using System;
 using System.Linq;
 using System.Net;
@@ -117,7 +118,8 @@ namespace Grillbot.Services.Permissions.Api
         {
             response.Clear();
             response.StatusCode = (int)code;
-            await response.WriteAsync(text);
+            response.ContentType = "application/json";
+            await response.WriteAsync(JsonConvert.SerializeObject(new { Message = text }));
         }
     }
 }
