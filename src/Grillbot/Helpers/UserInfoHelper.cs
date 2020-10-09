@@ -27,8 +27,12 @@ namespace Grillbot.Helpers
                 .AddField("Jméno", user.User.GetFullName(), true)
                 .AddField("Stav", user.User.Status.ToString(), true)
                 .AddField("Založen", user.User.CreatedAt.LocalDateTime.ToLocaleDatetime(), true)
-                .AddField("Připojen (Pořadí)", $"{joinedAt} ({joinPosition})", true)
-                .AddField("Umlčen (Klient/Server)", $"{user.User.IsMuted().TranslateToCz()}/{user.User.IsSelfMuted().TranslateToCz()}", true)
+                .AddField("Připojen (Pořadí)", $"{joinedAt} ({joinPosition})", true);
+
+            if (user.User.VoiceChannel != null)
+                embed.AddField("Umlčen (Klient/Server)", $"{user.User.IsSelfMuted().TranslateToCz()}/{user.User.IsMuted().TranslateToCz()}", true);
+
+            embed
                 .AddField("Role", !roleNames.Any() ? "Nejsou" : string.Join(", ", roleNames), false);
 
             if (user.User.PremiumSince != null)
