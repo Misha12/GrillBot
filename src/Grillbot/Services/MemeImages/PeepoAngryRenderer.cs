@@ -15,7 +15,7 @@ namespace Grillbot.Services.MemeImages
             using var graphics = Graphics.FromImage(body);
 
             using var profilePic = await UserHelper.DownloadProfilePictureAsync(user, 64, true);
-            graphics.DrawImage(profilePic, new Point(20, 20));
+            graphics.DrawImage(profilePic, new Rectangle(new Point(20, 10), new Size(64, 64)));
 
             using var peepoImage = Img.FromFile(config.ImagePath);
             graphics.DrawImage(peepoImage, new Point(115, -5));
