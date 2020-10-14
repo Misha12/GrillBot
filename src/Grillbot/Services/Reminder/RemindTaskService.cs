@@ -20,6 +20,8 @@ namespace Grillbot.Services.Reminder
 {
     public class ReminderTaskService : IInitiable
     {
+        private const int RemindersPerTickLimit = 10;
+
 #pragma warning disable IDE0052 // Remove unread private members
         private Timer Timer { get; }
 #pragma warning restore
@@ -48,6 +50,15 @@ namespace Grillbot.Services.Reminder
         {
             var remindersToProcess = Data
                 .Where(o => (o.At - DateTime.Now).TotalSeconds <= 0);
+
+            var remindersToProcessCount = remindersToProcess.Count();
+
+            if (remindersToProcessCount == 0) return;
+            if (remindersToProcessCount > RemindersPerTickLimit)
+            {
+                Logger.LogWarning($"Fetched reminders: {remindersToProcessCount} to process. Throttled to {RemindersPerTickLimit}");
+                remindersToProcess = remindersToProcess.Take(RemindersPerTickLimit);
+            }
 
             var tasks = remindersToProcess
                 .Select(o => ProcessReminderAsync(o))

@@ -9,6 +9,9 @@ namespace Grillbot.Services.Unverify
 {
     public class UnverifyTaskService : IInitiable, IDisposable
     {
+        private const int IntervalCheckSecs = 10;
+        private const int MaxPerProcessCount = 5;
+
         private IServiceProvider Provider { get; }
         private BotState BotState { get; }
 
@@ -28,8 +31,11 @@ namespace Grillbot.Services.Unverify
             // Select all users who will be allowed access and are no longer being processed.
             var keysOfUsers = BotState.UnverifyCache
                 .Where(o => (o.Value - DateTime.Now).TotalSeconds <= 0.0F)
+                .Take(MaxPerProcessCount)
                 .Select(o => o.Key.Split('|'))
                 .Where(o => !BotState.CurrentReturningUnverifyFor.Any(x => x.Id.ToString() == o[1]));
+
+            if (!keysOfUsers.Any()) return;
 
             var unverifiesToReturn = keysOfUsers
                 .Select(o => service.AutoUnverifyRemoveAsync(o[0], o[1]))
@@ -50,7 +56,7 @@ namespace Grillbot.Services.Unverify
 
         public void Init()
         {
-            var interval = TimeSpan.FromSeconds(10);
+            var interval = TimeSpan.FromSeconds(IntervalCheckSecs);
             Timer = new Timer(TimerCallback, null, interval, interval);
         }
 
