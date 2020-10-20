@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using System;
@@ -52,7 +52,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) to cache.");
+                Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) ({(channel.Guild?.Name ?? "NoGuild")}) to cache.");
             }
         }
 
