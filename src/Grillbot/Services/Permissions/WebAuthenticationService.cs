@@ -1,5 +1,4 @@
-﻿using Discord.WebSocket;
-using Grillbot.Database.Repository;
+using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authentication.Cookies;
@@ -28,7 +27,6 @@ namespace Grillbot.Services.Permissions
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || guildID == default)
                 return null;
 
-            SocketGuildUser user;
             try
             {
                 var guild = DiscordClient.GetGuild(guildID);
@@ -40,15 +38,16 @@ namespace Grillbot.Services.Permissions
                 if (usernameFields.Length != 2)
                     return null; // Invalid username format.
 
-                user = await guild.GetUserFromGuildAsync(usernameFields[0], usernameFields[1]);
+                var user = await guild.GetUserFromGuildAsync(usernameFields[0], usernameFields[1]);
 
                 if (user == null)
                     return null; // User not found in guild.
 
-                if (!UserService.AuthenticateWebAccess(guild, user, password, out long userID))
+                var userID = await UserService.AuthenticateWebAccessAsync(guild, user, password);
+                if (userID == null)
                     return null; // Invalid password, or unallowed access.
 
-                await UserService.IncrementWebAdminLoginCount(userID);
+                await UserService.IncrementWebAdminLoginCountAsync(userID.Value);
 
                 var claims = new[]
                 {

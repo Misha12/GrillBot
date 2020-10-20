@@ -126,7 +126,7 @@ namespace Grillbot.Database.Repository
         public Task<DiscordUser> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
         {
             return GetBaseQuery(includes)
-                .FirstOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString());
+                .SingleOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString());
         }
 
         public Task<DiscordUser> GetUserAsync(long userID, UsersIncludes includes)
@@ -183,10 +183,10 @@ namespace Grillbot.Database.Repository
             return entity;
         }
 
-        public DiscordUser FindUserByApiToken(string apiToken)
+        public Task<DiscordUser> FindUserByApiTokenAsync(string apiToken)
         {
             return GetBaseQuery(UsersIncludes.None)
-                .FirstOrDefault(o => o.ApiToken == apiToken);
+                .SingleOrDefaultAsync(o => o.ApiToken == apiToken);
         }
 
         public List<DiscordUser> GetUsersWithBirthday(ulong guildID)

@@ -11,7 +11,7 @@ namespace Grillbot.Services.UserManagement
 {
     public partial class UserService
     {
-        public async Task IncrementWebAdminLoginCount(long userID)
+        public async Task IncrementWebAdminLoginCountAsync(long userID)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UserStatisticsRepository>();
@@ -19,22 +19,16 @@ namespace Grillbot.Services.UserManagement
             await repository.IncrementWebAdminLoginCount(userID);
         }
 
-        public bool AuthenticateWebAccess(SocketGuild guild, SocketGuildUser user, string password, out long userID)
+        public async Task<long?> AuthenticateWebAccessAsync(SocketGuild guild, SocketGuildUser user, string password)
         {
-            userID = -1;
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            var userEntity = await repository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
-            lock (locker)
-            {
-                using var scope = Services.CreateScope();
-                using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-                var userEntity = repository.GetUser(guild.Id, user.Id, UsersIncludes.None);
+            if (string.IsNullOrEmpty(userEntity?.WebAdminPassword) || !BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword))
+                return null;
 
-                if (string.IsNullOrEmpty(userEntity?.WebAdminPassword))
-                    return false;
-
-                userID = userEntity.ID;
-                return BCrypt.Net.BCrypt.Verify(password, userEntity.WebAdminPassword);
-            }
+            return userEntity.ID;
         }
 
         public string AddUserToWebAdmin(SocketGuild guild, SocketGuildUser user, string password = null)

@@ -21,7 +21,8 @@ namespace Grillbot.Database.Repository
 
         public async Task IncrementApiCallCountAsync(string token)
         {
-            var user = GetBaseQuery().SingleOrDefault(o => o.ApiToken == token);
+            var user = await GetBaseQuery()
+                .SingleOrDefaultAsync(o => o.ApiToken == token);
 
             if (user == null)
                 throw new InvalidOperationException($"Requested API ({token}) token was not found.");
@@ -35,7 +36,8 @@ namespace Grillbot.Database.Repository
 
         public async Task IncrementWebAdminLoginCount(long userId)
         {
-            var user = GetBaseQuery().SingleOrDefault(o => o.ID == userId);
+            var user = await GetBaseQuery()
+                .SingleOrDefaultAsync(o => o.ID == userId);
 
             if (user == null)
                 throw new InvalidOperationException($"User with ID ({userId}) not found.");

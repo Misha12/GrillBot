@@ -57,6 +57,16 @@ namespace Grillbot.Services.Permissions
                 if (haveBan)
                     return PermissionsResult.UserIsBanned;
 
+                var haveExplicitAllow = config.Permissions.Any(o => o.PermType == PermType.User && o.DiscordIDSnowflake == user.Id && o.AllowType == AllowType.Allow);
+                if (haveExplicitAllow)
+                    return PermissionsResult.Success;
+
+                foreach (var role in user.Roles)
+                {
+                    if (config.Permissions.Any(o => o.PermType == PermType.Role && o.DiscordIDSnowflake == role.Id && o.AllowType == AllowType.Deny))
+                        return PermissionsResult.RoleIsBanned;
+                }
+
                 foreach (var permission in config.Permissions)
                 {
                     switch (permission.PermType)
@@ -66,7 +76,6 @@ namespace Grillbot.Services.Permissions
                             if (haveRole && permission.AllowType == AllowType.Allow)
                                 return PermissionsResult.Success;
                             break;
-                        case PermType.User when permission.DiscordIDSnowflake == user.Id && permission.AllowType == AllowType.Allow:
                         case PermType.Everyone:
                             return PermissionsResult.Success;
                     }

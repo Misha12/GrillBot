@@ -21,6 +21,7 @@ namespace Grillbot.Services.Permissions.Preconditions
                 PermissionsResult.PMNotAllowed => PreconditionResult.FromError("Tento příkaz nelze provést v soukromé konverzaci."),
                 PermissionsResult.UserIsBanned => PreconditionResult.FromError("Tento příkaz nemůžeš použít."),
                 PermissionsResult.NoPermissions => PreconditionResult.FromError("Tento příkaz nemá nakonfigurované oprávnění."),
+                PermissionsResult.RoleIsBanned => PreconditionResult.FromError("Jedna z tvých rolí ti znemožňuje použít příkaz."),
                 _ => PreconditionResult.FromSuccess(),
             };
         }

@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Enums
+namespace Grillbot.Enums
 {
     public enum PermissionsResult
     {
@@ -8,6 +8,7 @@
         OnlyAdmins,
         UserIsBanned,
         MissingPermissions,
-        NoPermissions
+        NoPermissions,
+        RoleIsBanned
     }
 }

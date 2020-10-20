@@ -44,7 +44,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            var user = repository.FindUserByApiToken(apiToken);
+            var user = await repository.FindUserByApiTokenAsync(apiToken);
 
             if (user == null)
                 return null;
