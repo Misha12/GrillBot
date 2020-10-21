@@ -37,7 +37,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
             if (MessageCache.Exists(message.Id))
                 MessageCache.TryRemove(message.Id);
 
-            await MessageCache.AppendAroundAsync(channel, message.Id);
+            await MessageCache.AppendAroundAsync(channel, message.Id, 100);
         }
 
         private async Task ProcessWithoutCacheRecordAsync(ulong messageId, ISocketMessageChannel channel)
