@@ -2,27 +2,59 @@
 
 @{
     ViewData["Title"] = "Unverify";
+
+    var page = Context.Request.Query.TryGetValue("page", out Microsoft.Extensions.Primitives.StringValues values) ? Convert.ToInt32(values.ToString()) : 0;
+
+    if (page > Model.Unverifies.Count)
+        page = Model.Unverifies.Count;
+    else if (page < 0)
+        page = 0;
 }
 
-<section class="mt-4">
-    @if (Model.Unverifies != null && Model.Unverifies.Count > 0)
-    {
-        <div class="d-flex justify-content-center">
-            <div class="card" style="width: 1800px">
-                <h5 class="card-header">Aktuálně odebrané přístupy</h5>
-                <div class="card-body">
-                    <div class="d-flex flex-wrap justify-content-between">
-                        @foreach (var user in Model.Unverifies)
-                        {
-                            <partial name="CurrentlyUnverifiedPartial" model="user" />
-                        }
-                    </div>
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h4 class="card-title font-weight-light mb-0 pb-0">Unverify status</h4>
+        </div>
+
+        <div class="card-body">
+            @if (Model.Unverifies == null || Model.Unverifies.Count == 0)
+            {
+                <h2 class="text-center">Aktuálně nemá nikdo odebraný přístup</h2>
+            }
+            else
+            {
+                var item = Model.Unverifies[page];
+                <partial name="CurrentlyUnverifiedPartial" model="item" />
+
+                <ul class="pagination justify-content-center">
+                    <li class="page-item disabled">
+                        <a class="page-link" href="#" tabindex="-1">Zpět</a>
+                    </li>
+                    <li class="page-item">
+                        <span class="page-link" href="#">@(page)</span>
+                    </li>
+                    <li class="page-item">
+                        <a class="page-link" href="#">Vpřed</a>
+                    </li>
+                </ul>
+            }
+        </div>
+    </div>
+</div>
+
+@if (Model.Unverifies != null && Model.Unverifies.Count > 0)
+{
+    <div class="d-flex justify-content-center">
+        <div class="card" style="width: 1800px">
+            <div class="card-body">
+                <div class="d-flex flex-wrap justify-content-between">
+                    @foreach (var user in Model.Unverifies)
+                    {
+                        <partial name="CurrentlyUnverifiedPartial" model="user" />
+                    }
                 </div>
             </div>
         </div>
-    }
-    else
-    {
-        <h2 class="text-center">Momentálně nemá nikdo odebraný přístup.</h2>
-    }
-</section>
+    </div>
+}
