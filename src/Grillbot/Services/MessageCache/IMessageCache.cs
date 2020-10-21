@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Grillbot.Services.Initiable;
 using System;
 using System.Collections.Generic;
@@ -15,5 +15,6 @@ namespace Grillbot.Services.MessageCache
         bool Exists(ulong id);
         Task<IMessage> GetAsync(ulong channelID, ulong messageID);
         IEnumerable<IMessage> GetFromChannel(ulong channelId);
+        Task AppendAroundAsync(IMessageChannel channel, ulong messageID, int limit = 50);
     }
 }

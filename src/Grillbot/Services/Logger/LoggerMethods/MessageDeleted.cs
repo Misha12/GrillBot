@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
@@ -36,6 +36,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
             if (MessageCache.Exists(message.Id))
                 MessageCache.TryRemove(message.Id);
+
+            await MessageCache.AppendAroundAsync(channel, message.Id);
         }
 
         private async Task ProcessWithoutCacheRecordAsync(ulong messageId, ISocketMessageChannel channel)

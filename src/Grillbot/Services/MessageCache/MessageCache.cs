@@ -23,26 +23,20 @@ namespace Grillbot.Services.MessageCache
 
         public async Task InitAsync()
         {
-            var textChannels = Client.Guilds.SelectMany(o => o.Channels).OfType<SocketTextChannel>().ToList();
-            var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 15000 };
-            var messages = new Dictionary<ulong, IMessage>();
+            var textChannels = Client.Guilds.SelectMany(o => o.TextChannels);
+            var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 5000 };
 
             foreach (var channel in textChannels)
             {
-                await InitChannel(messages, channel, options).ConfigureAwait(false);
+                await InitChannel(Data, channel, options).ConfigureAwait(false);
             }
-
-            if (Data.Count > 0)
-                Data.Clear();
-
-            Data = messages;
         }
 
         private async Task InitChannel(Dictionary<ulong, IMessage> messages, SocketTextChannel channel, RequestOptions options = null)
         {
             try
             {
-                var messagesFromApi = (await channel.GetMessagesAsync(options: options).FlattenAsync().ConfigureAwait(false)).ToList();
+                var messagesFromApi = await channel.GetMessagesAsync(options: options).FlattenAsync();
 
                 foreach (var message in messagesFromApi)
                 {
@@ -53,6 +47,20 @@ namespace Grillbot.Services.MessageCache
             catch (Exception ex)
             {
                 Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) ({(channel.Guild?.Name ?? "NoGuild")}) to cache.");
+            }
+        }
+
+        public async Task AppendAroundAsync(IMessageChannel channel, ulong messageID, int limit = 50)
+        {
+            limit /= 2;
+
+            var messages = (await channel.GetMessagesAsync(messageID, Direction.After, limit).FlattenAsync()).ToList();
+            messages.AddRange(await channel.GetMessagesAsync(messageID, Direction.Before, limit).FlattenAsync());
+
+            foreach (var message in messages)
+            {
+                if (!Data.ContainsKey(message.Id))
+                    Data.Add(message.Id, message);
             }
         }
 
