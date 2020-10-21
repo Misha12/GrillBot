@@ -1,0 +1,27 @@
+﻿body {
+    background-color: #222 !important;
+    color: whitesmoke;
+}
+
+.card.bg-dark {
+    background-color: #303030 !important;
+    color: white;
+}
+
+    .card.bg-dark .card-header {
+        background-color: #444 !important;
+    }
+
+.pagination .page-item.disabled .page-link {
+    background-color: #007053 !important;
+}
+
+.pagination .page-item.active .page-link {
+    background-color: #00efb2 !important;
+}
+
+.pagination .page-item .page-link {
+    background-color: #00bc8c !important;
+    border-color: transparent;
+    color: white;
+}
