@@ -13,6 +13,7 @@ using Grillbot.Services.MessageCache;
 using Grillbot.Services.Permissions;
 using Grillbot.Services.Reminder;
 using Grillbot.Services.Statistics;
+using Grillbot.Services.Statistics.ApiStats;
 using Grillbot.Services.TeamSearch;
 using Grillbot.Services.Unverify;
 using Grillbot.Services.Unverify.WebAdmin;
@@ -116,7 +117,8 @@ namespace Grillbot.Services
             services
                 .AddSingleton<BotLoggingService>()
                 .AddSingleton<Logger.Logger>()
-                .AddTransient<LogEmbedCreator>();
+                .AddTransient<LogEmbedCreator>()
+                .AddSingleton<ApiStatistics>();
 
             return services;
         }

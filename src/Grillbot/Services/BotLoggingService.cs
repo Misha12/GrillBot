@@ -16,9 +16,9 @@ using System.Net.Sockets;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Embed;
 using Grillbot.Database.Entity;
 using Grillbot.Services.ErrorHandling;
+using Grillbot.Services.Statistics.ApiStats;
 
 namespace Grillbot.Services
 {
@@ -31,10 +31,12 @@ namespace Grillbot.Services
         private IServiceProvider Services { get; }
         private ILogger<BotLoggingService> Logger { get; }
         private Configuration Config { get; }
+        private ApiStatistics ApiStatistics { get; }
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services, ILogger<BotLoggingService> logger)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services, ILogger<BotLoggingService> logger,
+            ApiStatistics apiStatistics)
         {
             Client = client;
             Commands = commands;
@@ -42,12 +44,14 @@ namespace Grillbot.Services
             LogRoom = config.Value.Discord.ErrorLogChannelID;
             Services = services;
             Config = config.Value;
+            ApiStatistics = apiStatistics;
         }
 
         public async Task OnLogAsync(LogMessage message)
         {
             await PostException(message).ConfigureAwait(false);
             Write(message.Severity, message.Message, message.Source, message.Exception);
+            ApiStatistics.Increment(message);
         }
 
         private async Task PostException(LogMessage message)

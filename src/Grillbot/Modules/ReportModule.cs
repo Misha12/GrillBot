@@ -1,10 +1,13 @@
-﻿using Discord.Commands;
+using Discord;
+using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Statistics;
+using Grillbot.Services.Statistics.ApiStats;
 using System;
 using System.Diagnostics;
 using System.Linq;
@@ -20,12 +23,15 @@ namespace Grillbot.Modules
         private InternalStatistics InternalStatistics { get; }
         private BotStatusService BotStatusService { get; }
         private DiscordSocketClient Discord { get; }
+        private ApiStatistics ApiStatistics { get; }
 
-        public ReportModule(InternalStatistics internalStatistics, BotStatusService botStatusService, DiscordSocketClient discord)
+        public ReportModule(InternalStatistics internalStatistics, BotStatusService botStatusService, DiscordSocketClient discord, ApiStatistics apiStatistics,
+            PaginationService pagination) : base(paginationService: pagination)
         {
             InternalStatistics = internalStatistics;
             BotStatusService = botStatusService;
             Discord = discord;
+            ApiStatistics = apiStatistics;
         }
 
         [Command("commands")]
@@ -120,6 +126,34 @@ namespace Grillbot.Modules
                 .AddField("CPU čas", status.ActiveCpuTime.ToString(), false);
 
             await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("api")]
+        [Summary("Report volání na Discord API")]
+        public async Task ReportAPIAsync()
+        {
+            var pages = ApiStatistics.Data.Where(o => o.Count > 0).Select(o =>
+            {
+                var fields = new[]
+                {
+                    new EmbedFieldBuilder().WithName("Počet volání").WithValue(o.Count.FormatWithSpaces()),
+                    new EmbedFieldBuilder().WithName("Minimální čas").WithValue(o.MinTime.ToString()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Nejvyšší čas").WithValue(o.MaxTime.ToString()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Průměrný čas").WithValue(o.AvgTime.ToString()).WithIsInline(true),
+                    new EmbedFieldBuilder().WithName("Celkový čas").WithValue(o.TotalTime.ToString())
+                }.ToList();
+
+                return new PaginatedEmbedPage(o.MethodName, fields);
+            });
+
+            var embed = new PaginatedEmbed()
+            {
+                Pages = pages.ToList(),
+                ResponseFor = Context.User,
+                Title = "Statistika volání na API"
+            };
+
+            await SendPaginatedEmbedAsync(embed);
         }
     }
 }
