@@ -3,12 +3,12 @@
 @{
     ViewData["Title"] = "Unverify";
 
-    var page = Context.Request.Query.TryGetValue("page", out Microsoft.Extensions.Primitives.StringValues values) ? Convert.ToInt32(values.ToString()) : 0;
+    var page = Context.Request.Query.TryGetValue("page", out Microsoft.Extensions.Primitives.StringValues values) ? Convert.ToInt32(values.ToString()) : 1;
 
     if (page > Model.Unverifies.Count)
         page = Model.Unverifies.Count;
-    else if (page < 0)
-        page = 0;
+    else if (page < 1)
+        page = 1;
 }
 
 <div class="container">
@@ -24,37 +24,21 @@
             }
             else
             {
-                var item = Model.Unverifies[page];
+                var item = Model.Unverifies[page - 1];
                 <partial name="CurrentlyUnverifiedPartial" model="item" />
 
                 <ul class="pagination justify-content-center">
-                    <li class="page-item disabled">
-                        <a class="page-link" href="#" tabindex="-1">Zpět</a>
+                    <li class="page-item @(page <= 1 ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(page - 1)" tabindex="-1">Zpět</a>
                     </li>
                     <li class="page-item">
                         <span class="page-link" href="#">@(page)</span>
                     </li>
-                    <li class="page-item">
-                        <a class="page-link" href="#">Vpřed</a>
+                    <li class="page-item @(page == Model.Unverifies.Count ? "disabled" : "")">
+                        <a class="page-link" href="?page=@(page + 1)">Vpřed</a>
                     </li>
                 </ul>
             }
         </div>
     </div>
 </div>
-
-@if (Model.Unverifies != null && Model.Unverifies.Count > 0)
-{
-    <div class="d-flex justify-content-center">
-        <div class="card" style="width: 1800px">
-            <div class="card-body">
-                <div class="d-flex flex-wrap justify-content-between">
-                    @foreach (var user in Model.Unverifies)
-                    {
-                        <partial name="CurrentlyUnverifiedPartial" model="user" />
-                    }
-                </div>
-            </div>
-        </div>
-    </div>
-}

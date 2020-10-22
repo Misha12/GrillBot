@@ -8,7 +8,7 @@
     color: white;
 }
 
-    .card.bg-dark .card-header {
+    .card.bg-dark .card-header, .card.bg-dark .card-footer {
         background-color: #444 !important;
     }
 
