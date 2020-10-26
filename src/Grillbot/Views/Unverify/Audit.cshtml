@@ -22,224 +22,223 @@
     }
 }
 
-<div class="mt-3 mr-3 ml-3">
-    <div class="d-flex justify-content-center">
-        <form method="post" class="card" style="width: 1100px">
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col-md-4 mb-3">
-                        <label for="FormData.GuildID">Server</label>
-                        <select class="form-control" asp-for="FormData.GuildID">
-                            @foreach (var guild in Model.Guilds)
-                            {
-                                <option value="@guild.Id">@guild.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="Request.FromUserQuery">Volající</label>
-                        <input class="form-control" asp-for="FormData.FromUserQuery" />
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="FormData.ToUserQuery">Cílový uživatel</label>
-                        <input class="form-control" asp-for="FormData.ToUserQuery" />
-                    </div>
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h3 class="card-title font-weight-light mb-0 pb-0">Unverify log</h3>
+        </div>
+
+        <form class="card-header" method="get">
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Request.Operation">Operace</label>
+                    <select class="form-control" asp-for="FormData.Operation" asp-items="Html.GetEnumSelectList<Grillbot.Database.Enums.UnverifyLogOperation>()">
+                        <option value="">Nezáleží</option>
+                    </select>
                 </div>
-                <div class="form-row">
-                    <div class="col-md-4 mb-3">
-                        <label for="Request.Operation">Operace</label>
-                        <select class="form-control" asp-for="FormData.Operation" asp-items="Html.GetEnumSelectList<Grillbot.Database.Enums.UnverifyLogOperation>()">
-                            <option value="">Nezáleží</option>
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="Request.DateTimeFrom">Datum a čas od</label>
-                        <input type="datetime-local" class="form-control" asp-for="FormData.DateTimeFrom">
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="Request.DateTimeTo">Datum a čas do</label>
-                        <input type="datetime-local" class="form-control" asp-for="FormData.DateTimeTo">
-                    </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.FromUserQuery">Volající</label>
+                    <input class="form-control" asp-for="FormData.FromUserQuery" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeFrom">Datum a čas od</label>
+                    <input type="datetime-local" class="form-control" asp-for="FormData.DateTimeFrom">
                 </div>
             </div>
 
-            <div class="card-footer">
-                <div class="form-row">
-                    <div class="col-md-5">
-                        <input type="radio" asp-for="FormData.OrderAsc" value="true" id="ASC_ORDER" /> <label for="ASC_ORDER" class="mb-0">Vzestupně</label><br />
-                        <input type="radio" asp-for="FormData.OrderAsc" value="false" id="DESC_ORDER" /> <label for="DESC_ORDER" class="mb-0">Sestupně</label>
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="FormData.GuildID">Server</label>
+                    <select class="form-control" asp-for="FormData.GuildID">
+                        @foreach (var guild in Model.Guilds)
+                        {
+                            <option value="@guild.Id">@guild.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="FormData.ToUserQuery">Cílový uživatel</label>
+                    <input class="form-control" asp-for="FormData.ToUserQuery" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeTo">Datum a čas do</label>
+                    <input type="datetime-local" class="form-control" asp-for="FormData.DateTimeTo">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-3 d-flex justify-content-between align-items-center">
+                    <div>
+                        <input type="radio" asp-for="FormData.OrderAsc" value="true" id="ASC_ORDER" />
+                        <label for="ASC_ORDER" class="mb-0">Vzestupně</label>
                     </div>
 
-                    <div class="col-md-2 d-flex justify-content-center">
-                        <div class="form-group mb-0">
-                            <label for="FormData.Page" class="m-0"><small>Strana</small></label>
-                            <input type="number" class="form-control form-control-sm" asp-for="FormData.Page" min="0">
-                        </div>
+                    <div>
+                        <input type="radio" asp-for="FormData.OrderAsc" value="false" id="DESC_ORDER" />
+                        <label for="DESC_ORDER" class="mb-0">Sestupně</label>
                     </div>
+                </div>
 
-                    <div class="col-md-1"></div>
+                <div class="col-md-2"></div>
 
-                    <div class="col-md-4 d-flex justify-content-end align-items-end">
-                        <button type="submit" class="btn btn-primary">Potvrdit</button>
-                    </div>
+                <div class="col-md-2 d-flex justify-content-center">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item @(!Model.PaginationInfo.CanPrev ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page - 1))" type="button">Vpřed</button>
+                        </li>
+                        <li class="page-item">
+                            <span class="page-link">@Model.PaginationInfo.Page</span>
+                        </li>
+                        <li class="page-item @(!Model.PaginationInfo.CanNext ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page + 1))" type="button">Vpřed</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-md-3"></div>
+
+                <div class="col-md-2 d-flex justify-content-between align-items-end">
+                    <button class="btn btn-danger" type="button" onclick="clearFilter(false)">Vyčistit</button>
+                    <button type="submit" class="btn btn-success">Potvrdit</button>
                 </div>
             </div>
         </form>
-    </div>
 
-    <div class="d-flex justify-content-center mt-4">
-        <div class="d-block mb-3 w-100" style="max-width: 1700px;">
+        <div class="card-body">
             @foreach (var item in Model.LogItems)
             {
-                <div class="card mt-3 only-border-left border-@getLeftBorderClass(item.Operation) two-px-border">
-                    <div class="card-body p-2 pb-0">
-                        <table class="table table-sm table-striped mb-0">
-                            <tr>
-                                <th style="width: 200px">ID:</th>
-                                <td>@item.ID</td>
-                            </tr>
+                <div class="card bg-dark mb-3 only-border-left border-@getLeftBorderClass(item.Operation) two-px-border">
+                    <div class="card-header">
+                        #@item.ID - @item.Operation
+                    </div>
 
-                            <tr>
-                                <th>Operace:</th>
-                                <td>@item.Operation</td>
-                            </tr>
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="row">
+                                    <div class="col-4 font-weight-bold">Zapsáno:</div>
+                                    <div class="col">@item.DateTime.ToLocaleDatetime()</div>
+                                </div>
 
-                            <tr>
-                                <th>Datum a čas:</th>
-                                <td>@item.DateTime.ToLocaleDatetime()</td>
-                            </tr>
-
-                            <tr>
-                                <th>Od uživatele</th>
-                                <td>@item.FromUser.GetFullName()</td>
-                            </tr>
-
-                            <tr>
-                                <th class="bottom-bold-border">Cílový uživatel:</th>
-                                <td class="bottom-bold-border">@item.ToUser.GetFullName()</td>
-                            </tr>
-
-                            @if (item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Remove)
-                            {
-                                <tr>
-                                    <th>Vrácené role:</th>
-                                    <td>
-                                        @foreach (var role in item.RemoveData.ReturnedRoles)
-                                        {
-                                            <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
-                                                @role.Name
-                                            </span>
-                                        }
-                                    </td>
-                                </tr>
-
-                                <tr>
-                                    <th>Vrácené kanály:</th>
-                                    @if (item.RemoveData.ReturnedChannels.Count > 0)
-                                    {
-                                        <td>@string.Join(", ", item.RemoveData.ReturnedChannels.Select(o => $"#{o.Name}"))</td>
-                                    }
-                                    else
-                                    {
-                                        <td>-</td>
-                                    }
-                                </tr>
-                            }
-                            else if (item.Operation == UnverifyLogOperation.Update)
-                            {
-                                <tr>
-                                    <th>Začátek:</th>
-                                    <td>@item.UpdateData.StartDateTime.ToLocaleDatetime()</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Konec:</th>
-                                    <td>@item.UpdateData.EndDateTime.ToLocaleDatetime()</td>
-                                </tr>
-                            }
-                            else if (item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Unverify)
-                            {
-                                <tr>
-                                    <th>Začátek:</th>
-                                    <td>@item.Profile.StartDateTime.ToLocaleDatetime()</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Konec:</th>
-                                    <td>@item.Profile.EndDateTime.ToLocaleDatetime()</td>
-                                </tr>
-
-                                <tr>
-                                    <th>Ponechané role:</th>
-                                    @if (item.Profile.RolesToKeep.Count > 0)
-                                    {
-                                        <td>
-                                            @foreach (var role in item.Profile.RolesToKeep)
-                                            {
-                                                <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
-                                                    @role.Name
-                                                </span>
-                                            }
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td>-</td>
-                                    }
-                                </tr>
-
-                                <tr>
-                                    <th>Odebrané role</th>
-                                    @if (item.Profile.RolesToRemove.Count > 0)
-                                    {
-                                        <td>
-                                            @foreach (var role in item.Profile.RolesToRemove)
-                                            {
-                                                <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
-                                                    @role.Name
-                                                </span>
-                                            }
-                                        </td>
-                                    }
-                                    else
-                                    {
-                                        <td>-</td>
-                                    }
-                                </tr>
-
-                                <tr>
-                                    <th>Ponechané kanály</th>
-                                    @if (item.Profile.ChannelsToKeep.Count > 0)
-                                    {
-                                        <td>@string.Join(", ", item.Profile.ChannelsToKeep.Select(o => $"#{o.Channel.Name}"))</td>
-                                    }
-                                    else
-                                    {
-                                        <td>-</td>
-                                    }
-                                </tr>
-
-                                <tr>
-                                    <th>Odebrané kanály</th>
-                                    @if (item.Profile.ChannelsToRemove.Count > 0)
-                                    {
-                                        <td>@string.Join(", ", item.Profile.ChannelsToRemove.Select(o => $"#{o.Channel.Name}"))</td>
-                                    }
-                                    else
-                                    {
-                                        <td>-</td>
-                                    }
-                                </tr>
-
-                                @if (item.Operation == UnverifyLogOperation.Unverify)
+                                @if (item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Update)
                                 {
-                                    <tr>
-                                        <th>Důvod</th>
-                                        <td>@item.Profile.Reason</td>
-                                    </tr>
+                                    <div class="row">
+                                        <div class="col-4 font-weight-bold">Začátek:</div>
+                                        <div class="col">@item.Profile.StartDateTime.ToLocaleDatetime()</div>
+                                    </div>
+
+                                    <div class="row">
+                                        <div class="col-4 font-weight-bold">Konec:</div>
+                                        <div class="col">@item.Profile.EndDateTime.ToLocaleDatetime()</div>
+                                    </div>
+                                }
+                            </div>
+
+                            <div class="col-md-7">
+                                <div class="row">
+                                    <div class="col-4 font-weight-bold">Od uživatele:</div>
+                                    <div class="col">@item.FromUser.GetFullName()</div>
+                                </div>
+
+                                <div class="row">
+                                    <div class="col-4 font-weight-bold">Uživateli:</div>
+                                    <div class="col">@item.ToUser.GetFullName()</div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @if (item.Operation == UnverifyLogOperation.Unverify)
+                        {
+                            <div class="row mt-2">
+                                <div class="col-12 font-weight-bold">Důvod:</div>
+                                <div class="col">@item.Profile.Reason</div>
+                            </div>
+                        }
+
+                        @if (item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify)
+                        {
+                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove)
+                            {
+                                <h5 class="mt-2">Role</h5>
+                                <h6>Vrácené</h6>
+                                @foreach (var role in item.RemoveData.ReturnedRoles)
+                                {
+                                    <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                                        @role.Name
+                                    </span>
                                 }
                             }
-                        </table>
+                            else if ((item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Unverify) && (item.Profile.RolesToKeep.Count > 0 || item.Profile.RolesToRemove.Count > 0))
+                            {
+                                <h5 class="mt-2">Role</h5>
+
+                                @if (item.Profile.RolesToKeep.Count > 0)
+                                {
+                                    <h6>Ponechané</h6>
+                                    @foreach (var role in item.Profile.RolesToKeep)
+                                    {
+                                        <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                                            @role.Name
+                                        </span>
+                                    }
+                                }
+
+                                if (item.Profile.RolesToRemove.Count > 0)
+                                {
+                                    <h6>Odebrané</h6>
+                                    @foreach (var role in item.Profile.RolesToRemove)
+                                    {
+                                        <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                                            @role.Name
+                                        </span>
+                                    }
+                                }
+                            }
+
+                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove)
+                            {
+                                @if (item.RemoveData.ReturnedChannels.Count > 0)
+                                {
+                                    <h5 class="mt-2">Kanály</h5>
+                                    <h6>Vrácené</h6>
+                                    @foreach (var channel in item.RemoveData.ReturnedChannels)
+                                    {
+                                        <span class="badge" style="background-color: black">
+                                            #@channel.Name
+                                        </span>
+                                    }
+                                }
+                            }
+                            else if ((item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Unverify) && (item.Profile.ChannelsToKeep.Count > 0 || item.Profile.ChannelsToRemove.Count > 0))
+                            {
+                                <h5 class="mt-2">Kanály</h5>
+                                @if (item.Profile.ChannelsToKeep.Count > 0)
+                                {
+                                    <h6>Ponechané</h6>
+                                    @foreach (var channel in item.Profile.ChannelsToKeep)
+                                    {
+                                        <span class="badge" style="background-color: black">
+                                            #@channel.Channel.Name
+                                        </span>
+                                    }
+                                }
+
+                                if (item.Profile.ChannelsToRemove.Count > 0)
+                                {
+                                    <h6>Odebrané</h6>
+                                    @foreach (var channel in item.Profile.ChannelsToRemove)
+                                    {
+                                        <span class="badge" style="background-color: black">
+                                            #@channel.Channel.Name
+                                        </span>
+                                    }
+                                }
+                            }
+                        }
                     </div>
                 </div>
             }

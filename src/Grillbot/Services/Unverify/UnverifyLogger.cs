@@ -4,10 +4,12 @@ using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
+using Grillbot.Models;
 using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
 using Grillbot.Services.Unverify.WebAdmin;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -100,9 +102,22 @@ namespace Grillbot.Services.Unverify
         public async Task<List<UnverifyLogItem>> GetLogsAsync(UnverifyAuditFilterFormData formData)
         {
             var filter = await Converter.ConvertAuditFilter(formData);
-            var data = UnverifyRepository.GetLogs(filter).ToList();
+            var data = await UnverifyRepository.GetLogs(filter).ToListAsync();
 
             return data.Select(o => new UnverifyLogItem(o, Discord)).ToList();
+        }
+
+        public async Task<PaginationInfo> CreatePaginationInfo(UnverifyAuditFilterFormData formData)
+        {
+            var filter = await Converter.ConvertAuditFilter(formData);
+            var logsCount = await UnverifyRepository.GetLogs(filter, true).CountAsync();
+
+            return new PaginationInfo()
+            {
+                CanPrev = filter.Skip != 0,
+                CanNext = filter.Skip + filter.Take < logsCount,
+                Page = formData.Page,
+            };
         }
 
         public void Dispose()
