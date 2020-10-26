@@ -9,7 +9,7 @@ namespace Grillbot.Services.Unverify.WebAdmin
         private DiscordSocketClient DiscordClient { get; }
         private UserSearchService UserSearch { get; }
 
-        private const int PageSize = 25;
+        private const int PageSize = 10;
 
         public UnverifyModelConverter(DiscordSocketClient discord, UserSearchService userSearchService)
         {

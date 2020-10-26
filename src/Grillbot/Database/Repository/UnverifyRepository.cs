@@ -51,13 +51,12 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault(o => o.UserID == id);
         }
 
-        public IQueryable<UnverifyLog> GetLogs(UnverifyAuditFilter filter)
+        public IQueryable<UnverifyLog> GetLogs(UnverifyAuditFilter filter, bool disablePagination = false)
         {
-            var usersFromGuild = Context.Users.AsQueryable().Where(o => o.GuildID == filter.Guild.Id.ToString()).Select(o => o.ID).ToList();
-
             var query = Context.UnverifyLogs.AsQueryable()
-                .Include(o => o.FromUser).Include(o => o.ToUser)
-                .Where(o => usersFromGuild.Contains(o.FromUserID) || usersFromGuild.Contains(o.ToUserID));
+                .Include(o => o.FromUser)
+                .Include(o => o.ToUser)
+                .Where(o => o.FromUser.GuildID == filter.Guild.Id.ToString() && o.ToUser.GuildID == filter.Guild.Id.ToString());
 
             if (filter.FromUsers.Count > 0)
             {
@@ -84,6 +83,9 @@ namespace Grillbot.Database.Repository
                 query = query.OrderBy(o => o.ID);
             else
                 query = query.OrderByDescending(o => o.ID);
+
+            if (disablePagination)
+                return query;
 
             return query
                 .Skip(filter.Skip)

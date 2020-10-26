@@ -5,6 +5,7 @@ using Grillbot.Services.Unverify;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Controllers
@@ -48,20 +49,20 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("Audit")]
-        public async Task<IActionResult> AuditAsync()
+        public async Task<IActionResult> AuditAsync(UnverifyAuditFilterFormData formData = null)
         {
-            var formData = new UnverifyAuditFilterFormData(DiscordClient);
-            var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
+            if (formData == null)
+                formData = new UnverifyAuditFilterFormData();
 
-            return View(viewModel);
-        }
+            if (formData.GuildID == 0)
+                formData.GuildID = DiscordClient.Guilds.FirstOrDefault()?.Id ?? 0;
 
-        [HttpPost("Audit")]
-        public async Task<IActionResult> AuditAsync([FromForm] UnverifyAuditFilterFormData formData)
-        {
+            if (formData.Page < 1)
+                formData.Page = 1;
+
             var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData);
+            var pagination = await UnverifyService.UnverifyLogger.CreatePaginationInfo(formData);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData, pagination);
 
             return View(viewModel);
         }
