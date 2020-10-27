@@ -5,107 +5,136 @@
     ViewData["Title"] = "Uživatelé webové administace";
 }
 
-<section class="mt-3 row ml-0 mr-0">
-    <div class="col-md-12">
-        <form method="get" class="card ml-auto mr-auto" style="width: 1100px">
-            <div class="card-body">
-                <div class="form-row">
-                    <div class="col-md-4 mb-3">
-                        <label for="Filter.GuildID">Server</label>
-                        <select class="form-control" asp-for="Filter.GuildID">
-                            @foreach (var guild in Model.Guilds)
-                            {
-                                <option value="@guild.Id">@guild.Name</option>
-                            }
-                        </select>
-                    </div>
-                    <div class="col-md-4 mb-3">
-                        <label for="Filter.FromUserQuery">Volající</label>
-                        <input class="form-control" asp-for="Filter.UserQuery" />
-                    </div>
-                    <div class="col-md-4">
-                        <label for="Filter.Order">Řadit podle sloupce</label>
-                        <select class="form-control" asp-for="Filter.Order" asp-items="Html.GetEnumSelectList<WebAdminUserOrder>()">
-                        </select>
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h3 class="card-title font-weight-light mb-0 pb-0">Uživatelé</h3>
+        </div>
 
-                        <div class="custom-control custom-checkbox">
-                            <input type="checkbox" class="custom-control-input" id="sortDesc" asp-for="Filter.SortDesc">
-                            <label class="custom-control-label" for="sortDesc">Sestupně</label>
-                        </div>
+        <form method="get" class="card-header">
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.GuildID">Server</label>
+                    <select class="form-control" asp-for="Filter.GuildID">
+                        @foreach (var guild in Model.Guilds)
+                        {
+                            <option value="@guild.Id">@guild.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.FromUserQuery">Uživatelské jméno</label>
+                    <input class="form-control" asp-for="Filter.UserQuery" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.InviteCode">Kód pozvánky</label>
+                    <input class="form-control" asp-for="Filter.UsedInviteCode" />
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-2">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="webadmin" asp-for="Filter.WebAdmin">
+                        <label class="custom-control-label" for="webadmin">WebAdmin přístup</label>
+                    </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="api" asp-for="Filter.ApiAccess">
+                        <label class="custom-control-label" for="api">API přístup</label>
                     </div>
                 </div>
 
-                <div class="form-row">
-                    <div class="col-md-4 mb-3">
-                        <label for="Filter.InviteCode">Kód pozvánky</label>
-                        <input class="form-control" asp-for="Filter.UsedInviteCode" />
+                <div class="col-md-2">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="botadmin" asp-for="Filter.BotAdmin">
+                        <label class="custom-control-label" for="botadmin">Bot Admin</label>
+                    </div>
+                </div>
+
+                <div class="col-md-8">
+                    <div class="d-flex flex-wrap">
+                        @foreach (var item in Html.GetEnumSelectList<WebAdminUserOrder>())
+                        {
+                            <span class="mr-3">
+                                @Html.RadioButtonFor(o => o.Filter.Order, (WebAdminUserOrder)Convert.ToInt32(item.Value), new { id = $"Order_{item.Value}" })
+                                <label for="Order_@item.Value" class="mb-0">@item.Text</label>
+                            </span>
+                        }
+                    </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="botadmin" asp-for="Filter.SortDesc">
+                        <label class="custom-control-label" for="botadmin">Sestupně</label>
                     </div>
                 </div>
             </div>
 
-            <div class="card-footer">
-                <div class="form-row">
-                    <div class="col-md-2">
-                        <label for="Filter.Page">Strana</label>
-                        <input type="number" class="form-control form-control-sm" asp-for="Filter.Page" min="0">
-                    </div>
+            <div class="form-row">
+                <div class="col-md-4 d-flex justify-content-start mt-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item @(!Model.Pagination.CanPrev ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.Pagination.Page - 1), 'Filter.Page')" type="button">Vpřed</button>
+                        </li>
+                        <li class="page-item">
+                            <span class="page-link">@Model.Pagination.Page</span>
+                        </li>
+                        <li class="page-item @(!Model.Pagination.CanNext ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.Pagination.Page + 1), 'Filter.Page')" type="button">Vpřed</button>
+                        </li>
+                    </ul>
+                </div>
 
-                    <div class="col-md d-flex justify-content-end align-items-end">
-                        <button type="submit" class="btn btn-primary">Potvrdit</button>
-                    </div>
+                <div class="col-md-6"></div>
+
+                <div class="col-md-2 d-flex justify-content-between align-items-end">
+                    <button class="btn btn-danger" type="button" onclick="clearFilter(false)">Vyčistit</button>
+                    <button type="submit" class="btn btn-success">Potvrdit</button>
                 </div>
             </div>
         </form>
-    </div>
 
-    <div class="col-md-12 mt-3 ml-auto mr-auto" style="max-width: 1920px;">
-        <table class="table table-sm">
-            <thead>
-                <tr>
-                    <th>ID</th>
-                    <th>Uživatel</th>
-                    <th>Server</th>
-                    <th>Body</th>
-                    <th>Reakce</th>
-                    <th>Počet zpráv</th>
-                    <th>Pozvánka</th>
-                    <th>&nbsp;</th>
-                </tr>
-            </thead>
-            <tbody>
-                @foreach (var user in Model.Users)
-                {
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead class="table-bordered">
                     <tr>
-                        <td>@user.ID</td>
-                        <td>
-                            @user.User.GetFullName()
-
-                            @if (!user.User.IsUser())
-                            {
-                                <span class="badge badge-secondary">Bot</span>
-                            }
-
-                            @if (user.WebAdminAccess)
-                            {
-                                <span class="badge badge-success">WebAdmin</span>
-                            }
-
-                            @if (user.User.IsGuildOwner())
-                            {
-                                <span class="badge badge-dark">GuildOwner</span>
-                            }
-                        </td>
-                        <td>@user.Guild.Name</td>
-                        <td>@user.Points.FormatWithSpaces()</td>
-                        <td>@user.GivenReactionsCount.FormatWithSpaces() / @user.ObtainedReactionsCount.FormatWithSpaces()</td>
-                        <td>@user.TotalMessageCount.FormatWithSpaces()</td>
-                        <td>@(user.UsedInvite?.Code ?? "-")</td>
-                        <td>
-                            <a class="btn btn-sm btn-primary" asp-action="UserInfo" asp-route-userId="@user.ID">Detail</a>
-                        </td>
+                        <th rowspan="2">Uživatel</th>
+                        <th rowspan="2">Práva</th>
+                        <th rowspan="2">Server</th>
+                        <th rowspan="2">Body</th>
+                        <th colspan="2" class="text-center">Reakce</th>
+                        <th rowspan="2">Pozvánka</th>
                     </tr>
-                }
-            </tbody>
-        </table>
+                    <tr>
+                        <th>Udělené</th>
+                        <th>Získané</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var user in Model.Users)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="UserInfo" asp-route-id="@user.ID">
+                                    @user.User.GetFullName()
+                                </a>
+                            </td>
+                            <td>
+                                <span class="badge badge-@(user.IsBotAdmin ? "success" : "danger")">BotAdmin</span>
+                                <span class="badge badge-@(user.ApiAccess ? "success" : "danger")">API</span>
+                                <span class="badge badge-@(user.WebAdminAccess ? "success" : "danger")">WebAdmin</span>
+                            </td>
+                            <td>@user.Guild.Name</td>
+                            <td>@user.Points.FormatWithSpaces()</td>
+                            <td>@user.GivenReactionsCount.FormatWithSpaces()</td>
+                            <td>@user.ObtainedReactionsCount.FormatWithSpaces()</td>
+                            <td>@(user.UsedInvite?.Code ?? "-")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
     </div>
-</section>
+</div>

@@ -72,6 +72,10 @@ namespace Grillbot.Models.Users
 
                 result.UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
             }
+            else if(!string.IsNullOrEmpty(dbUser.UsedInviteCode))
+            {
+                result.UsedInvite = new InviteModel(dbUser.UsedInviteCode);
+            }
 
             result.UnverifyHistory = dbUser.IncomingUnverifyOperations
                     .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)

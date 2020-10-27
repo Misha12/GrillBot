@@ -13,6 +13,11 @@ namespace Grillbot.Services.InviteTracker
         public IUser Creator { get; set; }
         public int? Uses { get; set; }
 
+        public InviteModel(string code)
+        {
+            Code = code;
+        }
+
         public InviteModel(Invite entity, IUser creator, int? uses = null)
         {
             Code = entity.Code;

@@ -25,3 +25,12 @@
     border-color: transparent;
     color: white;
 }
+
+.card.bg-dark .table tr th, .card.bg-dark .table tr td {
+    color: white;
+}
+
+.card.bg-dark .table tr td a {
+    color: white;
+    text-decoration: underline;
+}

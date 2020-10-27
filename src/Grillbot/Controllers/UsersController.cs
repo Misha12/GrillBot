@@ -31,8 +31,9 @@ namespace Grillbot.Controllers
 
             var guilds = Client.Guilds.ToList();
             var users = await UserService.GetUsersList(filter);
+            var pagination = await UserService.CreatePaginationInfo(filter);
 
-            return View(new WebAdminUserListViewModel(users, guilds, filter));
+            return View(new WebAdminUserListViewModel(users, guilds, filter, pagination));
         }
 
         [HttpGet("UserInfo")]
