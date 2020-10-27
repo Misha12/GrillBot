@@ -4,8 +4,10 @@ using Grillbot.Database.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Channelboard;
+using Grillbot.Models.Reminder;
 using Grillbot.Models.Unverify;
 using Grillbot.Services.InviteTracker;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -30,6 +32,9 @@ namespace Grillbot.Models.Users
         public InviteModel UsedInvite { get; set; }
         public List<UnverifyLogItem> UnverifyHistory { get; set; }
         public long Flags { get; set; }
+        public DateTime? UnverifyEndsAt { get; set; }
+        public List<RemindItem> Reminders { get; set; }
+        public List<InviteModel> CreatedInvites { get; set; }
 
         #region FlagFields
 
@@ -52,7 +57,8 @@ namespace Grillbot.Models.Users
                 WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword),
                 Birthday = dbUser.Birthday == null ? null : new UserBirthday(dbUser.Birthday),
                 Statistics = dbUser.Statistics == null ? null : new StatisticItem(dbUser.Statistics),
-                Flags = dbUser.Flags
+                Flags = dbUser.Flags,
+                UnverifyEndsAt = dbUser.Unverify?.EndDateTime
             };
 
             if (botAppInfo.Owner.Id == user.Id)
@@ -81,6 +87,15 @@ namespace Grillbot.Models.Users
                     .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
                     .Select(o => new UnverifyLogItem(o, discordClient))
                     .ToList();
+
+            result.Reminders = new List<RemindItem>();
+            foreach(var remind in dbUser.Reminders)
+            {
+                var fromUser = remind.FromUser != null ? await guild.GetUserFromGuildAsync(remind.FromUser.UserIDSnowflake) : null;
+                result.Reminders.Add(new RemindItem(remind, fromUser));
+            }
+
+            result.CreatedInvites = dbUser.CreatedInvites.Select(o => new InviteModel(o, user, o.UsedUsers.Count)).ToList();
 
             return result;
         }

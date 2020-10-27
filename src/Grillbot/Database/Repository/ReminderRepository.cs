@@ -12,42 +12,41 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        private IQueryable<Reminder> GetBaseQuery(bool includeUsers)
+        private IQueryable<Reminder> GetBaseQuery(bool includeFrom, bool includeTo)
         {
             var query = Context.Reminders.AsQueryable();
 
-            if (includeUsers)
-            {
-                query = query
-                    .Include(o => o.FromUser)
-                    .Include(o => o.User);
-            }
+            if (includeFrom)
+                query = query.Include(o => o.FromUser);
+
+            if (includeTo)
+                query = query.Include(o => o.User);
 
             return query;
         }
 
         public List<Reminder> GetRemindersForInit()
         {
-            return GetBaseQuery(false)
+            return GetBaseQuery(false, false)
                 .Where(o => o.RemindMessageID == null)
                 .ToList();
         }
 
         public Reminder FindReminderByID(long id)
         {
-            return GetBaseQuery(true)
+            return GetBaseQuery(true, true)
                 .SingleOrDefault(o => o.RemindID == id);
         }
 
         public Reminder FindReminderByMessageId(ulong messageId)
         {
-            return GetBaseQuery(true)
+            return GetBaseQuery(true, true)
                 .SingleOrDefault(o => o.RemindMessageID == messageId.ToString());
         }
 
         public Reminder FindReminderByOriginalMessage(ulong messageId)
         {
-            return GetBaseQuery(true)
+            return GetBaseQuery(true, true)
                 .FirstOrDefault(o => o.OriginalMessageID == messageId.ToString());
         }
 
@@ -64,7 +63,7 @@ namespace Grillbot.Database.Repository
 
         public List<Reminder> GetReminders(long? userId)
         {
-            var query = GetBaseQuery(true);
+            var query = GetBaseQuery(true, true);
 
             if (userId != null)
                 query = query.Where(o => o.UserID == userId.Value);
@@ -76,12 +75,12 @@ namespace Grillbot.Database.Repository
 
         public bool ExistsReminder(long id)
         {
-            return GetBaseQuery(false).Any(o => o.RemindID == id);
+            return GetBaseQuery(false, false).Any(o => o.RemindID == id);
         }
 
         public List<Tuple<ulong, ulong, int>> GetLeaderboard()
         {
-            return GetBaseQuery(true)
+            return GetBaseQuery(true, true)
                 .Where(o => o.PostponeCounter > 0)
                 .AsEnumerable()
                 .GroupBy(o => o.UserID)
@@ -93,6 +92,12 @@ namespace Grillbot.Database.Repository
                 .Take(10)
                 .OrderByDescending(o => o.Item3)
                 .ToList();
+        }
+
+        public IQueryable<Reminder> GetRemindersOfUser(long id)
+        {
+            return GetBaseQuery(true, false)
+                .Where(o => o.UserID == id);
         }
     }
 }

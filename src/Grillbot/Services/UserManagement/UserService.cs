@@ -131,21 +131,25 @@ namespace Grillbot.Services.UserManagement
             return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }
 
-        public async Task<DiscordUser> GetUserInfoAsync(long userID, bool full = false)
+        public async Task<DiscordUser> GetCompleteUserInfoAsync(long userID)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
             using var inviteRepository = scope.ServiceProvider.GetService<InviteRepository>();
+            using var channelStatsRepository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
+            using var reminderRepository = scope.ServiceProvider.GetService<ReminderRepository>();
+            using var emoteStatsRepository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
-            var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
-
-            if (full)
-                includes |= UsersIncludes.Birthday | UsersIncludes.Statistics;
+            var includes = UsersIncludes.Statistics | UsersIncludes.Unverify | UsersIncludes.Birthday | UsersIncludes.UnverifyLogIncoming;
 
             var entity = await repository.GetUserAsync(userID, includes);
 
             if (!string.IsNullOrEmpty(entity.UsedInviteCode))
                 entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
+
+            entity.Channels = (await channelStatsRepository.GetChannelsOfUser(entity.ID).ToListAsync()).ToHashSet();
+            entity.Reminders = (await reminderRepository.GetRemindersOfUser(entity.ID).ToListAsync()).ToHashSet();
+            entity.CreatedInvites = (await inviteRepository.GetInvitesOfUser(entity.ID).ToListAsync()).ToHashSet();
 
             return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }

@@ -59,5 +59,12 @@ namespace Grillbot.Database.Repository
                 .Include(o => o.Creator)
                 .SingleOrDefaultAsync(o => o.Code == code);
         }
+
+        public IQueryable<Invite> GetInvitesOfUser(long id)
+        {
+            return Context.Invites
+                .Include(o => o.UsedUsers)
+                .Where(o => o.CreatorId == id);
+        }
     }
 }
