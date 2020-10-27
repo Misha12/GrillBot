@@ -12,6 +12,7 @@ using Grillbot.Helpers;
 using Grillbot.Database.Enums.Includes;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database.Enums;
+using Grillbot.Models;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -25,6 +26,8 @@ namespace Grillbot.Services.UserManagement
         private UserSearchService UserSearchService { get; }
         private BotState BotState { get; }
 
+        private const int PageSize = 25;
+
         public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, UserSearchService userSearchService,
             BotState botState)
         {
@@ -36,26 +39,22 @@ namespace Grillbot.Services.UserManagement
             BotState = botState;
         }
 
-        public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter filter)
+        public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter form)
         {
             var users = new List<DiscordUser>();
-
-            using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-
-            var guild = DiscordClient.GetGuild(filter.GuildID);
+            var guild = DiscordClient.GetGuild(form.GuildID);
 
             if (guild == null)
                 return users;
 
-            var discordUsers = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = discordUsers.Select(o => o.Id).ToList();
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            const int pageSize = 25;
-            var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * pageSize;
+            var filter = await CreateFilter(form, guild);
+            var query = repository.GetUsersQuery(filter, UsersIncludes.None)
+                .Skip((form.Page == 0 ? 0 : form.Page - 1) * PageSize).Take(PageSize);
 
-            var dbUsers = await repository.GetUsers(filter.Order, filter.SortDesc, filter.GuildID, userIds, filter.UsedInviteCode, skip, pageSize).ToListAsync();
-
+            var dbUsers = await query.ToListAsync();
             foreach (var user in dbUsers)
             {
                 var mappedUser = await UserHelper.MapUserAsync(DiscordClient, BotState, user);
@@ -64,6 +63,48 @@ namespace Grillbot.Services.UserManagement
             }
 
             return users;
+        }
+
+        public async Task<PaginationInfo> CreatePaginationInfo(WebAdminUserListFilter form)
+        {
+            var guild = DiscordClient.GetGuild(form.GuildID);
+
+            if (guild == null)
+                return new PaginationInfo();
+
+            using var scope = Services.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+
+            var filter = await CreateFilter(form, guild);
+            var totalCount = await repository.GetUsersQuery(filter, UsersIncludes.None).CountAsync();
+
+            if (form.Page < 0)
+                form.Page = 0;
+
+            var skip = (form.Page == 0 ? 0 : form.Page - 1) * PageSize;
+            return new PaginationInfo()
+            {
+                CanNext = skip + PageSize < totalCount,
+                Page = form.Page,
+                CanPrev = skip != 0
+            };
+        }
+
+        private async Task<UserListFilter> CreateFilter(WebAdminUserListFilter form, SocketGuild guild)
+        {
+            var usersTask = UserSearchService.FindUsersAsync(guild, form.UserQuery);
+
+            return new UserListFilter()
+            {
+                Desc = form.SortDesc,
+                Guild = guild,
+                InviteCode = form.UsedInviteCode,
+                OnlyApiAccess = form.ApiAccess,
+                OnlyBotAdmin = form.BotAdmin,
+                OnlyWebAdmin = form.WebAdmin,
+                Order = form.Order,
+                UserIDs = await usersTask
+            };
         }
 
         public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user, bool full = false)

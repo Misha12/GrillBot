@@ -10,5 +10,9 @@ namespace Grillbot.Models.Users
         public bool SortDesc { get; set; } = true;
         public int Page { get; set; } = 1;
         public string UsedInviteCode { get; set; }
+
+        public bool WebAdmin { get; set; }
+        public bool ApiAccess { get; set; }
+        public bool BotAdmin { get; set; }
     }
 }

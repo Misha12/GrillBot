@@ -1,13 +1,18 @@
-﻿namespace Grillbot.Enums
+using System.ComponentModel.DataAnnotations;
+
+namespace Grillbot.Enums
 {
     public enum WebAdminUserOrder
     {
-        None,
-        UserID,
-        Server,
+        [Display(Name = "Body")]
         Points,
+
+        Server,
+
+        [Display(Name = "Udělené reakce")]
         GivenReactions,
-        ObtainedReactions,
-        MessageCount
+
+        [Display(Name = "Získané reakce")]
+        ObtainedReactions
     }
 }
