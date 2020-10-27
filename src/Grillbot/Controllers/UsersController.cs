@@ -37,9 +37,9 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("UserInfo")]
-        public async Task<IActionResult> UserInfoAsync([FromQuery] int userId)
+        public async Task<IActionResult> UserInfoAsync([FromQuery] int id)
         {
-            var user = await UserService.GetUserInfoAsync(userId, true);
+            var user = await UserService.GetCompleteUserInfoAsync(id);
             return View(new WebAdminUserInfoViewModel(user));
         }
     }

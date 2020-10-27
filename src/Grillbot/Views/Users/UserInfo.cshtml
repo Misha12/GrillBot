@@ -19,208 +19,45 @@
     }
 }
 
-<section class="mt-3" style="max-width: 1920px; margin-left:auto; margin-right: auto">
-    <div class="row mr-0 ml-0">
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-3" style="max-width: 200px">
-                            <img height="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" width="150" alt="@Model.User.User.GetFullName()" class="rounded-circle border" style="border-width: 5px !important;" />
-                        </div>
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h5 class="card-title mb-0 pb-0 font-weight-normal">
+                @Model.User.User.GetFullName()
+                <small>
+                    <span class="badge badge-@getStatusBadge(Model.User.User.Status)">@Model.User.User.Status</span>
 
-                        <div class="col">
-                            <h4>@Model.User.User.Username#@Model.User.User.Discriminator</h4>
-
-
-                            @if (!string.IsNullOrEmpty(Model.User.User.Nickname))
-                            {
-                                <div>
-                                    Alias<br />
-                                    <b>@Model.User.User.Nickname</b>
-                                </div>
-                            }
-
-                            <div class="mt-2">
-                                Server<br />
-                                <b>@Model.User.Guild.Name</b>
-                            </div>
-                        </div>
-
-                        <div class="col-3" style="max-width: 300px">
-                            <span class="badge badge-@getStatusBadge(Model.User.User.Status)">@Model.User.User.Status</span>
-
-                            @if (!Model.User.User.IsUser())
-                            {
-                                <span class="badge badge-secondary">Bot</span>
-                            }
-
-                            @if (Model.User.WebAdminAccess)
-                            {
-                                <span class="badge badge-success" title="Přístup do webové administrace">WebAdmin</span>
-                            }
-
-                            @if (Model.User.ApiAccess)
-                            {
-                                <span class="badge badge-success" title="Přístup k REST API">REST API</span>
-                            }
-
-                            @if (Model.User.User.IsGuildOwner())
-                            {
-                                <span class="badge badge-dark" title="Vlastník serveru @Model.User.Guild.Name">GuildOwner</span>
-                            }
-
-                            @if (Model.User.Birthday != null)
-                            {
-                                <span class="badge badge-success" title="Uživatel má uloženy narozeniny.">Birthday</span>
-                            }
-
-                            @if (Model.User.IsBotAdmin)
-                            {
-                                <span class="badge badge-success" title="Nejvyšší administrátor bota">BotAdmin</span>
-                            }
-                        </div>
-                    </div>
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-body">
-                    <div class="row">
-                        <div class="col-4">
-                            Body<br />
-                            <b>@Model.User.Points.FormatWithSpaces()</b>
-                        </div>
-
-                        <div class="col-4">
-                            Počet zpráv<br />
-                            <b>@Model.User.TotalMessageCount.FormatWithSpaces()</b>
-                        </div>
-
-                        <div class="col-4">
-                            @if (Model.User.User.VoiceChannel != null)
-                            {
-                                <text>Hlasový kanál</text><br />
-                                <b>@Model.User.User.VoiceChannel.Name</b>
-                            }
-                        </div>
-                    </div>
-
-                    <div class="row mt-2">
-                        <div class="col-4">
-                            Uděleno reakcí<br />
-                            <b>@Model.User.GivenReactionsCount.FormatWithSpaces()</b>
-                        </div>
-
-                        <div class="col-4">
-                            Získáno reakcí<br />
-                            <b>@Model.User.ObtainedReactionsCount.FormatWithSpaces()</b>
-                        </div>
-                    </div>
-
-                    <div class="row mt-2">
-                        <div class="col-4">
-                            Registrován<br />
-                            <b>@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</b>
-                        </div>
-
-                        <div class="col-4">
-                            Připojen<br />
-                            <b>@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</b>
-                        </div>
-
-                        <div class="col-4">
-                            Boost od<br />
-
-                            <b>
-                                @if (Model.User.User.PremiumSince != null)
-                                {
-                                    @Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()
-                                }
-                                else
-                                {
-                                    <text>Boost nenalezen</text>
-                                }
-                            </b>
-                        </div>
-                    </div>
-
-                    @if (Model.User.Statistics != null)
+                    @if (!Model.User.User.IsUser())
                     {
-                        <div class="row mt-2">
-                            <div class="col-4">
-                                Počet volání API<br />
-                                <b>@Model.User.Statistics.ApiCallsCount.FormatWithSpaces()</b>
-                            </div>
-
-                            <div class="col-4">
-                                Počet přihlášení<br />
-                                <b>@Model.User.Statistics.WebAdminLoginCount.FormatWithSpaces()</b>
-                            </div>
-                        </div>
+                        <span class="badge badge-secondary">Bot</span>
                     }
-
-                    @if (Model.User.UsedInvite != null)
-                    {
-                        <div class="row mt-2">
-                            <div class="col-12">
-                                Použitá pozvánka<br />
-                                @if (Model.User.UsedInvite.Code == Model.User.Guild.VanityURLCode)
-                                {
-                                    <b>Vanity (@Model.User.UsedInvite.Code)</b>
-                                }
-                                else
-                                {
-                                    <b>@Model.User.UsedInvite.Code<br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())</b>
-                                }
-                            </div>
-                        </div>
-                    }
-                </div>
-            </div>
-
-            <div class="card mt-3">
-                <div class="card-header d-flex justify-content-between">
-                    <h4 class="card-title mb-0">Kanály</h4>
-                    <a class="btn btn-dark btn-sm" data-toggle="collapse" href="#channelsCollapse" role="button" aria-controls="channelsCollapse" aria-expanded="true">Skrýt/Zobrazit</a>
-                </div>
-
-                <div class="card-body collapse show" id="channelsCollapse">
-                    <table class="table table-sm table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>Kanál</th>
-                                <th>Počet zpráv</th>
-                                <th>Poslední zpráva</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @if (Model.User.Channels.Count == 0)
-                            {
-                                <tr class="text-center">
-                                    <th colspan="3">Žádná aktivita v kanálech ještě nebyla zaznamenána.</th>
-                                </tr>
-                            }
-                            else
-                            {
-                                @foreach (var channel in Model.User.Channels)
-                                {
-                                    <tr>
-                                        <td>#@channel.Channel.Name</td>
-                                        <td>@channel.Count.FormatWithSpaces()</td>
-                                        <td>@channel.LastMessageAt.ToLocaleDatetime()</td>
-                                    </tr>
-                                }
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+                </small>
+            </h5>
         </div>
 
-        <div class="col-md-6">
-            <div class="card">
-                <div class="card-body">
+        <div class="card-body">
+            <div class="row">
+                <div class="col-3" style="max-width: 200px">
+                    <img height="150" width="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" alt="@Model.User.User.GetFullName()" class="rounded-circle border" style="border-width: 5px !important" />
+                </div>
+
+                <div class="col">
+                    <div>
+                        Server<br />
+                        <b>@Model.User.Guild.Name</b>
+                    </div>
+
+                    <div class="mt-4">
+                        <span class="badge badge-@(Model.User.WebAdminAccess ? "success" : "danger")" title="Přístup do webové administrace">WebAdmin</span>
+                        <span class="badge badge-@(Model.User.ApiAccess ? "success" : "danger")" title="Přístup k REST API">API</span>
+                        <span class="badge badge-@(Model.User.Birthday != null ? "success" : "danger")" title="Uživatel má uloženy narozeniny.">Birthday</span>
+                        <span class="badge badge-@(Model.User.IsBotAdmin ? "success" : "danger")" title="Nejvyšší administrátor bota">BotAdmin</span>
+                    </div>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-12">
                     <h4>Role</h4>
 
                     <div>
@@ -233,74 +70,256 @@
                     </div>
 
                     <h4 class="mt-2">Práva</h4>
-
                     <div>
                         @if (Model.User.User.GuildPermissions.Administrator)
                         {
-                            <span class="badge badge-dark">Administrator</span>
+                            <span class="badge" style="background-color: black">Administrator</span>
                         }
                         else
                         {
                             @foreach (var permission in Model.User.User.GuildPermissions.ToList())
                             {
-                                <span class="badge badge-dark">@permission.ToString()</span>
+                                <span class="badge" style="background-color: black">@permission.ToString()</span>
                             }
                         }
                     </div>
+                </div>
+            </div>
 
-                    @if (Model.User.User.ActiveClients != null && Model.User.User.ActiveClients.Count > 0)
+            <div class="row mt-4">
+                <div class="col-3">
+                    Body<br />
+                    <b>@Model.User.Points.FormatWithSpaces()</b>
+                </div>
+
+                <div class="col-3">
+                    Počet zpráv<br />
+                    <b>@Model.User.TotalMessageCount.FormatWithSpaces()</b>
+                </div>
+
+                <div class="col-3">
+                    Uděleno reakcí<br />
+                    <b>@Model.User.GivenReactionsCount.FormatWithSpaces()</b>
+                </div>
+
+                <div class="col-3">
+                    Získáno reakcí<br />
+                    <b>@Model.User.ObtainedReactionsCount.FormatWithSpaces()</b>
+                </div>
+            </div>
+
+            <div class="row mt-2">
+                <div class="col-3">
+                    Registrován<br />
+                    <b>@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</b>
+                </div>
+
+                <div class="col-3">
+                    Připojen<br />
+                    <b>@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</b>
+                </div>
+
+                <div class="col-3">
+                    Boost od<br />
+
+                    <b>
+                        @if (Model.User.User.PremiumSince != null)
+                        {
+                            @Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()
+                        }
+                        else
+                        {
+                            <text>Boost nenalezen</text>
+                        }
+                    </b>
+                </div>
+
+                @if (Model.User.User.Status != UserStatus.Offline)
+                {
+                    <div class="col-3">
+                        Aktivní klienti<br />
+                        <b>@string.Join(", ", Model.User.User.ActiveClients)</b>
+                    </div>
+                }
+            </div>
+
+            @if (Model.User.Statistics != null || Model.User.UnverifyEndsAt != null)
+            {
+                <div class="row mt-2">
+                    @if (Model.User.Statistics != null)
                     {
-                        <h4 class="mt-2">Aktivní klienti</h4>
+                        <div class="col-3">
+                            Počet volání API<br />
+                            <b>@Model.User.Statistics.ApiCallsCount.FormatWithSpaces()</b>
+                        </div>
 
-                        <div>
-                            @foreach (var client in Model.User.User.ActiveClients)
-                            {
-                                <span class="badge badge-dark">@client</span>
-                            }
+                        <div class="col-3">
+                            Počet přihlášení<br />
+                            <b>@Model.User.Statistics.WebAdminLoginCount.FormatWithSpaces()</b>
+                        </div>
+                    }
+
+                    @if (Model.User.UnverifyEndsAt != null)
+                    {
+                        <div class="col-3">
+                            Konec unverify<br />
+                            <b>@Model.User.UnverifyEndsAt.Value.ToLocaleDatetime()</b>
                         </div>
                     }
                 </div>
-            </div>
+            }
+
+            @if (Model.User.UsedInvite != null)
+            {
+                <div class="row mt-2">
+                    <div class="col-12">
+                        Použitá pozvánka<br />
+                        @if (Model.User.UsedInvite.Code == Model.User.Guild.VanityURLCode)
+                        {
+                            <b>Vanity (@Model.User.UsedInvite.Code)</b>
+                        }
+                        else
+                        {
+                            <b>@Model.User.UsedInvite.Code<br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())</b>
+                        }
+                    </div>
+                </div>
+            }
+
+            <h4 class="mt-4">Aktivita v kanálech</h4>
+            @if (Model.User.Channels.Count == 0)
+            {
+                <div class="text-center">
+                    Žádná aktivita v kanálech ještě nebyla zaznamenána.
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Kanál</th>
+                            <th>Počet zpráv</th>
+                            <th>Poslední zpráva</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var channel in Model.User.Channels)
+                        {
+                            <tr>
+                                <td>#@channel.Channel.Name</td>
+                                <td>@channel.Count.FormatWithSpaces()</td>
+                                <td>@channel.LastMessageAt.ToLocaleDatetime()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h4 class="mt-4">Unverify historie</h4>
+            @if (Model.User.UnverifyHistory.Count == 0)
+            {
+                <div class="text-center">
+                    Uživatel ještě nikdy neobdržel unverify.
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Kdy</th>
+                            <th>Provedl</th>
+                            <th>Čas</th>
+                            <th>Poč. rolí</th>
+                            <th>Poč.kanálů</th>
+                            <th>Důvod</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var unverify in Model.User.UnverifyHistory)
+                        {
+                            <tr>
+                                <td>@unverify.DateTime.ToLocaleDatetime()</td>
+                                <td>@unverify.FromUser.GetFullName()</td>
+                                <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
+                                <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
+                                <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
+
+                                <td>
+                                    <button class="badge badge-secondary border-0" data-toggle="modal" data-target="#modal" data-title-text="Důvod unverify #@unverify.ID" data-body-text="@unverify.Profile.Reason">Zobrazit</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h4 class="mt-4">Připomenutí</h4>
+            @if (Model.User.Reminders.Count == 0)
+            {
+                <div class="text-center">
+                    Uživatel ještě nedostal žádné připomenutí.
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Kdy</th>
+                            <th>Od</th>
+                            <th>Počet odložení</th>
+                            <th>Připomenutí odesláno</th>
+                            <th>Zpráva</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var remind in Model.User.Reminders)
+                        {
+                            <tr>
+                                <td>@remind.At.ToLocaleDatetime()</td>
+                                <td>@(remind.FromUser == null ? "" : remind.FromUser.GetFullName())</td>
+                                <td>@remind.PostponeCounter.FormatWithSpaces()</td>
+                                <td>@remind.WasNotified.TranslateToCz()</td>
+                                <td>
+                                    <button class="badge badge-secondary border-0" data-toggle="modal" data-target="#modal" data-title-text="Zpráva k připomenutí" data-body-text="@remind.Message">Zobrazit</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h4 class="mt-4">Vytvořené pozvánky</h4>
+            @if (Model.User.CreatedInvites.Count == 0)
+            {
+                <div class="text-center">
+                    Uživatel ještě nevytvořil žádnou pozvánku.
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Kód</th>
+                            <th>Datum a čas</th>
+                            <th>Počet použití</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var invite in Model.User.CreatedInvites)
+                        {
+                            <tr>
+                                <td>@invite.Code</td>
+                                <td>@invite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime()</td>
+                                <td>@invite.Uses.Value.FormatWithSpaces()</td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
         </div>
     </div>
-
-    <div class="row mr-0 mb-3">
-        <div class="col-12">
-            <div class="card mt-3">
-                <div class="card-header d-flex justify-content-between">
-                    <h4 class="card-title mb-0">Historie unverify</h4>
-                    <a class="btn btn-dark btn-sm" data-toggle="collapse" href="#unverifyCollapse" role="button" aria-controls="unverifyCollapse" aria-expanded="true">Skrýt/Zobrazit</a>
-                </div>
-
-                <div class="card-body collapse show" id="unverifyCollapse">
-                    <table class="table table-sm table-bordered table-striped">
-                        <thead>
-                            <tr>
-                                <th>ID</th>
-                                <th>Kdy</th>
-                                <th>Provedl</th>
-                                <th>Čas</th>
-                                <th>Důvod</th>
-                                <th>Poč. rolí</th>
-                                <th>Poč. kanálů</th>
-                            </tr>
-                        </thead>
-                        <tbody>
-                            @foreach (var unverify in Model.User.UnverifyHistory)
-                            {
-                                <tr>
-                                    <td>@unverify.ID</td>
-                                    <td>@unverify.DateTime</td>
-                                    <td>@unverify.FromUser.GetFullName()</td>
-                                    <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
-                                    <td>@unverify.Profile.Reason</td>
-                                    <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
-                                    <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
-                                </tr>
-                            }
-                        </tbody>
-                    </table>
-                </div>
-            </div>
-        </div>
-</section>
+</div>

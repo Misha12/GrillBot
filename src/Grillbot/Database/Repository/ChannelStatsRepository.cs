@@ -80,5 +80,11 @@ namespace Grillbot.Database.Repository
                 })
                 .FirstOrDefault();
         }
+
+        public IQueryable<UserChannel> GetChannelsOfUser(long id)
+        {
+            return Context.UserChannels.AsQueryable()
+                .Where(o => o.UserID == id);
+        }
     }
 }
