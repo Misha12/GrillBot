@@ -24,22 +24,25 @@
             </div>
         </form>
 
-        <div class="card-body">
-            @if (Model.Found == true)
-            {
-                <div class="alert alert-success">
-                    <h5 class="d-inline-block mr-2">@Model.LogItem.CreatedAt.ToLocaleDatetime()</h5>
-                    <a class="badge badge-danger" asp-action="RemoveItem" asp-route-id="@Model.LogItem.ID">Smazat</a>
+        @if (Model.Found != null)
+        {
+            <div class="card-body">
+                @if (Model.Found == true)
+                {
+                    <div class="alert alert-success">
+                        <h5 class="d-inline-block mr-2">@Model.LogItem.CreatedAt.ToLocaleDatetime()</h5>
+                        <a class="badge badge-danger" asp-action="RemoveItem" asp-route-id="@Model.LogItem.ID">Smazat</a>
 
-                    <pre class="text-wrap">@Model.LogItem.Data</pre>
-                </div>
-            }
-            else
-            {
-                <div class="alert alert-danger" role="alert">
-                    Požadovaný záznam nebyl nalezen
-                </div>
-            }
-        </div>
+                        <pre class="text-wrap">@Model.LogItem.Data</pre>
+                    </div>
+                }
+                else
+                {
+                    <div class="alert alert-danger" role="alert">
+                        Požadovaný záznam nebyl nalezen
+                    </div>
+                }
+            </div>
+        }
     </div>
 </div>
