@@ -61,7 +61,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
                 return logs.Find(o =>
                 {
                     var data = (MessageDeleteAuditLogData)o.Data;
-                    return data.AuthorId == authorID && data.ChannelId == channel.Id;
+                    return data.Target.Id == authorID && data.ChannelId == channel.Id;
                 });
             }
 

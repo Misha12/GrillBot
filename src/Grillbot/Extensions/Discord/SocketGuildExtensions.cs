@@ -61,12 +61,12 @@ namespace Grillbot.Extensions.Discord
         public static async Task SyncGuildAsync(this SocketGuild guild)
         {
             if (guild.SyncPromise != null)
-                await guild.SyncPromise.ConfigureAwait(false);
+                await guild.SyncPromise;
 
-            await guild.DownloadUsersAsync().ConfigureAwait(false);
+            await guild.DownloadUsersAsync();
 
             if (guild.DownloaderPromise != null)
-                await guild.DownloaderPromise.ConfigureAwait(false);
+                await guild.DownloaderPromise;
         }
 
         public static int ComputeTextChannelsCount(this SocketGuild guild)

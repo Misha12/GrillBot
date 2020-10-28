@@ -45,10 +45,14 @@ namespace Grillbot
             pages.AddRazorRuntimeCompilation();
 #endif
 
+            var intents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | GatewayIntents.GuildInvites |
+                GatewayIntents.GuildVoiceStates | GatewayIntents.GuildPresences | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages |
+                GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessageTyping;
             var config = new DiscordSocketConfig()
             {
                 LogLevel = LogSeverity.Verbose,
-                MessageCacheSize = 50000
+                MessageCacheSize = 50000,
+                GatewayIntents = intents
             };
 
             var commandsConfig = new CommandServiceConfig()
