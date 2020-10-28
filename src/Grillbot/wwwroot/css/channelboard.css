@@ -1,4 +1,7 @@
 ﻿.block {
+    min-height: 100vh;
+    display: flex;
+    flex-direction: column;
     height: 100%;
     color: whitesmoke;
 }
@@ -47,6 +50,7 @@ header {
 .body-content {
     background: #202225;
     height: 100%;
+    flex-grow: 1;
 }
 
     .body-content .body-content-content {

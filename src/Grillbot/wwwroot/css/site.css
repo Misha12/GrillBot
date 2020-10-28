@@ -7,16 +7,6 @@ html, body {
     padding: 0;
 }
 
-.block {
-    min-height: 100vh;
-    display: flex;
-    flex-direction: column;
-}
-
-.body-content {
-    flex-grow: 1
-}
-
 h2 {
     font-size: 1.5rem !important;
     margin-bottom: 0px;
@@ -29,18 +19,4 @@ h2 {
 
 .form-row label {
     margin-bottom: 0;
-}
-
-.bottom-bold-border {
-    border-bottom: 2px solid;
-}
-
-.only-border-left {
-    border-right: none;
-    border-top: none;
-    border-bottom: none;
-}
-
-.two-px-border {
-    border-width: 6px;
 }
