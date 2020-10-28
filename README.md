@@ -27,6 +27,7 @@ Only Discord.NET package is distributed as pre-release from MyGet feed.
 - Discord.NET
   - [NuGet](https://www.nuget.org/packages/Discord.Net/)
   - [MyGet-PreRelease](https://www.myget.org/F/discord-net/api/v3/index.json) &lt;= Add as NuGet source (**Used in project**)
+    - Command to add MyGet source from dotnet CLI: `dotnet nuget add source -n "MyGet_DiscordNET_Prerelease" https://www.myget.org/F/discord-net/api/v3/index.json`
 - [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
 - [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
 - [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/3.1.3)
