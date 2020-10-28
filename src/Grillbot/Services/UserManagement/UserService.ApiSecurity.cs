@@ -55,9 +55,19 @@ namespace Grillbot.Services.UserManagement
         public async Task IncrementApiCallStatistics(string apiToken)
         {
             using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<UserStatisticsRepository>();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            await repository.IncrementApiCallCountAsync(apiToken);
+            var user = await repository.FindUserByApiTokenAsync(apiToken);
+
+            if (user == null)
+                return;
+
+            if (user.ApiAccessCount == null)
+                user.ApiAccessCount = 0;
+            else
+                user.ApiAccessCount++;
+
+            await repository.SaveChangesAsync();
         }
     }
 }

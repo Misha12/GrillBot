@@ -28,7 +28,8 @@ namespace Grillbot.Models.Users
         public List<ChannelStatItem> Channels { get; set; }
         public UserBirthday Birthday { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
-        public StatisticItem Statistics { get; set; }
+        public int? ApiAccessCount { get; set; }
+        public int? WebAdminLoginCount { get; set; }
         public InviteModel UsedInvite { get; set; }
         public List<UnverifyLogItem> UnverifyHistory { get; set; }
         public long Flags { get; set; }
@@ -56,7 +57,8 @@ namespace Grillbot.Models.Users
                 ObtainedReactionsCount = dbUser.ObtainedReactionsCount,
                 WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword),
                 Birthday = dbUser.Birthday == null ? null : new UserBirthday(dbUser.Birthday),
-                Statistics = dbUser.Statistics == null ? null : new StatisticItem(dbUser.Statistics),
+                ApiAccessCount = dbUser.ApiAccessCount,
+                WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,
                 UnverifyEndsAt = dbUser.Unverify?.EndDateTime
             };

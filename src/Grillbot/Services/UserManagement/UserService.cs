@@ -121,7 +121,7 @@ namespace Grillbot.Services.UserManagement
             var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
 
             if (full)
-                includes |= UsersIncludes.Birthday | UsersIncludes.Statistics;
+                includes |= UsersIncludes.Birthday;
 
             var entity = await repository.GetUserAsync(userID.Value, includes);
 
@@ -140,7 +140,7 @@ namespace Grillbot.Services.UserManagement
             using var reminderRepository = scope.ServiceProvider.GetService<ReminderRepository>();
             using var emoteStatsRepository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
-            var includes = UsersIncludes.Statistics | UsersIncludes.Unverify | UsersIncludes.Birthday | UsersIncludes.UnverifyLogIncoming;
+            var includes = UsersIncludes.Unverify | UsersIncludes.Birthday | UsersIncludes.UnverifyLogIncoming;
 
             var entity = await repository.GetUserAsync(userID, includes);
 

@@ -29,9 +29,6 @@ namespace Grillbot.Database.Repository
             if (includes.HasFlag(UsersIncludes.MathAudit))
                 query = query.Include(o => o.MathAudit);
 
-            if (includes.HasFlag(UsersIncludes.Statistics))
-                query = query.Include(o => o.Statistics);
-
             if (includes.HasFlag(UsersIncludes.Reminders))
                 query = query.Include(o => o.Reminders);
 

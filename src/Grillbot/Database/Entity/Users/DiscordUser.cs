@@ -40,6 +40,8 @@ namespace Grillbot.Database.Entity.Users
         public string ApiToken { get; set; }
         public string UsedInviteCode { get; set; }
         public long Flags { get; set; }
+        public int? WebAdminLoginCount { get; set; }
+        public int? ApiAccessCount { get; set; }
 
         [ForeignKey("UsedInviteCode")]
         public Invite UsedInvite { get; set; }
@@ -47,7 +49,6 @@ namespace Grillbot.Database.Entity.Users
         public ISet<UserChannel> Channels { get; set; }
         public BirthdayDate Birthday { get; set; }
         public ISet<MathAuditLogItem> MathAudit { get; set; }
-        public StatisticItem Statistics { get; set; }
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }
         public ISet<EmoteStatItem> UsedEmotes { get; set; }

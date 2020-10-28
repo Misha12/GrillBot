@@ -14,9 +14,19 @@ namespace Grillbot.Services.UserManagement
         public async Task IncrementWebAdminLoginCountAsync(long userID)
         {
             using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<UserStatisticsRepository>();
+            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
 
-            await repository.IncrementWebAdminLoginCount(userID);
+            var user = await repository.GetUserAsync(userID, UsersIncludes.None);
+
+            if (user == null)
+                return;
+
+            if (user.WebAdminLoginCount == null)
+                user.WebAdminLoginCount = 1;
+            else
+                user.WebAdminLoginCount++;
+
+            await repository.SaveChangesAsync();
         }
 
         public async Task<long?> AuthenticateWebAccessAsync(SocketGuild guild, SocketGuildUser user, string password)

@@ -143,19 +143,23 @@
                 }
             </div>
 
-            @if (Model.User.Statistics != null || Model.User.UnverifyEndsAt != null)
+            @if (Model.User.WebAdminLoginCount != null || Model.User.ApiAccessCount != null || Model.User.UnverifyEndsAt != null)
             {
                 <div class="row mt-2">
-                    @if (Model.User.Statistics != null)
+                    @if (Model.User.ApiAccessCount != null)
                     {
                         <div class="col-3">
                             Počet volání API<br />
-                            <b>@Model.User.Statistics.ApiCallsCount.FormatWithSpaces()</b>
+                            <b>@Model.User.ApiAccessCount.Value.FormatWithSpaces()</b>
                         </div>
 
+                    }
+
+                    @if (Model.User.WebAdminLoginCount != null)
+                    {
                         <div class="col-3">
                             Počet přihlášení<br />
-                            <b>@Model.User.Statistics.WebAdminLoginCount.FormatWithSpaces()</b>
+                            <b>@Model.User.WebAdminLoginCount.Value.FormatWithSpaces()</b>
                         </div>
                     }
 
@@ -309,7 +313,7 @@
                         </tr>
                     </thead>
                     <tbody>
-                        @foreach(var invite in Model.User.CreatedInvites)
+                        @foreach (var invite in Model.User.CreatedInvites)
                         {
                             <tr>
                                 <td>@invite.Code</td>
