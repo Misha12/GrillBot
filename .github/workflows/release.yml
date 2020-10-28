@@ -34,6 +34,7 @@ jobs:
           math_release_name="App-Math-$tag-${{ matrix.target }}"
 
           # Build everything
+          dotnet nuget add source -n "MyGet_DiscordNET_Prerelease" https://www.myget.org/F/discord-net/api/v3/index.json
           dotnet publish src/Grillbot/Grillbot.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$bot_release_name"
           dotnet publish src/GrillBotMath/GrillBotMath.csproj --framework netcoreapp3.1 --runtime "${{ matrix.target }}" -c Release -o "$math_release_name"
 
