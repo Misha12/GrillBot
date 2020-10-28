@@ -30,10 +30,10 @@
     color: white;
 }
 
-.card.bg-dark .table tr td a {
-    color: white;
-    text-decoration: underline;
-}
+    .card.bg-dark .table tr td a {
+        color: white;
+        text-decoration: underline;
+    }
 
 p.text-wrap {
     white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
@@ -48,4 +48,14 @@ p.text-wrap {
 
 pre.text-wrap {
     white-space: pre-wrap !important;
+}
+
+.only-border-left {
+    border-right: none;
+    border-top: none;
+    border-bottom: none;
+}
+
+.two-px-border {
+    border-width: 6px;
 }
