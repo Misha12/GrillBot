@@ -107,26 +107,17 @@ namespace Grillbot.Services.UserManagement
             };
         }
 
-        // TODO: Merge GetUserInfoAsync and GetCompleteUserInfoAsync
-
         public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
-            using var inviteRepository = scope.ServiceProvider.GetService<InviteRepository>();
 
             var userID = await repository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
 
             if (userID == null)
                 return null;
 
-            var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
-            var entity = await repository.GetUserAsync(userID.Value, includes);
-
-            if (!string.IsNullOrEmpty(entity.UsedInviteCode))
-                entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
-
-            return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
+            return await GetCompleteUserInfoAsync(userID.Value);
         }
 
         public async Task<DiscordUser> GetCompleteUserInfoAsync(long userID)
