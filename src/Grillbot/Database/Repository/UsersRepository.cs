@@ -1,5 +1,4 @@
 using Microsoft.EntityFrameworkCore;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Enums;
@@ -22,9 +21,6 @@ namespace Grillbot.Database.Repository
 
             if (includes.HasFlag(UsersIncludes.Channels))
                 query = query.Include(o => o.Channels);
-
-            if (includes.HasFlag(UsersIncludes.Birthday))
-                query = query.Include(o => o.Birthday);
 
             if (includes.HasFlag(UsersIncludes.MathAudit))
                 query = query.Include(o => o.MathAudit);
@@ -184,13 +180,10 @@ namespace Grillbot.Database.Repository
                 .SingleOrDefaultAsync(o => o.ApiToken == apiToken);
         }
 
-        public List<UserEntity> GetUsersWithBirthday(ulong guildID)
+        public IQueryable<UserEntity> GetUsersWithBirthday(ulong guildID)
         {
-            var guild = guildID.ToString();
-
-            return GetBaseQuery(UsersIncludes.Birthday)
-                .Where(o => o.GuildID == guild && o.Birthday != null)
-                .ToList();
+            return GetBaseQuery(UsersIncludes.None)
+                .Where(o => o.GuildID == guildID.ToString() && o.Birthday != null);
         }
 
         public int CalculatePointsPosition(ulong guildID, long userID)

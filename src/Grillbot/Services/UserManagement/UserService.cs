@@ -107,7 +107,9 @@ namespace Grillbot.Services.UserManagement
             };
         }
 
-        public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user, bool full = false)
+        // TODO: Merge GetUserInfoAsync and GetCompleteUserInfoAsync
+
+        public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
             using var repository = scope.ServiceProvider.GetService<UsersRepository>();
@@ -119,10 +121,6 @@ namespace Grillbot.Services.UserManagement
                 return null;
 
             var includes = UsersIncludes.Channels | UsersIncludes.UnverifyLogIncoming;
-
-            if (full)
-                includes |= UsersIncludes.Birthday;
-
             var entity = await repository.GetUserAsync(userID.Value, includes);
 
             if (!string.IsNullOrEmpty(entity.UsedInviteCode))
@@ -140,8 +138,7 @@ namespace Grillbot.Services.UserManagement
             using var reminderRepository = scope.ServiceProvider.GetService<ReminderRepository>();
             using var emoteStatsRepository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
-            var includes = UsersIncludes.Unverify | UsersIncludes.Birthday | UsersIncludes.UnverifyLogIncoming;
-
+            var includes = UsersIncludes.Unverify | UsersIncludes.UnverifyLogIncoming;
             var entity = await repository.GetUserAsync(userID, includes);
 
             if (!string.IsNullOrEmpty(entity.UsedInviteCode))

@@ -42,12 +42,12 @@ namespace Grillbot.Database.Entity.Users
         public long Flags { get; set; }
         public int? WebAdminLoginCount { get; set; }
         public int? ApiAccessCount { get; set; }
+        public DateTime? Birthday { get; set; }
 
         [ForeignKey("UsedInviteCode")]
         public Invite UsedInvite { get; set; }
 
         public ISet<UserChannel> Channels { get; set; }
-        public BirthdayDate Birthday { get; set; }
         public ISet<MathAuditLogItem> MathAudit { get; set; }
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }

@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Grillbot.Extensions.Discord;
 using Microsoft.Extensions.Options;
 using System;
@@ -46,8 +46,8 @@ namespace Grillbot.Modules
             {
                 var page = new PaginatedEmbedPage($"**{user.User.GetFullName()}**", thumbnail: user.User.GetUserAvatarUrl());
 
-                if (user.Birthday.AcceptAge)
-                    page.AddField(new EmbedFieldBuilder().WithName("Věk").WithValue(user.Birthday.DateTime.ComputeDateAge()));
+                if(user.Birthday.Value.Year > 1)
+                    page.AddField(new EmbedFieldBuilder().WithName("Věk").WithValue(user.Birthday.Value.ComputeDateAge()));
 
                 pages.Add(page);
             }
@@ -71,11 +71,11 @@ namespace Grillbot.Modules
             {
                 if (DateTime.TryParseExact(date, "dd/MM/yyyy", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime))
                 {
-                    BirthdayService.SetBirthday(Context.Guild, Context.User, dateTime, true);
+                    await BirthdayService.SetBirthdayAsync(Context.Guild, Context.User, dateTime, true);
                 }
                 else if (DateTime.TryParseExact(date, "dd/MM", CultureInfo.InvariantCulture, DateTimeStyles.None, out dateTime))
                 {
-                    BirthdayService.SetBirthday(Context.Guild, Context.User, dateTime, false);
+                    await BirthdayService.SetBirthdayAsync(Context.Guild, Context.User, dateTime, false);
                 }
                 else
                 {
@@ -98,7 +98,7 @@ namespace Grillbot.Modules
         {
             try
             {
-                BirthdayService.ClearBirthday(Context.Guild, Context.User);
+                await BirthdayService.ClearBirthdayAsync(Context.Guild, Context.User);
                 await ReplyAsync("Datum narození bylo odebráno.");
             }
             catch (ValidationException ex)

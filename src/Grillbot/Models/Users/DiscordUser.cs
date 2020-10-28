@@ -26,7 +26,7 @@ namespace Grillbot.Models.Users
         public bool WebAdminAccess { get; set; }
         public bool ApiAccess { get; set; }
         public List<ChannelStatItem> Channels { get; set; }
-        public UserBirthday Birthday { get; set; }
+        public DateTime? Birthday { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
         public int? ApiAccessCount { get; set; }
         public int? WebAdminLoginCount { get; set; }
@@ -56,7 +56,7 @@ namespace Grillbot.Models.Users
                 GivenReactionsCount = dbUser.GivenReactionsCount,
                 ObtainedReactionsCount = dbUser.ObtainedReactionsCount,
                 WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword),
-                Birthday = dbUser.Birthday == null ? null : new UserBirthday(dbUser.Birthday),
+                Birthday = dbUser.Birthday,
                 ApiAccessCount = dbUser.ApiAccessCount,
                 WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,

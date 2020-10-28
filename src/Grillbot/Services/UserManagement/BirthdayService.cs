@@ -8,7 +8,6 @@ using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
-using BirthdayDate = Grillbot.Database.Entity.Users.BirthdayDate;
 
 namespace Grillbot.Services.UserManagement
 {
@@ -25,31 +24,30 @@ namespace Grillbot.Services.UserManagement
             BotState = botState;
         }
 
-        public void SetBirthday(SocketGuild guild, SocketUser user, DateTime dateTime, bool acceptAge)
+        public async Task SetBirthdayAsync(SocketGuild guild, SocketUser user, DateTime dateTime, bool acceptAge)
         {
-            var dbUser = UsersRepository.GetOrCreateUser(guild.Id, user.Id, UsersIncludes.Birthday);
+            var dbUser = await UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
             if (dbUser.Birthday != null)
                 throw new ValidationException("Tento uživatel již má uložené datum narození.");
 
-            dbUser.Birthday = new BirthdayDate()
-            {
-                AcceptAge = acceptAge,
-                Date = dateTime
-            };
+            if (acceptAge)
+                dbUser.Birthday = dateTime;
+            else
+                dbUser.Birthday = new DateTime(1, dateTime.Month, dateTime.Day);
 
-            UsersRepository.SaveChanges();
+            await UsersRepository.SaveChangesAsync();
         }
 
-        public void ClearBirthday(SocketGuild guild, SocketUser user)
+        public async Task ClearBirthdayAsync(SocketGuild guild, SocketUser user)
         {
-            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Birthday);
+            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
             if (dbUser?.Birthday == null)
                 throw new ValidationException("Tento uživatel nemá uložené datum narození.");
 
             dbUser.Birthday = null;
-            UsersRepository.SaveChanges();
+            await UsersRepository.SaveChangesAsync();
         }
 
         public async Task<List<DiscordUser>> GetUsersWithTodayBirthdayAsync(SocketGuild guild)
@@ -57,7 +55,7 @@ namespace Grillbot.Services.UserManagement
             var usersWithBirthday = UsersRepository.GetUsersWithBirthday(guild.Id);
             var result = new List<DiscordUser>();
 
-            foreach (var user in usersWithBirthday.Where(o => UserBirthday.HaveTodayBirthday(o.Birthday.Date)))
+            foreach (var user in usersWithBirthday.Where(o => HaveTodayBirthday(o.Birthday.Value)))
             {
                 var mappedUser = await UserHelper.MapUserAsync(Discord, BotState, user);
 
@@ -68,9 +66,15 @@ namespace Grillbot.Services.UserManagement
             return result;
         }
 
+        private bool HaveTodayBirthday(DateTime date)
+        {
+            var today = DateTime.Today;
+            return date.Date.Day == today.Day && date.Date.Month == today.Month;
+        }
+
         public async Task<bool> HaveUserBirthday(SocketGuild guild, SocketUser user)
         {
-            var dbUser = UsersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Birthday);
+            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
             return dbUser?.Birthday != null;
         }
 
