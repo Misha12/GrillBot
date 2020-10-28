@@ -3,6 +3,7 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Users;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -52,7 +53,7 @@ namespace Grillbot.Services.UserManagement
 
         public async Task<List<DiscordUser>> GetUsersWithTodayBirthdayAsync(SocketGuild guild)
         {
-            var usersWithBirthday = UsersRepository.GetUsersWithBirthday(guild.Id);
+            var usersWithBirthday = await UsersRepository.GetUsersWithBirthday(guild.Id).ToListAsync();
             var result = new List<DiscordUser>();
 
             foreach (var user in usersWithBirthday.Where(o => HaveTodayBirthday(o.Birthday.Value)))
