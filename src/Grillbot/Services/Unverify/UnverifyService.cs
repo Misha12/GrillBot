@@ -55,7 +55,7 @@ namespace Grillbot.Services.Unverify
             AppLogger = appLogger;
         }
 
-        public async Task<List<string>> SetUnverifyAsync(List<SocketGuildUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
+        public async Task<List<string>> SetUnverifyAsync(List<SocketUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
         {
             var unverifyConfig = GetUnverifyConfig(guild);
             var messages = new List<string>();
@@ -73,7 +73,7 @@ namespace Grillbot.Services.Unverify
             return messages;
         }
 
-        public async Task<string> SetUnverifyAsync(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
+        public async Task<string> SetUnverifyAsync(SocketUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
             List<string> toKeep)
         {
             var unverifyConfig = GetUnverifyConfig(guild);
@@ -81,13 +81,13 @@ namespace Grillbot.Services.Unverify
             await guild.SyncGuildAsync();
 
             var mutedRole = guild.GetRole(unverifyConfig.MutedRoleID);
-
             return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole);
         }
 
-        private async Task<string> SetUnverifyAsync(SocketGuildUser user, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
+        private async Task<string> SetUnverifyAsync(SocketUser socketUser, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
             List<string> toKeep, SocketRole mutedRole)
         {
+            var user = await guild.GetUserFromGuildAsync(socketUser.Id);
             await Checker.ValidateAsync(user, guild, selfUnverify);
 
             var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
