@@ -70,6 +70,7 @@ namespace Grillbot.Database.Repository
 
             return query
                 .Where(o => o.At > DateTime.Now)
+                .OrderBy(o => o.At)
                 .ToList();
         }
 
