@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Globalization;
 using System.Text;
 
@@ -31,7 +31,8 @@ namespace Grillbot.Helpers
                 "dd/MM/yyyy HH:mm:ss",
                 "dd/MM/yyyy HH:mm",
                 "dd. MM. yyyy HH:mm",
-                "dd. MM. yyyy HH:mm:ss"
+                "dd. MM. yyyy HH:mm:ss",
+                "dd/MM/yyyy"
             };
 
             var dt = TryParseDateTimeExact(dateTime, formats, out string outFormat);
