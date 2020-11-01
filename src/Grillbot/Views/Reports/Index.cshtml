@@ -1,0 +1,248 @@
+﻿@model Grillbot.Models.BotStatus.ReportsViewModel;
+
+@{
+    ViewData["Title"] = "Reporty";
+}
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h4 class="card-title mb-0 pb-0 font-weight-normal">Reporty</h4>
+        </div>
+
+        <div class="card-body">
+            <div class="row">
+                <div class="col-3">
+                    Typ instance<br />
+                    <b>@Model.BotStatus.InstanceType</b>
+                </div>
+
+                <div class="col-3">
+                    Start v<br />
+                    <b>@Model.BotStatus.StartTime</b>
+                </div>
+
+                <div class="col-3">
+                    Uptime<br />
+                    <b>@((DateTime.Now - Model.BotStatus.StartTime).ToString(@"dd\.hh\:mm\:ss\.fff"))</b>
+                </div>
+
+                <div class="col-3">
+                    Aktivní CPU čas<br />
+                    <b>@Model.BotStatus.ActiveCpuTime.ToString(@"dd\.hh\:mm\:ss\.fff")</b>
+                </div>
+            </div>
+
+            <div class="row mt-3">
+                <div class="col-3">
+                    Vlákna<br />
+                    <b>@Model.BotStatus.ThreadStatus</b>
+                </div>
+
+                <div class="col-3">
+                    Odezva<br />
+                    <b>@Model.Latency ms</b>
+                </div>
+
+                <div class="col-3">
+                    Stav připojení<br />
+                    <b>@Model.ConnectionState</b>
+                </div>
+
+                <div class="col-3">
+                    Stav přihlášení<br />
+                    <b>@Model.LoginState</b>
+                </div>
+            </div>
+
+            <h4 class="mt-3">Stav paměti</h4>
+            <div class="row">
+                <div class="col-2">
+                    Využití paměti<br />
+                    <b>@Model.BotStatus.RamUsage</b>
+                </div>
+
+                <div class="col-2">
+                    Celkem alokováno<br />
+                    <b>@GC.GetTotalAllocatedBytes().FormatAsSize()</b>
+                </div>
+
+                <div class="col-3">
+                    Ve spravované paměti<br />
+                    <b>@GC.GetTotalMemory(false).FormatAsSize()</b>
+                </div>
+
+                <div class="col-2">
+                    Fragmentace<br />
+                    <b>@Model.GCMemoryInfo.FragmentedBytes.FormatAsSize()</b>
+                </div>
+
+                <div class="col-2">
+                    Na haldě<br />
+                    <b>@Model.GCMemoryInfo.HeapSizeBytes.FormatAsSize()</b>
+                </div>
+            </div>
+
+            <h4 class="mt-3">Příkazy</h4>
+            @if (Model.Commands.Count == 0)
+            {
+                <div class="row text-center">
+                    <div class="col">Nikdo ještě nezavolal žádný příkaz.</div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Název</th>
+                                    <th>Počet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var command in Model.Commands)
+                                {
+                                    <tr>
+                                        <td>@command.Key</td>
+                                        <td>@command.Value.FormatWithSpaces()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <h4 class="mt-3">Logger</h4>
+            @if (Model.Logger.Count == 0)
+            {
+                <div class="row text-center">
+                    <div class="col">Ještě neprovedla žádná událost.</div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Název</th>
+                                    <th>Počet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var _event in Model.Logger)
+                                {
+                                    <tr>
+                                        <td>@_event.Key</td>
+                                        <td>@_event.Value.FormatWithSpaces()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <h3 class="mt-3">Události</h3>
+            @if (Model.Events.Count == 0)
+            {
+                <div class="row text-center">
+                    <div class="col">Ještě neprovedla žádná událost.</div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Název</th>
+                                    <th>Počet</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var _event in Model.Events)
+                                {
+                                    <tr>
+                                        <td>@_event.Key</td>
+                                        <td>@_event.Value.FormatWithSpaces()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+
+            <h4 class="mt-3">Databáze</h4>
+            <div class="row">
+                <div class="col">
+                    <table class="table table-sm">
+                        <thead>
+                            <tr>
+                                <th>Název tabulky</th>
+                                <th>Počet záznamů</th>
+                                <th>Velikost tabulky</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            @foreach (var table in Model.Database)
+                            {
+                                <tr>
+                                    <td>@table.Key</td>
+                                    <td>@table.Value.Item1.FormatWithSpaces()</td>
+                                    <td>@table.Value.Item2.FormatAsSize()</td>
+                                </tr>
+                            }
+                        </tbody>
+                    </table>
+                </div>
+            </div>
+
+            <h4>API</h4>
+            @if (Model.Api.Count == 0)
+            {
+                <div class="row text-center">
+                    <div class="col">Nikdo ještě nezavolal žádný příkaz.</div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Název</th>
+                                    <th>Počet volání</th>
+                                    <th>Minimální čas</th>
+                                    <th>Nejvyšší čas</th>
+                                    <th>Průměrný čas</th>
+                                    <th>Celkový čas</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach (var stat in Model.Api)
+                                {
+                                    <tr>
+                                        <td>@stat.MethodName</td>
+                                        <td>@stat.Count.FormatWithSpaces()</td>
+                                        <td>@stat.MinTime.ToString(@"dd\.hh\:mm\:ss\.fff")</td>
+                                        <td>@stat.MaxTime.ToString(@"dd\.hh\:mm\:ss\.fff")</td>
+                                        <td>@stat.AvgTime.ToString(@"dd\.hh\:mm\:ss\.fff")</td>
+                                        <td>@stat.TotalTime.ToString(@"dd\.hh\:mm\:ss\.fff")</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>
