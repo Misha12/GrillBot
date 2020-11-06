@@ -3,8 +3,6 @@ using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.AppSettings;
-using Microsoft.Extensions.Options;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
@@ -14,15 +12,15 @@ namespace Grillbot.Services.Unverify
 {
     public class UnverifyChecker : IDisposable
     {
-        private Configuration Configuration { get; }
         private UsersRepository UsersRepository { get; }
         private UnverifyRepository UnverifyRepository { get; }
+        private UserSearchService UserSearchService { get; }
 
-        public UnverifyChecker(IOptions<Configuration> options, UsersRepository repository, UnverifyRepository unverifyRepository)
+        public UnverifyChecker(UsersRepository repository, UnverifyRepository unverifyRepository, UserSearchService searchService)
         {
-            Configuration = options.Value;
             UsersRepository = repository;
             UnverifyRepository = unverifyRepository;
+            UserSearchService = searchService;
         }
 
         public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
@@ -67,7 +65,7 @@ namespace Grillbot.Services.Unverify
 
         private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
-            var userID = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var userID = await UserSearchService.GetUserIDFromDiscordAsync(guild, user);
             var haveUnverify = await UnverifyRepository.HaveUnverifyAsync(userID.Value);
 
             if (haveUnverify)
@@ -78,6 +76,7 @@ namespace Grillbot.Services.Unverify
         {
             UsersRepository.Dispose();
             UnverifyRepository.Dispose();
+            UserSearchService.Dispose();
         }
     }
 }

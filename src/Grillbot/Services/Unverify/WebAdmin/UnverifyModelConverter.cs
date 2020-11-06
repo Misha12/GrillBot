@@ -1,10 +1,11 @@
 using Discord.WebSocket;
 using Grillbot.Models.Unverify;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify.WebAdmin
 {
-    public class UnverifyModelConverter
+    public class UnverifyModelConverter : IDisposable
     {
         private DiscordSocketClient DiscordClient { get; }
         private UserSearchService UserSearch { get; }
@@ -37,6 +38,11 @@ namespace Grillbot.Services.Unverify.WebAdmin
             result.ToUsers = await UserSearch.FindUsersAsync(result.Guild, formData.ToUserQuery);
 
             return result;
+        }
+
+        public void Dispose()
+        {
+            UserSearch?.Dispose();
         }
     }
 }

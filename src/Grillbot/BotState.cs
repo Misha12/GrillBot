@@ -24,12 +24,17 @@ namespace Grillbot
 
         public RestApplication AppInfo { get; set; }
 
+        // Key: $"{guild.Id}|{user.Id}"
+        // Value: DB ID
+        public Dictionary<string, long> UserToID { get; set; }
+
         public BotState()
         {
             LastPointsCalculation = new Dictionary<string, DateTime>();
             InviteCache = new Dictionary<ulong, List<InviteModel>>();
             UnverifyCache = new Dictionary<string, DateTime>();
             CurrentReturningUnverifyFor = new List<IUser>();
+            UserToID = new Dictionary<string, long>();
         }
     }
 }

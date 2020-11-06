@@ -23,19 +23,16 @@ namespace Grillbot.Services.UserManagement
         private static readonly object locker = new object();
         private IMessageCache MessageCache { get; }
         private DiscordSocketClient DiscordClient { get; }
-        private UserSearchService UserSearchService { get; }
         private BotState BotState { get; }
 
         private const int PageSize = 25;
 
-        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, UserSearchService userSearchService,
-            BotState botState)
+        public UserService(IServiceProvider services, IMessageCache messageCache, DiscordSocketClient discordClient, BotState botState)
         {
             Services = services;
             MessageCache = messageCache;
             LastPointsCalculatedAt = new Dictionary<string, DateTime>();
             DiscordClient = discordClient;
-            UserSearchService = userSearchService;
             BotState = botState;
         }
 
@@ -92,7 +89,10 @@ namespace Grillbot.Services.UserManagement
 
         private async Task<UserListFilter> CreateFilter(WebAdminUserListFilter form, SocketGuild guild)
         {
-            var usersTask = UserSearchService.FindUsersAsync(guild, form.UserQuery);
+            using var scope = Services.CreateScope();
+            using var searchService = scope.ServiceProvider.GetService<UserSearchService>();
+
+            var usersTask = searchService.FindUsersAsync(guild, form.UserQuery);
 
             return new UserListFilter()
             {
@@ -110,9 +110,9 @@ namespace Grillbot.Services.UserManagement
         public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<UsersRepository>();
+            using var searchService = scope.ServiceProvider.GetService<UserSearchService>();
 
-            var userID = await repository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var userID = await searchService.GetUserIDFromDiscordAsync(guild, user);
 
             if (userID == null)
                 return null;

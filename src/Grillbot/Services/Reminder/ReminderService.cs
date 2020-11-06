@@ -25,9 +25,10 @@ namespace Grillbot.Services.Reminder
         private DiscordSocketClient Discord { get; }
         private IMessageCache MessageCache { get; }
         private ILogger<ReminderService> Logger { get; }
+        private UserSearchService UserSearchService { get; }
 
         public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository,
-            DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger)
+            DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger, UserSearchService searchService)
         {
             ReminderRepository = reminderRepository;
             ReminderTaskService = reminderTaskService;
@@ -35,6 +36,7 @@ namespace Grillbot.Services.Reminder
             Discord = discord;
             MessageCache = messageCache;
             Logger = logger;
+            UserSearchService = searchService;
         }
 
         public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
@@ -71,7 +73,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task<List<ReminderEntity>> GetRemindersAsync(IGuild guild, IUser user)
         {
-            var userId = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var userId = await UserSearchService.GetUserIDFromDiscordAsync(guild, user);
 
             if (userId == null)
                 throw new NotFoundException("Žádná data pro tohoto uživatele nebyly nalezeny.");
