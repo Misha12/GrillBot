@@ -184,7 +184,12 @@
                         }
                         else
                         {
-                            <b>@Model.User.UsedInvite.Code<br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())</b>
+                            <b>
+                                <a href="/Admin/Users?Filter.GuildID=@Model.User.Guild.Id&Filter.UsedInviteCode=@Model.User.UsedInvite.Code" class="text-white">
+                                    <u>@Model.User.UsedInvite.Code</u>
+                                </a>
+                                <br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())
+                            </b>
                         }
                     </div>
                 </div>
@@ -310,6 +315,7 @@
                             <th>Kód</th>
                             <th>Datum a čas</th>
                             <th>Počet použití</th>
+                            <th>&nbsp;</th>
                         </tr>
                     </thead>
                     <tbody>
@@ -319,6 +325,10 @@
                                 <td>@invite.Code</td>
                                 <td>@invite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime()</td>
                                 <td>@invite.Uses.Value.FormatWithSpaces()</td>
+                                <td>
+                                    <a href="/Admin/Users?Filter.GuildID=@Model.User.Guild.Id&Filter.UsedInviteCode=@invite.Code"
+                                       class="badge badge-secondary text-decoration-none">Seznam</a>
+                                </td>
                             </tr>
                         }
                     </tbody>
