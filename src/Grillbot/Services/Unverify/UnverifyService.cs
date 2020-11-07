@@ -98,36 +98,61 @@ namespace Grillbot.Services.Unverify
             else
                 unverifyLogEntity = UnverifyLogger.LogUnverify(profile, guild, fromUser);
 
-            if (mutedRole != null)
-                await user.SetRoleAsync(mutedRole);
-
-            await user.RemoveRolesAsync(profile.RolesToRemove);
-
-            foreach (var channelOverride in profile.ChannelsToRemove)
+            try
             {
-                var channel = guild.GetChannel(channelOverride.ChannelID);
-                await channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
+                if (mutedRole != null)
+                    await user.SetRoleAsync(mutedRole);
+
+                await user.RemoveRolesAsync(profile.RolesToRemove);
+
+                foreach (var channelOverride in profile.ChannelsToRemove)
+                {
+                    var channel = guild.GetChannel(channelOverride.ChannelID);
+                    await channel?.AddPermissionOverwriteAsync(user, new OverwritePermissions(viewChannel: PermValue.Deny));
+                }
+
+                var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, UsersIncludes.Unverify);
+
+                userEntity.Unverify = new Database.Entity.Unverify.Unverify()
+                {
+                    DeserializedChannels = profile.ChannelsToRemove.Select(o => new ChannelOverride(o.ChannelID, o.Perms)).ToList(),
+                    DeserializedRoles = profile.RolesToRemove.Select(o => o.Id).ToList(),
+                    EndDateTime = profile.EndDateTime,
+                    Reason = profile.Reason,
+                    StartDateTime = profile.StartDateTime,
+                    SetLogOperation = unverifyLogEntity
+                };
+
+                UsersRepository.SaveChanges();
+                BotState.UnverifyCache.Add(CreateUnverifyCacheKey(guild, user), profile.EndDateTime);
+
+                var pmMessage = MessageGenerator.CreateUnverifyPMMessage(profile, guild);
+                await user.SendPrivateMessageAsync(pmMessage);
+
+                return MessageGenerator.CreateUnverifyMessageToChannel(profile);
             }
-
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, UsersIncludes.Unverify);
-
-            userEntity.Unverify = new Database.Entity.Unverify.Unverify()
+            catch (Exception ex)
             {
-                DeserializedChannels = profile.ChannelsToRemove.Select(o => new ChannelOverride(o.ChannelID, o.Perms)).ToList(),
-                DeserializedRoles = profile.RolesToRemove.Select(o => o.Id).ToList(),
-                EndDateTime = profile.EndDateTime,
-                Reason = profile.Reason,
-                StartDateTime = profile.StartDateTime,
-                SetLogOperation = unverifyLogEntity
-            };
+                var tasks = new[]
+                {
+                    mutedRole != null ? user.RemoveRoleAsync(mutedRole) : null,
+                    user.AddRolesAsync(profile.RolesToRemove)
+                }.Where(o => o != null).ToList();
 
-            UsersRepository.SaveChanges();
-            BotState.UnverifyCache.Add(CreateUnverifyCacheKey(guild, user), profile.EndDateTime);
+                foreach(var channelOverride in profile.ChannelsToRemove)
+                {
+                    var channel = guild.GetChannel(channelOverride.ChannelID);
 
-            var pmMessage = MessageGenerator.CreateUnverifyPMMessage(profile, guild);
-            await user.SendPrivateMessageAsync(pmMessage);
+                    if (channel != null)
+                        tasks.Add(channel.AddPermissionOverwriteAsync(user, channelOverride.Perms));
+                }
 
-            return MessageGenerator.CreateUnverifyMessageToChannel(profile);
+                await Task.WhenAll(tasks.ToArray());
+                var errorMessage = new LogMessage(LogSeverity.Warning, nameof(UnverifyService), "An error occured when unverify removing access.", ex);
+                await Logger.OnLogAsync(errorMessage);
+
+                return MessageGenerator.CreateUnverifyFailedToChannel(user);
+            }
         }
 
         private UnverifyConfig GetUnverifyConfig(SocketGuild guild)
