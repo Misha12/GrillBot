@@ -2,6 +2,7 @@ using Discord;
 using Discord.WebSocket;
 using Microsoft.Extensions.Logging;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -10,29 +11,28 @@ namespace Grillbot.Services.MessageCache
 {
     public class MessageCache : IMessageCache
     {
-        private Dictionary<ulong, IMessage> Data { get; set; }
+        private ConcurrentDictionary<ulong, IMessage> Data { get; set; }
         private DiscordSocketClient Client { get; }
         private ILogger<MessageCache> Logger { get; }
 
         public MessageCache(DiscordSocketClient client, ILogger<MessageCache> logger)
         {
-            Data = new Dictionary<ulong, IMessage>();
+            Data = new ConcurrentDictionary<ulong, IMessage>();
             Client = client;
             Logger = logger;
         }
 
         public async Task InitAsync()
         {
-            var textChannels = Client.Guilds.SelectMany(o => o.TextChannels);
             var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 5000 };
 
-            foreach (var channel in textChannels)
-            {
-                await InitChannel(Data, channel, options).ConfigureAwait(false);
-            }
+            var tasks = Client.Guilds.SelectMany(o => o.TextChannels)
+                .Select(o => InitChannel(Data, o, options));
+
+           await Task.WhenAll(tasks.ToArray());
         }
 
-        private async Task InitChannel(Dictionary<ulong, IMessage> messages, SocketTextChannel channel, RequestOptions options = null)
+        private async Task InitChannel(ConcurrentDictionary<ulong, IMessage> messages, SocketTextChannel channel, RequestOptions options = null)
         {
             try
             {
@@ -40,8 +40,7 @@ namespace Grillbot.Services.MessageCache
 
                 foreach (var message in messagesFromApi)
                 {
-                    if (!messages.ContainsKey(message.Id))
-                        messages.Add(message.Id, message);
+                   messages.TryAdd(message.Id, message);
                 }
             }
             catch (Exception ex)
@@ -59,8 +58,7 @@ namespace Grillbot.Services.MessageCache
 
             foreach (var message in messages)
             {
-                if (!Data.ContainsKey(message.Id))
-                    Data.Add(message.Id, message);
+                Data.TryAdd(message.Id, message);
             }
         }
 
@@ -98,8 +96,7 @@ namespace Grillbot.Services.MessageCache
             if (message == null)
                 return null;
 
-            Data.Add(message.Id, message);
-
+            Data.TryAdd(message.Id, message);
             return message;
         }
 
@@ -107,7 +104,8 @@ namespace Grillbot.Services.MessageCache
         {
             if (!Exists(message.Id)) return;
 
-            Data[message.Id] = message;
+            var oldValue = Get(message.Id);
+            Data.TryUpdate(message.Id, message, oldValue);
         }
 
         public void Init() { }
