@@ -136,8 +136,14 @@ namespace Grillbot.Services.UserManagement
                 entity.UsedInvite = await inviteRepository.FindInviteAsync(entity.UsedInviteCode);
 
             entity.Channels = (await channelStatsRepository.GetChannelsOfUser(entity.ID).ToListAsync()).ToHashSet();
-            entity.Reminders = (await reminderRepository.GetRemindersOfUser(entity.ID).ToListAsync()).ToHashSet();
+
+            var createdInvitesQuery = inviteRepository.GetInvitesOfUser(entity.ID)
+                .OrderByDescending(o => o.UsedUsers.Count).ThenBy(o => o.Code);
             entity.CreatedInvites = (await inviteRepository.GetInvitesOfUser(entity.ID).ToListAsync()).ToHashSet();
+
+            var remindersQuery = reminderRepository.GetRemindersOfUser(entity.ID)
+                .OrderByDescending(o => o.At).ThenByDescending(o => o.RemindID);
+            entity.Reminders = (await remindersQuery.ToListAsync()).ToHashSet();
 
             return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }

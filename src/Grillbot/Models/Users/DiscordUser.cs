@@ -70,6 +70,7 @@ namespace Grillbot.Models.Users
                 .Select(o => new ChannelStatItem(guild.GetChannel(o.ChannelIDSnowflake), o))
                 .Where(o => o.Channel != null)
                 .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastMessageAt)
                 .ToList();
 
             if (dbUser.UsedInvite != null)
@@ -88,6 +89,7 @@ namespace Grillbot.Models.Users
             result.UnverifyHistory = dbUser.IncomingUnverifyOperations
                     .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
                     .Select(o => new UnverifyLogItem(o, discordClient))
+                    .OrderByDescending(o => o.DateTime)
                     .ToList();
 
             result.Reminders = new List<RemindItem>();
