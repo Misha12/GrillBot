@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Database.Entity;
@@ -19,6 +19,8 @@ namespace Grillbot.Modules.AutoReply
         private List<AutoReplyItem> Data { get; }
         private ILogger<AutoReplyService> Logger { get; }
         private IServiceProvider Provider { get; }
+
+        private AllowedMentions AllowedMentions { get; } = new AllowedMentions(AllowedMentionTypes.Users);
 
         public AutoReplyService(ILogger<AutoReplyService> logger, IServiceProvider provider)
         {
@@ -64,7 +66,7 @@ namespace Grillbot.Modules.AutoReply
             if (item.CanReply(guild, message.Channel))
             {
                 item.CallsCount++;
-                await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
+                await message.Channel.SendMessageAsync(FormatMessage(item.ReplyMessage, message), allowedMentions: AllowedMentions);
                 return true;
             }
 
@@ -79,7 +81,7 @@ namespace Grillbot.Modules.AutoReply
             if (item.CanReply(guild, message.Channel))
             {
                 item.CallsCount++;
-                await message.Channel.SendMessageAsync(item.ReplyMessage.PreventMassTags()).ConfigureAwait(false);
+                await message.Channel.SendMessageAsync(FormatMessage(item.ReplyMessage, message), allowedMentions: AllowedMentions);
                 return true;
             }
 
@@ -116,12 +118,13 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
 
-            using var scope = Provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
-            await repository.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
             if (item.IsDisabled == disabled)
                 throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
 
+            using var scope = Provider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<AutoReplyRepository>();
+
+            await repository.SetActiveStatusAsync(id, disabled).ConfigureAwait(false);
             item.IsDisabled = disabled;
         }
 
@@ -181,6 +184,14 @@ namespace Grillbot.Modules.AutoReply
         private StringComparison GetStringComparison(AutoReplyItem item)
         {
             return !item.CaseSensitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
+        }
+
+        private string FormatMessage(string message, IMessage originalMessage)
+        {
+            return message
+                .PreventMassTags()
+                .Replace("{author}", originalMessage.Author.Mention)
+                .Trim();
         }
 
         public async Task InitAsync() { }
