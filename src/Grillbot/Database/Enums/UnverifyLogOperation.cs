@@ -6,6 +6,7 @@ namespace Grillbot.Database.Enums
         Selfunverify,
         Autoremove,
         Remove,
-        Update
+        Update,
+        Recover
     }
 }

@@ -16,6 +16,8 @@
                 return "danger";
             case UnverifyLogOperation.Update:
                 return "info";
+            case UnverifyLogOperation.Recover:
+                return "warning";
             default:
                 return "white";
         }
@@ -26,6 +28,13 @@
     <div class="card bg-dark">
         <div class="card-header">
             <h3 class="card-title font-weight-light mb-0 pb-0">Unverify log</h3>
+
+            @if (!string.IsNullOrEmpty(Model.ErrorMessage))
+            {
+                <div class="alert alert-danger mt-3">
+                    @Model.ErrorMessage
+                </div>
+            }
         </div>
 
         <form class="card-header" method="get">
@@ -159,17 +168,20 @@
                             </div>
                         }
 
-                        @if (item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify)
+                        @if (item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Recover)
                         {
-                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove)
+                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Recover)
                             {
-                                <h5 class="mt-2">Role</h5>
-                                <h6>Vrácené</h6>
-                                @foreach (var role in item.RemoveData.ReturnedRoles)
+                                @if (item.RemoveData.ReturnedRoles.Count > 0)
                                 {
-                                    <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
-                                        @role.Name
-                                    </span>
+                                    <h5 class="mt-2">Role</h5>
+                                    <h6>Vrácené</h6>
+                                    @foreach (var role in item.RemoveData.ReturnedRoles)
+                                    {
+                                        <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                                            @role.Name
+                                        </span>
+                                    }
                                 }
                             }
                             else if ((item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Unverify) && (item.Profile.RolesToKeep.Count > 0 || item.Profile.RolesToRemove.Count > 0))
@@ -199,7 +211,7 @@
                                 }
                             }
 
-                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove)
+                            @if (item.Operation == UnverifyLogOperation.Remove || item.Operation == UnverifyLogOperation.Autoremove || item.Operation == UnverifyLogOperation.Recover)
                             {
                                 @if (item.RemoveData.ReturnedChannels.Count > 0)
                                 {
@@ -240,6 +252,13 @@
                             }
                         }
                     </div>
+
+                    @if (item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify)
+                    {
+                        <div class="card-footer d-flex justify-content-end align-items-end">
+                            <a class="btn btn-success" asp-action="Recover" asp-route-id="@item.ID">Obnovit</a>
+                        </div>
+                    }
                 </div>
             }
         </div>

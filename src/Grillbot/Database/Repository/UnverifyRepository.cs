@@ -32,6 +32,23 @@ namespace Grillbot.Database.Repository
             return entity;
         }
 
+        public async Task<UnverifyLog> SaveLogOperationAsync(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
+        {
+            var entity = new UnverifyLog()
+            {
+                CreatedAt = DateTime.Now,
+                FromUserID = fromUserID,
+                Json = jsonData,
+                Operation = operation,
+                ToUserID = toUserID
+            };
+
+            await Context.UnverifyLogs.AddAsync(entity);
+            await Context.SaveChangesAsync();
+
+            return entity;
+        }
+
         public async Task RemoveUnverifyAsync(ulong guildID, ulong userID)
         {
             var unverify = await Context.Unverifies.AsQueryable()
@@ -96,6 +113,14 @@ namespace Grillbot.Database.Repository
         {
             return Context.Unverifies.AsQueryable()
                 .AnyAsync(o => o.UserID == userID);
+        }
+
+        public Task<UnverifyLog> FindLogItemByIDAsync(long id)
+        {
+            return Context.UnverifyLogs.AsQueryable()
+                .Include(o => o.ToUser)
+                .ThenInclude(o => o.Unverify)
+                .FirstOrDefaultAsync(o => o.ID == id);
         }
     }
 }

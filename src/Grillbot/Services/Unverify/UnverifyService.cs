@@ -139,7 +139,7 @@ namespace Grillbot.Services.Unverify
                     user.AddRolesAsync(profile.RolesToRemove)
                 }.Where(o => o != null).ToList();
 
-                foreach(var channelOverride in profile.ChannelsToRemove)
+                foreach (var channelOverride in profile.ChannelsToRemove)
                 {
                     var channel = guild.GetChannel(channelOverride.ChannelID);
 
@@ -355,6 +355,55 @@ namespace Grillbot.Services.Unverify
         {
             BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(user.Guild, user));
             return UnverifyRepository.RemoveUnverifyAsync(user.Guild.Id, user.Id);
+        }
+
+        public async Task RecoverToStateAsync(long id, SocketGuildUser fromUser)
+        {
+            var record = await UnverifyRepository.FindLogItemByIDAsync(id);
+
+            if (record == null)
+                throw new NotFoundException($"Záznam o unverify s ID {id} nebyl nalezen.");
+
+            if (record.Operation != UnverifyLogOperation.Unverify && record.Operation != UnverifyLogOperation.Selfunverify)
+                throw new ValidationException("Obnovení lze provést pouze přes operace Unverify a SelfUnverify");
+
+            if (record.ToUser.Unverify != null)
+                throw new ValidationException("Nelze provést obnovení stavu před unverify uživateli, který má unverify.");
+
+            var guild = DiscordClient.GetGuild(record.ToUser.GuildIDSnowflake);
+            if (guild == null)
+                throw new NotFoundException("Nelze najít server, na kterém bylo uživateli uděleno unverify.");
+
+            var user = await guild.GetUserFromGuildAsync(record.ToUser.UserIDSnowflake);
+            if (user == null)
+                throw new NotFoundException($"Nelze vyhledat uživatele na serveru {guild.Name}");
+
+            var unverifyConfig = ConfigRepository.FindConfig(guild.Id, "unverify", null, false)?.GetData<UnverifyConfig>();
+            var mutedRole = unverifyConfig == null ? null : guild.GetRole(unverifyConfig.MutedRoleID);
+
+            var data = record.Json.ToObject<UnverifyLogSet>();
+
+            var rolesToReturn = data.RolesToRemove.Where(o => !user.Roles.Any(x => x.Id == o))
+                .Select(o => guild.GetRole(o)).Where(role => role != null).ToList();
+
+            var channelsToReturn = data.ChannelsToRemove
+                .Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
+                .Where(o => o.Channel != null).ToList();
+
+            await UnverifyLogger.LogRecoverAsync(rolesToReturn, channelsToReturn, guild, user, fromUser);
+
+            var tasks = new List<Task>();
+
+            if (rolesToReturn.Count > 0)
+                tasks.Add(user.AddRolesAsync(rolesToReturn));
+
+            if (channelsToReturn.Count > 0)
+                tasks.AddRange(channelsToReturn.Select(o => (o.Channel as SocketGuildChannel)?.AddPermissionOverwriteAsync(user, o.Perms)).Where(o => o != null));
+
+            if (mutedRole != null && user.Roles.Any(o => o == mutedRole))
+                tasks.Add(user.RemoveRoleAsync(mutedRole));
+
+            await Task.WhenAll(tasks.ToArray());
         }
 
         public void Dispose()

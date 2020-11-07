@@ -9,15 +9,17 @@ namespace Grillbot.Models.Unverify
         public List<SocketGuild> Guilds { get; set; }
         public UnverifyAuditFilterFormData FormData { get; set; }
         public List<UnverifyLogItem> LogItems { get; set; }
-
+        public string ErrorMessage { get; set; }
         public PaginationInfo PaginationInfo { get; set; }
 
-        public UnverifyAuditViewModel(DiscordSocketClient client, List<UnverifyLogItem> logItems, UnverifyAuditFilterFormData formData, PaginationInfo paginationInfo)
+        public UnverifyAuditViewModel(DiscordSocketClient client, List<UnverifyLogItem> logItems, UnverifyAuditFilterFormData formData, PaginationInfo paginationInfo,
+            string errorMessage)
         {
             Guilds = client.Guilds.ToList();
             FormData = formData ?? new UnverifyAuditFilterFormData();
             LogItems = logItems;
             PaginationInfo = paginationInfo;
+            ErrorMessage = errorMessage;
         }
     }
 }

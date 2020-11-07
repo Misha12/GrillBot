@@ -99,6 +99,21 @@ namespace Grillbot.Services.Unverify
             UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Update, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
+        public async Task LogRecoverAsync(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IGuild guild, IUser toUser, IUser fromUser)
+        {
+            var data = new UnverifyLogRemove()
+            {
+                ReturnedOverrides = returnedChannels,
+                ReturnedRoles = returnedRoles.Select(o => o.Id).ToList()
+            };
+
+            var toUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
+            var fromUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
+            await UsersRepository.SaveChangesAsync();
+
+            await UnverifyRepository.SaveLogOperationAsync(UnverifyLogOperation.Recover, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+        }
+
         public async Task<List<UnverifyLogItem>> GetLogsAsync(UnverifyAuditFilterFormData formData)
         {
             var filter = await Converter.ConvertAuditFilter(formData);

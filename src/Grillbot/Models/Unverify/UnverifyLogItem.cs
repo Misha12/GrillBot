@@ -40,6 +40,7 @@ namespace Grillbot.Models.Unverify
             {
                 case UnverifyLogOperation.Autoremove:
                 case UnverifyLogOperation.Remove:
+                case UnverifyLogOperation.Recover:
                     var removeLogData = entity.Json.ToObject<UnverifyLogRemove>();
                     RemoveData = new UnverifyRemoveOperation()
                     {

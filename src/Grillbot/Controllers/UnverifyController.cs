@@ -1,10 +1,13 @@
 using Discord.WebSocket;
+using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using System;
 using System.Collections.Generic;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -60,11 +63,31 @@ namespace Grillbot.Controllers
             if (formData.Page < 1)
                 formData.Page = 1;
 
+            var errorMessage = Request.Query.TryGetValue("ErrMsg", out var values) ? values.ToString() : null;
             var logs = await UnverifyService.UnverifyLogger.GetLogsAsync(formData);
             var pagination = await UnverifyService.UnverifyLogger.CreatePaginationInfo(formData);
-            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData, pagination);
+            var viewModel = new UnverifyAuditViewModel(DiscordClient, logs, formData, pagination, errorMessage);
 
             return View(viewModel);
+        }
+
+        [HttpGet("Recover/{id}")]
+        public async Task<IActionResult> RecoverAsync(long id)
+        {
+            try
+            {
+                var fromUser = await DiscordClient.GetUserFromClaimsAsync(User);
+                await UnverifyService.RecoverToStateAsync(id, fromUser);
+
+                return RedirectToAction("Audit");
+            }
+            catch (Exception ex)
+            {
+                if (ex is ValidationException || ex is NotFoundException)
+                    return RedirectToAction("Audit", new { ErrMsg = ex.Message });
+
+                throw;
+            }
         }
 
         protected override void Dispose(bool disposing)
