@@ -22,7 +22,7 @@
 
   <ItemGroup>
     <PackageReference Include="BCrypt.Net-Next" Version="4.0.0" />
-    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201106.1" />
+    <PackageReference Include="Discord.Net" Version="2.3.0-dev-20201107.7" />
     <PackageReference Include="GitInfo" Version="2.1.2">
       <PrivateAssets>all</PrivateAssets>
       <IncludeAssets>runtime; build; native; contentfiles; analyzers; buildtransitive</IncludeAssets>
