@@ -49,6 +49,7 @@ namespace Grillbot.Database
             modelBuilder.Entity<EmoteStatItem>(builder =>
             {
                 builder.HasKey(o => new { o.EmoteID, o.UserID });
+                builder.HasIndex(o => new { o.UserID, o.UseCount });
             });
 
             modelBuilder.Entity<Unverify>(builder =>

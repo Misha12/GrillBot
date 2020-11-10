@@ -73,7 +73,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task<List<ReminderEntity>> GetRemindersAsync(IGuild guild, IUser user)
         {
-            var userId = await UserSearchService.GetUserIDFromDiscordAsync(guild, user);
+            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
             if (userId == null)
                 throw new NotFoundException("Žádná data pro tohoto uživatele nebyly nalezeny.");

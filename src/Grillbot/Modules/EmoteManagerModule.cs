@@ -166,7 +166,7 @@ namespace Grillbot.Modules
         {
             bool desc = !string.Equals(ascDesc, "asc", StringComparison.InvariantCultureIgnoreCase);
 
-            var emotes = EmoteStats.GetEmoteStatsForUser(Context.Guild, user, desc)
+            var emotes = (await EmoteStats.GetEmoteStatsForUserAsync(Context.Guild, user, desc))
                 .Select(o => new GroupedEmoteItem()
                 {
                     EmoteID = o.EmoteID,

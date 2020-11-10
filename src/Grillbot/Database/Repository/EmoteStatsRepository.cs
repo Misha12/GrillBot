@@ -1,4 +1,4 @@
-using System.Collections.Generic;
+using System;
 using System.Linq;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Users;
@@ -15,16 +15,14 @@ namespace Grillbot.Database.Repository
 
         private IQueryable<EmoteStatItem> GetEmoteStatsBaseQuery(ulong guildID)
         {
-            var userIDsFromGuild = GetUserIDsWithUsedEmotes(guildID);
-
             return Context.EmoteStatistics.AsQueryable()
-                .Where(o => userIDsFromGuild.Contains(o.UserID));
+                .Include(o => o.User)
+                .Where(o => o.User.GuildID == guildID.ToString());
         }
 
         public GroupedEmoteItem GetStatsOfEmote(ulong guildID, string emoteId)
         {
-            return GetEmoteStatsBaseQuery(guildID)
-                .Where(o => o.EmoteID == emoteId)
+            return FilterUserFromQuery(GetEmoteStatsBaseQuery(guildID).Where(o => o.EmoteID == emoteId))
                 .AsEnumerable()
                 .GroupBy(o => o.EmoteID)
                 .Select(o => new GroupedEmoteItem()
@@ -39,7 +37,25 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault();
         }
 
-        public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool desc, bool onlyUnicode = false)
+        public IQueryable<GroupedEmoteItem> GetEmotesForClear(ulong guildID, int daysLimit)
+        {
+            var daysBack = DateTime.Now.AddDays(-daysLimit);
+
+            var baseQuery = GetEmoteStatsBaseQuery(guildID).Where(o => o.UseCount == 0 && (!o.IsUnicode || (o.IsUnicode && o.LastOccuredAt <= daysBack)));
+            return FilterUserFromQuery(baseQuery).AsEnumerable()
+                .GroupBy(o => o.EmoteID)
+                .Select(o => new GroupedEmoteItem()
+                {
+                    EmoteID = o.Key,
+                    FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
+                    IsUnicode = o.First().IsUnicode,
+                    LastOccuredAt = o.Max(x => x.LastOccuredAt),
+                    UseCount = o.Sum(x => x.UseCount),
+                    UsersCount = o.Count()
+                }).AsQueryable();
+        }
+
+        public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool? desc, bool onlyUnicode = false)
         {
             var query = GetEmoteStatsBaseQuery(guildID);
 
@@ -48,7 +64,7 @@ namespace Grillbot.Database.Repository
             else if (excludeUnicode)
                 query = query.Where(o => !o.IsUnicode);
 
-            var resultQuery = query.AsEnumerable()
+            var resultQuery = FilterUserFromQuery(query).AsEnumerable()
                 .GroupBy(o => o.EmoteID)
                 .Select(o => new GroupedEmoteItem()
                 {
@@ -60,17 +76,20 @@ namespace Grillbot.Database.Repository
                     UsersCount = o.Count()
                 });
 
-            if(desc)
+            if (desc != null)
             {
-                resultQuery = resultQuery
-                    .OrderByDescending(o => o.UseCount)
-                    .ThenByDescending(o => o.UsersCount);
-            }
-            else
-            {
-                resultQuery = resultQuery
-                    .OrderBy(o => o.UseCount)
-                    .ThenBy(o => o.UsersCount);
+                if (desc == true)
+                {
+                    resultQuery = resultQuery
+                        .OrderByDescending(o => o.UseCount)
+                        .ThenByDescending(o => o.UsersCount);
+                }
+                else
+                {
+                    resultQuery = resultQuery
+                        .OrderBy(o => o.UseCount)
+                        .ThenBy(o => o.UsersCount);
+                }
             }
 
             if (limit != null)
@@ -79,25 +98,34 @@ namespace Grillbot.Database.Repository
             return resultQuery.AsQueryable();
         }
 
-        private List<long> GetUserIDsWithUsedEmotes(ulong guildID)
-        {
-            return Context.Users.AsQueryable()
-                .Include(o => o.UsedEmotes)
-                .Where(o => o.GuildID == guildID.ToString() && o.UsedEmotes.Any())
-                .Select(o => o.ID)
-                .ToList();
-        }
-
         public void RemoveEmojiNoCommit(SocketGuild guild, string emoteId)
         {
-            var emotes = GetEmoteStatsBaseQuery(guild.Id)
-                .Where(o => o.EmoteID == emoteId)
-                .ToList();
+            var baseQuery = GetEmoteStatsBaseQuery(guild.Id).Where(o => o.EmoteID == emoteId);
+            var emotes = FilterUserFromQuery(baseQuery).ToList();
 
             if (emotes.Count == 0)
                 return;
 
             Context.EmoteStatistics.RemoveRange(emotes);
+        }
+
+        private IQueryable<EmoteStatItem> FilterUserFromQuery(IQueryable<EmoteStatItem> query)
+        {
+            return query.Select(o => new EmoteStatItem()
+            {
+                EmoteID = o.EmoteID,
+                FirstOccuredAt = o.FirstOccuredAt,
+                LastOccuredAt = o.LastOccuredAt,
+                IsUnicode = o.IsUnicode,
+                UseCount = o.UseCount,
+                UserID = o.UserID
+            });
+        }
+
+        public IQueryable<EmoteStatItem> GetEmotesOfUser(long userId)
+        {
+            return Context.EmoteStatistics.AsQueryable()
+                .Where(o => o.UserID == userId && o.UseCount > 0);
         }
     }
 }

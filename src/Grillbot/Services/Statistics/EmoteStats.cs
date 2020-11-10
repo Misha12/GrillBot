@@ -16,6 +16,7 @@ using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Database.Enums.Includes;
+using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Services.Statistics
 {
@@ -215,7 +216,7 @@ namespace Grillbot.Services.Statistics
                 using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
                 var removed = new List<string>();
 
-                var emoteClearCandidates = repository.GetStatsOfEmotes(guild.Id, null, false, true).ToList();
+                var emoteClearCandidates = repository.GetEmotesForClear(guild.Id, 14).ToList();
 
                 if (emoteClearCandidates.Count == 0)
                     return new List<string>();
@@ -224,20 +225,11 @@ namespace Grillbot.Services.Statistics
                 {
                     if (candidate.IsUnicode)
                     {
-                        if (candidate.UseCount > 0)
-                            continue;
+                        var formatedFirstOccured = candidate.FirstOccuredAt.ToLocaleDatetime();
+                        var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
 
-                        var lastUsedDelta = DateTime.Now - candidate.LastOccuredAt;
-
-                        if (lastUsedDelta.TotalDays >= 14.0)
-                        {
-                            var formatedFirstOccured = candidate.FirstOccuredAt.ToLocaleDatetime();
-                            var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
-
-                            removed.Add($"> Smazán unicode emote **{candidate.RealID}**. Použití: 0, Poprvé použit: {formatedFirstOccured}, Naposledy použit: {formatedLastOccured}");
-                            repository.RemoveEmojiNoCommit(guild, candidate.EmoteID);
-                        }
-
+                        removed.Add($"> Smazán unicode emote **{candidate.RealID}**. Použití: 0, Poprvé použit: {formatedFirstOccured}, Naposledy použit: {formatedLastOccured}");
+                        repository.RemoveEmojiNoCommit(guild, candidate.EmoteID);
                         continue;
                     }
 
@@ -254,20 +246,25 @@ namespace Grillbot.Services.Statistics
             }
         }
 
-        public List<EmoteStatItem> GetEmoteStatsForUser(SocketGuild guild, Discord.IUser user, bool desc)
+        public async Task<List<EmoteStatItem>> GetEmoteStatsForUserAsync(SocketGuild guild, Discord.IUser user, bool desc)
         {
             using var scope = Provider.CreateScope();
-            using var usersRepository = scope.ServiceProvider.GetService<UsersRepository>();
+            using var repository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
+            using var userSearchService = scope.ServiceProvider.GetService<UserSearchService>();
 
-            var userEntity = usersRepository.GetUser(guild.Id, user.Id, UsersIncludes.Emotes);
+            var userId = await userSearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
-            if (userEntity == null)
+            if (userId == null)
                 return new List<EmoteStatItem>();
 
+            var query = repository.GetEmotesOfUser(userId.Value);
+
             if (desc)
-                return userEntity.UsedEmotes.OrderByDescending(o => o.UseCount).ToList();
+                query = query.OrderByDescending(o => o.UseCount).ThenByDescending(o => o.LastOccuredAt);
             else
-                return userEntity.UsedEmotes.OrderBy(o => o.UseCount).ToList();
+                query = query.OrderBy(o => o.UseCount).ThenBy(o => o.LastOccuredAt);
+
+            return await query.ToListAsync();
         }
     }
 }

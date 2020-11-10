@@ -112,7 +112,7 @@ namespace Grillbot.Services.UserManagement
             using var scope = Services.CreateScope();
             using var searchService = scope.ServiceProvider.GetService<UserSearchService>();
 
-            var userID = await searchService.GetUserIDFromDiscordAsync(guild, user);
+            var userID = await searchService.GetUserIDFromDiscordUserAsync(guild, user);
 
             if (userID == null)
                 return null;

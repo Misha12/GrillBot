@@ -41,7 +41,7 @@ namespace Grillbot.Services
             return user.Username.Contains(query);
         }
 
-        public async Task<long?> GetUserIDFromDiscordAsync(IGuild guild, IUser user)
+        public async Task<long?> GetUserIDFromDiscordUserAsync(IGuild guild, IUser user)
         {
             var key = $"{guild.Id}|{user.Id}";
 

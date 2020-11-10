@@ -65,7 +65,7 @@ namespace Grillbot.Services.Unverify
 
         private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
-            var userID = await UserSearchService.GetUserIDFromDiscordAsync(guild, user);
+            var userID = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
             var haveUnverify = await UnverifyRepository.HaveUnverifyAsync(userID.Value);
 
             if (haveUnverify)
