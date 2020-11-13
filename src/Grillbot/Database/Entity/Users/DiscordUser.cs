@@ -1,4 +1,3 @@
-using Grillbot.Database.Entity.Math;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -48,7 +47,6 @@ namespace Grillbot.Database.Entity.Users
         public Invite UsedInvite { get; set; }
 
         public ISet<UserChannel> Channels { get; set; }
-        public ISet<MathAuditLogItem> MathAudit { get; set; }
         public ISet<Reminder> Reminders { get; set; }
         public ISet<Invite> CreatedInvites { get; set; }
         public ISet<EmoteStatItem> UsedEmotes { get; set; }
@@ -59,7 +57,6 @@ namespace Grillbot.Database.Entity.Users
         public DiscordUser()
         {
             Channels = new HashSet<UserChannel>();
-            MathAudit = new HashSet<MathAuditLogItem>();
             Reminders = new HashSet<Reminder>();
             CreatedInvites = new HashSet<Invite>();
             UsedEmotes = new HashSet<EmoteStatItem>();

@@ -147,17 +147,8 @@ namespace Grillbot.Services.Math
             }
             finally
             {
-                SaveAudit(user, message, session, result);
                 ReleaseSession(session, result);
             }
-        }
-
-        private void SaveAudit(SocketGuildUser user, SocketUserMessage message, MathSession session, MathCalcResult result)
-        {
-            using var scope = ServiceProvider.CreateScope();
-            using var auditService = scope.ServiceProvider.GetRequiredService<MathAuditService>();
-
-            auditService.SaveItem(user, message.Channel, session, result);
         }
 
         private string GetExecutablePath(SocketGuild guild)

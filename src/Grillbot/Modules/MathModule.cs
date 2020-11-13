@@ -1,17 +1,12 @@
 using Discord;
 using Discord.Commands;
-using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Core.Math.Models;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions;
-using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
-using Grillbot.Models.Math;
 using Grillbot.Services;
 using Grillbot.Services.Math;
-using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -25,15 +20,10 @@ namespace Grillbot.Modules
     public class MathModule : BotModuleBase
     {
         private MathService Calculator { get; }
-        private MathRepository MathRepository { get; }
-        private DiscordSocketClient Discord { get; }
 
-        public MathModule(MathService calculator, PaginationService pagination, MathRepository mathRepository,
-            DiscordSocketClient discord) : base(paginationService: pagination)
+        public MathModule(MathService calculator, PaginationService pagination) : base(paginationService: pagination)
         {
             Calculator = calculator;
-            MathRepository = mathRepository;
-            Discord = discord;
         }
 
         [Command("solve")]
@@ -106,7 +96,7 @@ namespace Grillbot.Modules
             await SendPaginatedEmbedAsync(embed);
         }
 
-        private PaginatedEmbedPage RenderPage(IEnumerable<MathSession> sessions, bool booster)
+        private static PaginatedEmbedPage RenderPage(IEnumerable<MathSession> sessions, bool booster)
         {
             var page = new PaginatedEmbedPage(booster ? "Server booster" : "Ostatní sessions");
 
@@ -141,57 +131,6 @@ namespace Grillbot.Modules
                 .AddField("Poslední výsledek", session.LastResult?.Format() ?? "-", false);
 
             await ReplyAsync(embed: embed.Build());
-        }
-
-        [Command("history")]
-        [Summary("Historie matematických výpočtů")]
-        [Remarks("Filtr se zadává pomocí klíčových slov User:{user} Chanenl:{channel} From:\"{From}\" To:\"{To}\" Page:{num}")]
-        public async Task HistoryAsync(MathHistoryFilter filter = null)
-        {
-            if (filter == null)
-                filter = new MathHistoryFilter();
-
-            var mathData = await MathRepository.GetLogData(filter, Context.Guild)
-                .AsAsyncEnumerable()
-                .Select(o => new MathAuditItem(o, Discord))
-                .ToListAsync();
-
-            if (mathData.Count == 0)
-            {
-                await ReplyAsync("Pro zadané filtry nebyl nalezen žádný výsledek.");
-                return;
-            }
-
-            var embed = new PaginatedEmbed()
-            {
-                Pages = new List<PaginatedEmbedPage>(),
-                ResponseFor = Context.User,
-                Title = "Historie matematických výpočtů"
-            };
-
-            foreach (var item in mathData)
-            {
-                var page = new PaginatedEmbedPage(item.ID.ToString());
-
-                page.AddField("Kdy", item.DateTime.ToLocaleDatetime());
-                page.AddField("Kdo", item.User?.GetFullName() ?? "Unknown user");
-                page.AddField("Kanál", item.Channel?.Name ?? "Unknown channel");
-                page.AddField("Jednotka", item.UnitInfo);
-                page.AddField("Výraz", $"`{item.Expression.Cut(EmbedFieldBuilder.MaxFieldValueLength - 2)}`");
-                page.AddField("Výsledek", $"`{item.Result.Cut(EmbedFieldBuilder.MaxFieldValueLength - 2)}`");
-
-                embed.Pages.Add(page);
-            }
-
-            await SendPaginatedEmbedAsync(embed);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                MathRepository.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

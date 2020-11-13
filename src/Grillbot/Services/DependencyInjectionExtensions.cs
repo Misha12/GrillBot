@@ -46,7 +46,6 @@ namespace Grillbot.Services
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<TeamSearchRepository>()
                 .AddTransient<UsersRepository>()
-                .AddTransient<MathRepository>()
                 .AddTransient<GlobalConfigRepository>()
                 .AddTransient<ReminderRepository>()
                 .AddTransient<InviteRepository>()
@@ -89,8 +88,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddMath(this IServiceCollection services)
         {
             services
-                .AddSingleton<MathService>()
-                .AddTransient<MathAuditService>();
+                .AddSingleton<MathService>();
 
             return services;
         }

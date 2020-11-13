@@ -1,6 +1,5 @@
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.Config;
-using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Entity.Users;
@@ -23,7 +22,6 @@ namespace Grillbot.Database
             modelBuilder.Entity<DiscordUser>(builder =>
             {
                 builder.HasMany(o => o.Channels).WithOne(o => o.User);
-                builder.HasMany(o => o.MathAudit).WithOne(o => o.User);
                 builder.HasMany(o => o.Reminders).WithOne(o => o.User);
                 builder.HasMany(o => o.CreatedInvites).WithOne(o => o.Creator);
                 builder.HasMany(o => o.UsedEmotes).WithOne(o => o.User);
@@ -63,7 +61,6 @@ namespace Grillbot.Database
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }
         public virtual DbSet<UserChannel> UserChannels { get; set; }
-        public virtual DbSet<MathAuditLogItem> MathAuditLogs { get; set; }
         public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
