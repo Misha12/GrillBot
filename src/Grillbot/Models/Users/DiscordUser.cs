@@ -36,8 +36,9 @@ namespace Grillbot.Models.Users
         public DateTime? UnverifyEndsAt { get; set; }
         public List<RemindItem> Reminders { get; set; }
         public List<InviteModel> CreatedInvites { get; set; }
+        public string UnverifyImunityGroup { get; set; }
 
-        #region FlagFields
+        #region ReadOnlyFields
 
         public bool IsBotAdmin => (Flags & (long)UserFlags.BotAdmin) != 0;
 
@@ -60,7 +61,8 @@ namespace Grillbot.Models.Users
                 ApiAccessCount = dbUser.ApiAccessCount,
                 WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,
-                UnverifyEndsAt = dbUser.Unverify?.EndDateTime
+                UnverifyEndsAt = dbUser.Unverify?.EndDateTime,
+                UnverifyImunityGroup = dbUser.UnverifyImunityGroup
             };
 
             if (botAppInfo.Owner.Id == user.Id)

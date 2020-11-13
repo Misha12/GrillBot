@@ -1,9 +1,11 @@
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
@@ -31,12 +33,12 @@ namespace Grillbot.Modules
         [Command("")]
         [Summary("Dočasné odebrání přístupu.")]
         [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, **d**: dny, **M**: měsíce, **y**: roky.\n" +
-            "Dále je důvod, proč daná osoba přišla o přístup\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify 30m Přišel jsi o přístup @User1#1234 @User2#1354 ...`")]
+            "Dále je důvod, proč daná osoba přišla o přístup.\nJe možné získat imunitu na unverify.\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify 30m Přišel jsi o přístup @User1#1234 @User2#1354 ...`")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
             try
             {
-                if (await SetUnverifyRoutingAsync(time))
+                if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
                     return;
 
                 var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketUser>().ToList();
@@ -59,7 +61,7 @@ namespace Grillbot.Modules
             }
         }
 
-        private async Task<bool> SetUnverifyRoutingAsync(string route)
+        private async Task<bool> SetUnverifyRoutingAsync(string route, string otherParams)
         {
             // Simply hack, because command routing cannot distinguish between a parameter and a function.
             switch (route)
@@ -70,6 +72,14 @@ namespace Grillbot.Modules
                 case "stats":
                     await StatsAsync();
                     return true;
+                case "printGroups":
+                    await PrintGroupsAsync();
+                    return true;
+                case "printGroupUsers":
+                    await PrintGroupUsersAsync(otherParams);
+                    return true;
+                case "removeImunity":
+                case "setImunity":
                 case "update":
                 case "remove":
                     throw new ThrowHelpException();
@@ -193,6 +203,54 @@ namespace Grillbot.Modules
 
             await ReplyAsync(embed: embed.Build());
         }
+
+        #region Imunity
+
+        [Command("setImunity")]
+        [Summary("Přiřazení imunity uživateli.")]
+        public async Task SetImunityAsync(IUser user, [Remainder] string groupName)
+        {
+            await Service.SetImunityAsync(Context.Guild, user, groupName);
+            await ReplyAsync("Imunita nastavena.");
+        }
+
+        [Command("printGroups")]
+        [Summary("Získání seznamu skupin s imunitou.")]
+        public async Task PrintGroupsAsync()
+        {
+            var groups = await Service.GetImunityGroupsAsync(Context.Guild);
+            var formated = groups.Select(o => $"> `{o.Key}`: {FormatHelper.FormatUsersCountCz(o.Value)}");
+
+            await ReplyChunkedAsync(formated.SplitInParts(10));
+        }
+
+        [Command("removeImunity")]
+        [Summary("Odebrání imunity uživateli.")]
+        public async Task RemoveImunityAsync(IUser user)
+        {
+            try
+            {
+                await Service.RemoveImunityAsync(Context.Guild, user);
+                await ReplyAsync("Imunita odebrána.");
+            }
+            catch (ValidationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
+
+        [Command("printGroupUsers")]
+        [Summary("Získání seznamu uživatelů s danou unverify skupinou.")]
+        public async Task PrintGroupUsersAsync([Remainder] string groupName)
+        {
+            var usernames = await Service.GetUnverifyGroupUsersAsync(Context.Guild, groupName);
+
+            await ReplyAsync($"`{groupName}` ({FormatHelper.FormatUsersCountCz(usernames.Count)})");
+            if (usernames.Count > 0)
+                await ReplyChunkedAsync(usernames.SplitInParts(10));
+        }
+
+        #endregion
 
         protected override void AfterExecute(CommandInfo command)
         {
