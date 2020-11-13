@@ -19,6 +19,7 @@ Statistics include the following:
 ## Api access
 
 The user can access the GrillBot REST API. The API may be restricted by client type.
+[VUT FIT Production OpenAPI](https://grillbot.cloud/swagger)
 
 ### Control commands
 
@@ -106,3 +107,16 @@ Sets or removes full power permission.
 | --------- | ---- | -------------------------------------------------------------- |
 | user      | User | Tag, id or name (username, alias) of user.                     |
 | isAdmin   | bool | A flag that specifies whether the user is a bot administrator. |
+
+### me
+
+Simplified method of `user info {userMention}`.
+
+Command **not returns** (instead of `user info`):
+
+- Permissions
+- Active clients
+- The most active text channel
+- Channel of last message (and when)
+- Detail flags
+- WebAdmin and API call statistics
