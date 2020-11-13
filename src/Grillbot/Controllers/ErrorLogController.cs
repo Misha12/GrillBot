@@ -8,6 +8,7 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/ErrorLog")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class ErrorLogController : Controller
     {
         private ErrorLogRepository ErrorLogRepository { get; }
