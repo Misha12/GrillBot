@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Grillbot.Models.Config.AppSettings
 {
     public class Configuration

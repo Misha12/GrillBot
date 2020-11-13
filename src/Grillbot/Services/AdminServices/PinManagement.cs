@@ -1,6 +1,5 @@
-﻿using Discord;
+using Discord;
 using Discord.Rest;
-using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Microsoft.Extensions.Logging;
 using System;

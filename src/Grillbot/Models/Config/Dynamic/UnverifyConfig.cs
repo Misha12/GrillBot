@@ -1,5 +1,3 @@
-using System.Collections.Generic;
-
 namespace Grillbot.Models.Config.Dynamic
 {
     public class UnverifyConfig

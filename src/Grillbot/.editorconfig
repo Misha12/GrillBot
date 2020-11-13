@@ -22,3 +22,6 @@ dotnet_diagnostic.S3928.severity = none
 # Default severity for analyzer diagnostics with category 'Usage'
 dotnet_analyzer_diagnostic.category-Usage.severity = none
 dotnet_diagnostic.CA1822.severity = none
+
+# S2344: Enumeration type names should not have "Flags" or "Enum" suffixes
+dotnet_diagnostic.S2344.severity = none

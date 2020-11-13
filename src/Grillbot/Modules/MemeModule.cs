@@ -2,8 +2,6 @@ using Discord.Commands;
 using System.Threading.Tasks;
 using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
-using System.IO;
-using System.Drawing.Imaging;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Extensions.Discord;
@@ -89,7 +87,7 @@ namespace Grillbot.Modules
             if (string.IsNullOrEmpty(mode))
                 mode = config.OutputMode.ToString().ToLower();
 
-            mode = char.ToUpper(mode[0]) + mode.Substring(1);
+            mode = char.ToUpper(mode[0]) + mode[1..];
             var availableModes = new[] { "Text", "Bin", "Hex" };
 
             if (!availableModes.Contains(mode)) return;

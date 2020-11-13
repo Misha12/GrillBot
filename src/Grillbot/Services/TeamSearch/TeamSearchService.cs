@@ -1,7 +1,6 @@
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services.MessageCache;
@@ -79,7 +78,7 @@ namespace Grillbot.Services.TeamSearch
             {
                 ID = dbItem.Id,
                 ShortUsername = message.Author.GetShortName(),
-                Message = message.Content.Substring("hledam add ".Length + 1),
+                Message = message.Content[("hledam add ".Length + 1)..],
                 MessageLink = message.GetJumpUrl(),
                 ChannelName = channel.Name
             };

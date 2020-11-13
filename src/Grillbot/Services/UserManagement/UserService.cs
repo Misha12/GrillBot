@@ -139,7 +139,7 @@ namespace Grillbot.Services.UserManagement
 
             var createdInvitesQuery = inviteRepository.GetInvitesOfUser(entity.ID)
                 .OrderByDescending(o => o.UsedUsers.Count).ThenBy(o => o.Code);
-            entity.CreatedInvites = (await inviteRepository.GetInvitesOfUser(entity.ID).ToListAsync()).ToHashSet();
+            entity.CreatedInvites = (await createdInvitesQuery.ToListAsync()).ToHashSet();
 
             var remindersQuery = reminderRepository.GetRemindersOfUser(entity.ID)
                 .OrderByDescending(o => o.At).ThenByDescending(o => o.RemindID);
@@ -210,7 +210,7 @@ namespace Grillbot.Services.UserManagement
 
         private void ProcessReaction(SocketReaction reaction, Action<SocketGuildUser, SocketGuildUser> action)
         {
-            if (!reaction.User.IsSpecified || !(reaction.User.Value is SocketGuildUser reactingUser))
+            if (!reaction.User.IsSpecified || reaction.User.Value is not SocketGuildUser reactingUser)
                 return;
 
             if (reaction.Message.IsSpecified && reaction.Message.Value.Author is SocketGuildUser rawMsgAuthor)

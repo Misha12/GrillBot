@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 
 namespace Grillbot.Extensions
@@ -19,16 +19,6 @@ namespace Grillbot.Extensions
         {
             for (var i = 0; i < s.Length; i += partLength)
                 yield return s.Substring(i, Math.Min(partLength, s.Length - i));
-        }
-
-        public static string GetMiddle(this string src, string start, string finish)
-        {
-            if (!src.Contains(start) || !src.Contains(finish)) return string.Empty;
-
-            var beginning = src.IndexOf(start, 0, StringComparison.Ordinal) + start.Length;
-            var end = src.IndexOf(finish, beginning, StringComparison.Ordinal);
-
-            return src[beginning..end];
         }
 
         public static string PreventMassTags(this string str)
