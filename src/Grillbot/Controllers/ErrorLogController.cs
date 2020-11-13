@@ -1,8 +1,11 @@
+using System.Linq;
 using System.Threading.Tasks;
+using Grillbot.Database.Entity;
 using Grillbot.Database.Repository;
 using Grillbot.Models.ErrorLog;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.EntityFrameworkCore;
 
 namespace Grillbot.Controllers
 {
@@ -21,19 +24,19 @@ namespace Grillbot.Controllers
         [HttpGet]
         public async Task<IActionResult> Index(long? id = null)
         {
+            const int tableDataLength = 90;
+            var logs = await ErrorLogRepository.GetLastLogs(25).Select(o => new ErrorLogItem()
+            {
+                CreatedAt = o.CreatedAt,
+                ID = o.ID,
+                Data = o.Data.Length > tableDataLength ? o.Data.Substring(0, tableDataLength - 3) + "..." : o.Data
+            }).ToListAsync();
+
             if (id == null)
-                return View(new ErrorLogViewModel { ID = id });
+                return View(new ErrorLogViewModel(null, logs, false));
 
             var logItem = await ErrorLogRepository.FindLogByIDAsync(id.Value);
-
-            var viewModel = new ErrorLogViewModel()
-            {
-                Found = logItem != null,
-                ID = id,
-                LogItem = logItem
-            };
-
-            return View(viewModel);
+            return View(new ErrorLogViewModel(logItem, logs, true));
         }
 
         [HttpGet("{id}")]
@@ -45,7 +48,8 @@ namespace Grillbot.Controllers
 
         protected override void Dispose(bool disposing)
         {
-            ErrorLogRepository.Dispose();
+            if (disposing)
+                ErrorLogRepository.Dispose();
 
             base.Dispose(disposing);
         }

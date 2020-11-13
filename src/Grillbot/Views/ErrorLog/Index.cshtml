@@ -24,6 +24,35 @@
             </div>
         </form>
 
+        @if(Model.Logs.Count > 0)
+        {
+            <div class="card-header">
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th style="width: 10%">ID</th>
+                            <th style="width: 20%">Datum a čas</th>
+                            <th>Data</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach(var log in Model.Logs)
+                        {
+                            <tr>
+                                <td>
+                                    <a asp-route-id="@log.ID">@log.ID</a>
+                                </td>
+                                <td>@log.CreatedAt.ToLocaleDatetime()</td>
+                                <td>
+                                    <code>@log.Data</code>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            </div>
+        }
+
         @if (Model.Found != null)
         {
             <div class="card-body">

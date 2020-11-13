@@ -35,6 +35,10 @@
         text-decoration: underline;
     }
 
+    .card.bg-dark .table tr td code {
+        color: #f6b0d0;
+    }
+
 p.text-wrap {
     white-space: -moz-pre-wrap !important; /* Mozilla, since 1999 */
     white-space: -webkit-pre-wrap; /* Chrome & Safari */

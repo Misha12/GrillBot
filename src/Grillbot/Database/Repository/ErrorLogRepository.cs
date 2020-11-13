@@ -1,6 +1,7 @@
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
@@ -27,8 +28,15 @@ namespace Grillbot.Database.Repository
 
         public Task<ErrorLogItem> FindLogByIDAsync(long id)
         {
-            return Context.Errors
+            return Context.Errors.AsQueryable()
                 .SingleOrDefaultAsync(o => o.ID == id);
+        }
+
+        public IQueryable<ErrorLogItem> GetLastLogs(int topCount)
+        {
+            return Context.Errors.AsQueryable()
+                .OrderByDescending(o => o.ID)
+                .Take(topCount);
         }
 
         public async Task RemoveItemAsync(long id)
@@ -39,7 +47,7 @@ namespace Grillbot.Database.Repository
                 return;
 
             Context.Errors.Remove(item);
-            Context.SaveChanges();
+            await Context.SaveChangesAsync();
         }
     }
 }
