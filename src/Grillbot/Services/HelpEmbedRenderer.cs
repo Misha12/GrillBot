@@ -3,10 +3,9 @@ using Discord.Commands;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
-using Microsoft.Extensions.Options;
+using Grillbot.Services.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,11 +20,14 @@ namespace Grillbot.Services
         private IServiceProvider ServiceProvider { get; }
         private string CommandPrefix { get; }
 
-        public HelpEmbedRenderer(CommandService commandService, IServiceProvider serviceProvider, IOptions<Configuration> options)
+        public HelpEmbedRenderer(CommandService commandService, IServiceProvider serviceProvider, ConfigurationService configurationService)
         {
             CommandService = commandService;
             ServiceProvider = serviceProvider;
-            CommandPrefix = options.Value.CommandPrefix;
+            
+            CommandPrefix = configurationService.GetValue(Enums.GlobalConfigItems.CommandPrefix);
+            if (string.IsNullOrEmpty(CommandPrefix))
+                CommandPrefix = "$";
         }
 
         public async Task<PaginatedEmbed> RenderSummaryHelpAsync(SocketCommandContext context)

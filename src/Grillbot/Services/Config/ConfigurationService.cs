@@ -1,20 +1,21 @@
 using Grillbot.Database.Repository;
 using Grillbot.Enums;
 using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Config
 {
-    public class ConfigurationService : IDisposable
+    public class ConfigurationService
     {
         private IConfiguration Configuration { get; }
-        private GlobalConfigRepository GlobalConfigRepository { get; }
+        private IServiceProvider ServiceProvider { get; }
 
-        public ConfigurationService(IConfiguration configuration, GlobalConfigRepository globalConfigRepository)
+        public ConfigurationService(IConfiguration configuration, IServiceProvider serviceProvider)
         {
             Configuration = configuration;
-            GlobalConfigRepository = globalConfigRepository;
+            ServiceProvider = serviceProvider;
         }
 
         public string GetValue(GlobalConfigItems key)
@@ -25,12 +26,9 @@ namespace Grillbot.Services.Config
         public async Task SetValueAsync(GlobalConfigItems key, string data)
         {
             Configuration[key.ToString()] = data;
-            await GlobalConfigRepository.UpdateItemAsync(key, data);
-        }
 
-        public void Dispose()
-        {
-            GlobalConfigRepository.Dispose();
+            using var repository = ServiceProvider.GetService<GlobalConfigRepository>();
+            await repository.UpdateItemAsync(key, data);
         }
     }
 }

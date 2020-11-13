@@ -26,8 +26,7 @@ namespace Grillbot.Services.Permissions.Preconditions
         {
             var disabledChannelsList = new List<ulong>();
 
-            using var scope = provider.CreateScope();
-            using var service = scope.ServiceProvider.GetService<ConfigurationService>();
+            var service = provider.GetService<ConfigurationService>();
 
             var disabledChannels = service.GetValue(GlobalConfigItems.DisabledChannels);
             if (!string.IsNullOrEmpty(disabledChannels))
