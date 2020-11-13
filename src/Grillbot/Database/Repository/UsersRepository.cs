@@ -157,7 +157,7 @@ namespace Grillbot.Database.Repository
         {
             var entity = await GetUserAsync(guildID, userID, includes);
 
-            if(entity == null)
+            if (entity == null)
             {
                 entity = new UserEntity()
                 {
@@ -220,6 +220,12 @@ namespace Grillbot.Database.Repository
         {
             return GetBaseQuery(UsersIncludes.Unverify)
                 .Where(o => o.GuildID == guildID.ToString() && o.Unverify != null);
+        }
+
+        public IQueryable<UserEntity> GetUsersWithUnverifyImunity(ulong guildID)
+        {
+            return GetBaseQuery(UsersIncludes.None)
+                .Where(o => o.GuildID == guildID.ToString() && o.UnverifyImunityGroup != null);
         }
     }
 }

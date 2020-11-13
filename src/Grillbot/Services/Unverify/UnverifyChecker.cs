@@ -27,6 +27,7 @@ namespace Grillbot.Services.Unverify
         {
             ValidateServerOwner(guild, user);
             await ValidateBotAdminAsync(user, guild, selfUnverify);
+            await ValidateImunityAsync(guild, user, selfUnverify);
             ValidateRoles(guild, user, selfUnverify);
             await ValidateIfNotUnverifiedAsync(guild, user);
         }
@@ -70,6 +71,16 @@ namespace Grillbot.Services.Unverify
 
             if (haveUnverify)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
+        }
+
+        private async Task ValidateImunityAsync(SocketGuild guild, SocketUser user, bool selfUnverify)
+        {
+            if (selfUnverify) return;
+
+            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+
+            if (dbUser != null && !string.IsNullOrEmpty(dbUser.UnverifyImunityGroup))
+                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je imunní vůči unverify. Imunitní skupina: **{dbUser.UnverifyImunityGroup}**");
         }
 
         public void Dispose()

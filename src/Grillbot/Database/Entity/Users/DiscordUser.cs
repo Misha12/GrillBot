@@ -43,6 +43,9 @@ namespace Grillbot.Database.Entity.Users
         public int? ApiAccessCount { get; set; }
         public DateTime? Birthday { get; set; }
 
+        [StringLength(64)]
+        public string UnverifyImunityGroup { get; set; }
+
         [ForeignKey("UsedInviteCode")]
         public Invite UsedInvite { get; set; }
 
