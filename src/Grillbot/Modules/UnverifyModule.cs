@@ -210,6 +210,12 @@ namespace Grillbot.Modules
         [Summary("Přiřazení imunity uživateli.")]
         public async Task SetImunityAsync(IUser user, [Remainder] string groupName)
         {
+            if (groupName.Length > 64)
+            {
+                await ReplyAsync("Maximální délka názvu skupiny je 64 znaků.");
+                return;
+            }
+
             await Service.SetImunityAsync(Context.Guild, user, groupName);
             await ReplyAsync("Imunita nastavena.");
         }
@@ -243,6 +249,12 @@ namespace Grillbot.Modules
         [Summary("Získání seznamu uživatelů s danou unverify skupinou.")]
         public async Task PrintGroupUsersAsync([Remainder] string groupName)
         {
+            if (groupName.Length > 64)
+            {
+                await ReplyAsync("Maximální délka názvu skupiny je 64 znaků.");
+                return;
+            }
+
             var usernames = await Service.GetUnverifyGroupUsersAsync(Context.Guild, groupName);
 
             await ReplyAsync($"`{groupName}` ({FormatHelper.FormatUsersCountCz(usernames.Count)})");
