@@ -109,7 +109,6 @@ namespace Grillbot.Services
                     .AddSimpleConsole(config =>
                     {
                         config.TimestampFormat = "dd. MM. yyyy HH:mm:ss\t";
-                        config.SingleLine = true;
                         config.IncludeScopes = true;
                     });
             });

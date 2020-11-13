@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
@@ -11,6 +11,7 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("channelboard")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class ChannelboardController : Controller
     {
         private ChannelStats ChannelStats { get; }

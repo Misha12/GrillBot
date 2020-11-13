@@ -1,7 +1,4 @@
 using System;
-using System.Collections.Generic;
-using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Models.BotStatus;
@@ -15,6 +12,7 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Reports")]
+    [ApiExplorerSettings(IgnoreApi = true)]
     public class ReportsController : Controller
     {
         private BotStatusService StatusService { get; }

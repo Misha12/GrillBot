@@ -8,6 +8,8 @@ using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Initiable;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Permissions.Api;
+using Microsoft.OpenApi.Models;
+using System;
 
 namespace Grillbot
 {
@@ -35,6 +37,23 @@ namespace Grillbot
                 .AddCors()
                 .AddMessageCache()
                 .AddHttpClient();
+
+            services.AddSwaggerGen(setup =>
+            {
+                var apiInfo = new OpenApiInfo()
+                {
+                    Contact = new OpenApiContact()
+                    {
+                        Name = "GrillBot",
+                        Url = new Uri(ThisAssembly.Git.RepositoryUrl)
+                    },
+                    License = new OpenApiLicense() { Name = "MIT" },
+                    Title = "GrillBot API",
+                    Version = "v1"
+                };
+
+                setup.SwaggerDoc("v1", apiInfo);
+            });
 
             services
                 .AddControllersWithViews();
@@ -94,6 +113,8 @@ namespace Grillbot
             var serviceProvider = app.ApplicationServices;
 
             app
+                .UseSwagger()
+                .UseSwaggerUI(o => o.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"))
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
                 .UseMiddleware<DiscordAuthorizeMiddleware>()
