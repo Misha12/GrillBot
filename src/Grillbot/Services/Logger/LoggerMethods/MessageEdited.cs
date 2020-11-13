@@ -1,4 +1,4 @@
-﻿using System.Threading.Tasks;
+using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
@@ -11,7 +11,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
     public class MessageEdited : LoggerMethodBase
     {
         public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache)
-            : base(client, config, messageCache, null, null)
+            : base(client, config, messageCache, null, null, null)
         {
         }
 

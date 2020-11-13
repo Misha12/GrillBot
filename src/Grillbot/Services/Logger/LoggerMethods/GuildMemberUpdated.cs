@@ -1,13 +1,15 @@
-﻿using System.Threading.Tasks;
+using System;
+using System.Linq;
+using System.Threading.Tasks;
 using Discord.WebSocket;
-using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 
 namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class GuildMemberUpdated : LoggerMethodBase
     {
-        public GuildMemberUpdated(DiscordSocketClient client, Configuration config) : base(client, config, null, null, null)
+        public GuildMemberUpdated(DiscordSocketClient client, ConfigurationService configurationService) : base(client, null, null, null, null, configurationService)
         {
         }
 
@@ -54,16 +56,30 @@ namespace Grillbot.Services.Logger.LoggerMethods
 
         private bool IsBoostAdded(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            bool hasBefore = Config.Discord.IsBooster(guildUserBefore.Roles);
-            bool hasAfter = Config.Discord.IsBooster(guildUserAfter.Roles);
+            var boosterRoleId = ConfigurationService.GetValue(Enums.GlobalConfigItems.ServerBoosterRoleId);
+
+            if (string.IsNullOrEmpty(boosterRoleId))
+                return false;
+
+            var boosterRoleIdValue = Convert.ToUInt64(boosterRoleId);
+
+            bool hasBefore = guildUserBefore.Roles.Any(o => o.Id == boosterRoleIdValue);
+            bool hasAfter = guildUserAfter.Roles.Any(o => o.Id == boosterRoleIdValue);
 
             return !hasBefore && hasAfter;
         }
 
         private bool IsBoostRemoved(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
-            bool hasBefore = Config.Discord.IsBooster(guildUserBefore.Roles);
-            bool hasAfter = Config.Discord.IsBooster(guildUserAfter.Roles);
+            var boosterRoleId = ConfigurationService.GetValue(Enums.GlobalConfigItems.ServerBoosterRoleId);
+
+            if (string.IsNullOrEmpty(boosterRoleId))
+                return false;
+
+            var boosterRoleIdValue = Convert.ToUInt64(boosterRoleId);
+
+            bool hasBefore = guildUserBefore.Roles.Any(o => o.Id == boosterRoleIdValue);
+            bool hasAfter = guildUserAfter.Roles.Any(o => o.Id == boosterRoleIdValue);
 
             return hasBefore && !hasAfter;
         }

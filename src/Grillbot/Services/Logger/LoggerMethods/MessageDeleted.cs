@@ -18,7 +18,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
     public class MessageDeleted : LoggerMethodBase
     {
         public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
-            ILogger logger) : base(client, config, messageCache, httpClient, logger)
+            ILogger logger) : base(client, config, messageCache, httpClient, logger, null)
         {
         }
 

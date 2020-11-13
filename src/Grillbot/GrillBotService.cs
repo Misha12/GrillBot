@@ -17,7 +17,6 @@ using Grillbot.Models;
 using System.Text;
 using Grillbot.Core.Math.Models;
 using Grillbot.Enums;
-using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Config;
 
 namespace Grillbot
@@ -33,9 +32,10 @@ namespace Grillbot
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
         private BotState BotState { get; }
+        private ConfigurationService ConfigurationService { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            InternalStatistics internalStatistics, InitService initService, BotState botState)
+            InternalStatistics internalStatistics, InitService initService, BotState botState, ConfigurationService configurationService)
         {
             Services = services;
             Client = client;
@@ -44,6 +44,7 @@ namespace Grillbot
             InternalStatistics = internalStatistics;
             InitService = initService;
             BotState = botState;
+            ConfigurationService = configurationService;
 
             Client.Ready += OnClientReadyAsync;
         }
@@ -83,8 +84,7 @@ namespace Grillbot
 
         private Task SetActivityAsync()
         {
-            var configurationService = Services.GetService<ConfigurationService>();
-            var activityMessage = configurationService.GetValue(GlobalConfigItems.ActivityMessage);
+            var activityMessage = ConfigurationService.GetValue(GlobalConfigItems.ActivityMessage);
 
             if (!string.IsNullOrEmpty(activityMessage) && activityMessage == "None")
                 return Client.SetGameAsync(null);

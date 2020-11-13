@@ -3,6 +3,7 @@ using Grillbot.Core.Math.Models;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
+using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -23,13 +24,15 @@ namespace Grillbot.Services.Math
         private Configuration Config { get; }
         private IServiceProvider ServiceProvider { get; }
         private ILogger<MathService> Logger { get; }
+        private ConfigurationService ConfigurationService { get; }
 
-        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, ILogger<MathService> logger)
+        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, ILogger<MathService> logger, ConfigurationService configurationService)
         {
             Config = config.Value;
             Sessions = new List<MathSession>();
             ServiceProvider = serviceProvider;
             Logger = logger;
+            ConfigurationService = configurationService;
         }
 
         private void InitSessions()
@@ -75,10 +78,12 @@ namespace Grillbot.Services.Math
             MathCalcResult result = null;
 
             var user = (SocketGuildUser)message.Author;
+            
+            var boosterRoleId = ConfigurationService.GetValue(Enums.GlobalConfigItems.ServerBoosterRoleId);
 
             try
             {
-                bool booster = Config.Discord.IsBooster(user.Roles);
+                bool booster = !string.IsNullOrEmpty(boosterRoleId) && user.Roles.Any(o => o.Id == Convert.ToUInt64(boosterRoleId));
                 session = LockAndGetSession(input, booster);
 
                 input = ("" + input).Trim(); // treatment against null values.

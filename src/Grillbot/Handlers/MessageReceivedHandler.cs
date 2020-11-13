@@ -28,10 +28,11 @@ namespace Grillbot.Handlers
         private Configuration Config { get; }
         private UserService UserService { get; }
         private BotStatusService BotStatus { get; }
+        private ConfigurationService ConfigurationService { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
             AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService,
-            BotStatusService botStatus)
+            BotStatusService botStatus, ConfigurationService configurationService)
         {
             Client = client;
             Commands = commands;
@@ -43,6 +44,7 @@ namespace Grillbot.Handlers
             Config = config.Value;
             UserService = userService;
             BotStatus = botStatus;
+            ConfigurationService = configurationService;
         }
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
@@ -104,8 +106,7 @@ namespace Grillbot.Handlers
             if (message.HasMentionPrefix(Client.CurrentUser, ref argPos))
                 return true;
 
-            var configService = Services.GetService<ConfigurationService>();
-            var prefix = configService.GetValue(GlobalConfigItems.CommandPrefix);
+            var prefix = ConfigurationService.GetValue(GlobalConfigItems.CommandPrefix);
             if (string.IsNullOrEmpty(prefix))
                 prefix = "$";
 
