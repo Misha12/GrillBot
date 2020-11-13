@@ -112,9 +112,9 @@ namespace Grillbot.Services
 
             // Strict match to one command.
             if (result.Commands.Any(o => o.Alias == command))
-                return await RenderEmbedAsync(command, result.Commands.Where(o => o.Alias == command).Select(o => o.Command), context, result.Commands.First().Command.Module.Remarks);
+                return await RenderEmbedAsync(command, result.Commands.Where(o => o.Alias == command).Select(o => o.Command), context, result.Commands[0].Command.Module.Remarks);
 
-            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context, result.Commands.First().Command.Module.Remarks);
+            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context, result.Commands[0].Command.Module.Remarks);
         }
 
         private async Task<BotEmbed> RenderEmbedAsync(string prefix, ModuleInfo module, ICommandContext context)

@@ -5,6 +5,7 @@ namespace Grillbot.Enums
         UnloadedModules,
         DisabledChannels,
         CommandPrefix,
-        EmoteChain_CheckCount
+        EmoteChain_CheckCount,
+        ActivityMessage
     }
 }
