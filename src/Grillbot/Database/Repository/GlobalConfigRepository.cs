@@ -1,6 +1,8 @@
-﻿using Grillbot.Database.Entity.Config;
+using Grillbot.Database.Entity.Config;
 using Grillbot.Enums;
 using Microsoft.EntityFrameworkCore;
+using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
@@ -14,7 +16,7 @@ namespace Grillbot.Database.Repository
         public async Task<string> GetItemAsync(GlobalConfigItems itemKey)
         {
             var key = itemKey.ToString();
-            var result = await Context.GlobalConfig
+            var result = await Context.GlobalConfig.AsQueryable()
                 .SingleOrDefaultAsync(o => o.Key == key);
 
             return result?.Value;
@@ -24,7 +26,7 @@ namespace Grillbot.Database.Repository
         {
             var key = item.ToString();
 
-            var result = await Context.GlobalConfig
+            var result = await Context.GlobalConfig.AsQueryable()
                 .SingleOrDefaultAsync(o => o.Key == key);
 
             if (result == null)
@@ -35,7 +37,7 @@ namespace Grillbot.Database.Repository
                     Value = value
                 };
 
-                Context.GlobalConfig.Add(result);
+                await Context.GlobalConfig.AddAsync(result);
             }
             else
             {
@@ -43,6 +45,12 @@ namespace Grillbot.Database.Repository
             }
 
             await Context.SaveChangesAsync();
+        }
+
+        public IQueryable<Tuple<string, string>> GetAllItems()
+        {
+            return Context.GlobalConfig.AsQueryable()
+                .Select(o => Tuple.Create(o.Key, o.Value));
         }
     }
 }

@@ -36,7 +36,8 @@ namespace Grillbot
                 .AddMemoryCache()
                 .AddCors()
                 .AddMessageCache()
-                .AddHttpClient();
+                .AddHttpClient()
+                .AddConfiguration();
 
             services.AddSwaggerGen(setup =>
             {

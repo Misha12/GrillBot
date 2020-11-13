@@ -16,6 +16,7 @@ using Grillbot.TypeReaders;
 using Grillbot.Models;
 using System.Text;
 using Grillbot.Core.Math.Models;
+using Grillbot.Enums;
 
 namespace Grillbot
 {
@@ -64,6 +65,7 @@ namespace Grillbot
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
             Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());
             Commands.AddTypeReader<MathSession>(new MathSessionTypeReader());
+            Commands.AddTypeReader<GlobalConfigItems>(new GlobalConfigItemTypeReader());
 
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
             await SetActivityAsync(Config.Discord.Activity);
