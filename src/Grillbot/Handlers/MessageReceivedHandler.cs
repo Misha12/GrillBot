@@ -11,6 +11,8 @@ using Grillbot.Modules.AutoReply;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
 using Microsoft.Extensions.DependencyInjection;
+using Grillbot.Services.Config;
+using Grillbot.Enums;
 
 namespace Grillbot.Handlers
 {
@@ -53,7 +55,7 @@ namespace Grillbot.Handlers
             if (context.IsPrivate) return;
 
             int argPos = 0;
-            if ((userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) && userMessage.Content.Length > 1) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
+            if (IsCommand(userMessage, ref argPos))
             {
                 BotStatus.RunningCommands.Add(message);
                 await Commands.ExecuteAsync(context, userMessage.Content[argPos..], Services).ConfigureAwait(false);
@@ -95,6 +97,19 @@ namespace Grillbot.Handlers
             using var pointsService = scope.ServiceProvider.GetService<PointsService>();
 
             pointsService.IncrementPoints(guild, message);
+        }
+
+        private bool IsCommand(SocketUserMessage message, ref int argPos)
+        {
+            if (message.HasMentionPrefix(Client.CurrentUser, ref argPos))
+                return true;
+
+            var configService = Services.GetService<ConfigurationService>();
+            var prefix = configService.GetValue(GlobalConfigItems.CommandPrefix);
+            if (string.IsNullOrEmpty(prefix))
+                prefix = "$";
+
+            return message.Content.Length > prefix.Length && message.HasStringPrefix(prefix, ref argPos);
         }
 
         public void Dispose()

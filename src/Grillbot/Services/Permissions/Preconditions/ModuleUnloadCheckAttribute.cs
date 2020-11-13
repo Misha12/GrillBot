@@ -39,10 +39,9 @@ namespace Grillbot.Services.Permissions.Preconditions
         {
             var unloadedModulesList = new List<string>();
 
-            using var scope = services.CreateScope();
-            using var service = scope.ServiceProvider.GetService<ConfigurationService>();
-
+            var service = services.GetService<ConfigurationService>();
             var unloadedModules = service.GetValue(GlobalConfigItems.UnloadedModules);
+
             if (!string.IsNullOrEmpty(unloadedModules))
                 unloadedModulesList.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModules));
 

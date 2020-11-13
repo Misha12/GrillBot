@@ -148,12 +148,5 @@ namespace Grillbot.Modules
 
             return unloadedModulesList;
         }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            ConfigurationService.Dispose();
-
-            base.AfterExecute(command);
-        }
     }
 }

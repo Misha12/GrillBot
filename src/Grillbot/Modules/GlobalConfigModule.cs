@@ -58,11 +58,5 @@ namespace Grillbot.Modules
             await ConfigurationService.SetValueAsync(key, value);
             await ReplyAsync("Konfigurace uložena");
         }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            ConfigurationService.Dispose();
-            base.AfterExecute(command);
-        }
     }
 }
