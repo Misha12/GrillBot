@@ -214,6 +214,14 @@ namespace Grillbot.Modules
             if (await CheckMissingMethodID(method)) return;
 
             var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
+
+            if(config.ConfigData.Length >= Discord.DiscordConfig.MaxMessageSize)
+            {
+                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(config.ConfigData));
+                await Context.Channel.SendFileAsync(stream, $"{method.Group}_{method.Command}.json");
+                return;
+            }
+
             await ReplyAsync($"```json\n{config.ConfigData}```").ConfigureAwait(false);
         }
 
