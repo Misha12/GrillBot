@@ -1,4 +1,4 @@
-﻿using Grillbot.Database.Entity.Users;
+using Grillbot.Database.Entity.Users;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;

@@ -1,4 +1,5 @@
-﻿using Newtonsoft.Json;
+﻿using Grillbot.Core.Math.Models;
+using Newtonsoft.Json;
 using System;
 
 namespace GrillBotMath

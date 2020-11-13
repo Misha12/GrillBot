@@ -49,7 +49,7 @@ namespace GrillBotMath
         {
             return arguments
                 .Where(IsConstantDeclaration)
-                .Select(o => o.Substring(Constant.Length).Split('='))
+                .Select(o => o[Constant.Length..].Split('='))
                 .Select(CreateArgument);
         }
 
@@ -63,7 +63,7 @@ namespace GrillBotMath
 
         private bool IsConstantDeclaration(string field) => field.Trim().StartsWith(Constant, StringComparison.InvariantCultureIgnoreCase);
 
-        private List<string> ValidateAndGetErrors(Expression expression)
+        private static List<string> ValidateAndGetErrors(Expression expression)
         {
             var errorMessages = new List<string>();
 
@@ -88,7 +88,7 @@ namespace GrillBotMath
             return errorMessages;
         }
 
-        private bool MissingDataCheck(Expression expression, Func<Expression, string[]> func, string errorMessageTemplate, out string errorMessage)
+        private static bool MissingDataCheck(Expression expression, Func<Expression, string[]> func, string errorMessageTemplate, out string errorMessage)
         {
             var missing = func(expression);
 
@@ -102,12 +102,12 @@ namespace GrillBotMath
             return true;
         }
 
-        private bool CheckMissingParameters(Expression expression, out string errorMessage)
+        private static bool CheckMissingParameters(Expression expression, out string errorMessage)
         {
             return MissingDataCheck(expression, e => e.getMissingUserDefinedArguments(), "Chybí mi parametr: {0}", out errorMessage);
         }
 
-        private bool CheckMissingFunctions(Expression expression, out string errorMessage)
+        private static bool CheckMissingFunctions(Expression expression, out string errorMessage)
         {
             return MissingDataCheck(expression, o => o.getMissingUserDefinedFunctions(), "Chybí mi funkce: {0}", out errorMessage);
         }

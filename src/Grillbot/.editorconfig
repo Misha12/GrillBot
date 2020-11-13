@@ -18,3 +18,6 @@ dotnet_diagnostic.RCS1090.severity = none
 
 # S3928: Parameter names used into ArgumentException constructors should match an existing one 
 dotnet_diagnostic.S3928.severity = none
+
+# Default severity for analyzer diagnostics with category 'Usage'
+dotnet_analyzer_diagnostic.category-Usage.severity = none
