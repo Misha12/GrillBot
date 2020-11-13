@@ -12,7 +12,6 @@ using Grillbot.Services.Permissions.Preconditions;
 using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
-using System.Drawing;
 using System.IO;
 using System.Threading.Tasks;
 
