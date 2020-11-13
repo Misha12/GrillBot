@@ -14,6 +14,7 @@ using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -459,6 +460,49 @@ namespace Grillbot.Services.Unverify
             }
 
             return usernames.OrderByDescending(o => o).ToList();
+        }
+
+        #endregion
+
+        #region SelfUnverify
+
+        public async Task AddSelfunverifyDefinitionsAsync(SocketGuild guild, string group, string[] values)
+        {
+            var config = await ConfigRepository.FindConfigAsync(guild.Id, "selfunverify", null, false);
+            var jsonData = config.GetData<SelfUnverifyConfig>();
+
+            if (!jsonData.RolesToKeep.ContainsKey(group))
+                jsonData.RolesToKeep.Add(group, new List<string>());
+
+            jsonData.RolesToKeep[group].AddRange(values);
+            jsonData.RolesToKeep[group] = jsonData.RolesToKeep[group].Distinct().ToList();
+
+            config.Config = JObject.FromObject(jsonData);
+            await ConfigRepository.SaveChangesAsync();
+        }
+
+        public async Task<Tuple<List<string>, List<string>>> RemoveSelfunverifyDefinitions(SocketGuild guild, string group, string[] values)
+        {
+            var config = await ConfigRepository.FindConfigAsync(guild.Id, "selfunverify", null, false);
+            var jsonData = config.GetData<SelfUnverifyConfig>();
+
+            if (!jsonData.RolesToKeep.ContainsKey(group))
+                throw new ValidationException($"Skupina `{group}` neexistuje.");
+
+            var exists = values.Where(o => jsonData.RolesToKeep[group].Contains(o)).ToList();
+            var notExists = values.Where(o => !jsonData.RolesToKeep[group].Contains(o)).ToList();
+
+            foreach(var item in exists)
+            {
+                jsonData.RolesToKeep[group].Remove(item);
+            }
+
+            if (jsonData.RolesToKeep[group].Count == 0)
+                jsonData.RolesToKeep.Remove(group);
+
+            config.Config = JObject.FromObject(jsonData);
+            await ConfigRepository.SaveChangesAsync();
+            return Tuple.Create(exists, notExists);
         }
 
         #endregion
