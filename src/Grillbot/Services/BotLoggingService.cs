@@ -19,6 +19,8 @@ using Grillbot.Database.Repository;
 using Grillbot.Database.Entity;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
+using Grillbot.Models.Embed;
+using Grillbot.Extensions;
 
 namespace Grillbot.Services
 {
@@ -30,12 +32,11 @@ namespace Grillbot.Services
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
         private ILogger<BotLoggingService> Logger { get; }
-        private Configuration Config { get; }
         private ApiStatistics ApiStatistics { get; }
 
         private ulong? LogRoom { get; set; }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services, ILogger<BotLoggingService> logger,
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
             ApiStatistics apiStatistics)
         {
             Client = client;
@@ -43,7 +44,6 @@ namespace Grillbot.Services
             Logger = logger;
             LogRoom = config.Value.Discord.ErrorLogChannelID;
             Services = services;
-            Config = config.Value;
             ApiStatistics = apiStatistics;
         }
 
@@ -74,25 +74,29 @@ namespace Grillbot.Services
                 }
             }
 
-            using var scope = Services.CreateScope();
-            using var service = scope.ServiceProvider.GetService<ErrorLogRepository>();
-            var logEmbedCreator = scope.ServiceProvider.GetService<LogEmbedCreator>();
+            using var service = Services.GetService<ErrorLogRepository>();
+            var logEmbedCreator = Services.GetService<LogEmbedCreator>();
 
-            ErrorLogItem entityRecord = null;
-            string backupFilename = null;
             try
             {
-                entityRecord = service.CreateRecord(message.ToString());
+                var entityRecord = service.CreateRecord(message.ToString());
+                var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entityRecord);
+
+                await (Client.GetChannel(LogRoom.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
             }
             catch (Exception)
             {
-                backupFilename = Path.Combine(Config.BackupErrors, $"{DateTime.Now.Ticks}.log");
-                File.WriteAllText(backupFilename, message.ToString());
-            }
+                var chunks = message.ToString()
+                    .SplitInParts(MessageSizeForException);
 
-            var embed = logEmbedCreator.CreateErrorEmbed(message, entityRecord, backupFilename);
-            if (Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
-                await channel.SendMessageAsync(embed: embed.Build());
+                if(Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
+                {
+                    foreach(var chunk in chunks)
+                    {
+                        await channel.SendMessageAsync(chunk);
+                    }
+                }
+            }
         }
 
         private bool CanSendExceptionToDiscord(LogMessage message) => message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);
@@ -152,7 +156,7 @@ namespace Grillbot.Services
             if (exception == null)
                 return true;
 
-            return !(exception is CommandException ce) || !IsThrowHelpException(ce) && !IsConfigException(ce);
+            return exception is not CommandException ce || !IsThrowHelpException(ce) && !IsConfigException(ce);
         }
 
         private bool IsThrowHelpException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ThrowHelpException;
