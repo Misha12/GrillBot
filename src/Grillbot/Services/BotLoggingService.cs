@@ -37,7 +37,7 @@ namespace Grillbot.Services
         private ulong? LogRoom { get; set; }
 
         public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
-            ApiStatistics apiStatistics)
+            ApiStatistics apiStatistics, IOptions<Configuration> config)
         {
             Client = client;
             Commands = commands;
@@ -62,7 +62,7 @@ namespace Grillbot.Services
             {
                 if (IsThrowHelpException(ce))
                 {
-                    string helpCommand = $"grillhelp {ce.Context.Message.Content.Substring(1)}";
+                    string helpCommand = $"grillhelp {ce.Context.Message.Content[1..]}";
                     await Commands.ExecuteAsync(ce.Context, helpCommand, Services).ConfigureAwait(false);
                     return;
                 }

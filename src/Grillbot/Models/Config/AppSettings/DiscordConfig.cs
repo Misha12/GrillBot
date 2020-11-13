@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -6,7 +6,6 @@ namespace Grillbot.Models.Config.AppSettings
 {
     public class DiscordConfig
     {
-        public string Activity { get; set; }
         public string Token { get; set; }
         public string UserJoinedMessage { get; set; }
         public ulong? LoggerRoomID { get; set; }
