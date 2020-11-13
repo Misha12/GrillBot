@@ -38,7 +38,10 @@ namespace Grillbot.Modules
         {
             var value = ConfigurationService.GetValue(key);
 
-            if(value.Length >= Discord.DiscordConfig.MaxMessageSize)
+            if (string.IsNullOrEmpty(value))
+                value = "null";
+
+            if (value.Length >= Discord.DiscordConfig.MaxMessageSize)
             {
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(value));
                 await Context.Channel.SendFileAsync(stream, $"{key}.txt");

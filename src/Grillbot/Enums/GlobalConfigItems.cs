@@ -1,7 +1,8 @@
-﻿namespace Grillbot.Enums
+namespace Grillbot.Enums
 {
     public enum GlobalConfigItems
     {
-        UnloadedModules
+        UnloadedModules,
+        DisabledChannels
     }
 }
