@@ -6,6 +6,7 @@ namespace Grillbot.Enums
         DisabledChannels,
         CommandPrefix,
         EmoteChain_CheckCount,
-        ActivityMessage
+        ActivityMessage,
+        ServerBoosterRoleId
     }
 }

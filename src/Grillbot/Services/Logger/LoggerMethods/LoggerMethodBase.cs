@@ -1,7 +1,8 @@
-﻿using Discord.Rest;
+using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Exceptions;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
@@ -18,14 +19,16 @@ namespace Grillbot.Services.Logger.LoggerMethods
         protected IMessageCache MessageCache { get; }
         protected HttpClient HttpClient { get; }
         protected ILogger Logger { get; }
+        protected ConfigurationService ConfigurationService { get; }
 
-        protected LoggerMethodBase(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient, ILogger logger)
+        protected LoggerMethodBase(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient, ILogger logger, ConfigurationService configurationService)
         {
             Client = client;
             Config = config;
             MessageCache = messageCache;
             HttpClient = httpClient;
             Logger = logger;
+            ConfigurationService = configurationService;
         }
 
         protected ISocketMessageChannel GetLoggerRoom(bool adminChannel = false)

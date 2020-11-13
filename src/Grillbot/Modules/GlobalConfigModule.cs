@@ -55,6 +55,9 @@ namespace Grillbot.Modules
         [Summary("Uloží konfigurační hodnotu pro zadaný klíč.")]
         public async Task SetAsync(GlobalConfigItems key, string value)
         {
+            if (string.Equals(value, "null", StringComparison.InvariantCultureIgnoreCase))
+                value = null;
+
             await ConfigurationService.SetValueAsync(key, value);
             await ReplyAsync("Konfigurace uložena");
         }

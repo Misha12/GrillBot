@@ -1,6 +1,7 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
@@ -19,19 +20,20 @@ namespace Grillbot.Services.Logger
         private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
         private ILogger<Logger> AppLogger { get; }
-
+        private ConfigurationService ConfigurationService { get; }
         public Dictionary<string, uint> Counters { get; }
 
         private DateTime LastEventAt { get; set; }
         private string LastEvent { get; set; }
         private readonly object LastEventLock = new object();
 
-        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, ILogger<Logger> logger)
+        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, ILogger<Logger> logger, ConfigurationService configurationService)
         {
             Client = client;
             Config = config.Value;
             MessageCache = messageCache;
             AppLogger = logger;
+            ConfigurationService = configurationService;
 
             Counters = new Dictionary<string, uint>();
 
@@ -42,7 +44,7 @@ namespace Grillbot.Services.Logger
         {
             if (!CanProcessEvent("GuildMemberUpdated")) return;
 
-            var method = new GuildMemberUpdated(Client, Config);
+            var method = new GuildMemberUpdated(Client, ConfigurationService);
             var result = await method.ProcessAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
 
             if (result)
