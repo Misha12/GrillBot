@@ -4,6 +4,7 @@ namespace Grillbot.Enums
     {
         UnloadedModules,
         DisabledChannels,
-        CommandPrefix
+        CommandPrefix,
+        EmoteChain_CheckCount
     }
 }

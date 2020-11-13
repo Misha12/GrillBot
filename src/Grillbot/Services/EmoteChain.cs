@@ -1,8 +1,7 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
-using Grillbot.Models.Config.AppSettings;
-using Microsoft.Extensions.Options;
+using Grillbot.Services.Config;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,9 +17,11 @@ namespace Grillbot.Services
 
         private readonly object Locker = new object();
 
-        public EmoteChain(IOptions<Configuration> configuration)
+        public EmoteChain(ConfigurationService configuration)
         {
-            ReactLimit = configuration.Value.EmoteChain_CheckLastCount;
+            var reactLimit = configuration.GetValue(Enums.GlobalConfigItems.EmoteChain_CheckCount);
+            ReactLimit = string.IsNullOrEmpty(reactLimit) ? -1 : Convert.ToInt32(reactLimit);
+
             LastMessages = new Dictionary<string, List<Tuple<ulong, string>>>();
         }
 
@@ -44,7 +45,7 @@ namespace Grillbot.Services
 
         public async Task ProcessChainAsync(SocketCommandContext context)
         {
-            if (!(context.Channel is SocketTextChannel channel)) return;
+            if (context.Channel is not SocketTextChannel channel || ReactLimit == -1) return;
 
             var author = context.Message.Author;
             var content = context.Message.Content;
