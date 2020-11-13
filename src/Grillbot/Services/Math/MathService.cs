@@ -1,9 +1,8 @@
-﻿using Discord.WebSocket;
-using Grillbot.Database.Entity.Math;
+using Discord.WebSocket;
+using Grillbot.Core.Math.Models;
 using Grillbot.Database.Repository;
 using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
-using Grillbot.Models.Math;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
@@ -60,7 +59,7 @@ namespace Grillbot.Services.Math
             }
         }
 
-        private void ReleaseSession(MathSession session, MathCalcResult result)
+        private static void ReleaseSession(MathSession session, MathCalcResult result)
         {
             if (session == null) return;
 
@@ -136,7 +135,7 @@ namespace Grillbot.Services.Math
                     const string exceptionPrefix = "|EXCEPTION|";
                     if(!result.IsValid && result.ErrorMessage.StartsWith(exceptionPrefix))
                     {
-                        var exception = result.ErrorMessage.Substring(exceptionPrefix.Length).Trim();
+                        var exception = result.ErrorMessage[exceptionPrefix.Length..].Trim();
                         Logger.LogError(exception);
                         
                         var lines = exception.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);

@@ -1,5 +1,6 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
+using Grillbot.Core.Math.Models;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;

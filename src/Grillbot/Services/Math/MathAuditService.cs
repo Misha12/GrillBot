@@ -1,9 +1,9 @@
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Core.Math.Models;
 using Grillbot.Database.Entity.Math;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Math;
 using Newtonsoft.Json;
 using System;
 

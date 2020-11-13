@@ -14,8 +14,8 @@ using Grillbot.Models.Config.AppSettings;
 using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
 using Grillbot.Models;
-using Grillbot.Models.Math;
 using System.Text;
+using Grillbot.Core.Math.Models;
 
 namespace Grillbot
 {

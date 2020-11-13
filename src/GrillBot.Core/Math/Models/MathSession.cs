@@ -1,6 +1,4 @@
-﻿using Grillbot.Database.Entity.Math;
-
-namespace Grillbot.Models.Math
+﻿namespace Grillbot.Core.Math.Models
 {
     public class MathSession
     {
