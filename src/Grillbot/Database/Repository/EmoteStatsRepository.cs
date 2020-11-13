@@ -37,22 +37,32 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault();
         }
 
-        public IQueryable<GroupedEmoteItem> GetEmotesForClear(ulong guildID, int daysLimit)
+        public IQueryable<EmoteStatItem> GetEmotesForClear(ulong guildID, int daysLimit)
         {
             var daysBack = DateTime.Now.AddDays(-daysLimit);
 
-            var baseQuery = GetEmoteStatsBaseQuery(guildID).Where(o => o.UseCount == 0 && (!o.IsUnicode || (o.IsUnicode && o.LastOccuredAt <= daysBack)));
-            return FilterUserFromQuery(baseQuery).AsEnumerable()
+            var guildBaseQuery = FilterUserFromQuery(GetEmoteStatsBaseQuery(guildID));
+
+            var nonUnicodeEmotes = guildBaseQuery.Where(o => !o.IsUnicode);
+
+            var unicodeEmotes = guildBaseQuery
+                .Where(o => o.IsUnicode)
                 .GroupBy(o => o.EmoteID)
-                .Select(o => new GroupedEmoteItem()
+                .Where(o => o.Sum(x => x.UseCount) == 0 && o.Max(x => x.LastOccuredAt) <= daysBack)
+                .Select(o => new EmoteStatItem()
                 {
                     EmoteID = o.Key,
                     FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
-                    IsUnicode = o.First().IsUnicode,
                     LastOccuredAt = o.Max(x => x.LastOccuredAt),
                     UseCount = o.Sum(x => x.UseCount),
-                    UsersCount = o.Count()
-                }).AsQueryable();
+                    UserID = o.Min(x => x.UserID),
+                    IsUnicode = o.Min(x => x.IsUnicode ? 1 : 0) == 1
+                });
+
+            var data = nonUnicodeEmotes.ToList();
+            data.AddRange(unicodeEmotes.ToList());
+
+            return data.AsQueryable();
         }
 
         public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool? desc, bool onlyUnicode = false)

@@ -124,7 +124,7 @@ namespace Grillbot.Modules
                     await GetEmoteInfoOnlyUnicode();
                     return true;
                 case "clear":
-                    await ClearOldEmotes();
+                    await ClearOldEmotesAsync();
                     return true;
             }
 
@@ -151,7 +151,7 @@ namespace Grillbot.Modules
         [Command("clear")]
         [Summary("Smazání starých statistik k emotům, které již neexistují.")]
         [Remarks("V případě unicode emoji se smažou ty, které mají 0 použití a nebyly použity déle než 2 týdny.")]
-        public async Task ClearOldEmotes()
+        public async Task ClearOldEmotesAsync()
         {
             var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
