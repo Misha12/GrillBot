@@ -4,8 +4,6 @@ namespace Grillbot.Models.Config.AppSettings
     {
         public string Token { get; set; }
         public string UserJoinedMessage { get; set; }
-        public ulong? LoggerRoomID { get; set; }
-        public ulong? AdminChannelID { get; set; }
         public ulong? ErrorLogChannelID { get; set; }
     }
 }

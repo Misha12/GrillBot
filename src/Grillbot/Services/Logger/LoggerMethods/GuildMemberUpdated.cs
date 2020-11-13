@@ -9,7 +9,7 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class GuildMemberUpdated : LoggerMethodBase
     {
-        public GuildMemberUpdated(DiscordSocketClient client, ConfigurationService configurationService) : base(client, null, null, null, null, configurationService)
+        public GuildMemberUpdated(DiscordSocketClient client, ConfigurationService configurationService) : base(client, null, null, null, configurationService)
         {
         }
 

@@ -3,7 +3,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
@@ -17,8 +17,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageDeleted : LoggerMethodBase
     {
-        public MessageDeleted(DiscordSocketClient client, Configuration config, IMessageCache messageCache, HttpClient httpClient,
-            ILogger logger) : base(client, config, messageCache, httpClient, logger, null)
+        public MessageDeleted(DiscordSocketClient client, ConfigurationService config, IMessageCache messageCache, HttpClient httpClient,
+            ILogger logger) : base(client, messageCache, httpClient, logger, config)
         {
         }
 
