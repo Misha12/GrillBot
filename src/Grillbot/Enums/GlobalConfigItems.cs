@@ -7,6 +7,8 @@ namespace Grillbot.Enums
         CommandPrefix,
         EmoteChain_CheckCount,
         ActivityMessage,
-        ServerBoosterRoleId
+        ServerBoosterRoleId,
+        AdminChannel,
+        LoggerChannel
     }
 }

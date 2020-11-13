@@ -17,7 +17,6 @@ namespace Grillbot.Services.Logger
     {
         private HttpClient HttpClient { get; }
         private DiscordSocketClient Client { get; }
-        private Configuration Config { get; }
         private IMessageCache MessageCache { get; }
         private ILogger<Logger> AppLogger { get; }
         private ConfigurationService ConfigurationService { get; }
@@ -27,10 +26,9 @@ namespace Grillbot.Services.Logger
         private string LastEvent { get; set; }
         private readonly object LastEventLock = new object();
 
-        public Logger(DiscordSocketClient client, IOptions<Configuration> config, IMessageCache messageCache, ILogger<Logger> logger, ConfigurationService configurationService)
+        public Logger(DiscordSocketClient client, IMessageCache messageCache, ILogger<Logger> logger, ConfigurationService configurationService)
         {
             Client = client;
-            Config = config.Value;
             MessageCache = messageCache;
             AppLogger = logger;
             ConfigurationService = configurationService;
@@ -55,7 +53,7 @@ namespace Grillbot.Services.Logger
         {
             if (!CanProcessEvent("MessageDeleted")) return;
 
-            var method = new MessageDeleted(Client, Config, MessageCache, HttpClient, AppLogger);
+            var method = new MessageDeleted(Client, ConfigurationService, MessageCache, HttpClient, AppLogger);
             await method.ProcessAsync(message, channel).ConfigureAwait(false);
 
             EventPostProcess("MessageDeleted");
@@ -65,7 +63,7 @@ namespace Grillbot.Services.Logger
         {
             if (!CanProcessEvent("MessageEdited")) return;
 
-            var method = new MessageEdited(Client, Config, MessageCache);
+            var method = new MessageEdited(Client, ConfigurationService, MessageCache);
             var result = await method.ProcessAsync(messageBefore, messageAfter, channel).ConfigureAwait(false);
 
             if (result)
@@ -76,7 +74,7 @@ namespace Grillbot.Services.Logger
         {
             if (!CanProcessEvent("UserJoined")) return;
 
-            var method = new UserJoined(Client, Config);
+            var method = new UserJoined(Client, ConfigurationService);
             await method.ProcessAsync(user).ConfigureAwait(false);
 
             EventPostProcess("UserJoined");
@@ -86,7 +84,7 @@ namespace Grillbot.Services.Logger
         {
             if (!CanProcessEvent("UserLeft")) return;
 
-            var method = new UserLeft(Client, Config);
+            var method = new UserLeft(Client, ConfigurationService);
             await method.ProcessAsync(user).ConfigureAwait(false);
 
             EventPostProcess("UserLeft");

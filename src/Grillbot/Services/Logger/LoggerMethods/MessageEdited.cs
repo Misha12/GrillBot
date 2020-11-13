@@ -2,7 +2,7 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
-using Grillbot.Models.Config.AppSettings;
+using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods.LogEmbed;
 using Grillbot.Services.MessageCache;
 
@@ -10,8 +10,8 @@ namespace Grillbot.Services.Logger.LoggerMethods
 {
     public class MessageEdited : LoggerMethodBase
     {
-        public MessageEdited(DiscordSocketClient client, Configuration config, IMessageCache messageCache)
-            : base(client, config, messageCache, null, null, null)
+        public MessageEdited(DiscordSocketClient client, ConfigurationService config, IMessageCache messageCache)
+            : base(client, messageCache, null, null, config)
         {
         }
 
