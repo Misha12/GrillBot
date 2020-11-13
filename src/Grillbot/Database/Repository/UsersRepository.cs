@@ -68,7 +68,7 @@ namespace Grillbot.Database.Repository
 
             if (filter.UserIDs.Count > 0)
             {
-                var ids = filter.UserIDs.Select(o => o.ToString()).ToList();
+                var ids = filter.UserIDs.Select(o => o.Id.ToString()).ToList();
                 query = query.Where(o => ids.Contains(o.UserID));
             }
 
