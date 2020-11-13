@@ -236,7 +236,7 @@ namespace Grillbot.Services.Statistics
                     var parsedEmote = Emote.Parse(candidate.RealID);
                     if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                     {
-                        removed.Add($"> Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id})");
+                        removed.Add($"> Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id}). Použito {candidate.UseCount.FormatWithSpaces()}x.");
                         repository.RemoveEmojiNoCommit(guild, candidate.RealID);
                     }
                 }
