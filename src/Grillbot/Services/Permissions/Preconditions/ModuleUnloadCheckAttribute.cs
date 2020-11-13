@@ -1,7 +1,7 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Enums;
+using Grillbot.Services.Config;
 using Microsoft.Extensions.DependencyInjection;
 using Newtonsoft.Json;
 using System;
@@ -18,10 +18,10 @@ namespace Grillbot.Services.Permissions.Preconditions
         {
             var moduleIdAttribute = typeof(ModuleIDAttribute);
 
-            if (!(command.Module.Attributes.FirstOrDefault(o => o.GetType() == moduleIdAttribute) is ModuleIDAttribute moduleAttribute))
+            if (command.Module.Attributes.FirstOrDefault(o => o.GetType() == moduleIdAttribute) is not ModuleIDAttribute moduleAttribute)
                 return PreconditionResult.FromError("Tomuto modulu chybí attribute ModuleID");
 
-            var isUnloaded = await IsModuleUnloadedAsync(moduleAttribute.ID, services);
+            var isUnloaded = IsModuleUnloaded(moduleAttribute.ID, services);
 
             if (isUnloaded)
                 return PreconditionResult.FromError($"Modul `{moduleAttribute.ID}` je deaktivován.");
@@ -29,20 +29,20 @@ namespace Grillbot.Services.Permissions.Preconditions
             return PreconditionResult.FromSuccess();
         }
 
-        private async Task<bool> IsModuleUnloadedAsync(string id, IServiceProvider services)
+        private bool IsModuleUnloaded(string id, IServiceProvider services)
         {
-            var unloadedModules = await GetUnloadedModulesAsync(services);
+            var unloadedModules = GetUnloadedModules(services);
             return unloadedModules.Contains(id);
         }
 
-        private async Task<List<string>> GetUnloadedModulesAsync(IServiceProvider services)
+        private List<string> GetUnloadedModules(IServiceProvider services)
         {
             var unloadedModulesList = new List<string>();
 
             using var scope = services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<GlobalConfigRepository>();
+            using var repository = scope.ServiceProvider.GetService<ConfigurationService>();
 
-            var unloadedModules = await repository.GetItemAsync(GlobalConfigItems.UnloadedModules);
+            var unloadedModules = repository.GetValue(GlobalConfigItems.UnloadedModules);
             if (!string.IsNullOrEmpty(unloadedModules))
                 unloadedModulesList.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModules));
 
