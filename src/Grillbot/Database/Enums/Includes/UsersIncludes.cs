@@ -10,7 +10,6 @@ namespace Grillbot.Database.Enums.Includes
     {
         None = 0,
         Channels = 1,
-        MathAudit = 4,
         Reminders = 16,
         Invites = 32,
         Emotes = 64,
