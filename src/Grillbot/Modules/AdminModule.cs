@@ -42,7 +42,7 @@ namespace Grillbot.Modules
             finally
             {
                 typingState.Dispose();
-            };
+            }
         }
 
         [Command("clear")]

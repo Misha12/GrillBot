@@ -100,7 +100,9 @@ namespace Grillbot.Handlers
 
         public async Task InitAsync() { }
 
+#pragma warning disable S1172 // Unused method parameters should be removed
         private async Task SendCommandHelp(ICommandContext context, int argPos)
+#pragma warning restore S1172 // Unused method parameters should be removed
         {
             var helpCommand = $"grillhelp {context.Message.Content[argPos..]}";
             await CommandService.ExecuteAsync(context, helpCommand, Services).ConfigureAwait(false);

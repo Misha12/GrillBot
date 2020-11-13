@@ -1,4 +1,4 @@
-﻿using Grillbot.Database.Repository;
+using Grillbot.Database.Repository;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Duck;
 using Microsoft.Extensions.Logging;
@@ -35,7 +35,7 @@ namespace Grillbot.Services.Duck
                 var response = await HttpClient.GetAsync("api/duck/currentState");
                 await ValidateResponseAsync(response, duckConfig.IsKachnaOpenApiBase);
 
-                using var jsonStream = await response.Content.ReadAsStreamAsync();
+                var jsonStream = await response.Content.ReadAsStreamAsync();
                 using var streamReader = new StreamReader(jsonStream);
                 using var jsonReader = new JsonTextReader(streamReader);
 
