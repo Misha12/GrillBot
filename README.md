@@ -9,7 +9,7 @@
 ## Requirements
 
 - MSSQL server - [SQL Server Downloads](https://www.microsoft.com/en-us/sql-server/sql-server-downloads)
-- .NET Core 3.1 (with ASP\.NET Core 3.1) - [Download .NET Core 3.1 (Linux, macOS, and Windows)](https://dotnet.microsoft.com/download/dotnet-core/3.1)
+- .NET 5.0 (with ASP\.NET Core 5.0.0) - [Download .NET 5.0 (Linux, macOS, and Windows)](https://dotnet.microsoft.com/download/dotnet/5.0)
 
 ### Development requirements
 
@@ -28,12 +28,16 @@ Only Discord.NET package is distributed as pre-release from MyGet feed.
   - [NuGet](https://www.nuget.org/packages/Discord.Net/)
   - [MyGet-PreRelease](https://www.myget.org/F/discord-net/api/v3/index.json) &lt;= Add as NuGet source (**Used in project**)
     - Command to add MyGet source from dotnet CLI: `dotnet nuget add source -n "MyGet_DiscordNET_Prerelease" https://www.myget.org/F/discord-net/api/v3/index.json`
-- [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/3.1.3)
-- [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/3.1.3)
-- [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/3.1.3)
+- [Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation](https://www.nuget.org/packages/Microsoft.AspNetCore.Mvc.Razor.RuntimeCompilation/)
+- [Microsoft.EntityFrameworkCore.SqlServer](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.SqlServer/)
+- [Microsoft.VisualStudio.CodeGeneration.Design](https://www.nuget.org/packages/Microsoft.VisualStudio.Web.CodeGeneration.Design/)
 - [UnicodeEmoji.NET](https://www.nuget.org/packages/UnicodeEmoji.net/)
 - [BCrypt.Net-Next](https://www.nuget.org/packages/BCrypt.Net-Next/)
 - [Microsoft.EntityFrameworkCore.Tools](https://www.nuget.org/packages/Microsoft.EntityFrameworkCore.Tools/)
+- [GitInfo](https://www.nuget.org/packages/GitInfo/)
+- [Swashbuckle.AspNetCore](https://www.nuget.org/packages/Swashbuckle.AspNetCore/)
+- [System.Drawing.Common](https://www.nuget.org/packages/System.Drawing.Common/)
+- [System.Drawing.Primitives](https://www.nuget.org/packages/System.Drawing.Primitives/)
 
 ### GrillBotMath
 
