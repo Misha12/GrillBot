@@ -17,6 +17,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
+    [DisabledChannelCheck]
     [ModuleUnloadCheck]
     [RequirePermissions]
     public abstract class BotModuleBase : ModuleBase<SocketCommandContext>, IDisposable

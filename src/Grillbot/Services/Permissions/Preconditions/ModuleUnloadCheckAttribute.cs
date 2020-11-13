@@ -14,19 +14,19 @@ namespace Grillbot.Services.Permissions.Preconditions
     [AttributeUsage(AttributeTargets.Class)]
     public class ModuleUnloadCheckAttribute : PreconditionAttribute
     {
-        public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
+        public override Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             var moduleIdAttribute = typeof(ModuleIDAttribute);
 
             if (command.Module.Attributes.FirstOrDefault(o => o.GetType() == moduleIdAttribute) is not ModuleIDAttribute moduleAttribute)
-                return PreconditionResult.FromError("Tomuto modulu chybí attribute ModuleID");
+                return Task.FromResult(PreconditionResult.FromError("Tomuto modulu chybí attribute ModuleID"));
 
             var isUnloaded = IsModuleUnloaded(moduleAttribute.ID, services);
 
             if (isUnloaded)
-                return PreconditionResult.FromError($"Modul `{moduleAttribute.ID}` je deaktivován.");
+                return Task.FromResult(PreconditionResult.FromError($"Modul `{moduleAttribute.ID}` je deaktivován."));
 
-            return PreconditionResult.FromSuccess();
+            return Task.FromResult(PreconditionResult.FromSuccess());
         }
 
         private bool IsModuleUnloaded(string id, IServiceProvider services)
@@ -40,9 +40,9 @@ namespace Grillbot.Services.Permissions.Preconditions
             var unloadedModulesList = new List<string>();
 
             using var scope = services.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ConfigurationService>();
+            using var service = scope.ServiceProvider.GetService<ConfigurationService>();
 
-            var unloadedModules = repository.GetValue(GlobalConfigItems.UnloadedModules);
+            var unloadedModules = service.GetValue(GlobalConfigItems.UnloadedModules);
             if (!string.IsNullOrEmpty(unloadedModules))
                 unloadedModulesList.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModules));
 
