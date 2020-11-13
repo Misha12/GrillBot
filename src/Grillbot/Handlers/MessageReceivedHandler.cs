@@ -1,4 +1,4 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using Discord.WebSocket;
 using System;
 using System.Threading.Tasks;
@@ -53,10 +53,10 @@ namespace Grillbot.Handlers
             if (context.IsPrivate) return;
 
             int argPos = 0;
-            if (userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
+            if ((userMessage.HasStringPrefix(Config.CommandPrefix, ref argPos) && userMessage.Content.Length > 1) || userMessage.HasMentionPrefix(Client.CurrentUser, ref argPos))
             {
                 BotStatus.RunningCommands.Add(message);
-                await Commands.ExecuteAsync(context, userMessage.Content.Substring(argPos), Services).ConfigureAwait(false);
+                await Commands.ExecuteAsync(context, userMessage.Content[argPos..], Services).ConfigureAwait(false);
 
                 if (context.Guild != null)
                     EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
@@ -79,10 +79,8 @@ namespace Grillbot.Handlers
         {
             socketUserMessage = null;
 
-            if (!(message is SocketUserMessage userMessage))
-            {
+            if (message is not SocketUserMessage userMessage)
                 return false;
-            }
 
             if (!message.Author.IsUser())
                 return false;
