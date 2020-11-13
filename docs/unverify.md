@@ -136,6 +136,24 @@ Removing rights to yourself.
 
 Definition of accesses that the user can keep.
 
+#### selfunverify addDefs `{group}` `{values}`
+
+Adds new access definitions that the user can keep.
+
+| Parameter | Type     | Description                               |
+| --------- | -------- | ----------------------------------------- |
+| group     | string   | Name of access group.                     |
+| values    | string[] | Names of definitions in the group to add. |
+
+#### selfunverify removeDefs `{group}` `{values}`
+
+Removes existing access definitions that the user can keep.
+
+| Parameter | Type     | Description                                  |
+| --------- | -------- | -------------------------------------------- |
+| group     | string   | Name of access group.                        |
+| values    | string[] | Names of definitions in the group to remove. |
+
 ---
 
 ### Imunity

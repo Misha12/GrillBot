@@ -2,6 +2,7 @@ using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
+using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Embed;
@@ -33,7 +34,7 @@ namespace Grillbot.Modules
             "\n\nCelý příkaz je pak vypadá např.:\n`{prefix}selfunverify 30m`, nebo `{prefix}selfunverify 30m IPT ...`")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
-            if (await SelfUnverifyRoutingAsync(time))
+            if (await SelfUnverifyRoutingAsync(time, subjects))
                 return;
 
             try
@@ -56,12 +57,22 @@ namespace Grillbot.Modules
             }
         }
 
-        private async Task<bool> SelfUnverifyRoutingAsync(string route)
+        private async Task<bool> SelfUnverifyRoutingAsync(string route, string[] data)
         {
             switch (route)
             {
                 case "defs":
-                    await GetSubjectListAsync();
+                    await GetDefsListAsync();
+                    return true;
+                case "addDefs":
+                    if (data.Length < 2)
+                        throw new ThrowHelpException();
+                    await AddDefinitionsAsync(data[0], data.Skip(1).ToArray());
+                    return true;
+                case "removeDefs":
+                    if (data.Length < 2)
+                        throw new ThrowHelpException();
+                    await RemoveDefinitionsAsync(data[0], data.Skip(1).ToArray());
                     return true;
             }
 
@@ -70,7 +81,7 @@ namespace Grillbot.Modules
 
         [Command("defs")]
         [Summary("Definice přístupů, co si může uživatel ponechat.")]
-        public async Task GetSubjectListAsync()
+        public async Task GetDefsListAsync()
         {
             var config = GetMethodConfig<SelfUnverifyConfig>("selfunverify", null);
 
@@ -89,6 +100,30 @@ namespace Grillbot.Modules
             }
 
             await ReplyAsync(embed: embed.Build());
+        }
+
+        [Command("addDefs")]
+        [Summary("Přidání definic přístupu, které si lze ponechat.")]
+        public async Task AddDefinitionsAsync(string group, params string[] values)
+        {
+            await Service.AddSelfunverifyDefinitionsAsync(Context.Guild, group, values);
+            await ReplyAsync($"Definice přidán{(values.Length > 1 ? "y" : "a")}");
+        }
+
+        [Command("removeDefs")]
+        [Summary("Odebrání definic přístupu, které si lze ponechat.")]
+        public async Task RemoveDefinitionsAsync(string group, params string[] values)
+        {
+            var removedDefs = await Service.RemoveSelfunverifyDefinitions(Context.Guild, group, values);
+
+            var message = string.Join(Environment.NewLine, new[]
+            {
+                $"Skupina: `{group}`",
+                removedDefs.Item1.Count == 0 ? null : $"Smazané: {string.Join(", ", removedDefs.Item1.Select(o => $"`{o}`"))}",
+                removedDefs.Item2.Count == 0 ? null : $"Již neexistovaly: {string.Join(", ", removedDefs.Item2.Select(o => $"`{o}`"))}"
+            }.Where(o => o != null));
+
+            await ReplyAsync(message);
         }
 
         protected override void AfterExecute(CommandInfo command)

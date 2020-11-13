@@ -8,6 +8,7 @@ using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -34,6 +35,15 @@ namespace Grillbot.Database.Repository
 
             var query = GetBaseQuery(withPerms);
             return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
+        }
+
+        public Task<MethodsConfig> FindConfigAsync(ulong guildID, string group, string command, bool withPerms = true)
+        {
+            CorrectValue(ref group);
+            CorrectValue(ref command);
+
+            return GetBaseQuery(withPerms)
+                .SingleOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
 
         public MethodsConfig AddConfig(SocketGuild guild, string group, string command, bool onlyAdmins, JObject json)
