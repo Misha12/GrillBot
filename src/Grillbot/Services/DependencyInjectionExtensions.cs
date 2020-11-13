@@ -4,6 +4,7 @@ using Grillbot.Handlers;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.Channelboard;
+using Grillbot.Services.Config;
 using Grillbot.Services.Duck;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.InviteTracker;
@@ -248,6 +249,12 @@ namespace Grillbot.Services
                 .AddTransient<HelpEmbedRenderer>();
 
             return services;
+        }
+
+        public static IServiceCollection AddConfiguration(this IServiceCollection services)
+        {
+            return services
+                .AddTransient<ConfigurationService>();
         }
     }
 }
