@@ -6,8 +6,10 @@ Unverify is a functionality that allows the user on the server to remove all rig
 
 Unverify has 2 types.
 
-- **Unverify** (The user removes all rights to another user)
-- **SelfUnverify** (The user removes all rights to himself.).
+- **Unverify** - The user removes all rights to another user.
+- **SelfUnverify** - The user removes all rights to himself.
+  
+User can get unverify imunity. Imunity does not apply to SelfUnverify.
 
 ## Unverify configuration
 
@@ -72,9 +74,17 @@ Roles is alias for items. It will later renamed to `Items`.
 | CreatedAt  | DATETIME2     | Date and time when the operation was performed.                                                        |
 | JsonData   | NVARCHAR(MAX) | Detailed data of operation in JSON format. It has different models according to the type of operation. |
 
+For unverify imunity is defined special column in `DiscordUsers` table.
+
+| Column               | Type         | Description                                                              |
+| -------------------- | ------------ | ------------------------------------------------------------------------ |
+| UnverifyImunityGroup | NVARCHAR(64) | Name of unverify imunity group. If NULL, the user does not have imunity. |
+
 ## Commands
 
-### unverify `{time}` `{reason}` `{[tags]}`
+### Unverify
+
+#### unverify `{time}` `{reason}` `{[tags]}`
 
 Removes all rights from the user for a period of time.
 
@@ -84,7 +94,7 @@ Removes all rights from the user for a period of time.
 | reason    | string | Reason of unverify.                                                                                                                                                                  |
 | tags      | User[] | Field to indicate the users to whom access is to be removed.                                                                                                                         |
 
-### unverify remove `{identification}`
+#### unverify remove `{identification}`
 
 Early return of access.
 
@@ -92,11 +102,11 @@ Early return of access.
 | --------- | ---- | ------------------------------------------ |
 | user      | User | Tag, id or name (username, alias) of user. |
 
-### unverify list
+#### unverify list
 
 List of all people who have temporarily removed access.
 
-### unverify update `{time}` `{identification}`
+#### unverify update `{time}` `{identification}`
 
 Update the time in the temporary access removal record.
 
@@ -105,11 +115,15 @@ Update the time in the temporary access removal record.
 | time      | string | Time of unverify. Format is `{time}{m/h/d/M/y}`, or `ISO 8601`. For example: `30m` or `2020-08-17T23:59:59`. **m**: minutes, **h**: hours, **d**: days, **M**: months, **y**: years |
 | user      | User   | Tag, id or name (username, alias) of user.                                                                                                                                          |
 
-### unverify stats
+#### unverify stats
 
 Real Time statistics unverify
 
-### selfunverify `{time}` `{[toKeep]}`
+---
+
+### SelfUnverify
+
+#### selfunverify `{time}` `{[toKeep]}`
 
 Removing rights to yourself.
 
@@ -118,6 +132,39 @@ Removing rights to yourself.
 | time      | string   | Time of unverify. Format is `{time}{m/h/d/M/y}`, or `ISO 8601`. For example: `30m` or `2020-08-17T23:59:59`. **m**: minutes, **h**: hours, **d**: days, **M**: months, **y**: years |
 | toKeep    | string[] | Array of role names or channel names, which the user wishes to keep.                                                                                                                |
 
-### selfunverify defs
+#### selfunverify defs
 
 Definition of accesses that the user can keep.
+
+---
+
+### Imunity
+
+#### unverify setImunity `{identification}` `{groupName}`
+
+Adds user to imunity group.
+
+| Parameter      | Type   | Description                                         |
+| -------------- | ------ | --------------------------------------------------- |
+| identification | User   | Tag, id or name (username, alias) of user.          |
+| groupName      | string | Name of imunity group. Max length is 64 characters. |
+
+#### unverify printGroups
+
+Prints existing imunity groups.
+
+#### unverify removeImunity `{identification}`
+
+Remove user from his unverify group.
+
+| Parameter      | Type | Description                                |
+| -------------- | ---- | ------------------------------------------ |
+| identification | User | Tag, id or name (username, alias) of user. |
+
+#### unverify printGroupUsers `{groupName}`
+
+Prints users in specific group.
+
+| Parameter | Type   | Description                                         |
+| --------- | ------ | --------------------------------------------------- |
+| groupName | string | Name of imunity group. Max length is 64 characters. |
