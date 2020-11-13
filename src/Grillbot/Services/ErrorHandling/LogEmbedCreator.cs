@@ -16,26 +16,20 @@ namespace Grillbot.Services.ErrorHandling
             DiscordClient = discordClient;
         }
 
-        public BotEmbed CreateErrorEmbed(LogMessage message, ErrorLogItem logItem, string backupFilename = null)
+        public BotEmbed CreateErrorEmbed(LogMessage message, ErrorLogItem logItem)
         {
             if (message.Exception is CommandException commandException)
             {
-                return CreateCommandErrorEmbed(commandException, logItem, backupFilename);
+                return CreateCommandErrorEmbed(commandException, logItem);
             }
 
-            return CreateGenericErrorEmbed(message.Exception, logItem, backupFilename);
+            return CreateGenericErrorEmbed(message.Exception, logItem);
         }
 
-        private BotEmbed CreateCommandErrorEmbed(CommandException exception, ErrorLogItem logItem, string backupFilename)
+        private BotEmbed CreateCommandErrorEmbed(CommandException exception, ErrorLogItem logItem)
         {
-            var embed = new BotEmbed(DiscordClient.CurrentUser, Color.Red, "Při provádění příkazu došlo k chybě");
-
-            if (!string.IsNullOrEmpty(backupFilename))
-                embed.AddField("Záložní soubor", backupFilename, true);
-            else
-                embed.AddField("ID záznamu", logItem.ID.ToString(), true);
-
-            embed
+            var embed = new BotEmbed(DiscordClient.CurrentUser, Color.Red, "Při provádění příkazu došlo k chybě")
+                .AddField("ID záznamu", logItem.ID.ToString(), true)
                 .AddField("Kanál", $"<#{exception.Context.Channel.Id}>", true)
                 .AddField("Uživatel", exception.Context.User.Mention, true)
                 .AddField("Zpráva", $"```{exception.Context.Message.Content}```", false)
@@ -44,16 +38,10 @@ namespace Grillbot.Services.ErrorHandling
             return embed;
         }
 
-        private BotEmbed CreateGenericErrorEmbed(Exception exception, ErrorLogItem logItem, string backupFilename)
+        private BotEmbed CreateGenericErrorEmbed(Exception exception, ErrorLogItem logItem)
         {
-            var embed = new BotEmbed(DiscordClient.CurrentUser, Color.Red, "Došlo k neočekávané chybě.");
-
-            if (!string.IsNullOrEmpty(backupFilename))
-                embed.AddField("Záložní soubor", backupFilename, false);
-            else
-                embed.AddField("ID záznamu", logItem.ID.ToString(), false);
-
-            embed
+            var embed = new BotEmbed(DiscordClient.CurrentUser, Color.Red, "Došlo k neočekávané chybě.")
+                .AddField("ID záznamu", logItem.ID.ToString(), false)
                 .AddField(exception.GetType().Name, $"```{exception}```", false);
 
             return embed;
