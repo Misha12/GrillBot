@@ -1,11 +1,9 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods;
 using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using System;
 using System.Collections.Generic;
 using System.Net.Http;
