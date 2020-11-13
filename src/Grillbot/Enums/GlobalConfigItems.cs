@@ -9,6 +9,7 @@ namespace Grillbot.Enums
         ActivityMessage,
         ServerBoosterRoleId,
         AdminChannel,
-        LoggerChannel
+        LoggerChannel,
+        ErrorLogChannel
     }
 }

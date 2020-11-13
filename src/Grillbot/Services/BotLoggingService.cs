@@ -6,21 +6,18 @@ using System.Linq;
 using System.Threading.Tasks;
 using System.Net.WebSockets;
 using Discord.Net;
-using Microsoft.Extensions.Options;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Logging;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Initiable;
 using System.IO;
 using System.Net.Sockets;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Database.Repository;
-using Grillbot.Database.Entity;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
-using Grillbot.Models.Embed;
 using Grillbot.Extensions;
+using Grillbot.Services.Config;
 
 namespace Grillbot.Services
 {
@@ -33,18 +30,26 @@ namespace Grillbot.Services
         private IServiceProvider Services { get; }
         private ILogger<BotLoggingService> Logger { get; }
         private ApiStatistics ApiStatistics { get; }
+        private ConfigurationService ConfigurationService { get; }
 
-        private ulong? LogRoom { get; set; }
+        public ulong? LogRoomID
+        {
+            get
+            {
+                var id = ConfigurationService.GetValue(Enums.GlobalConfigItems.ErrorLogChannel);
+                return string.IsNullOrEmpty(id) ? null : Convert.ToUInt64(id);
+            }
+        }
 
         public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
-            ApiStatistics apiStatistics, IOptions<Configuration> config)
+            ApiStatistics apiStatistics, ConfigurationService configurationService)
         {
             Client = client;
             Commands = commands;
             Logger = logger;
-            LogRoom = config.Value.Discord.ErrorLogChannelID;
             Services = services;
             ApiStatistics = apiStatistics;
+            ConfigurationService = configurationService;
         }
 
         public async Task OnLogAsync(LogMessage message)
@@ -82,14 +87,14 @@ namespace Grillbot.Services
                 var entityRecord = service.CreateRecord(message.ToString());
                 var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entityRecord);
 
-                await (Client.GetChannel(LogRoom.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
+                await (Client.GetChannel(LogRoomID.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
             }
             catch (Exception)
             {
                 var chunks = message.ToString()
                     .SplitInParts(MessageSizeForException);
 
-                if(Client.GetChannel(LogRoom.Value) is IMessageChannel channel)
+                if(Client.GetChannel(LogRoomID.Value) is IMessageChannel channel)
                 {
                     foreach(var chunk in chunks)
                     {
@@ -99,7 +104,7 @@ namespace Grillbot.Services
             }
         }
 
-        private bool CanSendExceptionToDiscord(LogMessage message) => message.Exception != null && LogRoom != null && !IsSupressedException(message.Exception);
+        private bool CanSendExceptionToDiscord(LogMessage message) => message.Exception != null && LogRoomID != null && !IsSupressedException(message.Exception);
 
         private bool IsSupressedException(Exception exception)
         {
