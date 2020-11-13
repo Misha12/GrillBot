@@ -13,15 +13,6 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task<string> GetItemAsync(GlobalConfigItems itemKey)
-        {
-            var key = itemKey.ToString();
-            var result = await Context.GlobalConfig.AsQueryable()
-                .SingleOrDefaultAsync(o => o.Key == key);
-
-            return result?.Value;
-        }
-
         public async Task UpdateItemAsync(GlobalConfigItems item, string value)
         {
             var key = item.ToString();

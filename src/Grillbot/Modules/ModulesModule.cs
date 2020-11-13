@@ -1,12 +1,12 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
+using Grillbot.Services.Config;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -22,14 +22,14 @@ namespace Grillbot.Modules
     {
         private CommandService CommandService { get; }
         private ILogger<ModulesModule> Logger { get; }
-        private GlobalConfigRepository GlobalConfig { get; }
+        private ConfigurationService ConfigurationService { get; }
 
-        public ModulesModule(CommandService commandService, GlobalConfigRepository globalConfig, PaginationService paginationService,
+        public ModulesModule(CommandService commandService, ConfigurationService configurationService, PaginationService paginationService,
             ILogger<ModulesModule> logger) : base(paginationService: paginationService)
         {
             CommandService = commandService;
             Logger = logger;
-            GlobalConfig = globalConfig;
+            ConfigurationService = configurationService;
         }
 
         [Command("list")]
@@ -37,7 +37,7 @@ namespace Grillbot.Modules
         public async Task GetModulesAsync()
         {
             var moduleIdAttribute = typeof(ModuleIDAttribute);
-            var unloadedModules = await GetUnloadedModulesAsync();
+            var unloadedModules = GetUnloadedModules();
             var modulesChunk = CommandService.Modules
                 .SplitInParts(EmbedBuilder.MaxFieldCount);
 
@@ -80,7 +80,7 @@ namespace Grillbot.Modules
         [Summary("Přidání modulu.")]
         public async Task AddModuleAsync(string name)
         {
-            var unloadedModules = await GetUnloadedModulesAsync();
+            var unloadedModules = GetUnloadedModules();
 
             if (!unloadedModules.Contains(name))
             {
@@ -96,7 +96,7 @@ namespace Grillbot.Modules
 
             unloadedModules.Remove(name);
             Logger.LogInformation($"Requested add module {name}");
-            await GlobalConfig.UpdateItemAsync(GlobalConfigItems.UnloadedModules, unloadedModules.Count == 0 ? null : JsonConvert.SerializeObject(unloadedModules));
+            await ConfigurationService.SetValueAsync(GlobalConfigItems.UnloadedModules, unloadedModules.Count == 0 ? null : JsonConvert.SerializeObject(unloadedModules));
             await ReplyAsync("Modul byl úspěšně povolen.");
         }
 
@@ -104,7 +104,7 @@ namespace Grillbot.Modules
         [Summary("Deaktivace modulu.")]
         public async Task RemoveModuleAsync(string name)
         {
-            var unloadedModules = await GetUnloadedModulesAsync();
+            var unloadedModules = GetUnloadedModules();
 
             if (unloadedModules.Contains(name))
             {
@@ -120,7 +120,7 @@ namespace Grillbot.Modules
 
             Logger.LogInformation($"Requested remove of module {name}");
             unloadedModules.Add(name);
-            await GlobalConfig.UpdateItemAsync(GlobalConfigItems.UnloadedModules, JsonConvert.SerializeObject(unloadedModules));
+            await ConfigurationService.SetValueAsync(GlobalConfigItems.UnloadedModules, JsonConvert.SerializeObject(unloadedModules));
             await ReplyAsync("Modul byl úspěšně uvolněn.");
         }
 
@@ -138,15 +138,22 @@ namespace Grillbot.Modules
             return null;
         }
 
-        private async Task<List<string>> GetUnloadedModulesAsync()
+        private List<string> GetUnloadedModules()
         {
             var unloadedModulesList = new List<string>();
-            var unloadedModules = await GlobalConfig.GetItemAsync(GlobalConfigItems.UnloadedModules);
+            var unloadedModules = ConfigurationService.GetValue(GlobalConfigItems.UnloadedModules);
 
             if (!string.IsNullOrEmpty(unloadedModules))
                 unloadedModulesList.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModules));
 
             return unloadedModulesList;
+        }
+
+        protected override void AfterExecute(CommandInfo command)
+        {
+            ConfigurationService.Dispose();
+
+            base.AfterExecute(command);
         }
     }
 }
