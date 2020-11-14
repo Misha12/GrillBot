@@ -1,15 +1,10 @@
 using Discord.WebSocket;
-using Grillbot.Core.Math.Models;
-using Grillbot.Database.Repository;
-using Grillbot.Models.Config.Dynamic;
+using Grillbot.Models.Math;
 using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
-using System.Diagnostics;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -19,14 +14,12 @@ namespace Grillbot.Services.Math
     {
         public List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
-        private IServiceProvider ServiceProvider { get; }
         private ILogger<MathService> Logger { get; }
         private ConfigurationService ConfigurationService { get; }
 
-        public MathService(IServiceProvider serviceProvider, ILogger<MathService> logger, ConfigurationService configurationService)
+        public MathService(ILogger<MathService> logger, ConfigurationService configurationService)
         {
             Sessions = new List<MathSession>();
-            ServiceProvider = serviceProvider;
             Logger = logger;
             ConfigurationService = configurationService;
         }
@@ -37,7 +30,7 @@ namespace Grillbot.Services.Math
             {
                 Sessions.Clear();
 
-                const int sessionCount = 10; // 10 computing units (processes) for every group.
+                const int sessionCount = 5; // 10 computing units (processes) for every group.
                 const int calcTime = 10000; // 10 seconds. Booster have double time.
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.
@@ -74,7 +67,7 @@ namespace Grillbot.Services.Math
             MathCalcResult result = null;
 
             var user = (SocketGuildUser)message.Author;
-            
+
             var boosterRoleId = ConfigurationService.GetValue(Enums.GlobalConfigItems.ServerBoosterRoleId);
 
             try
@@ -84,64 +77,62 @@ namespace Grillbot.Services.Math
 
                 input = ("" + input).Trim(); // treatment against null values.
 
-                if (string.IsNullOrEmpty(input))
+                var parser = new ExpressionParser(input);
+
+                if (parser.Empty)
                 {
                     result = new MathCalcResult() { ErrorMessage = "Nelze spočítat prázdný výraz." };
                     return result;
                 }
 
-                if (input.Contains("nan", StringComparison.InvariantCultureIgnoreCase))
+                if (!parser.IsValid)
                 {
-                    result = new MathCalcResult() { ErrorMessage = "NaN není platný vstup." };
+                    result = new MathCalcResult() { ErrorMessage = string.Join(Environment.NewLine, parser.Errors) };
                     return result;
                 }
 
-                var appPath = GetExecutablePath(user.Guild);
-
-                using var process = new Process();
-                process.StartInfo.FileName = appPath;
-                process.StartInfo.Arguments = $"\"{input}\"";
-                process.StartInfo.UseShellExecute = false;
-                process.StartInfo.CreateNoWindow = true;
-                process.StartInfo.RedirectStandardOutput = true;
-
-                process.Start();
-
-                if (!process.WaitForExit(session.ComputingTime))
+                try
                 {
-                    process.Kill();
+                    var task = Task.Run(() =>
+                    {
+                        return new MathCalcResult()
+                        {
+                            IsValid = true,
+                            Result = parser.Expression.calculate(),
+                            ComputingTime = parser.Expression.getComputingTime() * 1000
+                        };
+                    });
+
+                    if (!task.Wait(session.ComputingTime))
+                    {
+                        try
+                        {
+                            task.Dispose();
+                        }
+                        catch (Exception) { /* This exception we can ignore. */ }
+
+                        result = new MathCalcResult()
+                        {
+                            IsTimeout = true,
+                            AssingedComputingTime = session.ComputingTime
+                        };
+
+                        return result;
+                    }
+                    else
+                    {
+                        result = task.Result;
+                        return result;
+                  }
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogError(ex, "");
 
                     result = new MathCalcResult()
                     {
-                        IsTimeout = true,
-                        AssingedComputingTime = session.ComputingTime
+                        ErrorMessage = ex.Message
                     };
-
-                    return result;
-                }
-                else
-                {
-                    var output = process.StandardOutput.ReadToEnd();
-                    result = JsonConvert.DeserializeObject<MathCalcResult>(output);
-
-                    if(result == null)
-                    {
-                        result = new MathCalcResult
-                        {
-                            IsValid = false,
-                            ErrorMessage = "Výpočetní jednotka nevrátila žádná data."
-                        };
-                    }
-
-                    const string exceptionPrefix = "|EXCEPTION|";
-                    if(!result.IsValid && result.ErrorMessage.StartsWith(exceptionPrefix))
-                    {
-                        var exception = result.ErrorMessage[exceptionPrefix.Length..].Trim();
-                        Logger.LogError(exception);
-                        
-                        var lines = exception.Split(new[] { Environment.NewLine }, StringSplitOptions.RemoveEmptyEntries);
-                        result.ErrorMessage = lines[0];
-                    }
 
                     return result;
                 }
@@ -150,20 +141,6 @@ namespace Grillbot.Services.Math
             {
                 ReleaseSession(session, result);
             }
-        }
-
-        private string GetExecutablePath(SocketGuild guild)
-        {
-            using var scope = ServiceProvider.CreateScope();
-            using var repository = scope.ServiceProvider.GetRequiredService<ConfigRepository>();
-
-            var configData = repository.FindConfig(guild.Id, "math", "solve");
-            var config = configData?.GetData<MathConfig>();
-
-            if (config == null)
-                throw new InvalidOperationException("Chybí konfigurace matematické služby. Nelze získat cestu k výpočetnímu programu.");
-
-            return config.ProcessPath;
         }
 
         public async Task InitAsync() { }
