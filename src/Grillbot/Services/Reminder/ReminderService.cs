@@ -39,14 +39,14 @@ namespace Grillbot.Services.Reminder
             UserSearchService = searchService;
         }
 
-        public void CreateReminder(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
+        public async Task CreateReminderAsync(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
         {
             ValidateReminderCreation(at, message);
 
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, UsersIncludes.Reminders);
-            UsersRepository.SaveChangesIfAny();
+            var fromUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.Reminders);
+            await UsersRepository.SaveChangesAsync();
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, UsersIncludes.Reminders);
+            var toUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.Reminders);
 
             var remindEntity = new ReminderEntity()
             {
@@ -58,7 +58,7 @@ namespace Grillbot.Services.Reminder
 
             toUserEntity.Reminders.Add(remindEntity);
 
-            UsersRepository.SaveChanges();
+            await UsersRepository.SaveChangesAsync();
             ReminderTaskService.AddReminder(remindEntity);
         }
 
@@ -174,7 +174,7 @@ namespace Grillbot.Services.Reminder
             {
                 if (
                     message.Embeds.Count != 1 ||
-                    !(reaction.Emote is Emoji emoji) ||
+                    reaction.Emote is not Emoji emoji ||
                     !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
                     !reaction.User.IsSpecified ||
                     (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
@@ -196,7 +196,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task HandleRemindCopyAsync(SocketReaction reaction)
         {
-            if (!(reaction.Emote is Emoji emoji)) return;
+            if (reaction.Emote is not Emoji emoji) return;
             if (emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name) return;
             if (!reaction.User.IsSpecified) return;
 
@@ -220,7 +220,7 @@ namespace Grillbot.Services.Reminder
 
             try
             {
-                CreateReminder(originalGuild, author, reaction.User.Value, originalRemind.At, originalRemind.Message, origMessageData);
+                await CreateReminderAsync(originalGuild, author, reaction.User.Value, originalRemind.At, originalRemind.Message, origMessageData);
             }
             catch (ValidationException ex)
             {
