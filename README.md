@@ -104,13 +104,6 @@ or
 GrillBot.exe APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
 ```
 
-Use appsettings.development.json for development purposes.
-If you edit `appsettings.json` file, write it to pull request.
-
-## GrillBotMath
-
-To run the math module in bot, you have to build GrillBotMath project and set path to GrillBotMath.dll file into database config `$config addMethod math/solve {"ProcessPath": "<HereYourPath>"}`
-
 ## Features
 
 - [Permissions](docs/permissions.md)
