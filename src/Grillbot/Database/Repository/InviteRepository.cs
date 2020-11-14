@@ -1,4 +1,3 @@
-using Discord.WebSocket;
 using Grillbot.Database.Entity.Users;
 using Grillbot.Services.InviteTracker;
 using Microsoft.EntityFrameworkCore;
@@ -33,24 +32,31 @@ namespace Grillbot.Database.Repository
             }
         }
 
-        public async Task<List<Invite>> GetInvitesAsync(SocketGuild guild, bool includeUsers, bool asc)
+        public IQueryable<Invite> GetInvitesQuery(ulong guildID, DateTime? createdFrom, DateTime? createdTo, List<long> creatorUserIds, bool desc)
         {
-            var codesFromGuild = await Context.Users.AsQueryable()
-                .Where(o => o.UsedInviteCode != null && o.GuildID == guild.Id.ToString())
+            var codesFromGuild = Context.Users.AsQueryable()
+                .Where(o => o.UsedInviteCode != null && o.GuildID == guildID.ToString())
                 .Select(o => o.UsedInviteCode)
-                .Distinct().ToListAsync();
+                .Distinct();
 
             var query = Context.Invites.AsQueryable()
                 .Include(o => o.Creator)
+                .Include(o => o.UsedUsers)
                 .Where(o => codesFromGuild.Contains(o.Code));
 
-            if (asc)
-                query = query.OrderBy(o => o.UsedUsers.Count);
-            else
-                query = query.OrderByDescending(o => o.UsedUsers.Count);
+            if (createdFrom != null)
+                query = query.Where(o => o.CreatedAt >= createdFrom.Value);
 
-            query = !includeUsers ? query : query.Include(o => o.UsedUsers);
-            return await query.ToListAsync();
+            if (createdTo != null)
+                query = query.Where(o => o.CreatedAt < createdTo);
+
+            if (creatorUserIds != null && creatorUserIds.Count > 0)
+                query = query.Where(o => o.CreatorId != null && creatorUserIds.Contains(o.CreatorId.Value));
+
+            if (!desc)
+                return query.OrderBy(o => o.UsedUsers.Count);
+            else
+                return; query.OrderByDescending(o => o.UsedUsers.Count);
         }
 
         public Task<Invite> FindInviteAsync(string code)

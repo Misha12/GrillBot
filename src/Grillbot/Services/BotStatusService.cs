@@ -2,7 +2,6 @@ using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Models.BotStatus;
-using Grillbot.Services.MessageCache;
 using Microsoft.AspNetCore.Hosting;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -18,19 +17,14 @@ namespace Grillbot.Services
     {
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
-        private DiscordSocketClient Client { get; }
-        private IMessageCache MessageCache { get; }
         private IServiceProvider Provider { get; }
 
         public List<SocketMessage> RunningCommands { get; }
 
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IServiceProvider provider, DiscordSocketClient client,
-            IMessageCache messageCache)
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IServiceProvider provider)
         {
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
-            Client = client;
-            MessageCache = messageCache;
             Provider = provider;
 
             RunningCommands = new List<SocketMessage>();

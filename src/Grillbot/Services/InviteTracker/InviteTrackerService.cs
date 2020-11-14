@@ -4,8 +4,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Helpers;
-using Grillbot.Models.Users;
+using Grillbot.Models.Invites;
 using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
@@ -28,9 +27,11 @@ namespace Grillbot.Services.InviteTracker
         private UsersRepository UsersRepository { get; }
         private InviteRepository InviteRepository { get; }
         private ConfigurationService ConfigurationService { get; }
+        private UserSearchService UserSearchService { get; }
 
         public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger, 
-            UsersRepository usersRepository, InviteRepository inviteRepository, ConfigurationService configurationService)
+            UsersRepository usersRepository, InviteRepository inviteRepository, ConfigurationService configurationService,
+            UserSearchService userSearchService)
         {
             Discord = discord;
             BotState = botState;
@@ -38,6 +39,7 @@ namespace Grillbot.Services.InviteTracker
             UsersRepository = usersRepository;
             InviteRepository = inviteRepository;
             ConfigurationService = configurationService;
+            UserSearchService = userSearchService;
         }
 
         public void Init()
@@ -208,12 +210,17 @@ namespace Grillbot.Services.InviteTracker
             BotState.InviteCache[guild.Id].AddRange(latestInvites);
         }
 
-        public async Task<List<InviteModel>> GetStoredInvitesAsync(SocketGuild guild)
+        public async Task<List<InviteModel>> GetStoredInvitesAsync(InvitesListFilter filter)
         {
-            var invites = await InviteRepository.GetInvitesAsync(guild, true, false);
-            var result = new List<InviteModel>();
+            var guild = Discord.GetGuild(filter.GuildID);
+            var usersFromQuery = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
+            var userIds = (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery))
+                .Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList();
 
-            foreach (var invite in invites.Where(o => o != null))
+            var invites = await InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc).ToListAsync();
+            
+            var result = new List<InviteModel>();
+            foreach (var invite in invites)
             {
                 if (invite.Creator == null)
                 {
@@ -232,6 +239,7 @@ namespace Grillbot.Services.InviteTracker
         {
             UsersRepository.Dispose();
             InviteRepository.Dispose();
+            UserSearchService.Dispose();
         }
     }
 }

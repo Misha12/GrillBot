@@ -1,0 +1,88 @@
+﻿@using Grillbot.Models.Invites;
+@model InvitesListViewModel;
+
+@{
+    ViewData["Title"] = "Pozvánky";
+}
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h3 class="card-title font-weight-light mb-0 pb-0">Pozvánky</h3>
+        </div>
+
+        <form method="get" class="card-header">
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.GuildID">Server</label>
+                    <select class="form-control" asp-for="Filter.GuildID">
+                        @foreach (var guild in Model.Guilds)
+                        {
+                            <option value="@guild.Id">@guild.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.UserQuery">Zakladatel</label>
+                    <input class="form-control" asp-for="Filter.UserQuery" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label>&nbsp;</label>
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="desc" asp-for="Filter.Desc">
+                        <label class="custom-control-label" for="desc">Sestupně</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeFrom">Datum a čas od</label>
+                    <input type="datetime-local" class="form-control" asp-for="Filter.CreatedFrom">
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeTo">Datum a čas do</label>
+                    <input type="datetime-local" class="form-control" asp-for="Filter.CreatedTo">
+                </div>
+
+                <div class="col-md-2"></div>
+
+                <div class="col-md-2 d-flex justify-content-between align-items-end">
+                    <button class="btn btn-danger" type="button" onclick="clearFilter(false)">Vyčistit</button>
+                    <button type="submit" class="btn btn-success">Potvrdit</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead class="table-bordered">
+                    <tr>
+                        <th style="width: 10%">Kód</th>
+                        <th>Založil</th>
+                        <th style="width: 20%">Založeno</th>
+                        <th style="width: 15%">Použilo uživatelů</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var invite in Model.Invites)
+                    {
+                        <tr>
+                            <td>
+                                <a href="/Admin/Users?Filter.GuildID=@Model.Filter.GuildID&Filter.UsedInviteCode=@invite.Code" class="text-white">
+                                    @invite.Code
+                                </a>
+                            </td>
+                            <td>@(invite.Creator?.GetFullName() ?? "")</td>
+                            <td>@(invite.CreatedAt.HasValue ? invite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime() : "")</td>
+                            <td>@(invite.Uses?.FormatWithSpaces() ?? "0")</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>
