@@ -7,6 +7,7 @@ using Grillbot.Services.Statistics;
 using Grillbot.Services.Statistics.ApiStats;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.Extensions.Hosting;
 
 namespace Grillbot.Controllers
 {
@@ -19,14 +20,16 @@ namespace Grillbot.Controllers
         private InternalStatistics InternalStatistics { get; }
         private ApiStatistics ApiStatistics { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private IHostApplicationLifetime ApplicationLifetime { get; }
 
         public ReportsController(BotStatusService statusService, InternalStatistics internalStatistics, ApiStatistics apiStatistics,
-            DiscordSocketClient discordClient)
+            DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime)
         {
             StatusService = statusService;
             InternalStatistics = internalStatistics;
             ApiStatistics = apiStatistics;
             DiscordClient = discordClient;
+            ApplicationLifetime = applicationLifetime;
         }
 
         public async Task<IActionResult> IndexAsync()
@@ -48,6 +51,18 @@ namespace Grillbot.Controllers
 
             result.Database = await getDbStatusTask;
             return View(result);
+        }
+
+        [HttpGet("shutdown")]
+        public IActionResult ShutDown()
+        {
+            Task.Run(() =>
+            {
+                Task.WaitAll(Task.Delay(500));
+                ApplicationLifetime.StopApplication();
+            });
+
+            return Redirect("https://google.com");
         }
     }
 }
