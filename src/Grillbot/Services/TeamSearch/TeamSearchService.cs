@@ -78,7 +78,7 @@ namespace Grillbot.Services.TeamSearch
             {
                 ID = dbItem.Id,
                 ShortUsername = message.Author.GetShortName(),
-                Message = message.Content[("hledam add ".Length + 1)..],
+                Message = message.Content[("hledam".Length + 1)..].Trim(),
                 MessageLink = message.GetJumpUrl(),
                 ChannelName = channel.Name
             };
@@ -89,15 +89,15 @@ namespace Grillbot.Services.TeamSearch
         /// </summary>
         private bool IsEmptyMessage(IMessage message)
         {
-            return string.IsNullOrEmpty(message?.Content) || Regex.IsMatch(message.Content, "(^.)hledam add$");
+            return string.IsNullOrEmpty(message?.Content) || Regex.IsMatch(message.Content, "(^.)hledam$");
         }
 
-        public void CreateSearch(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
+        public async Task CreateSearchAsync(SocketGuild guild, SocketUser user, ISocketMessageChannel channel, SocketUserMessage message)
         {
             if (message.Content.Length > MaxSearchSize)
                 throw new ValidationException("Zpráva je příliš dlouhá.");
 
-            Repository.AddSearch(guild.Id, user.Id, channel.Id, message.Id);
+            await Repository.AddSearchAsync(guild.Id, user.Id, channel.Id, message.Id);
         }
 
         public async Task RemoveSearchAsync(int searchID, SocketGuildUser executor)

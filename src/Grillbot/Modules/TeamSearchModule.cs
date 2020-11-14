@@ -30,15 +30,18 @@ namespace Grillbot.Modules
             TeamSearchService = teamSearchService;
         }
 
-        [Command("add")]
+        [Command("")]
         [Summary("Přidá zprávu o hledání.")]
 #pragma warning disable IDE0060 // Remove unused parameter
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
 #pragma warning restore IDE0060 // Remove unused parameter
         {
+            if (await RouteTeamSearchAsync(messageToAdd))
+                return;
+
             try
             {
-                TeamSearchService.CreateSearch(Context.Guild, Context.User, Context.Channel, Context.Message);
+                await TeamSearchService.CreateSearchAsync(Context.Guild, Context.User, Context.Channel, Context.Message);
                 await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
             }
             catch (Exception ex)
@@ -55,6 +58,29 @@ namespace Grillbot.Modules
             }
         }
 
+        private async Task<bool> RouteTeamSearchAsync(string route)
+        {
+            var fields = route.Split(' ').Select(o => o.Trim()).ToArray();
+
+            switch(fields[0].ToLower())
+            {
+                case "full":
+                    await TeamSearchInfoFullAsync();
+                    return true;
+                case "remove":
+                    await RemoveTeamSearchAsync(Convert.ToInt32(fields[1]));
+                    return true;
+                case "cleanchannel":
+                    await CleanChannelAsync(fields[1]);
+                    return true;
+                case "massremove":
+                    await MassRemoveAsync(fields.Skip(1).Select(o => Convert.ToInt32(o)).ToArray());
+                    return true;
+            }
+
+            return false;
+        }
+
         [Command("")]
         [Summary("Vypíše seznam hledání.")]
         public async Task TeamSearchInfoAsync()
@@ -68,10 +94,10 @@ namespace Grillbot.Modules
         public async Task TeamSearchInfoFullAsync()
         {
             var searches = await TeamSearchService.GetItemsAsync(null);
-            await PrintSearchesAsync(searches);
+            await PrintSearchesAsync(searches, true);
         }
 
-        private async Task PrintSearchesAsync(List<TeamSearchItem> searches)
+        private async Task PrintSearchesAsync(List<TeamSearchItem> searches, bool allChannels = false)
         {
             if (searches.Count == 0)
             {
@@ -85,7 +111,7 @@ namespace Grillbot.Modules
             foreach (var search in searches)
             {
                 var builder = new EmbedFieldBuilder()
-                    .WithName($"**{search.ID}**  - **{search.ShortUsername}** v **{search.ChannelName}**")
+                    .WithName($"**{search.ID}**  - **{search.ShortUsername}**{(allChannels ? $"v **{search.ChannelName}**" : "")}")
                     .WithValue($"\"{search.Message}\" [Jump]({search.MessageLink})");
 
                 currentPage.Add(builder);

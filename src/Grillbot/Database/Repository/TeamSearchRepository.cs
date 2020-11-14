@@ -28,7 +28,7 @@ namespace Grillbot.Database.Repository
             return query.ToList();
         }
 
-        public void AddSearch(ulong guildID, ulong userID, ulong channelID, ulong messageID)
+        public async Task AddSearchAsync(ulong guildID, ulong userID, ulong channelID, ulong messageID)
         {
             var entity = new TeamSearch()
             {
@@ -38,8 +38,8 @@ namespace Grillbot.Database.Repository
                 UserIDSnowflake = userID
             };
 
-            Context.TeamSearch.Add(entity);
-            Context.SaveChanges();
+            await Context.TeamSearch.AddAsync(entity);
+            await Context.SaveChangesAsync();
         }
 
         public async Task RemoveSearchAsync(int id)
