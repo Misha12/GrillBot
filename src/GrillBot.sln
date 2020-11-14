@@ -7,7 +7,13 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Grillbot", "Grillbot\Grillb
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrillBotMath", "GrillBotMath\GrillBotMath.csproj", "{30CF1678-5378-4D83-A341-F447B2DB8259}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GrillBot.Core", "GrillBot.Core\GrillBot.Core.csproj", "{9A57B30B-EFCE-44FA-BDE9-789BB9C67B56}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "GrillBot.Core", "GrillBot.Core\GrillBot.Core.csproj", "{9A57B30B-EFCE-44FA-BDE9-789BB9C67B56}"
+EndProject
+Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution Items", "{A16A7B0A-C482-4D4C-9009-0F00E9E5F2D9}"
+	ProjectSection(SolutionItems) = preProject
+		..\.dockerignore = ..\.dockerignore
+		Dockerfile = Dockerfile
+	EndProjectSection
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
