@@ -57,6 +57,19 @@ namespace Grillbot.Services
             return id;
         }
 
+        public async Task<Dictionary<SocketGuildUser, long?>> ConvertUsersToIDsAsync(List<SocketGuildUser> users)
+        {
+            var result = new Dictionary<SocketGuildUser, long?>();
+
+            foreach(var user in users)
+            {
+                var userId = await GetUserIDFromDiscordUserAsync(user.Guild, user);
+                result.Add(user, userId);
+            }
+
+            return result;
+        }
+
         public void Dispose()
         {
             UsersRepository?.Dispose();
