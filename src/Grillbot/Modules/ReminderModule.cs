@@ -71,6 +71,12 @@ namespace Grillbot.Modules
                 if (mentionedUser == null)
                     mentionedUser = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
 
+                if(mentionedUser == null)
+                {
+                    await ReplyAsync($"Hledaný uživatel `{user}` nebyl nalezen.");
+                    return;
+                }
+
                 var dateTimeAt = StringHelper.ParseDateTime(at);
 
                 await Reminder.CreateReminderAsync(Context.Guild, Context.User, mentionedUser, dateTimeAt, message, Context.Message);
