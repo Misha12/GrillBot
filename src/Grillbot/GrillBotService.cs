@@ -13,9 +13,9 @@ using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
 using Grillbot.Models;
 using System.Text;
-using Grillbot.Core.Math.Models;
 using Grillbot.Enums;
 using Grillbot.Services.Config;
+using Grillbot.Models.Math;
 
 namespace Grillbot
 {

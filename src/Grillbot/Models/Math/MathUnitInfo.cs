@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Core.Math.Models
+namespace Grillbot.Models.Math
 {
     public class MathUnitInfo
     {

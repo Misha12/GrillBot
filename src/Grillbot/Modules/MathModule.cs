@@ -1,10 +1,10 @@
 using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Core.Math.Models;
 using Grillbot.Extensions;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
+using Grillbot.Models.Math;
 using Grillbot.Services;
 using Grillbot.Services.Math;
 using System;
