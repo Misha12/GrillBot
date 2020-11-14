@@ -12,7 +12,6 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [Group("admin")]
     [ModuleID("AdminModule")]
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
