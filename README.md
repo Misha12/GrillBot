@@ -49,6 +49,7 @@ Only Discord.NET package is distributed as pre-release from MyGet feed.
 GrillBot project using Code first database migrations.
 
 To create database:
+
 ```sh
 dotnet tool restore
 dotnet ef database update -- DB_CONN="{YOUR_CONNECTION_STRING}"
@@ -83,7 +84,7 @@ Choice between command line parameters or environment variables is your. GrillBo
 - `$globalConfig get {key}` - Prints content of current configuration.
 - `$globalConfig set {key} {value}` - Sets configuration and saves it.
 
-#### Run with command line parameters.
+#### Run with command line parameters
 
 ```sh
 dotnet run GrillBot.dll -- APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
