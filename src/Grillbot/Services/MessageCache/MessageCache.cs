@@ -1,5 +1,6 @@
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -26,10 +27,10 @@ namespace Grillbot.Services.MessageCache
         {
             var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 5000 };
 
-            var tasks = Client.Guilds.SelectMany(o => o.TextChannels)
-                .Select(o => InitChannel(Data, o, options));
-
-           await Task.WhenAll(tasks.ToArray());
+            foreach(var channel in Client.Guilds.SelectMany(o => o.TextChannels))
+            {
+                await InitChannel(Data, channel, options);
+            }
         }
 
         private async Task InitChannel(ConcurrentDictionary<ulong, IMessage> messages, SocketTextChannel channel, RequestOptions options = null)
@@ -40,7 +41,7 @@ namespace Grillbot.Services.MessageCache
 
                 foreach (var message in messagesFromApi)
                 {
-                   messages.TryAdd(message.Id, message);
+                    messages.TryAdd(message.Id, message);
                 }
             }
             catch (Exception ex)
