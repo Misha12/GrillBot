@@ -52,25 +52,6 @@ namespace Grillbot.Modules
             await ReplyAsync(message);
         }
 
-        [Command("users")]
-        [Summary("Získání seznamu uživatelů, kteří daný kód použili.")]
-        public async Task GetUsersAsync(string code)
-        {
-            var users = await InviteTracker.GetUsersWithCodeAsync(Context.Guild, code);
-
-            var message = users.Where(o => o?.User != null).Select(o => o.User.GetFullName());
-            if (message.Count() > 25)
-            {
-                var fileContent = string.Join(Environment.NewLine, message);
-                using var stream = new MemoryStream(Encoding.UTF8.GetBytes(fileContent));
-
-                await Context.Channel.SendFileAsync(stream, $"{code}.txt");
-                return;
-            }
-
-            await ReplyChunkedAsync(message.Select(o => $"> {o}"), 10);
-        }
-
         [Command("list")]
         [Summary("Seznam všech pozvánek, které byly použity.")]
         public async Task ListInvitesAsync()
