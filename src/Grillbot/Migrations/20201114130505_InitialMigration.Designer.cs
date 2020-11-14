@@ -10,23 +10,23 @@ using Microsoft.EntityFrameworkCore.Storage.ValueConversion;
 namespace Grillbot.Migrations
 {
     [DbContext(typeof(GrillBotContext))]
-    [Migration("20201110085620_EmoteStatsIndex")]
-    partial class EmoteStatsIndex
+    [Migration("20201114130505_InitialMigration")]
+    partial class InitialMigration
     {
         protected override void BuildTargetModel(ModelBuilder modelBuilder)
         {
 #pragma warning disable 612, 618
             modelBuilder
-                .HasAnnotation("ProductVersion", "3.1.9")
+                .UseIdentityColumns()
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
-                .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                .HasAnnotation("ProductVersion", "5.0.0");
 
             modelBuilder.Entity("Grillbot.Database.Entity.AutoReplyItem", b =>
                 {
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<bool>("CaseSensitive")
                         .HasColumnType("bit");
@@ -75,7 +75,7 @@ namespace Grillbot.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -88,53 +88,20 @@ namespace Grillbot.Migrations
                     b.ToTable("Errors");
                 });
 
-            modelBuilder.Entity("Grillbot.Database.Entity.Math.MathAuditLogItem", b =>
-                {
-                    b.Property<int>("ID")
-                        .ValueGeneratedOnAdd()
-                        .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
-
-                    b.Property<string>("ChannelID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
-
-                    b.Property<DateTime>("DateTime")
-                        .HasColumnType("datetime2");
-
-                    b.Property<string>("Expression")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("Result")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<string>("UnitInfo")
-                        .HasColumnType("nvarchar(max)");
-
-                    b.Property<long>("UserID")
-                        .HasColumnType("bigint");
-
-                    b.HasKey("ID");
-
-                    b.HasIndex("UserID");
-
-                    b.ToTable("MathAuditLog");
-                });
-
             modelBuilder.Entity("Grillbot.Database.Entity.MethodConfig.MethodPerm", b =>
                 {
                     b.Property<int>("PermID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<byte>("AllowType")
                         .HasColumnType("tinyint");
 
                     b.Property<string>("DiscordID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("MethodID")
                         .HasColumnType("int");
@@ -154,12 +121,12 @@ namespace Grillbot.Migrations
                     b.Property<int>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<string>("Command")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("ConfigData")
                         .IsRequired()
@@ -167,13 +134,13 @@ namespace Grillbot.Migrations
 
                     b.Property<string>("Group")
                         .IsRequired()
-                        .HasColumnType("nvarchar(100)")
-                        .HasMaxLength(100);
+                        .HasMaxLength(100)
+                        .HasColumnType("nvarchar(100)");
 
                     b.Property<string>("GuildID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<bool>("OnlyAdmins")
                         .HasColumnType("bit");
@@ -191,23 +158,23 @@ namespace Grillbot.Migrations
                     b.Property<int>("Id")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("int")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<string>("ChannelId")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("GuildId")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("MessageId")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<string>("UserId")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.HasKey("Id");
 
@@ -251,7 +218,7 @@ namespace Grillbot.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<DateTime>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -282,7 +249,7 @@ namespace Grillbot.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<int?>("ApiAccessCount")
                         .HasColumnType("int");
@@ -300,8 +267,8 @@ namespace Grillbot.Migrations
                         .HasColumnType("bigint");
 
                     b.Property<string>("GuildID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<long>("ObtainedReactionsCount")
                         .HasColumnType("bigint");
@@ -309,12 +276,16 @@ namespace Grillbot.Migrations
                     b.Property<long>("Points")
                         .HasColumnType("bigint");
 
+                    b.Property<string>("UnverifyImunityGroup")
+                        .HasMaxLength(64)
+                        .HasColumnType("nvarchar(64)");
+
                     b.Property<string>("UsedInviteCode")
                         .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("UserID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int?>("WebAdminLoginCount")
                         .HasColumnType("int");
@@ -336,8 +307,8 @@ namespace Grillbot.Migrations
             modelBuilder.Entity("Grillbot.Database.Entity.Users.EmoteStatItem", b =>
                 {
                     b.Property<string>("EmoteID")
-                        .HasColumnType("nvarchar(255)")
-                        .HasMaxLength(255);
+                        .HasMaxLength(255)
+                        .HasColumnType("nvarchar(255)");
 
                     b.Property<long>("UserID")
                         .HasColumnType("bigint");
@@ -364,13 +335,13 @@ namespace Grillbot.Migrations
             modelBuilder.Entity("Grillbot.Database.Entity.Users.Invite", b =>
                 {
                     b.Property<string>("Code")
-                        .HasColumnType("nvarchar(20)")
-                        .HasMaxLength(20);
+                        .HasMaxLength(20)
+                        .HasColumnType("nvarchar(20)");
 
                     b.Property<string>("ChannelId")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<DateTime?>("CreatedAt")
                         .HasColumnType("datetime2");
@@ -390,7 +361,7 @@ namespace Grillbot.Migrations
                     b.Property<long>("RemindID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<DateTime>("At")
                         .HasColumnType("datetime2");
@@ -403,15 +374,15 @@ namespace Grillbot.Migrations
 
                     b.Property<string>("OriginalMessageID")
                         .IsRequired()
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<int>("PostponeCounter")
                         .HasColumnType("int");
 
                     b.Property<string>("RemindMessageID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<long>("UserID")
                         .HasColumnType("bigint");
@@ -430,11 +401,11 @@ namespace Grillbot.Migrations
                     b.Property<long>("ID")
                         .ValueGeneratedOnAdd()
                         .HasColumnType("bigint")
-                        .HasAnnotation("SqlServer:ValueGenerationStrategy", SqlServerValueGenerationStrategy.IdentityColumn);
+                        .UseIdentityColumn();
 
                     b.Property<string>("ChannelID")
-                        .HasColumnType("nvarchar(30)")
-                        .HasMaxLength(30);
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
 
                     b.Property<long>("Count")
                         .HasColumnType("bigint");
@@ -452,15 +423,6 @@ namespace Grillbot.Migrations
                     b.ToTable("UserChannels");
                 });
 
-            modelBuilder.Entity("Grillbot.Database.Entity.Math.MathAuditLogItem", b =>
-                {
-                    b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "User")
-                        .WithMany("MathAudit")
-                        .HasForeignKey("UserID")
-                        .OnDelete(DeleteBehavior.Cascade)
-                        .IsRequired();
-                });
-
             modelBuilder.Entity("Grillbot.Database.Entity.MethodConfig.MethodPerm", b =>
                 {
                     b.HasOne("Grillbot.Database.Entity.MethodConfig.MethodsConfig", "Method")
@@ -468,6 +430,8 @@ namespace Grillbot.Migrations
                         .HasForeignKey("MethodID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("Method");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Unverify.Unverify", b =>
@@ -481,6 +445,10 @@ namespace Grillbot.Migrations
                         .HasForeignKey("Grillbot.Database.Entity.Unverify.Unverify", "UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("SetLogOperation");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
@@ -496,6 +464,10 @@ namespace Grillbot.Migrations
                         .HasForeignKey("ToUserID")
                         .OnDelete(DeleteBehavior.NoAction)
                         .IsRequired();
+
+                    b.Navigation("FromUser");
+
+                    b.Navigation("ToUser");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.DiscordUser", b =>
@@ -503,6 +475,8 @@ namespace Grillbot.Migrations
                     b.HasOne("Grillbot.Database.Entity.Users.Invite", "UsedInvite")
                         .WithMany("UsedUsers")
                         .HasForeignKey("UsedInviteCode");
+
+                    b.Navigation("UsedInvite");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.EmoteStatItem", b =>
@@ -512,6 +486,8 @@ namespace Grillbot.Migrations
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.Invite", b =>
@@ -519,6 +495,8 @@ namespace Grillbot.Migrations
                     b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "Creator")
                         .WithMany("CreatedInvites")
                         .HasForeignKey("CreatorId");
+
+                    b.Navigation("Creator");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.Reminder", b =>
@@ -532,6 +510,10 @@ namespace Grillbot.Migrations
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("FromUser");
+
+                    b.Navigation("User");
                 });
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.UserChannel", b =>
@@ -541,6 +523,40 @@ namespace Grillbot.Migrations
                         .HasForeignKey("UserID")
                         .OnDelete(DeleteBehavior.Cascade)
                         .IsRequired();
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.MethodConfig.MethodsConfig", b =>
+                {
+                    b.Navigation("Permissions");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.Unverify.UnverifyLog", b =>
+                {
+                    b.Navigation("Unverify");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.Users.DiscordUser", b =>
+                {
+                    b.Navigation("CreatedInvites");
+
+                    b.Navigation("Channels");
+
+                    b.Navigation("IncomingUnverifyOperations");
+
+                    b.Navigation("OutgoingUnverifyOperations");
+
+                    b.Navigation("Reminders");
+
+                    b.Navigation("Unverify");
+
+                    b.Navigation("UsedEmotes");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.Users.Invite", b =>
+                {
+                    b.Navigation("UsedUsers");
                 });
 #pragma warning restore 612, 618
         }
