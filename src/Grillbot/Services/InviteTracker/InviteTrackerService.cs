@@ -208,19 +208,6 @@ namespace Grillbot.Services.InviteTracker
             BotState.InviteCache[guild.Id].AddRange(latestInvites);
         }
 
-        public async Task<List<DiscordUser>> GetUsersWithCodeAsync(SocketGuild guild, string code)
-        {
-            var users = await UsersRepository.GetUsersWithUsedCode(guild.Id, code).ToListAsync();
-
-            var result = new List<DiscordUser>();
-            foreach (var user in users)
-            {
-                result.Add(await UserHelper.MapUserAsync(Discord, BotState, user));
-            }
-
-            return result;
-        }
-
         public async Task<List<InviteModel>> GetStoredInvitesAsync(SocketGuild guild)
         {
             var invites = await InviteRepository.GetInvitesAsync(guild, true, false);

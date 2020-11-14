@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Repository;
 using Grillbot.Extensions;
@@ -84,62 +84,6 @@ namespace Grillbot.Services
             using var repository = scope.ServiceProvider.GetService<BotDbRepository>();
 
             return await repository.GetTableRowsCount().ConfigureAwait(false);
-        }
-
-        public List<CacheStatus> GetCacheStatus()
-        {
-            var result = new List<CacheStatus>();
-
-            var channels = Client.Guilds
-                .OrderBy(o => o.Name)
-                .SelectMany(o => o.TextChannels)
-                .OrderBy(o => o.Name);
-
-            foreach (var channel in channels)
-            {
-                var messageCache = MessageCache.GetFromChannel(channel.Id);
-
-                result.Add(new CacheStatus(channel)
-                {
-                    InternalCacheCount = channel.CachedMessages.Count,
-                    MessageCacheCount = messageCache.Count(),
-                });
-            }
-
-            return result;
-        }
-
-        public List<CacheStatus> GetCacheStatus(SocketGuild guild)
-        {
-            var result = new List<CacheStatus>();
-
-            var channels = guild.TextChannels
-                .OrderBy(o => o.Name);
-
-            foreach(var channel in channels)
-            {
-                var messageCache = MessageCache.GetFromChannel(channel.Id);
-
-                result.Add(new CacheStatus(channel)
-                {
-                    InternalCacheCount = channel.CachedMessages.Count,
-                    MessageCacheCount = messageCache.Count()
-                });
-            }
-
-            return result;
-        }
-
-        public CacheStatus GetCacheStatus(SocketGuild guild, IChannel channel)
-        {
-            var messageCache = MessageCache.GetFromChannel(channel.Id);
-            var guildChannel = guild.GetTextChannel(channel.Id);
-
-            return new CacheStatus(guildChannel)
-            {
-                MessageCacheCount = messageCache.Count(),
-                InternalCacheCount = guildChannel.CachedMessages.Count
-            };
         }
     }
 }

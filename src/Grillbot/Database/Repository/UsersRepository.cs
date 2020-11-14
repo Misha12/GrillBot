@@ -210,12 +210,6 @@ namespace Grillbot.Database.Repository
                 .Take(take);
         }
 
-        public IQueryable<UserEntity> GetUsersWithUsedCode(ulong guildID, string code)
-        {
-            return Context.Users.AsQueryable()
-                .Where(o => o.GuildID == guildID.ToString() && o.UsedInviteCode == code);
-        }
-
         public IQueryable<UserEntity> GetUsersWithUnverify(ulong guildID)
         {
             return GetBaseQuery(UsersIncludes.Unverify)
