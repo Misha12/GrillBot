@@ -56,7 +56,7 @@ namespace Grillbot.Database.Repository
             if (!desc)
                 return query.OrderBy(o => o.UsedUsers.Count);
             else
-                return; query.OrderByDescending(o => o.UsedUsers.Count);
+                return query.OrderByDescending(o => o.UsedUsers.Count);
         }
 
         public Task<Invite> FindInviteAsync(string code)

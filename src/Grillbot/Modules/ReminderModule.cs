@@ -1,6 +1,7 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 using Discord;
@@ -33,16 +34,6 @@ namespace Grillbot.Modules
             Discord = discord;
         }
 
-        [Command("me")]
-        [Summary("Upozorni mě.")]
-        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.\nDatum a čas se zadává v následujících formátech:" +
-            "\n- *\"dd/MM/yyyy HH:mm\"*,\n- *\"dd/MM/yyyy HH:mm(:ss)\"*,\n- *ISO 8601*,\n- *\"dd. MM. yyyy HH:mm(:ss)\"*\n**Vteřiny jsou nepovinné.\n" +
-            "Nezapomínejte na uvozovky, jinak vám to správně nenačte datum a čas.**")]
-        public async Task RemindMeAsync(string at, [Remainder] string message)
-        {
-            await RemindUserAsync(Context.User, at, message);
-        }
-
         [Command("get")]
         [Summary("Získej moje upozornění.")]
         public async Task GetRemindsAsync()
@@ -66,18 +57,23 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("user")]
+        [Command("")]
         [Summary("Upozorni uživatele")]
-        [Remarks("Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.\nDatum a čas se zadává v následujících formátech:" +
+        [Remarks("Pokud chcete vytvořit upozornění pro sebe, tak použijte parametr `me`, nebo tagněte sebe. Pokud si přejete upozornit někoho jiného, tak jej tagněte. Jiná forma identifikace není podporována.\n" +
+            "Pokud uživatel má deaktivované PMs, tak notifikace nebudou mít efekt.\nDatum a čas se zadává v následujících formátech:" +
             "\n- *\"dd/MM/yyyy HH:mm\"*,\n- *\"dd/MM/yyyy HH:mm(:ss)\"*,\n- *ISO 8601*,\n- *\"dd. MM. yyyy HH:mm(:ss)\"*\n**Vteřiny jsou nepovinné.\n" +
             "Nezapomínejte na uvozovky, jinak vám to správně nenačte datum a čas.**")]
-        public async Task RemindUserAsync(IUser user, string at, [Remainder] string message)
+        public async Task RemindUserAsync(string user, string at, [Remainder] string message)
         {
             try
             {
+                var mentionedUser = user == "me" ? Context.User : null;
+                if (mentionedUser == null)
+                    mentionedUser = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
+
                 var dateTimeAt = StringHelper.ParseDateTime(at);
 
-                Reminder.CreateReminder(Context.Guild, Context.User, user, dateTimeAt, message, Context.Message);
+                await Reminder.CreateReminderAsync(Context.Guild, Context.User, mentionedUser, dateTimeAt, message, Context.Message);
 
                 await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {ReminderDefinitions.CopyRemindEmoji.Name}");
                 await Context.Message.AddReactionAsync(ReminderDefinitions.CopyRemindEmoji);
