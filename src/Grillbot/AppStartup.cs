@@ -9,6 +9,7 @@ using Grillbot.Services.Initiable;
 using Grillbot.Services.Permissions.Api;
 using Microsoft.OpenApi.Models;
 using System;
+using System.Collections.Generic;
 
 namespace Grillbot
 {
@@ -51,6 +52,29 @@ namespace Grillbot
                 };
 
                 setup.SwaggerDoc("v1", apiInfo);
+
+                setup.AddSecurityDefinition("GrillBot", new OpenApiSecurityScheme()
+                {
+                    Description = "GrillBot authorization token. BotAdmin user can generate this tokens for user (or bot) accounts.",
+                    In = ParameterLocation.Header,
+                    Name = "Authorization",
+                    Scheme = "GrillBot",
+                    Type = SecuritySchemeType.ApiKey
+                });
+
+                setup.AddSecurityRequirement(new OpenApiSecurityRequirement()
+                {
+                    {
+                        new OpenApiSecurityScheme()
+                        {
+                            Reference = new OpenApiReference()
+                            {
+                                Type = ReferenceType.SecurityScheme,
+                                Id = "GrillBot"
+                            }
+                        }, new List<string>()
+                    }
+                });
             });
 
             services
