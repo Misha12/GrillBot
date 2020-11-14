@@ -118,3 +118,7 @@ To run the math module in bot, you have to build GrillBotMath project and set pa
 - [Meme](docs/meme.md)
 - [Reminder](docs/reminder.md)
 - [Users management](docs/users-management.md)
+
+## Docker
+
+Latest tag is published on [DockerHub](https://hub.docker.com/repository/docker/misha12/grillbot). SQL script with latest DB schema is included in release.
