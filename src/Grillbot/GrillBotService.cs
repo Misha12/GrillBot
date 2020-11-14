@@ -7,10 +7,8 @@ using System.Threading.Tasks;
 using Grillbot.Exceptions;
 using Microsoft.Extensions.Hosting;
 using System.Threading;
-using Microsoft.Extensions.Options;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Initiable;
-using Grillbot.Models.Config.AppSettings;
 using Newtonsoft.Json.Linq;
 using Grillbot.TypeReaders;
 using Grillbot.Models;
@@ -28,19 +26,17 @@ namespace Grillbot
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
-        private Configuration Config { get; }
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
         private BotState BotState { get; }
         private ConfigurationService ConfigurationService { get; }
 
-        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, IOptions<Configuration> config,
-            InternalStatistics internalStatistics, InitService initService, BotState botState, ConfigurationService configurationService)
+        public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, InternalStatistics internalStatistics,
+            InitService initService, BotState botState, ConfigurationService configurationService)
         {
             Services = services;
             Client = client;
             Commands = commands;
-            Config = config.Value;
             InternalStatistics = internalStatistics;
             InitService = initService;
             BotState = botState;
@@ -59,10 +55,10 @@ namespace Grillbot
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(Config.Discord.Token))
+            if (string.IsNullOrEmpty(ConfigurationService.Token))
                 throw new ConfigException("Missing bot token in config.");
 
-            await Client.LoginAsync(TokenType.Bot, Config.Discord.Token);
+            await Client.LoginAsync(TokenType.Bot, ConfigurationService.Token);
             await Client.StartAsync();
 
             BotState.AppInfo = await Client.GetApplicationInfoAsync();

@@ -4,11 +4,9 @@ using System;
 using System.Threading.Tasks;
 using Grillbot.Services.Statistics;
 using Grillbot.Services;
-using Microsoft.Extensions.Options;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Config;
@@ -25,12 +23,11 @@ namespace Grillbot.Handlers
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
         private EmoteStats EmoteStats { get; }
-        private Configuration Config { get; }
         private UserService UserService { get; }
         private BotStatusService BotStatus { get; }
         private ConfigurationService ConfigurationService { get; }
 
-        public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IOptions<Configuration> config, IServiceProvider services,
+        public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services,
             AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService,
             BotStatusService botStatus, ConfigurationService configurationService)
         {
@@ -41,7 +38,6 @@ namespace Grillbot.Handlers
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
             EmoteStats = emoteStats;
-            Config = config.Value;
             UserService = userService;
             BotStatus = botStatus;
             ConfigurationService = configurationService;

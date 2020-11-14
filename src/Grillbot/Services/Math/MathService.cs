@@ -1,13 +1,11 @@
 using Discord.WebSocket;
 using Grillbot.Core.Math.Models;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
@@ -21,14 +19,12 @@ namespace Grillbot.Services.Math
     {
         public List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
-        private Configuration Config { get; }
         private IServiceProvider ServiceProvider { get; }
         private ILogger<MathService> Logger { get; }
         private ConfigurationService ConfigurationService { get; }
 
-        public MathService(IOptions<Configuration> config, IServiceProvider serviceProvider, ILogger<MathService> logger, ConfigurationService configurationService)
+        public MathService(IServiceProvider serviceProvider, ILogger<MathService> logger, ConfigurationService configurationService)
         {
-            Config = config.Value;
             Sessions = new List<MathSession>();
             ServiceProvider = serviceProvider;
             Logger = logger;

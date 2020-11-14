@@ -49,46 +49,62 @@ Only Discord.NET package is distributed as pre-release from MyGet feed.
 GrillBot project using Code first database migrations.
 
 To create database:
+```sh
+dotnet tool restore
+dotnet ef database update -- DB_CONN="{YOUR_CONNECTION_STRING}"
+```
 
-- Configure database connection string in appsettings.development.json. If you are using MSSQL LocalDB you can use connection string in appsettings.json.
-- `dotnet tool restore`
-- `dotnet ef database update`
+## Config
 
-## Config (appsettings.json/appsettings.development.json)
+- `appsettings.json` configuration was deprecated in version `1.8` and removed in `2.0`. Newly is used database config in table GlobalConfig and environment or command line parameters.
 
-- **Keys in bold must be setup to develop GrillBot locally**
-- Format: **JSON**
-- Filename: **appsettings(.development).json**
+Choice between command line parameters or environment variables is your. GrillBot supports both.
+
+### Configuration variables
+
+- `APP_TOKEN`: **REQUIRED** to run bot. This token you can create in discord developer portal.
+- `DB_CONN`: **REQUIRED** to run bot. Connection string to your existing database.
+
+#### GlobalConfig
+
+| Key                   | Description                                                                                                                      | Example value        |
+| --------------------- | -------------------------------------------------------------------------------------------------------------------------------- | -------------------- |
+| CommandPrefix         | Message content, that must starts to invoke command.                                                                             | `$`                  |
+| EmoteChain_CheckCount | Count of same emotes before bot send emote.                                                                                      | `5`                  |
+| ActivityMessage       | Now playing info. Includes git latest commit, current branch and lastest tag. If you do not want display any test, enter `None`. | `Some message`       |
+| LoggerRoom            | ID of channel to send logging data (MessageEdited, MessageDeleted, ...).                                                         | `531058805233156096` |
+| AdminChannel          | ID of channel for administration purposes. Such as booster notifications.                                                        | `531058805233156096` |
+| ServerBoosterRoleId   | ID of role with Nitro Server Booster role.                                                                                       | `585529323960664074` |
+| ErrorLogChannel       | ID of channel for logging errors.                                                                                                | `531058805233156096` |
+
+##### Commands for global config control
+
+- `$globalConfig keys` - Prints list of available configuration values.
+- `$globalConfig get {key}` - Prints content of current configuration.
+- `$globalConfig set {key} {value}` - Sets configuration and saves it.
+
+#### Run with command line parameters.
+
+```sh
+dotnet run GrillBot.dll -- APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+```
+
+or
+
+- Linux:
+
+```sh
+./GrillBot APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+```
+
+- Windows:
+
+```sh
+GrillBot.exe APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+```
 
 Use appsettings.development.json for development purposes.
 If you edit `appsettings.json` file, write it to pull request.
-
-### Models
-
-#### Config
-
-| Key                       | Type                              | Description                                                                                       |
-| ------------------------- | --------------------------------- | ------------------------------------------------------------------------------------------------- |
-| AllowedHosts              | string                            | Semicollon delimited list of allowed hostnames without port numbers.                              |
-| CommandPrefix             | string                            | Message content, that must starts to invoke command.                                              |
-| EmoteChain_CheckLastCount | int                               | Count of same emotes before bot send emote.                                                       |
-| BackupErrors              | string                            | Path to the directory where the error log files will be saved when saving to the database failed. |
-| Discord                   | [Config.Discord](#Config.Discord) | Service configuration                                                                             |
-| ConnectionStrings         | KeyValuePair<string, string>      | Database connection strings                                                                       |
-
-#### Config.Discord
-
-For properties **Token** you will need to create your own Discord Application to get a Token for local development.
-
-| Key                 | Type   | Description                                                                                                                      |
-| ------------------- | ------ | -------------------------------------------------------------------------------------------------------------------------------- |
-| Activity            | string | Now playing info. Includes git latest commit, current branch and lastest tag. If you do not want display any test, enter `None`. |
-| Token               | string | Login token                                                                                                                      |
-| UserJoinedMessage   | string | Message, that will be sent, when user joined to guild.                                                                           |
-| LoggerRoomID        | string | ID of channel to send logging data (MessageEdited, MessageDeleted, ...).                                                         |
-| ServerBoosterRoleId | string | ID of role with Nitro Server Booster role.                                                                                       |
-| AdminChannelID      | string | ID of channel for administration purposes.                                                                                       |
-| ErrorLogChannelID   | string | ID of channel for logging errors.                                                                                                |
 
 ## GrillBotMath
 

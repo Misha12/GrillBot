@@ -1,8 +1,6 @@
-﻿using Discord.Commands;
+using Discord.Commands;
 using System;
 using System.Threading.Tasks;
-using Microsoft.Extensions.Options;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services;
 using Grillbot.Exceptions;
 using Grillbot.Attributes;
@@ -17,8 +15,7 @@ namespace Grillbot.Modules
     {
         private HelpEmbedRenderer Renderer { get; }
 
-        public HelpModule(IOptions<Configuration> config, PaginationService paginationService,
-            HelpEmbedRenderer renderer) : base(config, paginationService: paginationService)
+        public HelpModule(PaginationService paginationService, HelpEmbedRenderer renderer) : base(paginationService: paginationService)
         {
             Renderer = renderer;
         }

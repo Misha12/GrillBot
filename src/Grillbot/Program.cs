@@ -18,7 +18,7 @@ namespace Grillbot
                 .ConfigureWebHostDefaults(webBuilder => webBuilder.UseStartup<AppStartup>())
                 .ConfigureAppConfiguration(builder =>
                 {
-                    var connectionString = builder.Build().GetConnectionString("Default");
+                    var connectionString = builder.Build().GetValue<string>("DB_CONN");
                     builder.Add(new ConfigSource(connectionString, "global"));
                 });
         }

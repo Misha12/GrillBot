@@ -1,10 +1,8 @@
 using Discord.Commands;
 using Grillbot.Extensions.Discord;
-using Microsoft.Extensions.Options;
 using System;
 using System.Globalization;
 using System.Threading.Tasks;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.UserManagement;
 using System.ComponentModel.DataAnnotations;
 using System.Collections.Generic;
@@ -23,8 +21,7 @@ namespace Grillbot.Modules
     {
         private BirthdayService BirthdayService { get; }
 
-        public BirthdaysModule(IOptions<Configuration> options, BirthdayService birthdayService, PaginationService paginationService)
-            : base(options, paginationService: paginationService)
+        public BirthdaysModule(BirthdayService birthdayService, PaginationService paginationService) : base(paginationService: paginationService)
         {
             BirthdayService = birthdayService;
         }
