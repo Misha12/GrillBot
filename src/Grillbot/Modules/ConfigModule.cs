@@ -8,10 +8,8 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -28,7 +26,7 @@ namespace Grillbot.Modules
     [ModuleID("ConfigModule")]
     public class ConfigModule : BotModuleBase
     {
-        public ConfigModule(IOptions<Configuration> options, ConfigRepository repository, PaginationService paginationService) : base(options, repository, paginationService) { }
+        public ConfigModule(ConfigRepository repository, PaginationService paginationService) : base(repository, paginationService) { }
 
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]

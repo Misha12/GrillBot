@@ -1,12 +1,10 @@
-﻿using System.Net;
+using System.Net;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Duck;
-using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
@@ -18,8 +16,7 @@ namespace Grillbot.Modules
         private DuckDataLoader DuckDataLoader { get; }
         private DuckEmbedRenderer Renderer { get; }
 
-        public DuckModule(IOptions<Configuration> config, ConfigRepository repository, DuckEmbedRenderer renderer,
-            DuckDataLoader duckDataLoader) : base(config, repository)
+        public DuckModule(ConfigRepository repository, DuckEmbedRenderer renderer, DuckDataLoader duckDataLoader) : base(repository)
         {
             DuckDataLoader = duckDataLoader;
             Renderer = renderer;

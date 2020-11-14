@@ -6,7 +6,6 @@ using Microsoft.AspNetCore.Builder;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Initiable;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Services.Permissions.Api;
 using Microsoft.OpenApi.Models;
 using System;
@@ -24,9 +23,7 @@ namespace Grillbot
 
         public void ConfigureServices(IServiceCollection services)
         {
-            services.Configure<Configuration>(Configuration);
-
-            var connectionString = Configuration.GetConnectionString("Default");
+            var connectionString = Configuration.GetValue<string>("DB_CONN");
 
             services
                 .AddDatabase(connectionString)

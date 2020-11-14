@@ -5,12 +5,11 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Users;
+using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
-using Microsoft.Extensions.Options;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
@@ -26,19 +25,19 @@ namespace Grillbot.Services.InviteTracker
         private DiscordSocketClient Discord { get; }
         private BotState BotState { get; }
         private ILogger<InviteTrackerService> Logger { get; }
-        private Configuration Config { get; }
         private UsersRepository UsersRepository { get; }
         private InviteRepository InviteRepository { get; }
+        private ConfigurationService ConfigurationService { get; }
 
-        public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger,
-            IOptions<Configuration> config, UsersRepository usersRepository, InviteRepository inviteRepository)
+        public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger, 
+            UsersRepository usersRepository, InviteRepository inviteRepository, ConfigurationService configurationService)
         {
             Discord = discord;
             BotState = botState;
             Logger = logger;
-            Config = config.Value;
             UsersRepository = usersRepository;
             InviteRepository = inviteRepository;
+            ConfigurationService = configurationService;
         }
 
         public void Init()
@@ -118,7 +117,8 @@ namespace Grillbot.Services.InviteTracker
                 BaseAddress = new Uri(global::Discord.DiscordConfig.APIUrl)
             };
 
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {Config.Discord.Token}");
+            var token = ConfigurationService.Token;
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {token}");
 
             var vanityData = await httpClient.GetAsync($"guilds/{guild.Id}/vanity-url");
 

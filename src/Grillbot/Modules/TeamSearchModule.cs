@@ -10,12 +10,10 @@ using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Database.Repository;
 using Grillbot.Helpers;
-using Grillbot.Models.Config.AppSettings;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.TeamSearch;
 using Grillbot.Services;
 using Grillbot.Services.TeamSearch;
-using Microsoft.Extensions.Options;
 
 namespace Grillbot.Modules
 {
@@ -26,17 +24,17 @@ namespace Grillbot.Modules
     {
         private TeamSearchService TeamSearchService { get; }
 
-        public TeamSearchModule(IOptions<Configuration> options, ConfigRepository configRepository, TeamSearchService teamSearchService,
-            PaginationService paginationService)
-            : base(options, configRepository, paginationService)
+        public TeamSearchModule(ConfigRepository configRepository, TeamSearchService teamSearchService, PaginationService paginationService)
+            : base(configRepository, paginationService)
         {
             TeamSearchService = teamSearchService;
         }
 
         [Command("add")]
         [Summary("Přidá zprávu o hledání.")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
+#pragma warning disable IDE0060 // Remove unused parameter
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
+#pragma warning restore IDE0060 // Remove unused parameter
         {
             try
             {
