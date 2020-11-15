@@ -1,5 +1,6 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using System;
 using System.Collections.Generic;
@@ -16,9 +17,12 @@ namespace Grillbot.Services
         private Emoji NextPageEmoji => new Emoji("▶️");
         private Emoji LastPageEmoji => new Emoji("⏭️");
 
-        public PaginationService()
+        private DiscordSocketClient DiscordClient { get; }
+
+        public PaginationService(DiscordSocketClient discordClient)
         {
             Embeds = new Dictionary<ulong, PaginatedEmbed>();
+            DiscordClient = discordClient;
         }
 
         public void AddEmbed(IMessage message, PaginatedEmbed embed)
@@ -54,10 +58,7 @@ namespace Grillbot.Services
 
         public async Task HandleReactionAsync(SocketReaction reaction)
         {
-            if (!Embeds.TryGetValue(reaction.MessageId, out PaginatedEmbed embed)
-                || !reaction.Message.IsSpecified
-                || !(reaction.Emote is Emoji emoji)
-                || embed.ResponseFor.Id != reaction.UserId)
+            if (!CheckAndParseReaction(reaction, out var emoji, out var embed))
                 return;
 
             bool changed = false;
@@ -77,6 +78,27 @@ namespace Grillbot.Services
             }
 
             await reaction.Message.Value.RemoveReactionAsync(reaction.Emote, reaction.User.Value);
+        }
+
+        private bool CheckAndParseReaction(SocketReaction reaction, out Emoji emoji, out PaginatedEmbed embed)
+        {
+            emoji = null;
+            embed = null;
+
+            // Message check
+            if (!reaction.Message.IsSpecified || reaction.Message.Value.Author.IsUser() || reaction.Message.Value.Author.Id != DiscordClient.CurrentUser.Id)
+                return false;
+
+            // Reaction check
+            if (reaction.Emote is not Emoji _emoji)
+                return false;
+
+            // Embed check
+            if (reaction.Message.Value.Embeds.Count == 0 || !Embeds.TryGetValue(reaction.MessageId, out embed) || embed.ResponseFor.Id != reaction.UserId)
+                return false;
+
+            emoji = _emoji;
+            return true;
         }
     }
 }
