@@ -51,7 +51,8 @@ namespace Grillbot.Services
                 .AddTransient<ReminderRepository>()
                 .AddTransient<InviteRepository>()
                 .AddTransient<UnverifyRepository>()
-                .AddTransient<ErrorLogRepository>();
+                .AddTransient<ErrorLogRepository>()
+                .AddTransient<FilesRepository>();
 
             return services;
         }

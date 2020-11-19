@@ -68,5 +68,6 @@ namespace Grillbot.Database
         public virtual DbSet<Unverify> Unverifies { get; set; }
         public virtual DbSet<UnverifyLog> UnverifyLogs { get; set; }
         public virtual DbSet<ErrorLogItem> Errors { get; set; }
+        public virtual DbSet<File> Files { get; set; }
     }
 }

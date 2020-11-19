@@ -95,6 +95,13 @@ namespace Grillbot.Modules
             return await Context.Channel.SendFileAsync(ms, filename);
         }
 
+        public async Task<RestUserMessage> ReplyFileAsync(byte[] content, string filename)
+        {
+            using var ms = new MemoryStream(content);
+
+            return await Context.Channel.SendFileAsync(ms, filename);
+        }
+
         #region IDisposable Support
         private bool disposedValue = false;
 

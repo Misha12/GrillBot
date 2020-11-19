@@ -34,5 +34,10 @@ namespace Grillbot.Database
         {
             return Context.SaveChangesAsync();
         }
+
+        public void Remove<TEntity>(TEntity entity) where TEntity : class
+        {
+            Context.Set<TEntity>().Remove(entity);
+        }
     }
 }
