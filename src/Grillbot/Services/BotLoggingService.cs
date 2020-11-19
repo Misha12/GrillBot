@@ -89,7 +89,7 @@ namespace Grillbot.Services
 
                 await (Client.GetChannel(LogRoomID.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
             }
-            catch (Exception)
+            catch (Exception ex)
             {
                 var chunks = message.ToString()
                     .SplitInParts(MessageSizeForException);
@@ -97,6 +97,11 @@ namespace Grillbot.Services
                 if(Client.GetChannel(LogRoomID.Value) is IMessageChannel channel)
                 {
                     foreach(var chunk in chunks)
+                    {
+                        await channel.SendMessageAsync(chunk);
+                    }
+
+                    foreach(var chunk in ex.ToString().SplitInParts(MessageSizeForException))
                     {
                         await channel.SendMessageAsync(chunk);
                     }
