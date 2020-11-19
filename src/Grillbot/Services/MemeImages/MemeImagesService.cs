@@ -4,6 +4,7 @@ using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.Config.Dynamic;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Drawing;
 using System.IO;
@@ -17,27 +18,34 @@ namespace Grillbot.Services.MemeImages
     {
         private ConfigRepository ConfigRepository { get; }
         private Random Random { get; }
+        private FilesRepository FilesRepository { get; }
 
-        public MemeImagesService(ConfigRepository repository)
+        public MemeImagesService(ConfigRepository repository, FilesRepository filesRepository)
         {
             ConfigRepository = repository;
             Random = new Random();
+            FilesRepository = filesRepository;
         }
 
-        public string GetRandomFile(SocketGuild guild, string category)
+        public async Task<byte[]> GetRandomFileAsync(SocketGuild guild, string category)
         {
-            var config = ConfigRepository.FindConfig(guild.Id, "", category);
+            var config = ConfigRepository.FindConfig(guild.Id, "", category, false);
             var configData = config.GetData<MemeImagesConfig>();
 
-            var files = Directory.GetFiles(configData.Path)
-                .Where(file => configData.AllowedImageTypes.Any(type => type == Path.GetExtension(file)))
-                .ToList();
+            var filenamesQuery = FilesRepository.GetFilenames().Where(o => o.StartsWith($"{category}_"));
 
-            if (files.Count == 0)
+            var filenames = await filenamesQuery
+                .AsAsyncEnumerable()
+                .Where(o => configData.AllowedImageTypes.Any(type => type == Path.GetExtension(type)))
+                .ToListAsync();
+
+            if (filenames.Count == 0)
                 return null;
 
-            var randomValue = Random.Next(files.Count);
-            return files[randomValue];
+            var filename = filenames[Random.Next(filenames.Count)];
+            var file = await FilesRepository.GetFileAsync(filename);
+
+            return file?.Content;
         }
 
         public async Task<Img> CreatePeepoloveAsync(IUser forUser, PeepoloveConfig config)
@@ -66,6 +74,7 @@ namespace Grillbot.Services.MemeImages
         public void Dispose()
         {
             ConfigRepository.Dispose();
+            FilesRepository.Dispose();
         }
     }
 }

@@ -36,15 +36,15 @@ namespace Grillbot.Modules
 
         private async Task SendAsync(string category)
         {
-            var file = Service.GetRandomFile(Context.Guild, category);
+            var content = await Service.GetRandomFileAsync(Context.Guild, category);
 
-            if (file == null)
+            if (content == null)
             {
                 await ReplyAsync("Nemám žádný obrázek.");
                 return;
             }
 
-            await Context.Channel.SendFileAsync(file);
+            await ReplyFileAsync(content, $"{category}.png");
         }
 
         [Command("peepolove")]
