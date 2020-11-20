@@ -87,7 +87,6 @@ namespace Grillbot.Services.Unverify
         {
             UsersRepository.Dispose();
             UnverifyRepository.Dispose();
-            UserSearchService.Dispose();
         }
     }
 }

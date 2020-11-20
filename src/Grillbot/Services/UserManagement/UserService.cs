@@ -90,7 +90,7 @@ namespace Grillbot.Services.UserManagement
         private async Task<UserListFilter> CreateFilter(WebAdminUserListFilter form, SocketGuild guild)
         {
             using var scope = Services.CreateScope();
-            using var searchService = scope.ServiceProvider.GetService<UserSearchService>();
+            var searchService = scope.ServiceProvider.GetService<UserSearchService>();
 
             var usersTask = searchService.FindUsersAsync(guild, form.UserQuery);
 
@@ -110,7 +110,7 @@ namespace Grillbot.Services.UserManagement
         public async Task<DiscordUser> GetUserInfoAsync(SocketGuild guild, SocketUser user)
         {
             using var scope = Services.CreateScope();
-            using var searchService = scope.ServiceProvider.GetService<UserSearchService>();
+            var searchService = scope.ServiceProvider.GetService<UserSearchService>();
 
             var userID = await searchService.GetUserIDFromDiscordUserAsync(guild, user);
 

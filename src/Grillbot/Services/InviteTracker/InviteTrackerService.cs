@@ -239,7 +239,6 @@ namespace Grillbot.Services.InviteTracker
         {
             UsersRepository.Dispose();
             InviteRepository.Dispose();
-            UserSearchService.Dispose();
         }
     }
 }
