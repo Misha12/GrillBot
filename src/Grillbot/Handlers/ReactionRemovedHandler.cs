@@ -1,8 +1,9 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.UserManagement;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -11,22 +12,24 @@ namespace Grillbot.Handlers
     public class ReactionRemovedHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
-        private EmoteStats EmoteStats { get; }
         private InternalStatistics InternalStatistics { get; }
         private UserService UserService { get; }
+        private IServiceProvider Provider { get; }
 
-        public ReactionRemovedHandler(DiscordSocketClient client, EmoteStats emoteStats, InternalStatistics internalStatistics, UserService userService)
+        public ReactionRemovedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, UserService userService, IServiceProvider provider)
         {
             Client = client;
-            EmoteStats = emoteStats;
             InternalStatistics = internalStatistics;
             UserService = userService;
+            Provider = provider;
         }
 
         private async Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            using var scope = Provider.CreateScope();
+
             InternalStatistics.IncrementEvent("ReactionRemoved");
-            EmoteStats.DecrementFromReaction(reaction);
+            await scope.ServiceProvider.GetService<EmoteStats>().DecrementFromReactionAsync(reaction);
             UserService.DecrementReaction(reaction);
         }
 

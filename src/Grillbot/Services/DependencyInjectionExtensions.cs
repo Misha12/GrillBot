@@ -52,7 +52,8 @@ namespace Grillbot.Services
                 .AddTransient<InviteRepository>()
                 .AddTransient<UnverifyRepository>()
                 .AddTransient<ErrorLogRepository>()
-                .AddTransient<FilesRepository>();
+                .AddTransient<FilesRepository>()
+                .AddTransient<IUnitOfWork, UnitOfWork>();
 
             return services;
         }
@@ -149,7 +150,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddStatistics(this IServiceCollection services)
         {
             services
-                .AddTransient<EmoteStats>()
+                .AddScoped<EmoteStats>()
                 .AddSingleton<InternalStatistics>();
 
             return services;

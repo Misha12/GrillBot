@@ -1,5 +1,7 @@
 using System;
+using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Users;
 using Grillbot.Models.EmoteStats;
@@ -37,7 +39,7 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault();
         }
 
-        public IQueryable<EmoteStatItem> GetEmotesForClear(ulong guildID, int daysLimit)
+        public List<EmoteStatItem> GetEmotesForClear(ulong guildID, int daysLimit)
         {
             var daysBack = DateTime.Now.AddDays(-daysLimit);
 
@@ -62,10 +64,10 @@ namespace Grillbot.Database.Repository
             var data = nonUnicodeEmotes.ToList();
             data.AddRange(unicodeEmotes.ToList());
 
-            return data.AsQueryable();
+            return data;
         }
 
-        public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool? desc, bool onlyUnicode = false)
+        public IEnumerable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool? desc, bool onlyUnicode = false)
         {
             var query = GetEmoteStatsBaseQuery(guildID);
 
@@ -105,13 +107,13 @@ namespace Grillbot.Database.Repository
             if (limit != null)
                 resultQuery = resultQuery.Take(limit.Value);
 
-            return resultQuery.AsQueryable();
+            return resultQuery;
         }
 
-        public void RemoveEmojiNoCommit(SocketGuild guild, string emoteId)
+        public async Task RemoveEmojiNoCommitAsync(SocketGuild guild, string emoteId)
         {
             var baseQuery = GetEmoteStatsBaseQuery(guild.Id).Where(o => o.EmoteID == emoteId);
-            var emotes = FilterUserFromQuery(baseQuery).ToList();
+            var emotes = await FilterUserFromQuery(baseQuery).ToListAsync();
 
             if (emotes.Count == 0)
                 return;

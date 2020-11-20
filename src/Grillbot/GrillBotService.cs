@@ -16,6 +16,7 @@ using System.Text;
 using Grillbot.Enums;
 using Grillbot.Services.Config;
 using Grillbot.Models.Math;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot
 {
@@ -68,7 +69,8 @@ namespace Grillbot
             Commands.AddTypeReader<MathSession>(new MathSessionTypeReader());
             Commands.AddTypeReader<GlobalConfigItems>(new GlobalConfigItemTypeReader());
 
-            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), Services);
+            using var scope = Services.CreateScope();
+            await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), scope.ServiceProvider);
         }
 
         public async Task StopAsync(CancellationToken cancellationToken)

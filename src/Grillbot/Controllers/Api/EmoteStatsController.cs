@@ -22,16 +22,15 @@ namespace Grillbot.Controllers.Api
         [DiscordAuthAccessType(AccessType = AccessType.Everyone)]
         public async Task<IActionResult> GetAll(ulong guildID, [FromQuery] int limit = 25, [FromQuery] bool withUnicode = false)
         {
-            var data = EmoteStats.GetAllValues(true, guildID, !withUnicode, limit)
-                    .Select(o => new
-                    {
-                        Emote = o.RealID,
-                        o.UseCount,
-                        o.FirstOccuredAt,
-                        o.LastOccuredAt,
-                        o.IsUnicode,
-                        o.UsersCount
-                    });
+            var data = EmoteStats.GetAllValues(true, guildID, !withUnicode, limit).Select(o => new
+            {
+                Emote = o.RealID,
+                o.UseCount,
+                o.FirstOccuredAt,
+                o.LastOccuredAt,
+                o.IsUnicode,
+                o.UsersCount
+            });
 
             return Ok(data);
         }

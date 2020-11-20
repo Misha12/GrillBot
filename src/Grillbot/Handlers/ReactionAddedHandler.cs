@@ -15,17 +15,15 @@ namespace Grillbot.Handlers
     public class ReactionAddedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private EmoteStats EmoteStats { get; }
         private InternalStatistics InternalStatistics { get; }
         private PaginationService PaginationService { get; }
         private UserService UserService { get; }
         private IServiceProvider Provider { get; }
 
-        public ReactionAddedHandler(DiscordSocketClient client, EmoteStats emoteStats, InternalStatistics internalStatistics,
+        public ReactionAddedHandler(DiscordSocketClient client, InternalStatistics internalStatistics,
             PaginationService paginationService, UserService userService, IServiceProvider provider)
         {
             Client = client;
-            EmoteStats = emoteStats;
             InternalStatistics = internalStatistics;
             PaginationService = paginationService;
             UserService = userService;
@@ -34,8 +32,10 @@ namespace Grillbot.Handlers
 
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            using var scope = Provider.CreateScope();
+
             InternalStatistics.IncrementEvent("ReactionAdded");
-            EmoteStats.IncrementFromReaction(reaction);
+            await scope.ServiceProvider.GetService<EmoteStats>().IncrementFromReactionAsync(reaction);
 
             if (reaction.User.IsSpecified && reaction.User.Value.IsUser())
             {

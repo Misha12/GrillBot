@@ -22,13 +22,12 @@ namespace Grillbot.Handlers
         private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
-        private EmoteStats EmoteStats { get; }
         private UserService UserService { get; }
         private BotStatusService BotStatus { get; }
         private ConfigurationService ConfigurationService { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services,
-            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, EmoteStats emoteStats, UserService userService,
+            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, UserService userService,
             BotStatusService botStatus, ConfigurationService configurationService)
         {
             Client = client;
@@ -37,7 +36,6 @@ namespace Grillbot.Handlers
             AutoReply = autoReply;
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
-            EmoteStats = emoteStats;
             UserService = userService;
             BotStatus = botStatus;
             ConfigurationService = configurationService;
@@ -45,6 +43,8 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
+            using var scope = Services.CreateScope();
+
             InternalStatistics.IncrementEvent("MessageReceived");
 
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
@@ -71,7 +71,7 @@ namespace Grillbot.Handlers
                 }
 
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
-                EmoteStats.AnylyzeMessageAndIncrementValues(context);
+                await scope.ServiceProvider.GetService<EmoteStats>().AnylyzeMessageAndIncrementValuesAsync(context);
             }
         }
 

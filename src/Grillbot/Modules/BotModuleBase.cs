@@ -5,9 +5,11 @@ using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Permissions.Preconditions;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -22,11 +24,21 @@ namespace Grillbot.Modules
     {
         protected ConfigRepository ConfigRepository { get; }
         private PaginationService PaginationService { get; }
+        private IServiceProvider Provider { get; }
 
-        protected BotModuleBase(ConfigRepository configRepository = null, PaginationService paginationService = null)
+        protected BotModuleBase(ConfigRepository configRepository = null, PaginationService paginationService = null, IServiceProvider provider = null)
         {
             ConfigRepository = configRepository;
             PaginationService = paginationService;
+            Provider = provider;
+        }
+
+        protected ScopedService<TService> GetService<TService>()
+        {
+            var scope = Provider.CreateScope();
+            var service = scope.ServiceProvider.GetService<TService>();
+
+            return new ScopedService<TService>(service, scope);
         }
 
         protected TConfig GetMethodConfig<TConfig>(string group, string command) where TConfig : class

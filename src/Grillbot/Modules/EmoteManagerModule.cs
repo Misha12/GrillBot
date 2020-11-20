@@ -16,21 +16,20 @@ namespace Grillbot.Modules
 {
     [Group("emoteinfo")]
     [Name("Správa emotů")]
-    [ModuleID("EmoteManagerModule")]
+    [ModuleID(nameof(EmoteManagerModule))]
     public class EmoteManagerModule : BotModuleBase
     {
-        private EmoteStats EmoteStats { get; }
-
-        public EmoteManagerModule(EmoteStats emoteStats, PaginationService pagination) : base(paginationService: pagination)
+        public EmoteManagerModule(IServiceProvider provider, PaginationService pagination) : base(paginationService: pagination, provider: provider)
         {
-            EmoteStats = emoteStats;
         }
 
         [Command("all")]
         [Summary("Vypíše kompletní statistiku emotů. Seřazeno vzestupně.")]
         public async Task GetCompleteEmoteInfoListAsync()
         {
-            var fields = EmoteStats.GetAllValues(true, Context.Guild.Id, true)
+            using var service = GetService<EmoteStats>();
+
+            var fields = service.Service.GetAllValues(true, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()))
                 .ToList();
@@ -61,7 +60,9 @@ namespace Grillbot.Modules
 
         private async Task GetTopEmoteUsage(bool descOrder)
         {
-            var fields = EmoteStats.GetAllValues(descOrder, Context.Guild.Id, true)
+            using var service = GetService<EmoteStats>();
+            
+            var fields = service.Service.GetAllValues(descOrder, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
@@ -80,13 +81,15 @@ namespace Grillbot.Modules
             if (await GetEmoteInfoAsyncRouting(emote))
                 return;
 
+            using var service = GetService<EmoteStats>();
+
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
-            var emoteInfo = EmoteStats.GetValue(Context.Guild, emote);
+            var emoteInfo = service.Service.GetValue(Context.Guild, emote);
 
             if (emoteInfo == null)
             {
                 var bytes = Encoding.Unicode.GetBytes(emote);
-                emoteInfo = EmoteStats.GetValue(Context.Guild, Convert.ToBase64String(bytes));
+                emoteInfo = service.Service.GetValue(Context.Guild, Convert.ToBase64String(bytes));
             }
 
             if (emoteInfo == null)
@@ -135,7 +138,9 @@ namespace Grillbot.Modules
         [Summary("Vypíše TOP25 statistika unicode emojis.")]
         private async Task GetEmoteInfoOnlyUnicode()
         {
-            var fields = EmoteStats.GetAllUnicodeValues(true, Context.Guild.Id)
+            using var service = GetService<EmoteStats>();
+
+            var fields = service.Service.GetAllUnicodeValues(true, Context.Guild.Id)
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
 
             if (!fields.Any())
@@ -153,7 +158,8 @@ namespace Grillbot.Modules
         [Remarks("V případě unicode emoji se smažou ty, které mají 0 použití a nebyly použity déle než 2 týdny.")]
         public async Task ClearOldEmotesAsync()
         {
-            var clearedEmotes = await EmoteStats.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
+            using var service = GetService<EmoteStats>();
+            var clearedEmotes = await service.Service.CleanOldEmotesAsync(Context.Guild).ConfigureAwait(false);
 
             await ReplyChunkedAsync(clearedEmotes, 10);
             await ReplyAsync("> Čištění dokončeno.");
@@ -166,7 +172,9 @@ namespace Grillbot.Modules
         {
             bool desc = !string.Equals(ascDesc, "asc", StringComparison.InvariantCultureIgnoreCase);
 
-            var emotes = (await EmoteStats.GetEmoteStatsForUserAsync(Context.Guild, user, desc))
+            using var service = GetService<EmoteStats>();
+
+            var emotes = (await service.Service.GetEmoteStatsForUserAsync(Context.Guild, user, desc))
                 .Select(o => new GroupedEmoteItem()
                 {
                     EmoteID = o.EmoteID,

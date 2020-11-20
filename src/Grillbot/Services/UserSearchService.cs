@@ -1,6 +1,6 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Extensions.Discord;
 using System;
 using System.Collections.Generic;
@@ -9,15 +9,15 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class UserSearchService : IDisposable
+    public class UserSearchService
     {
         private BotState BotState { get; }
-        private UsersRepository UsersRepository { get; }
+        private IUnitOfWork UnitOfWork { get; }
         
-        public UserSearchService(BotState botState, UsersRepository usersRepository)
+        public UserSearchService(BotState botState, IUnitOfWork unitOfWork)
         {
             BotState = botState;
-            UsersRepository = usersRepository;
+            UnitOfWork = unitOfWork;
         }
 
         public async Task<List<SocketGuildUser>> FindUsersAsync(SocketGuild guild, string query)
@@ -48,7 +48,7 @@ namespace Grillbot.Services
             if (BotState.UserToID.ContainsKey(key))
                 return BotState.UserToID[key];
 
-            var id = await UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var id = await UnitOfWork.UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
 
             if (id == null)
                 return null;
@@ -68,11 +68,6 @@ namespace Grillbot.Services
             }
 
             return result;
-        }
-
-        public void Dispose()
-        {
-            UsersRepository?.Dispose();
         }
     }
 }
