@@ -127,7 +127,6 @@ namespace Grillbot.Services.UserManagement
             using var inviteRepository = scope.ServiceProvider.GetService<InviteRepository>();
             using var channelStatsRepository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
             using var reminderRepository = scope.ServiceProvider.GetService<ReminderRepository>();
-            using var emoteStatsRepository = scope.ServiceProvider.GetService<EmoteStatsRepository>();
 
             var includes = UsersIncludes.Unverify | UsersIncludes.UnverifyLogIncoming;
             var entity = await repository.GetUserAsync(userID, includes);

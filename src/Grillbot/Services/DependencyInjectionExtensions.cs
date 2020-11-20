@@ -43,7 +43,6 @@ namespace Grillbot.Services
                 .AddTransient<AutoReplyRepository>()
                 .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
-                .AddTransient<EmoteStatsRepository>()
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<TeamSearchRepository>()
                 .AddTransient<UsersRepository>()
