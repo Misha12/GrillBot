@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Threading.Tasks;
 using Microsoft.EntityFrameworkCore;
@@ -11,7 +11,7 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task<Dictionary<string, Tuple<int, long>>> GetTableRowsCount()
+        public async Task<Dictionary<string, Tuple<int, long>>> GetTableRowsCountAsync()
         {
             // MSSQL Only. Check another command for another SQL.
             // This SQL returns all tables in DB and count of records.

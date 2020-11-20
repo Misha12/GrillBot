@@ -32,14 +32,14 @@ namespace Grillbot.Services
         {
             return services
                 .AddScoped<EmoteStats>()
-                .AddScoped<AutoReplyService>();
+                .AddScoped<AutoReplyService>()
+                .AddScoped<BotStatusService>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
         {
             services
                 .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
-                .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<TeamSearchRepository>()
@@ -124,14 +124,6 @@ namespace Grillbot.Services
         {
             services
                 .AddSingleton<EmoteChain>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddWebAdminServices(this IServiceCollection services)
-        {
-            services
-                .AddSingleton<BotStatusService>();
 
             return services;
         }

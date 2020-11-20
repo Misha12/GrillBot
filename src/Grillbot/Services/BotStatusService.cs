@@ -1,9 +1,7 @@
-using Discord.WebSocket;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Extensions;
 using Grillbot.Models.BotStatus;
 using Microsoft.AspNetCore.Hosting;
-using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
@@ -17,17 +15,13 @@ namespace Grillbot.Services
     {
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
-        private IServiceProvider Provider { get; }
+        private IUnitOfWork UnitOfWork { get; }
 
-        public List<SocketMessage> RunningCommands { get; }
-
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IServiceProvider provider)
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IUnitOfWork unitOfWork)
         {
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
-            Provider = provider;
-
-            RunningCommands = new List<SocketMessage>();
+            UnitOfWork = unitOfWork;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -72,10 +66,7 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, Tuple<int, long>>> GetDbReport()
         {
-            using var scope = Provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<BotDbRepository>();
-
-            return await repository.GetTableRowsCount().ConfigureAwait(false);
+            return await UnitOfWork.BotDbRepository.GetTableRowsCountAsync();
         }
     }
 }

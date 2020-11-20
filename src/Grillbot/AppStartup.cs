@@ -113,7 +113,6 @@ namespace Grillbot
                 .AddBotFeatures()
                 .AddMath()
                 .AddEmoteChain()
-                .AddWebAdminServices()
                 .AddStatistics()
                 .AddPermissionsServices()
                 .AddPaginationServices()

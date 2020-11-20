@@ -22,12 +22,11 @@ namespace Grillbot.Handlers
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
         private UserService UserService { get; }
-        private BotStatusService BotStatus { get; }
         private ConfigurationService ConfigurationService { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services,
             EmoteChain emoteChain, InternalStatistics internalStatistics, UserService userService,
-            BotStatusService botStatus, ConfigurationService configurationService)
+            ConfigurationService configurationService)
         {
             Client = client;
             Commands = commands;
@@ -35,7 +34,6 @@ namespace Grillbot.Handlers
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
             UserService = userService;
-            BotStatus = botStatus;
             ConfigurationService = configurationService;
         }
 
@@ -53,7 +51,7 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (IsCommand(userMessage, ref argPos))
             {
-                BotStatus.RunningCommands.Add(message);
+                scope.ServiceProvider.GetService<BotState>().RunningCommands.Add(message);
                 await Commands.ExecuteAsync(context, userMessage.Content[argPos..], Services).ConfigureAwait(false);
 
                 if (context.Guild != null)

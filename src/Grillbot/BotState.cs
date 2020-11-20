@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Services.InviteTracker;
 using System;
@@ -31,6 +32,8 @@ namespace Grillbot
 
         public List<AutoReplyItem> AutoReplyItems { get; set; }
 
+        public List<SocketMessage> RunningCommands { get; set; }
+
         public BotState()
         {
             LastPointsCalculation = new Dictionary<string, DateTime>();
@@ -39,6 +42,7 @@ namespace Grillbot
             CurrentReturningUnverifyFor = new List<IUser>();
             UserToID = new Dictionary<string, long>();
             AutoReplyItems = new List<AutoReplyItem>();
+            RunningCommands = new List<SocketMessage>();
         }
     }
 }

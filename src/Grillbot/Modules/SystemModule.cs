@@ -3,7 +3,6 @@ using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Services;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System.Collections.Generic;
@@ -19,14 +18,12 @@ namespace Grillbot.Modules
     {
         private ILogger<SystemModule> Logger { get; }
         private IHostApplicationLifetime Lifetime { get; }
-        private BotStatusService BotStatus { get; }
         private BotState BotState { get; }
 
-        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotStatusService botStatus, BotState botState)
+        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotState botState)
         {
             Logger = logger;
             Lifetime = lifetime;
-            BotStatus = botStatus;
             BotState = botState;
         }
 
@@ -53,7 +50,7 @@ namespace Grillbot.Modules
             var message = await ReplyAsync("Probíhá příprava ukončení.");
             var cannotShutdownData = new List<string>();
 
-            var workingCommands = BotStatus.RunningCommands.Take(BotStatus.RunningCommands.Count - 1);
+            var workingCommands = BotState.RunningCommands.Take(BotState.RunningCommands.Count - 1);
             if (workingCommands.Any())
             {
                 var runningCommands = workingCommands.Select(o =>
