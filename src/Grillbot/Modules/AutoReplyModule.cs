@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Enums;
@@ -14,22 +14,20 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("autoreply")]
-    [ModuleID("AutoReplyModule")]
+    [ModuleID(nameof(AutoReplyModule))]
     [Name("Ovládání automatických odpovědí")]
     public class AutoReplyModule : BotModuleBase
     {
-        private AutoReplyService Service { get; }
-
-        public AutoReplyModule(AutoReplyService service, PaginationService paginationService) : base(paginationService: paginationService)
+        public AutoReplyModule(PaginationService paginationService, IServiceProvider provider) : base(paginationService: paginationService, provider: provider)
         {
-            Service = service;
         }
 
         [Command("list")]
         [Summary("Vypíše všechny možné odpovědi.")]
         public async Task ListItemsAsync()
         {
-            var data = Service.GetList(Context.Guild);
+            using var service = GetService<AutoReplyService>();
+            var data = service.Service.GetList(Context.Guild);
 
             if (data.Count == 0)
             {
@@ -72,7 +70,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                await Service.SetActiveStatusAsync(Context.Guild, id, true);
+                using var service = GetService<AutoReplyService>();
+                await service.Service.SetActiveStatusAsync(Context.Guild, id, true);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.");
             }
             catch (ArgumentException ex)
@@ -87,7 +86,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                await Service.SetActiveStatusAsync(Context.Guild, id, false).ConfigureAwait(false);
+                using var service = GetService<AutoReplyService>();
+                await service.Service.SetActiveStatusAsync(Context.Guild, id, false).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -117,7 +117,8 @@ namespace Grillbot.Modules
                 var disabled = (paramsFlags & (int)AutoReplyParams.Disabled) != 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.AddReplyAsync(Context.Guild, fields[0], fields[1], fields[2], disabled, caseSensitive, fields[4]).ConfigureAwait(false);
+                using var service = GetService<AutoReplyService>();
+                await service.Service.AddReplyAsync(Context.Guild, fields[0], fields[1], fields[2], disabled, caseSensitive, fields[4]);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně přidána.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -129,7 +130,7 @@ namespace Grillbot.Modules
         [Command("edit")]
         [Summary("Modifikuje existující automatickou odpověď.")]
         [Remarks("Parametry jsou téměř stejné jako u metody Add, jen s tím rozdílem, že je jako první parametr očekáváno ID.")]
-        public async Task Edit(int id, [Remainder] string data)
+        public async Task EditAsync(int id, [Remainder] string data)
         {
             try
             {
@@ -144,7 +145,8 @@ namespace Grillbot.Modules
                 var paramsFlags = fields.Length > 3 ? Convert.ToInt32(fields[3]) : 0;
                 var caseSensitive = (paramsFlags & (int)AutoReplyParams.CaseSensitive) != 0;
 
-                await Service.EditReplyAsync(Context.Guild, id, fields[0], fields[1], fields[2], caseSensitive, fields[4]).ConfigureAwait(false);
+                using var service = GetService<AutoReplyService>();
+                await service.Service.EditReplyAsync(Context.Guild, id, fields[0], fields[1], fields[2], caseSensitive, fields[4]);
                 await ReplyAsync($"Automatická odpověď **{fields[0]}** => **{fields[1]}** byla úspěšně upravená.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
@@ -155,11 +157,12 @@ namespace Grillbot.Modules
 
         [Command("remove")]
         [Summary("Odebere automatickou odpověď.")]
-        public async Task Remove(int id)
+        public async Task RemoveAsync(int id)
         {
             try
             {
-                await Service.RemoveReplyAsync(Context.Guild, id).ConfigureAwait(false);
+                using var service = GetService<AutoReplyService>();
+                await service.Service.RemoveReplyAsync(Context.Guild, id).ConfigureAwait(false);
                 await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)

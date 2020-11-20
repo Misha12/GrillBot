@@ -19,7 +19,6 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
-        private AutoReplyService AutoReply { get; }
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
         private UserService UserService { get; }
@@ -27,13 +26,12 @@ namespace Grillbot.Handlers
         private ConfigurationService ConfigurationService { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services,
-            AutoReplyService autoReply, EmoteChain emoteChain, InternalStatistics internalStatistics, UserService userService,
+            EmoteChain emoteChain, InternalStatistics internalStatistics, UserService userService,
             BotStatusService botStatus, ConfigurationService configurationService)
         {
             Client = client;
             Commands = commands;
             Services = services;
-            AutoReply = autoReply;
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
             UserService = userService;
@@ -65,9 +63,9 @@ namespace Grillbot.Handlers
             {
                 if (context.Guild != null)
                 {
-                    IncrementPoints(context.Guild, message);
+                    scope.ServiceProvider.GetService<PointsService>().IncrementPoints(context.Guild, message);
                     UserService.IncrementMessage(context.User as SocketGuildUser, context.Guild, context.Channel as SocketGuildChannel);
-                    await AutoReply.TryReplyAsync(context.Guild, userMessage).ConfigureAwait(false);
+                    await scope.ServiceProvider.GetService<AutoReplyService>().TryReplyAsync(context.Guild, userMessage);
                 }
 
                 await EmoteChain.ProcessChainAsync(context).ConfigureAwait(false);
@@ -87,14 +85,6 @@ namespace Grillbot.Handlers
 
             socketUserMessage = userMessage;
             return true;
-        }
-
-        private void IncrementPoints(SocketGuild guild, SocketMessage message)
-        {
-            using var scope = Services.CreateScope();
-            using var pointsService = scope.ServiceProvider.GetService<PointsService>();
-
-            pointsService.IncrementPoints(guild, message);
         }
 
         private bool IsCommand(SocketUserMessage message, ref int argPos)

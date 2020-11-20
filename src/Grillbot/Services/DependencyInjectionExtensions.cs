@@ -28,19 +28,17 @@ namespace Grillbot.Services
 {
     public static class DependencyInjectionExtensions
     {
-        public static IServiceCollection AddAutoReply(this IServiceCollection services)
+        public static IServiceCollection AddBotFeatures(this IServiceCollection services)
         {
-            services
-                .AddSingleton<AutoReplyService>();
-
-            return services;
+            return services
+                .AddScoped<EmoteStats>()
+                .AddScoped<AutoReplyService>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
         {
             services
                 .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
-                .AddTransient<AutoReplyRepository>()
                 .AddTransient<BotDbRepository>()
                 .AddTransient<ConfigRepository>()
                 .AddTransient<ChannelStatsRepository>()
@@ -149,7 +147,6 @@ namespace Grillbot.Services
         public static IServiceCollection AddStatistics(this IServiceCollection services)
         {
             services
-                .AddScoped<EmoteStats>()
                 .AddSingleton<InternalStatistics>();
 
             return services;

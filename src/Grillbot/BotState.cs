@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Grillbot.Database.Entity;
 using Grillbot.Services.InviteTracker;
 using System;
 using System.Collections.Generic;
@@ -28,6 +29,8 @@ namespace Grillbot
         // Value: DB ID
         public Dictionary<string, long> UserToID { get; set; }
 
+        public List<AutoReplyItem> AutoReplyItems { get; set; }
+
         public BotState()
         {
             LastPointsCalculation = new Dictionary<string, DateTime>();
@@ -35,6 +38,7 @@ namespace Grillbot
             UnverifyCache = new Dictionary<string, DateTime>();
             CurrentReturningUnverifyFor = new List<IUser>();
             UserToID = new Dictionary<string, long>();
+            AutoReplyItems = new List<AutoReplyItem>();
         }
     }
 }

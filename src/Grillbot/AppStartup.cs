@@ -110,7 +110,7 @@ namespace Grillbot
                 .AddSingleton(new BotState());
 
             services
-                .AddAutoReply()
+                .AddBotFeatures()
                 .AddMath()
                 .AddEmoteChain()
                 .AddWebAdminServices()
