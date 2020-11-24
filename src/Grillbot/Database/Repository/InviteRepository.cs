@@ -1,5 +1,4 @@
 using Grillbot.Database.Entity.Users;
-using Grillbot.Services.InviteTracker;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
@@ -12,24 +11,6 @@ namespace Grillbot.Database.Repository
     {
         public InviteRepository(GrillBotContext context) : base(context)
         {
-        }
-
-        public void StoreInviteIfNotExists(InviteModel invite, DiscordUser creator)
-        {
-            var inviteEntity = Context.Invites.FirstOrDefault(o => o.Code == invite.Code);
-
-            if (inviteEntity == null)
-            {
-                inviteEntity = new Invite()
-                {
-                    ChannelIdSnowflake = invite.ChannelId,
-                    Code = invite.Code,
-                    CreatedAt = invite.CreatedAt.HasValue ? invite.CreatedAt.Value.UtcDateTime : (DateTime?)null,
-                    CreatorId = creator?.ID
-                };
-
-                Context.Invites.Add(inviteEntity);
-            }
         }
 
         public IQueryable<Invite> GetInvitesQuery(ulong guildID, DateTime? createdFrom, DateTime? createdTo, List<long> creatorUserIds, bool desc)

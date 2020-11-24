@@ -79,7 +79,7 @@
                             <button class="page-link" onclick="switchPage(@(Model.Pagination.Page - 1), 'Filter.Page')" type="button">Vpřed</button>
                         </li>
                         <li class="page-item">
-                            <span class="page-link">@Model.Pagination.Page</span>
+                            <span class="page-link">@Model.Pagination.Page / @Model.Pagination.PagesCount</span>
                         </li>
                         <li class="page-item @(!Model.Pagination.CanNext ? "disabled" : "")">
                             <button class="page-link" onclick="switchPage(@(Model.Pagination.Page + 1), 'Filter.Page')" type="button">Vpřed</button>

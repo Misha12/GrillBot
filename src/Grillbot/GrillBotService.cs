@@ -49,7 +49,7 @@ namespace Grillbot
         private async Task OnClientReadyAsync()
         {
             InternalStatistics.IncrementEvent("Ready");
-            
+
             await InitService.InitAsync();
             await SetActivityAsync();
         }

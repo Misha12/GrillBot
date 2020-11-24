@@ -13,24 +13,23 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }
-        private UserService UserService { get; }
         private IServiceProvider Provider { get; }
 
-        public ReactionRemovedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, UserService userService, IServiceProvider provider)
+        public ReactionRemovedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, IServiceProvider provider)
         {
             Client = client;
             InternalStatistics = internalStatistics;
-            UserService = userService;
             Provider = provider;
         }
 
         private async Task OnReactionRemovedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            InternalStatistics.IncrementEvent("ReactionRemoved");
+
             using var scope = Provider.CreateScope();
 
-            InternalStatistics.IncrementEvent("ReactionRemoved");
             await scope.ServiceProvider.GetService<EmoteStats>().DecrementFromReactionAsync(reaction);
-            UserService.DecrementReaction(reaction);
+            await scope.ServiceProvider.GetService<UserReactionsService>().DecrementReactionStatsAsync(reaction);
         }
 
         public void Dispose()

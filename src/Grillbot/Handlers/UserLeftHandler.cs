@@ -29,15 +29,9 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("UserLeft");
             await Logger.OnUserLeft(user).ConfigureAwait(false);
 
-            await RemoveUnverifyIfExistsAsync(user);
-        }
-
-        private async Task RemoveUnverifyIfExistsAsync(SocketGuildUser user)
-        {
             using var scope = Provider.CreateScope();
-            using var service = scope.ServiceProvider.GetService<UnverifyService>();
 
-            await service.OnUserLeftGuildAsync(user);
+            await scope.ServiceProvider.GetService<UnverifyService>().OnUserLeftGuildAsync(user);
         }
 
         public void Dispose()

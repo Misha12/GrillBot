@@ -7,7 +7,6 @@ using System.Linq;
 using System.Threading;
 using System.Threading.Tasks;
 using Microsoft.Extensions.DependencyInjection;
-using Grillbot.Database.Repository;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Discord.Net;
@@ -15,6 +14,7 @@ using Grillbot.Enums;
 using Discord;
 using Grillbot.Services.Initiable;
 using Grillbot.Models.Embed;
+using Grillbot.Database;
 
 namespace Grillbot.Services.Reminder
 {
@@ -75,9 +75,9 @@ namespace Grillbot.Services.Reminder
                 Logger.LogInformation($"Reminder event triggered: {data.ID} ({data.At})");
 
                 using var scope = Provider.CreateScope();
-                using var remindersRepository = scope.ServiceProvider.GetService<ReminderRepository>();
+                using var repository = scope.ServiceProvider.GetService<IGrillBotRepository>();
 
-                var remind = remindersRepository.FindReminderByID(data.ID);
+                var remind = await repository.ReminderRepository.FindReminderByIDAsync(data.ID);
 
                 if (remind == null)
                     return;
@@ -85,7 +85,7 @@ namespace Grillbot.Services.Reminder
                 var message = await NotifyUserAsync(remind, force);
 
                 remind.RemindMessageIDSnowflake = message?.Id;
-                remindersRepository.SaveChanges();
+                await repository.CommitAsync();
             }
             catch(Exception ex)
             {
@@ -166,9 +166,10 @@ namespace Grillbot.Services.Reminder
         public void Init()
         {
             using var scope = Provider.CreateScope();
-            using var remindersRepository = scope.ServiceProvider.GetService<ReminderRepository>();
+            var repository = scope.ServiceProvider.GetService<IGrillBotRepository>();
 
-            var reminders = remindersRepository.GetRemindersForInit();
+            var query = repository.ReminderRepository.GetRemindersForInit();
+            var reminders = query.ToList();
             foreach (var reminder in reminders)
             {
                 AddReminder(reminder);

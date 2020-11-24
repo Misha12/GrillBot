@@ -32,6 +32,7 @@ namespace Grillbot.Models.Users
         public int? WebAdminLoginCount { get; set; }
         public InviteModel UsedInvite { get; set; }
         public List<UnverifyLogItem> UnverifyHistory { get; set; }
+        public List<UnverifyLogItem> GivenUnverifyHistory { get; set; }
         public long Flags { get; set; }
         public DateTime? UnverifyEndsAt { get; set; }
         public List<RemindItem> Reminders { get; set; }
@@ -89,10 +90,14 @@ namespace Grillbot.Models.Users
             }
 
             result.UnverifyHistory = dbUser.IncomingUnverifyOperations
-                    .Where(o => o.Operation == UnverifyLogOperation.Unverify || o.Operation == UnverifyLogOperation.Selfunverify)
-                    .Select(o => new UnverifyLogItem(o, discordClient))
-                    .OrderByDescending(o => o.DateTime)
-                    .ToList();
+                .Select(o => new UnverifyLogItem(o, discordClient))
+                .OrderByDescending(o => o.DateTime)
+                .ToList();
+
+            result.GivenUnverifyHistory = dbUser.OutgoingUnverifyOperations
+                .Select(o => new UnverifyLogItem(o, discordClient))
+                .OrderByDescending(o => o.DateTime)
+                .ToList();
 
             result.Reminders = new List<RemindItem>();
             foreach(var remind in dbUser.Reminders)

@@ -6,47 +6,46 @@ using System.Threading.Tasks;
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Enums;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.MessageCache;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
 {
-    public class ReminderService : IDisposable
+    public class ReminderService
     {
-        private ReminderRepository ReminderRepository { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
         private ReminderTaskService ReminderTaskService { get; }
-        private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
         private IMessageCache MessageCache { get; }
         private ILogger<ReminderService> Logger { get; }
         private UserSearchService UserSearchService { get; }
 
-        public ReminderService(ReminderRepository reminderRepository, ReminderTaskService reminderTaskService, UsersRepository usersRepository,
-            DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger, UserSearchService searchService)
+        public ReminderService(ReminderTaskService reminderTaskService, DiscordSocketClient discord,
+            IMessageCache messageCache, ILogger<ReminderService> logger, UserSearchService searchService, IGrillBotRepository grillBotRepository)
         {
-            ReminderRepository = reminderRepository;
             ReminderTaskService = reminderTaskService;
-            UsersRepository = usersRepository;
             Discord = discord;
             MessageCache = messageCache;
             Logger = logger;
             UserSearchService = searchService;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task CreateReminderAsync(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
         {
             ValidateReminderCreation(at, message);
 
-            var fromUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.Reminders);
-            await UsersRepository.SaveChangesAsync();
+            var fromUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.Reminders);
+            await GrillBotRepository.CommitAsync();
 
-            var toUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.Reminders);
+            var toUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.Reminders);
 
             var remindEntity = new ReminderEntity()
             {
@@ -58,7 +57,7 @@ namespace Grillbot.Services.Reminder
 
             toUserEntity.Reminders.Add(remindEntity);
 
-            await UsersRepository.SaveChangesAsync();
+            await GrillBotRepository.CommitAsync();
             ReminderTaskService.AddReminder(remindEntity);
         }
 
@@ -78,17 +77,17 @@ namespace Grillbot.Services.Reminder
             if (userId == null)
                 throw new NotFoundException("Žádná data pro tohoto uživatele nebyly nalezeny.");
 
-            return ReminderRepository.GetReminders(userId);
+            return await GrillBotRepository.ReminderRepository.GetReminders(userId).ToListAsync();
         }
 
-        public List<ReminderEntity> GetAllReminders()
+        public async Task<List<ReminderEntity>> GetAllRemindersAsync()
         {
-            return ReminderRepository.GetReminders(null);
+            return await GrillBotRepository.ReminderRepository.GetReminders(null).ToListAsync();
         }
 
-        public void CancelReminderWithoutNotification(long id, SocketGuildUser user)
+        public async Task CancelReminderWithoutNotification(long id, SocketGuildUser user)
         {
-            var remind = ReminderRepository.FindReminderByID(id);
+            var remind = await GrillBotRepository.ReminderRepository.FindReminderByIDAsync(id);
 
             if (remind == null)
                 throw new InvalidOperationException("Toto upozornění neexistuje.");
@@ -102,7 +101,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task CancelReminderWithNotificationAsync(long id, SocketGuildUser user)
         {
-            var remind = ReminderRepository.FindReminderByID(id);
+            var remind = await GrillBotRepository.ReminderRepository.FindReminderByIDAsync(id);
 
             if (remind == null)
                 throw new InvalidOperationException("Toto upozornění neexistuje.");
@@ -128,7 +127,7 @@ namespace Grillbot.Services.Reminder
                 return;
             }
 
-            var remind = ReminderRepository.FindReminderByMessageId(message.Id);
+            var remind = await GrillBotRepository.ReminderRepository.FindReminderByMessageIdAsync(message.Id);
 
             if (remind == null)
                 return;
@@ -142,12 +141,12 @@ namespace Grillbot.Services.Reminder
             await message.DeleteMessageAsync();
 
             ReminderTaskService.AddReminder(remind);
-            ReminderRepository.SaveChanges();
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task<List<Tuple<SocketGuildUser, int>>> GetLeaderboard()
         {
-            var stats = ReminderRepository.GetLeaderboard();
+            var stats = GrillBotRepository.ReminderRepository.GetLeaderboard();
             var result = new List<Tuple<SocketGuildUser, int>>();
 
             foreach (var statItem in stats)
@@ -179,7 +178,9 @@ namespace Grillbot.Services.Reminder
                     !reaction.User.IsSpecified ||
                     (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
                 )
+                {
                     return false;
+                }
 
                 var users = await message.GetReactionUsersAsync(emoji, 5).FlattenAsync();
 
@@ -200,7 +201,7 @@ namespace Grillbot.Services.Reminder
             if (emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name) return;
             if (!reaction.User.IsSpecified) return;
 
-            var originalRemind = ReminderRepository.FindReminderByOriginalMessage(reaction.MessageId);
+            var originalRemind = await GrillBotRepository.ReminderRepository.FindReminderByOriginalMessageAsync(reaction.MessageId);
             if (originalRemind == null) return;
 
             var originalGuild = Discord.GetGuild(originalRemind.User.GuildIDSnowflake);
@@ -226,12 +227,6 @@ namespace Grillbot.Services.Reminder
             {
                 await reaction.Channel.SendMessageAsync($"{reaction.User.Value.Mention} {ex.Message}");
             }
-        }
-
-        public void Dispose()
-        {
-            ReminderRepository.Dispose();
-            UsersRepository.Dispose();
         }
     }
 }

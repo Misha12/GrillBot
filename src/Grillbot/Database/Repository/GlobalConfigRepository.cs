@@ -13,35 +13,16 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public async Task UpdateItemAsync(GlobalConfigItems item, string value)
-        {
-            var key = item.ToString();
-
-            var result = await Context.GlobalConfig.AsQueryable()
-                .SingleOrDefaultAsync(o => o.Key == key);
-
-            if (result == null)
-            {
-                result = new GlobalConfigItem()
-                {
-                    Key = key,
-                    Value = value
-                };
-
-                await Context.GlobalConfig.AddAsync(result);
-            }
-            else
-            {
-                result.Value = value;
-            }
-
-            await Context.SaveChangesAsync();
-        }
-
         public IQueryable<Tuple<string, string>> GetAllItems()
         {
             return Context.GlobalConfig.AsQueryable()
                 .Select(o => Tuple.Create(o.Key, o.Value));
+        }
+
+        public Task<GlobalConfigItem> GetItemAsync(GlobalConfigItems key)
+        {
+            return Context.GlobalConfig.AsQueryable()
+                .SingleOrDefaultAsync(o => o.Key == key.ToString());
         }
     }
 }

@@ -16,11 +16,8 @@ namespace Grillbot.Modules
     [ModuleID("ChannelboardModule")]
     public class ChannelboardModule : BotModuleBase
     {
-        private ChannelStats Stats { get; }
-
-        public ChannelboardModule(ChannelStats channelStats, IServiceProvider provider) : base(provider: provider)
+        public ChannelboardModule(IServiceProvider provider) : base(provider: provider)
         {
-            Stats = channelStats;
         }
 
         [Command("")]
@@ -28,7 +25,9 @@ namespace Grillbot.Modules
         [Remarks("Posílá statistiku do PM.")]
         public async Task ChannelboardAsync()
         {
-            var data = await Stats.GetChannelboardDataAsync(Context.Guild, Context.User, ChannelStats.ChannelboardTakeTop);
+            using var service = GetService<ChannelStats>();
+
+            var data = await service.Service.GetChannelboardDataAsync(Context.Guild, Context.User, ChannelStats.ChannelboardTakeTop);
 
             if (data.Count == 0)
                 await Context.Message.Author.SendPrivateMessageAsync("Ještě nejsou zaznamenány žádné kanály pro tento server.");
@@ -64,7 +63,9 @@ namespace Grillbot.Modules
         [Summary("Počet zpráv v místnosti.")]
         public async Task ChannelboardForRoomAsync(IChannel channel)
         {
-            var value = await Stats.GetValueAsync(Context.Guild, channel.Id, Context.User);
+            using var service = GetService<ChannelStats>();
+
+            var value = await service.Service.GetValueAsync(Context.Guild, channel.Id, Context.User);
 
             if (value == null)
             {
@@ -83,7 +84,9 @@ namespace Grillbot.Modules
         [Summary("Úklid starých kanálů.")]
         public async Task CleanOldChannels()
         {
-            var clearedChannels = await Stats.CleanOldChannels(Context.Guild);
+            using var service = GetService<ChannelStats>();
+
+            var clearedChannels = await service.Service.CleanOldChannels(Context.Guild);
 
             if (clearedChannels == null)
             {

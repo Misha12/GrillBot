@@ -1,8 +1,6 @@
 using Grillbot.Database.Entity.Unverify;
-using Grillbot.Database.Enums;
 using Grillbot.Models.Unverify;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -15,57 +13,18 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public UnverifyLog SaveLogOperation(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
+        public Task<Unverify> FindUnverifyByUser(ulong guildId, ulong userId)
         {
-            var entity = new UnverifyLog()
-            {
-                CreatedAt = DateTime.Now,
-                FromUserID = fromUserID,
-                Json = jsonData,
-                Operation = operation,
-                ToUserID = toUserID
-            };
-
-            Context.UnverifyLogs.Add(entity);
-            Context.SaveChanges();
-
-            return entity;
-        }
-
-        public async Task<UnverifyLog> SaveLogOperationAsync(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
-        {
-            var entity = new UnverifyLog()
-            {
-                CreatedAt = DateTime.Now,
-                FromUserID = fromUserID,
-                Json = jsonData,
-                Operation = operation,
-                ToUserID = toUserID
-            };
-
-            await Context.UnverifyLogs.AddAsync(entity);
-            await Context.SaveChangesAsync();
-
-            return entity;
-        }
-
-        public async Task RemoveUnverifyAsync(ulong guildID, ulong userID)
-        {
-            var unverify = await Context.Unverifies.AsQueryable()
+            return Context.Unverifies.AsQueryable()
                 .Include(o => o.User)
-                .FirstOrDefaultAsync(o => o.User.GuildID == guildID.ToString() && o.User.UserID == userID.ToString());
-
-            if (unverify == null)
-                return;
-
-            Context.Unverifies.Remove(unverify);
-            await Context.SaveChangesAsync();
+                .FirstOrDefaultAsync(o => o.User.GuildID == guildId.ToString() && o.User.UserID == userId.ToString());
         }
 
-        public Unverify FindUnverifyByID(long id)
+        public Task<Unverify> FindUnverifyByID(long id)
         {
-            return Context.Unverifies.Include(o => o.User)
-                .FirstOrDefault(o => o.UserID == id);
+            return Context.Unverifies
+                .Include(o => o.User)
+                .FirstOrDefaultAsync(o => o.UserID == id);
         }
 
         public IQueryable<UnverifyLog> GetLogs(UnverifyAuditFilter filter, bool disablePagination = false)
@@ -121,6 +80,22 @@ namespace Grillbot.Database.Repository
                 .Include(o => o.ToUser)
                 .ThenInclude(o => o.Unverify)
                 .FirstOrDefaultAsync(o => o.ID == id);
+        }
+
+        public IQueryable<UnverifyLog> GetIncomingUnverifies(long userId)
+        {
+            return Context.UnverifyLogs.AsQueryable()
+                .Include(o => o.FromUser)
+                .Include(o => o.ToUser)
+                .Where(o => o.ToUserID == userId);
+        }
+
+        public IQueryable<UnverifyLog> GetOutgoingUnverifies(long userId)
+        {
+            return Context.UnverifyLogs.AsQueryable()
+                .Include(o => o.FromUser)
+                .Include(o => o.ToUser)
+                .Where(o => o.FromUserID == userId);
         }
     }
 }

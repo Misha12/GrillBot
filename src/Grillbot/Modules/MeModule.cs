@@ -4,6 +4,7 @@ using Grillbot.Attributes;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Services.UserManagement;
+using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -13,11 +14,8 @@ namespace Grillbot.Modules
     [ModuleID("MeModule")]
     public class MeModule : BotModuleBase
     {
-        private UserService UserService { get; }
-
-        public MeModule(UserService userService)
+        public MeModule(IServiceProvider provider) : base(provider: provider)
         {
-            UserService = userService;
         }
 
         [Command("")]
@@ -25,7 +23,9 @@ namespace Grillbot.Modules
         public async Task InfoAboutMeAsync()
         {
             var user = Context.User is SocketGuildUser usr ? usr : await Context.Guild.GetUserFromGuildAsync(Context.User.Id);
-            var detail = await UserService.GetUserInfoAsync(Context.Guild, user);
+
+            using var service = GetService<UserService>();
+            var detail = await service.Service.GetUserAsync(Context.Guild, user);
 
             if(detail == null)
             {

@@ -1,6 +1,7 @@
 using Discord.WebSocket;
+using Grillbot.Database;
+using Grillbot.Database.Entity.Users;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -19,27 +20,24 @@ using DBDiscordUser = Grillbot.Database.Entity.Users.DiscordUser;
 
 namespace Grillbot.Services.InviteTracker
 {
-    public class InviteTrackerService : IInitiable, IDisposable
+    public class InviteTrackerService : IInitiable
     {
         private DiscordSocketClient Discord { get; }
         private BotState BotState { get; }
         private ILogger<InviteTrackerService> Logger { get; }
-        private UsersRepository UsersRepository { get; }
-        private InviteRepository InviteRepository { get; }
         private ConfigurationService ConfigurationService { get; }
         private UserSearchService UserSearchService { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger, 
-            UsersRepository usersRepository, InviteRepository inviteRepository, ConfigurationService configurationService,
-            UserSearchService userSearchService)
+        public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger,
+            ConfigurationService configurationService, UserSearchService userSearchService, IGrillBotRepository grillBotRepository)
         {
             Discord = discord;
             BotState = botState;
             Logger = logger;
-            UsersRepository = usersRepository;
-            InviteRepository = inviteRepository;
             ConfigurationService = configurationService;
             UserSearchService = userSearchService;
+            GrillBotRepository = grillBotRepository;
         }
 
         public void Init()
@@ -147,20 +145,30 @@ namespace Grillbot.Services.InviteTracker
             DBDiscordUser inviteCreator = null;
             if (usedInvite.Creator != null)
             {
-                inviteCreator = UsersRepository.GetOrCreateUser(user.Guild.Id, usedInvite.Creator.Id, UsersIncludes.Invites);
-                UsersRepository.SaveChangesIfAny();
+                inviteCreator = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(user.Guild.Id, usedInvite.Creator.Id, UsersIncludes.Invites);
+                await GrillBotRepository.CommitAsync();
             }
 
-            InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
+            var inviteEntity = await GrillBotRepository.InviteRepository.FindInviteAsync(usedInvite.Code);
 
-            var joinedUser = UsersRepository.GetOrCreateUser(user.Guild.Id, user.Id, UsersIncludes.Invites);
+            if (inviteEntity == null)
+            {
+                inviteEntity = new Invite()
+                {
+                    ChannelIdSnowflake = usedInvite.ChannelId,
+                    Code = usedInvite.Code,
+                    CreatedAt = usedInvite.CreatedAt.HasValue ? usedInvite.CreatedAt.Value.UtcDateTime : (DateTime?)null,
+                    CreatorId = inviteCreator?.ID
+                };
+
+                await GrillBotRepository.AddAsync(inviteEntity);
+            }
+
+            var joinedUser = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(user.Guild.Id, user.Id, UsersIncludes.Invites);
             joinedUser.UsedInviteCode = usedInvite.Code;
 
-            InviteRepository.SaveChanges();
-            UsersRepository.SaveChanges();
-
-            BotState.InviteCache[user.Guild.Id].Clear();
-            BotState.InviteCache[user.Guild.Id].AddRange(latestInvites);
+            await GrillBotRepository.CommitAsync();
+            AppendInvites(user.Guild, latestInvites);
         }
 
         private InviteModel FindUsedInvite(SocketGuild guild, List<InviteModel> latestInvites)
@@ -177,10 +185,7 @@ namespace Grillbot.Services.InviteTracker
                     return latestInvite != null && latestInvite.Uses > invite.Uses;
                 });
 
-            if (diffInvite != null)
-                return diffInvite;
-
-            return latestInvites.Find(invite => !guildInvites.Any(x => x.Code == invite.Code));
+            return diffInvite ?? latestInvites.Find(invite => !guildInvites.Any(x => x.Code == invite.Code));
         }
 
         public async Task AssignInviteToUserAsync(SocketUser user, SocketGuild guild, string code)
@@ -194,20 +199,30 @@ namespace Grillbot.Services.InviteTracker
             DBDiscordUser inviteCreator = null;
             if (usedInvite.Creator != null)
             {
-                inviteCreator = UsersRepository.GetOrCreateUser(guild.Id, usedInvite.Creator.Id, UsersIncludes.Invites);
-                UsersRepository.SaveChangesIfAny();
+                inviteCreator = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, usedInvite.Creator.Id, UsersIncludes.Invites);
+                await GrillBotRepository.CommitAsync();
             }
 
-            InviteRepository.StoreInviteIfNotExists(usedInvite, inviteCreator);
+            var inviteEntity = await GrillBotRepository.InviteRepository.FindInviteAsync(usedInvite.Code);
 
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, user.Id, UsersIncludes.Invites);
+            if (inviteEntity == null)
+            {
+                inviteEntity = new Invite()
+                {
+                    ChannelIdSnowflake = usedInvite.ChannelId,
+                    Code = usedInvite.Code,
+                    CreatedAt = usedInvite.CreatedAt.HasValue ? usedInvite.CreatedAt.Value.UtcDateTime : (DateTime?)null,
+                    CreatorId = inviteCreator?.ID
+                };
+
+                await GrillBotRepository.AddAsync(inviteEntity);
+            }
+
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.Invites);
             userEntity.UsedInviteCode = code;
 
-            InviteRepository.SaveChanges();
-            UsersRepository.SaveChanges();
-
-            BotState.InviteCache[guild.Id].Clear();
-            BotState.InviteCache[guild.Id].AddRange(latestInvites);
+            await GrillBotRepository.CommitAsync();
+            AppendInvites(guild, latestInvites);
         }
 
         public async Task<List<InviteModel>> GetStoredInvitesAsync(InvitesListFilter filter)
@@ -217,8 +232,8 @@ namespace Grillbot.Services.InviteTracker
             var userIds = (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery))
                 .Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList();
 
-            var invites = await InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc).ToListAsync();
-            
+            var invites = await GrillBotRepository.InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc).ToListAsync();
+
             var result = new List<InviteModel>();
             foreach (var invite in invites)
             {
@@ -235,10 +250,17 @@ namespace Grillbot.Services.InviteTracker
             return result;
         }
 
-        public void Dispose()
+        private void AppendInvites(SocketGuild guild, List<InviteModel> invites)
         {
-            UsersRepository.Dispose();
-            InviteRepository.Dispose();
+            if (!BotState.InviteCache.ContainsKey(guild.Id))
+            {
+                BotState.InviteCache.Add(guild.Id, invites);
+            }
+            else
+            {
+                BotState.InviteCache[guild.Id].Clear();
+                BotState.InviteCache[guild.Id].AddRange(invites);
+            }
         }
     }
 }

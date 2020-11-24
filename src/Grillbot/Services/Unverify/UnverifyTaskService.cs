@@ -25,9 +25,6 @@ namespace Grillbot.Services.Unverify
 
         private void TimerCallback(object _)
         {
-            using var scope = Provider.CreateScope();
-            using var service = scope.ServiceProvider.GetService<UnverifyService>();
-
             // Select all users who will be allowed access and are no longer being processed.
             var keysOfUsers = BotState.UnverifyCache
                 .Where(o => (o.Value - DateTime.Now).TotalSeconds <= 0.0F)
@@ -36,6 +33,9 @@ namespace Grillbot.Services.Unverify
                 .Where(o => !BotState.CurrentReturningUnverifyFor.Any(x => x.Id.ToString() == o[1]));
 
             if (!keysOfUsers.Any()) return;
+
+            using var scope = Provider.CreateScope();
+            var service = scope.ServiceProvider.GetService<UnverifyService>();
 
             var unverifiesToReturn = keysOfUsers
                 .Select(o => service.AutoUnverifyRemoveAsync(o[0], o[1]))

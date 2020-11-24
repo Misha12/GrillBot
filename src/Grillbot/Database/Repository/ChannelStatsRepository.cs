@@ -1,7 +1,9 @@
 using Grillbot.Database.Entity.Users;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -11,41 +13,42 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public void RemoveChannel(ulong channelID)
+        public async Task RemoveChannelAsync(ulong channelID)
         {
-            var channels = Context.UserChannels.AsQueryable()
+            var channels = await Context.UserChannels.AsQueryable()
                 .Where(o => o.ChannelID == channelID.ToString())
-                .ToList();
+                .ToListAsync();
 
             Context.UserChannels.RemoveRange(channels);
         }
 
-        public List<ulong> GetAllChannels(ulong guildID, List<ulong> currentChannels)
+        public IEnumerable<ulong> GetAllChannels(ulong guildID, List<ulong> currentChannels)
         {
-            var channelsInGuild = currentChannels.Select(o => o.ToString()).ToList();
-
-            var userIdsInGuild = Context.Users.AsQueryable()
+            var guildUsers = Context.Users.AsQueryable()
                 .Where(o => o.GuildID == guildID.ToString())
-                .Select(o => o.ID).Distinct().ToList();
+                .Select(o => o.ID);
 
-            return Context.UserChannels.AsQueryable()
-                .Where(o => userIdsInGuild.Contains(o.UserID) && !channelsInGuild.Contains(o.ChannelID))
-                .Select(o => o.ChannelID).Distinct()
-                .AsEnumerable().Select(o => Convert.ToUInt64(o)).ToList();
+            var query = Context.UserChannels.AsQueryable()
+                .Where(o => guildUsers.Contains(o.UserID))
+                .Select(o => o.ChannelID)
+                .Distinct();
+
+            return query
+                .AsEnumerable()
+                .Select(o => Convert.ToUInt64(o))
+                .Where(o => !currentChannels.Contains(o));
         }
 
-        public List<UserChannel> GetGroupedStats(ulong guildID)
+        public IQueryable<UserChannel> GetGroupedStats(ulong guildID)
         {
             var guild = guildID.ToString();
 
-            var userIDs = Context.Users.AsQueryable()
-                .Where(o => o.GuildID == guild && o.Points > 0)
-                .Select(o => o.ID)
-                .Distinct()
-                .ToList();
+            var guildUsers = Context.Users.AsQueryable()
+                .Where(o => o.GuildID == guild)
+                .Select(o => o.ID);
 
-            return Context.UserChannels.AsQueryable()
-                .Where(o => userIDs.Contains(o.UserID))
+            var query = Context.UserChannels.AsQueryable()
+                .Where(o => guildUsers.Contains(o.UserID))
                 .GroupBy(o => o.ChannelID)
                 .Select(o => new UserChannel()
                 {
@@ -53,32 +56,11 @@ namespace Grillbot.Database.Repository
                     Count = o.Sum(x => x.Count),
                     LastMessageAt = o.Max(x => x.LastMessageAt)
                 })
+                .Where(o => o.Count > 0)
                 .OrderByDescending(o => o.Count)
-                .ThenByDescending(o => o.LastMessageAt)
-                .ToList();
-        }
+                .ThenByDescending(o => o.LastMessageAt);
 
-        public UserChannel GetGroupedChannel(ulong guildID, ulong channelID)
-        {
-            var guild = guildID.ToString();
-            var channel = channelID.ToString();
-
-            var userIDs = Context.Users.AsQueryable()
-                .Where(o => o.GuildID == guild && o.Points > 0)
-                .Select(o => o.ID)
-                .Distinct()
-                .ToList();
-
-            return Context.UserChannels.AsQueryable()
-                .Where(o => o.ChannelID == channel && userIDs.Contains(o.ID))
-                .GroupBy(o => o.ChannelID)
-                .Select(o => new UserChannel()
-                {
-                    ChannelID = o.Key,
-                    Count = o.Sum(x => x.Count),
-                    LastMessageAt = o.Max(x => x.LastMessageAt)
-                })
-                .FirstOrDefault();
+            return query;
         }
 
         public IQueryable<UserChannel> GetChannelsOfUser(long id)

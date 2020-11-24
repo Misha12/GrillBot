@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Threading.Tasks;
 using Discord;
 using Discord.WebSocket;
@@ -9,6 +9,7 @@ using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.UserManagement;
+using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
@@ -19,17 +20,17 @@ namespace Grillbot.Handlers
         private InternalStatistics InternalStatistics { get; }
         private PaginationService PaginationService { get; }
         private IMessageCache MessageCache { get; }
-        private UserService UserService { get; }
+        private IServiceProvider Provider { get; }
 
         public MessageDeletedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics,
-            PaginationService paginationService, IMessageCache messageCache, UserService userService)
+            PaginationService paginationService, IMessageCache messageCache, IServiceProvider provider)
         {
             Client = client;
             Logger = logger;
             InternalStatistics = internalStatistics;
             PaginationService = paginationService;
             MessageCache = messageCache;
-            UserService = userService;
+            Provider = provider;
         }
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
@@ -48,8 +49,10 @@ namespace Grillbot.Handlers
                 user = author is SocketGuildUser socketGuildUser ? socketGuildUser : null;
             }
 
-            if (user != null && channel is SocketGuildChannel socketGuildChannel)
-                UserService.DecrementMessage(user, user.Guild, socketGuildChannel);
+            using var scope = Provider.CreateScope();
+
+            if (user != null)
+                await scope.ServiceProvider.GetService<UserMessagesService>().DecrementMessageStats(user.Guild, user, channel);
 
             await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);
             PaginationService.DeleteEmbed(message.Id);

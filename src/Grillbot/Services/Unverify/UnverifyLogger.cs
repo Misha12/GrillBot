@@ -1,90 +1,97 @@
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Models;
 using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
 using Grillbot.Services.Unverify.WebAdmin;
 using Microsoft.EntityFrameworkCore;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
-    public class UnverifyLogger : IDisposable
+    public class UnverifyLogger
     {
-        private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
-        private UnverifyRepository UnverifyRepository { get; }
         private UnverifyModelConverter Converter { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public UnverifyLogger(UsersRepository usersRepository, DiscordSocketClient discord, UnverifyRepository unverifyRepository,
-            UnverifyModelConverter converter)
+        public UnverifyLogger(DiscordSocketClient discord, IGrillBotRepository grillBotRepository, UnverifyModelConverter converter)
         {
-            UsersRepository = usersRepository;
+            GrillBotRepository = grillBotRepository;
             Discord = discord;
-            UnverifyRepository = unverifyRepository;
             Converter = converter;
         }
 
-        public UnverifyLog LogUnverify(UnverifyUserProfile profile, IGuild guild, IUser fromUser)
+        public async Task<UnverifyLog> LogUnverifyAsync(UnverifyUserProfile profile, IGuild guild, IUser fromUser)
         {
             var data = UnverifyLogSet.FromProfile(profile);
 
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, UsersIncludes.None);
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
-            UsersRepository.SaveChangesIfAny();
+            var fromUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
+            var toUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
 
-            return UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Unverify, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+            GrillBotRepository.Detach(fromUserEntity);
+            GrillBotRepository.Detach(toUserEntity);
+
+            return await SaveLogOperationAsync(UnverifyLogOperation.Unverify, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
-        public UnverifyLog LogSelfUnverify(UnverifyUserProfile profile, IGuild guild)
+        public async Task<UnverifyLog> LogSelfUnverifyAsync(UnverifyUserProfile profile, IGuild guild)
         {
             var data = UnverifyLogSet.FromProfile(profile);
 
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
-            UsersRepository.SaveChangesIfAny();
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, profile.DestinationUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
 
-            return UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Selfunverify, data.ToJObject(), userEntity.ID, userEntity.ID);
+            GrillBotRepository.Detach(userEntity);
+
+            return await SaveLogOperationAsync(UnverifyLogOperation.Selfunverify, data.ToJObject(), userEntity.ID, userEntity.ID);
         }
 
-        public void LogAutoRemove(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IUser toUser, IGuild guild)
+        public async Task LogAutoRemoveAsync(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IUser toUser, IGuild guild)
         {
             var data = new UnverifyLogRemove()
             {
                 ReturnedOverrides = returnedChannels,
-                ReturnedRoles = returnedRoles.Select(o => o.Id).ToList()
+                ReturnedRoles = returnedRoles.ConvertAll(o => o.Id)
             };
 
-            var userEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, UsersIncludes.None);
-            var botUserEntity = UsersRepository.GetOrCreateUser(guild.Id, Discord.CurrentUser.Id, UsersIncludes.None);
-            UsersRepository.SaveChangesIfAny();
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
+            var botUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, Discord.CurrentUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
+            GrillBotRepository.Detach(userEntity);
+            GrillBotRepository.Detach(botUserEntity);
 
-            UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Autoremove, data.ToJObject(), botUserEntity.ID, userEntity.ID);
+            await SaveLogOperationAsync(UnverifyLogOperation.Autoremove, data.ToJObject(), botUserEntity.ID, userEntity.ID);
         }
 
-        public void LogRemove(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IGuild guild, IUser toUser, IUser fromUser)
+        public async Task LogRemoveAsync(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IGuild guild, IUser toUser, IUser fromUser)
         {
             var data = new UnverifyLogRemove()
             {
                 ReturnedOverrides = returnedChannels,
-                ReturnedRoles = returnedRoles.Select(o => o.Id).ToList()
+                ReturnedRoles = returnedRoles.ConvertAll(o => o.Id)
             };
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, UsersIncludes.None);
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, UsersIncludes.None);
-            UsersRepository.SaveChangesIfAny();
+            var toUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
+            var fromUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
 
-            UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Remove, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+            GrillBotRepository.Detach(toUserEntity);
+            GrillBotRepository.Detach(fromUserEntity);
+
+            await SaveLogOperationAsync(UnverifyLogOperation.Remove, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
-        public void LogUpdate(DateTime startDateTime, DateTime endDateTime, IGuild guild, IUser fromUser, IUser toUser)
+        public async Task LogUpdateAsync(DateTime startDateTime, DateTime endDateTime, IGuild guild, IUser fromUser, IUser toUser)
         {
             var data = new UnverifyLogUpdate()
             {
@@ -92,11 +99,14 @@ namespace Grillbot.Services.Unverify
                 StartDateTime = startDateTime
             };
 
-            var toUserEntity = UsersRepository.GetOrCreateUser(guild.Id, toUser.Id, UsersIncludes.None);
-            var fromUserEntity = UsersRepository.GetOrCreateUser(guild.Id, fromUser.Id, UsersIncludes.None);
-            UsersRepository.SaveChangesIfAny();
+            var toUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
+            var fromUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
 
-            UnverifyRepository.SaveLogOperation(UnverifyLogOperation.Update, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+            GrillBotRepository.Detach(toUserEntity);
+            GrillBotRepository.Detach(fromUserEntity);
+
+            await SaveLogOperationAsync(UnverifyLogOperation.Update, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
         public async Task LogRecoverAsync(List<SocketRole> returnedRoles, List<ChannelOverwrite> returnedChannels, IGuild guild, IUser toUser, IUser fromUser)
@@ -104,28 +114,31 @@ namespace Grillbot.Services.Unverify
             var data = new UnverifyLogRemove()
             {
                 ReturnedOverrides = returnedChannels,
-                ReturnedRoles = returnedRoles.Select(o => o.Id).ToList()
+                ReturnedRoles = returnedRoles.ConvertAll(o => o.Id)
             };
 
-            var toUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
-            var fromUserEntity = await UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
-            await UsersRepository.SaveChangesAsync();
+            var toUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, toUser.Id, UsersIncludes.None);
+            var fromUserEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, fromUser.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
 
-            await UnverifyRepository.SaveLogOperationAsync(UnverifyLogOperation.Recover, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
+            GrillBotRepository.Detach(toUserEntity);
+            GrillBotRepository.Detach(fromUserEntity);
+
+            await SaveLogOperationAsync(UnverifyLogOperation.Recover, data.ToJObject(), fromUserEntity.ID, toUserEntity.ID);
         }
 
         public async Task<List<UnverifyLogItem>> GetLogsAsync(UnverifyAuditFilterFormData formData)
         {
             var filter = await Converter.ConvertAuditFilter(formData);
-            var data = await UnverifyRepository.GetLogs(filter).ToListAsync();
+            var data = await GrillBotRepository.UnverifyRepository.GetLogs(filter).ToListAsync();
 
-            return data.Select(o => new UnverifyLogItem(o, Discord)).ToList();
+            return data.ConvertAll(o => new UnverifyLogItem(o, Discord));
         }
 
         public async Task<PaginationInfo> CreatePaginationInfo(UnverifyAuditFilterFormData formData)
         {
             var filter = await Converter.ConvertAuditFilter(formData);
-            var logsCount = await UnverifyRepository.GetLogs(filter, true).CountAsync();
+            var logsCount = await GrillBotRepository.UnverifyRepository.GetLogs(filter, true).CountAsync();
 
             return new PaginationInfo()
             {
@@ -135,10 +148,21 @@ namespace Grillbot.Services.Unverify
             };
         }
 
-        public void Dispose()
+        public async Task<UnverifyLog> SaveLogOperationAsync(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)
         {
-            UsersRepository.Dispose();
-            UnverifyRepository.Dispose();
+            var entity = new UnverifyLog()
+            {
+                CreatedAt = DateTime.Now,
+                FromUserID = fromUserID,
+                Json = jsonData,
+                Operation = operation,
+                ToUserID = toUserID
+            };
+
+            await GrillBotRepository.AddAsync(entity);
+            await GrillBotRepository.CommitAsync();
+
+            return entity;
         }
     }
 }

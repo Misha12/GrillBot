@@ -1,6 +1,5 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Extensions;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
@@ -46,7 +45,7 @@ namespace Grillbot.Services.MessageCache
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) ({(channel.Guild?.Name ?? "NoGuild")}) to cache.");
+                Logger.LogError(ex, $"Cannot load channel {channel.Name} ({channel.Id}) ({channel.Guild?.Name ?? "NoGuild"}) to cache.");
             }
         }
 
@@ -89,7 +88,7 @@ namespace Grillbot.Services.MessageCache
             if (Exists(messageID))
                 return Get(messageID);
 
-            if (!(Client.GetChannel(channelID) is ISocketMessageChannel channel))
+            if (Client.GetChannel(channelID) is not ISocketMessageChannel channel)
                 return null;
 
             var message = await channel.GetMessageAsync(messageID).ConfigureAwait(false);

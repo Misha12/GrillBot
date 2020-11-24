@@ -27,5 +27,6 @@ namespace Grillbot.Database
         void RemoveCollection<TEntity>(IEnumerable<TEntity> entities) where TEntity : class;
         void Commit();
         Task CommitAsync();
+        void Detach<TEntity>(TEntity entity) where TEntity : class;
     }
 }

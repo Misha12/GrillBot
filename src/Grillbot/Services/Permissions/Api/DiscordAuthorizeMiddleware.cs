@@ -1,9 +1,11 @@
+using Grillbot.Database;
 using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Controllers;
+using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json;
 using System;
@@ -18,14 +20,13 @@ namespace Grillbot.Services.Permissions.Api
     {
         private readonly RequestDelegate Next;
         private ILogger<DiscordAuthorizeMiddleware> Logger { get; }
-        private UserService UserService { get; }
+        private IServiceProvider Provider { get; }
 
-        public DiscordAuthorizeMiddleware(RequestDelegate next, ILogger<DiscordAuthorizeMiddleware> logger,
-            UserService userService)
+        public DiscordAuthorizeMiddleware(RequestDelegate next, ILogger<DiscordAuthorizeMiddleware> logger, IServiceProvider provider)
         {
             Next = next;
             Logger = logger;
-            UserService = userService;
+            Provider = provider;
         }
 
         public async Task InvokeAsync(HttpContext context)
@@ -68,7 +69,9 @@ namespace Grillbot.Services.Permissions.Api
                 return;
             }
 
-            var user = await UserService.GetUserWithApiTokenAsync(token);
+            using var scope = Provider.CreateScope();
+            var userService = scope.ServiceProvider.GetService<UserService>();
+            var user = await userService.GetUserAsync(token);
 
             if (user == null)
             {
@@ -76,7 +79,7 @@ namespace Grillbot.Services.Permissions.Api
                 return;
             }
 
-            await UserService.IncrementApiCallStatistics(token);
+            await IncrementApiCallStatisticsAsync(scope.ServiceProvider, token);
 
             // Types, that requires additional checks.
             switch (accessType.AccessType)
@@ -107,7 +110,7 @@ namespace Grillbot.Services.Permissions.Api
                 if (!token.StartsWith("GrillBot"))
                     return null;
 
-                var tokenData = token.Substring("GrillBot".Length).Trim();
+                var tokenData = token["GrillBot".Length..].Trim();
                 return Guid.TryParse(tokenData, out Guid result) ? result : (Guid?)null;
             }
 
@@ -120,6 +123,22 @@ namespace Grillbot.Services.Permissions.Api
             response.StatusCode = (int)code;
             response.ContentType = "application/json";
             await response.WriteAsync(JsonConvert.SerializeObject(new { Message = text }));
+        }
+
+        private async Task IncrementApiCallStatisticsAsync(IServiceProvider scopedProvider, string token)
+        {
+            var repository = scopedProvider.GetService<IGrillBotRepository>();
+            var user = await repository.UsersRepository.FindUserByApiTokenAsync(token);
+
+            if (user == null)
+                return;
+
+            if (user.ApiAccessCount == null)
+                user.ApiAccessCount = 1;
+            else
+                user.ApiAccessCount++;
+
+            await repository.CommitAsync();
         }
     }
 }

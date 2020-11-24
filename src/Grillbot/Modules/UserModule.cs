@@ -5,12 +5,10 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
-using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.UserManagement;
 using System;
-using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -18,15 +16,12 @@ using System.Threading.Tasks;
 namespace Grillbot.Modules
 {
     [Group("user")]
-    [ModuleID("UserModule")]
     [Name("Správa uživatelů")]
+    [ModuleID(nameof(UserModule))]
     public class UserModule : BotModuleBase
     {
-        private UserService UserService { get; }
-
-        public UserModule(UserService userService, PaginationService pagination) : base(paginationService: pagination)
+        public UserModule(PaginationService pagination, IServiceProvider provider) : base(pagination, provider)
         {
-            UserService = userService;
         }
 
         [Command("generateApiToken")]
@@ -34,7 +29,9 @@ namespace Grillbot.Modules
         [Remarks("Pokud uživatel již přístup k API měl, tak zavolání příkazu mu vygeneruje nový token a starý zneplatní.")]
         public async Task GenerateApiToken(SocketUser userMention)
         {
-            var token = UserService.GenerateApiToken(Context.Guild, userMention);
+            using var service = GetService<WebAccessService>();
+
+            var token = await service.Service.CreateApiTokenAsync(Context.Guild, userMention);
             await userMention.SendPrivateMessageAsync($"Byl ti vygenerován nový token pro přístup k REST API.\nTvůj token je: `{token}`");
             await ReplyAsync("Token vygenerován a odeslán do PM");
         }
@@ -45,7 +42,9 @@ namespace Grillbot.Modules
         {
             try
             {
-                UserService.ReleaseApiToken(Context.Guild, userMention);
+                using var service = GetService<WebAccessService>();
+
+                await service.Service.RemoveApiTokenAsync(Context.Guild, userMention);
                 await ReplyAsync("Token byl z databáze uvolněn.");
             }
             catch (ValidationException ex)
@@ -56,11 +55,21 @@ namespace Grillbot.Modules
 
         [Command("addToWebAdmin")]
         [Summary("Udělení přístupu uživatele do webové administrace.")]
-        public async Task AddUserToWebAdmin(IUser userMention)
+        public async Task AddUserToWebAdminAsync(IUser userMention)
         {
             try
             {
-                var password = UserService.AddUserToWebAdmin(Context.Guild, (SocketGuildUser)userMention);
+                if (userMention is not SocketUser user)
+                    return;
+
+                if (!userMention.IsUser())
+                {
+                    await ReplyAsync("Do administrace lze přidat pouze uživatele.");
+                    return;
+                }
+
+                using var service = GetService<WebAccessService>();
+                var password = service.Service.CreateWebAdminAccessAsync(Context.Guild, user);
 
                 await userMention.SendPrivateMessageAsync(
                     $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
@@ -74,11 +83,16 @@ namespace Grillbot.Modules
 
         [Command("removeFromWebAdmin")]
         [Summary("Odebrání uživatele z webové administrace.")]
-        public async Task RemoveUser(IUser userMention)
+        public async Task RemoveUserFromWebAdminAsync(IUser userMention)
         {
             try
             {
-                UserService.RemoveUserFromWebAdmin(Context.Guild, (SocketGuildUser)userMention);
+                if (userMention is not SocketUser user)
+                    return;
+
+                using var service = GetService<WebAccessService>();
+
+                await service.Service.RemoveWebAdminAccessAsync(Context.Guild, user);
                 await ReplyAsync("Přístup byl odebrán.");
             }
             catch (ArgumentException ex)
@@ -99,7 +113,8 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var userDetail = await UserService.GetUserInfoAsync(Context.Guild, user);
+            using var service = GetService<UserService>();
+            var userDetail = await service.Service.GetUserAsync(Context.Guild, user);
 
             if (userDetail == null)
             {
@@ -182,9 +197,10 @@ namespace Grillbot.Modules
         [Summary("Nastavení nejvyššího přístupu k botovi.")]
         public async Task SetBotAdminAsync(IUser user, bool isAdmin)
         {
-            var guildUser = await user.ConvertToGuildUserAsync(Context.Guild);
+            var guildUser = (user as SocketGuildUser) ?? await user.ConvertToGuildUserAsync(Context.Guild);
 
-            await UserService.SetAdminAsync(Context.Guild, guildUser, isAdmin);
+            using var service = GetService<UserService>();
+            await service.Service.SetBotAdminAsync(Context.Guild, guildUser, isAdmin);
             await ReplyAsync($"Přístup byl úspěšně {(isAdmin ? "udělen" : "odebrán")}");
         }
     }

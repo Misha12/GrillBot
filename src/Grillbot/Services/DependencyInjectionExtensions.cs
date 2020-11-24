@@ -38,20 +38,36 @@ namespace Grillbot.Services
                 .AddScoped<DuckDataLoader>()
                 .AddScoped<MemeImagesService>()
                 .AddScoped<PermissionsManager>()
-                .AddScoped<PinManagement>();
+                .AddScoped<PinManagement>()
+                .AddSingleton<ConfigurationService>()
+                .AddScoped<ChannelStats>()
+                .AddScoped<InviteTrackerService>()
+                .AddScoped<ReminderService>()
+                .AddScoped<TeamSearchService>()
+                .AddScoped<UnverifyChecker>()
+                .AddScoped<UnverifyService>()
+                .AddScoped<UnverifyLogger>()
+                .AddScoped<UnverifyProfileGenerator>()
+                .AddScoped<UnverifyMessageGenerator>()
+                .AddScoped<UnverifyReasonParser>()
+                .AddScoped<UnverifyTimeParser>()
+                .AddSingleton<UnverifyTaskService>()
+                .AddScoped<UnverifyModelConverter>()
+                .AddScoped<WebAccessService>()
+                .AddScoped<UserService>()
+                .AddScoped<UserReactionsService>()
+                .AddScoped<UserMessagesService>()
+                .AddScoped<PointsService>()
+                .AddScoped<PointsRenderService>()
+                .AddScoped<UserSearchService>()
+                .AddScoped<BirthdayService>()
+                .AddSingleton<ReminderTaskService>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
         {
             services
                 .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
-                .AddTransient<ChannelStatsRepository>()
-                .AddTransient<TeamSearchRepository>()
-                .AddTransient<UsersRepository>()
-                .AddTransient<GlobalConfigRepository>()
-                .AddTransient<ReminderRepository>()
-                .AddTransient<InviteRepository>()
-                .AddTransient<UnverifyRepository>()
                 .AddTransient<IGrillBotRepository, GrillBotRepository>();
 
             return services;
@@ -154,64 +170,9 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddUnverify(this IServiceCollection services)
-        {
-            services
-                .AddTransient<UnverifyService>()
-                .AddTransient<UnverifyChecker>()
-                .AddTransient<UnverifyLogger>()
-                .AddTransient<UnverifyMessageGenerator>()
-                .AddScoped<UnverifyProfileGenerator>()
-                .AddTransient<UnverifyReasonParser>()
-                .AddTransient<UnverifyTimeParser>()
-                .AddSingleton<UnverifyTaskService>()
-                .AddTransient<UnverifyModelConverter>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddTeamSearch(this IServiceCollection services)
-        {
-            services
-                .AddTransient<TeamSearchService>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddChannelboard(this IServiceCollection services)
-        {
-            services
-                .AddTransient<ChannelStats>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddUserManagement(this IServiceCollection services)
-        {
-            services
-                .AddSingleton<UserService>()
-                .AddTransient<PointsService>()
-                .AddTransient<PointsRenderService>()
-                .AddTransient<BirthdayService>()
-                .AddTransient<ReminderService>()
-                .AddSingleton<ReminderTaskService>()
-                .AddTransient<UserSearchService>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddDiscordAdminServices(this IServiceCollection services)
-        {
-            services
-                .AddTransient<InviteTrackerService>();
-
-            return services;
-        }
-
         public static IServiceCollection AddDuckServices(this IServiceCollection services)
         {
             services
-                
                 .AddTransient<DuckEmbedRenderer>();
 
             return services;
@@ -223,12 +184,6 @@ namespace Grillbot.Services
                 .AddTransient<HelpEmbedRenderer>();
 
             return services;
-        }
-
-        public static IServiceCollection AddConfiguration(this IServiceCollection services)
-        {
-            return services
-                .AddTransient<ConfigurationService>();
         }
     }
 }

@@ -18,11 +18,8 @@ namespace Grillbot.Modules
     [Name("Odebrání přístupu")]
     public class SelfUnverifyModule : BotModuleBase
     {
-        private UnverifyService Service { get; }
-
-        public SelfUnverifyModule(UnverifyService service, IServiceProvider provider) : base(provider: provider)
+        public SelfUnverifyModule(IServiceProvider provider) : base(provider: provider)
         {
-            Service = service;
         }
 
         [Command("")]
@@ -41,7 +38,9 @@ namespace Grillbot.Modules
                 if (Context.User is not SocketGuildUser user)
                     return;
 
-                var message = await Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
+                using var service = GetService<UnverifyService>();
+
+                var message = await service.Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
                 await ReplyAsync(message);
             }
             catch (Exception ex)
@@ -105,7 +104,9 @@ namespace Grillbot.Modules
         [Summary("Přidání definic přístupu, které si lze ponechat.")]
         public async Task AddDefinitionsAsync(string group, params string[] values)
         {
-            await Service.AddSelfunverifyDefinitionsAsync(Context.Guild, group, values);
+            using var service = GetService<UnverifyService>();
+
+            await service.Service.AddSelfunverifyDefinitionsAsync(Context.Guild, group, values);
             await ReplyAsync($"Definice přidán{(values.Length > 1 ? "y" : "a")}");
         }
 
@@ -113,7 +114,9 @@ namespace Grillbot.Modules
         [Summary("Odebrání definic přístupu, které si lze ponechat.")]
         public async Task RemoveDefinitionsAsync(string group, params string[] values)
         {
-            var removedDefs = await Service.RemoveSelfunverifyDefinitions(Context.Guild, group, values);
+            using var service = GetService<UnverifyService>();
+
+            var removedDefs = await service.Service.RemoveSelfunverifyDefinitions(Context.Guild, group, values);
 
             var message = string.Join(Environment.NewLine, new[]
             {
@@ -123,13 +126,6 @@ namespace Grillbot.Modules
             }.Where(o => o != null));
 
             await ReplyAsync(message);
-        }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            Service.Dispose();
-
-            base.AfterExecute(command);
         }
     }
 }

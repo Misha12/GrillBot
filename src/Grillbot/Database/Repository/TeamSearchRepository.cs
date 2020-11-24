@@ -1,4 +1,3 @@
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Database.Entity;
@@ -12,48 +11,20 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public List<TeamSearch> GetSearches(int[] ids)
+        public IQueryable<TeamSearch> GetSearches(int[] ids)
         {
-            var query = Queryable.Where(Context.TeamSearch, o => ids.Contains(o.Id));
-            return query.ToList();
+            return Context.TeamSearch.AsQueryable()
+                .Where(o => ids.Contains(o.Id));
         }
 
-        public List<TeamSearch> GetAllSearches(string channelID)
+        public IQueryable<TeamSearch> GetAllSearches(string channelId)
         {
             var query = Context.TeamSearch.AsQueryable();
 
-            if (!string.IsNullOrEmpty(channelID))
-                query = query.Where(o => o.ChannelId == channelID);
+            if (!string.IsNullOrEmpty(channelId))
+                query = query.Where(o => o.ChannelId == channelId);
 
-            return query.ToList();
-        }
-
-        public async Task AddSearchAsync(ulong guildID, ulong userID, ulong channelID, ulong messageID)
-        {
-            var entity = new TeamSearch()
-            {
-                ChannelIDSnowflake = channelID,
-                GuildIDSnowflake = guildID,
-                MessageIDSnowflake = messageID,
-                UserIDSnowflake = userID
-            };
-
-            await Context.TeamSearch.AddAsync(entity);
-            await Context.SaveChangesAsync();
-        }
-
-        public async Task RemoveSearchAsync(int id)
-        {
-            var entity = await FindSearchByIDAsync(id);
-            await RemoveSearchAsync(entity);
-        }
-
-        public Task RemoveSearchAsync(TeamSearch entity)
-        {
-            if (entity == null) return Task.CompletedTask;
-
-            Context.TeamSearch.Remove(entity);
-            return Context.SaveChangesAsync();
+            return query;
         }
 
         public Task<TeamSearch> FindSearchByIDAsync(int id)

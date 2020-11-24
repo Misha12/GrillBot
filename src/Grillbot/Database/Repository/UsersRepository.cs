@@ -19,24 +19,32 @@ namespace Grillbot.Database.Repository
         {
             var query = Context.Users.AsQueryable();
 
-            if (includes.HasFlag(UsersIncludes.Channels))
+            if (includes == UsersIncludes.None)
+                return query;
+
+            if ((includes & UsersIncludes.Channels) != 0)
                 query = query.Include(o => o.Channels);
 
-            if (includes.HasFlag(UsersIncludes.Reminders))
+            if ((includes & UsersIncludes.Reminders) != 0)
                 query = query.Include(o => o.Reminders);
 
-            if (includes.HasFlag(UsersIncludes.Invites))
+            if ((includes & UsersIncludes.CreatedInvites) != 0)
             {
                 query = query
-                    .Include(o => o.CreatedInvites)
+                    .Include(o => o.CreatedInvites);
+            }
+
+            if ((includes & UsersIncludes.UsedInvite) != 0)
+            {
+                query = query
                     .Include(o => o.UsedInvite)
                     .ThenInclude(o => o.Creator);
             }
 
-            if (includes.HasFlag(UsersIncludes.Emotes))
+            if ((includes & UsersIncludes.Emotes) != 0)
                 query = query.Include(o => o.UsedEmotes);
 
-            if (includes.HasFlag(UsersIncludes.Unverify))
+            if ((includes & UsersIncludes.Unverify) != 0)
             {
                 query = query
                     .Include(o => o.Unverify)
@@ -44,14 +52,14 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.FromUser);
             }
 
-            if (includes.HasFlag(UsersIncludes.UnverifyLogIncoming))
+            if ((includes & UsersIncludes.UnverifyLogIncoming) != 0)
             {
                 query = query
                     .Include(o => o.IncomingUnverifyOperations)
                     .ThenInclude(o => o.FromUser);
             }
 
-            if (includes.HasFlag(UsersIncludes.UnverifyLogOutgoing))
+            if ((includes & UsersIncludes.UnverifyLogOutgoing) != 0)
             {
                 query = query
                     .Include(o => o.OutgoingUnverifyOperations)
@@ -66,9 +74,9 @@ namespace Grillbot.Database.Repository
             var query = GetBaseQuery(includes)
                 .Where(o => o.GuildID == filter.Guild.Id.ToString());
 
-            if (filter.UserIDs.Count > 0)
+            if (filter.Users.Count > 0)
             {
-                var ids = filter.UserIDs.Select(o => o.Id.ToString()).ToList();
+                var ids = filter.Users.ConvertAll(o => o.Id.ToString());
                 query = query.Where(o => ids.Contains(o.UserID));
             }
 
@@ -102,15 +110,6 @@ namespace Grillbot.Database.Repository
             };
         }
 
-        public UserEntity GetUser(ulong guildID, ulong userID, UsersIncludes includes)
-        {
-            var guild = guildID.ToString();
-            var user = userID.ToString();
-
-            return GetBaseQuery(includes)
-                .FirstOrDefault(o => o.GuildID == guild && o.UserID == user);
-        }
-
         public Task<UserEntity> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
         {
             return GetBaseQuery(includes)
@@ -133,24 +132,6 @@ namespace Grillbot.Database.Repository
                 .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
 
             return entity?.ID;
-        }
-
-        public UserEntity GetOrCreateUser(ulong guildID, ulong userID, UsersIncludes includes)
-        {
-            var entity = GetUser(guildID, userID, includes);
-
-            if (entity == null)
-            {
-                entity = new UserEntity()
-                {
-                    GuildIDSnowflake = guildID,
-                    UserIDSnowflake = userID
-                };
-
-                Context.Users.Add(entity);
-            }
-
-            return entity;
         }
 
         public async Task<UserEntity> GetOrCreateUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
@@ -183,14 +164,14 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.GuildID == guildID.ToString() && o.Birthday != null);
         }
 
-        public int CalculatePointsPosition(ulong guildID, long userID)
+        public async Task<int> CalculatePointsPositionAsync(ulong guildID, long userID)
         {
-            var pointsList = GetBaseQuery(UsersIncludes.None)
+            var pointsList = await GetBaseQuery(UsersIncludes.None)
                 .Where(o => o.GuildID == guildID.ToString() && o.Points > 0)
                 .OrderByDescending(o => o.Points)
                 .ThenBy(o => o.ID)
                 .Select(o => new { o.ID, o.Points })
-                .ToList();
+                .ToListAsync();
 
             return pointsList.FindIndex(o => o.ID == userID);
         }

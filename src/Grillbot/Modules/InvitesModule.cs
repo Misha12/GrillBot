@@ -13,11 +13,8 @@ namespace Grillbot.Modules
     [ModuleID("InvitesModule")]
     public class InvitesModule : BotModuleBase
     {
-        private InviteTrackerService InviteTracker { get; }
-
-        public InvitesModule(InviteTrackerService inviteTracker)
+        public InvitesModule(IServiceProvider provider) : base(provider: provider)
         {
-            InviteTracker = inviteTracker;
         }
 
         [Command("assign")]
@@ -30,7 +27,9 @@ namespace Grillbot.Modules
 
             try
             {
-                await InviteTracker.AssignInviteToUserAsync(toUser, Context.Guild, code);
+                using var service = GetService<InviteTrackerService>();
+
+                await service.Service.AssignInviteToUserAsync(toUser, Context.Guild, code);
                 await ReplyAsync("Pozvánka byla úspěšně přiřazena");
             }
             catch (NotFoundException ex)
@@ -43,16 +42,10 @@ namespace Grillbot.Modules
         [Summary("Aktualizace pozvánek v paměti.")]
         public async Task RefreshAsync()
         {
-            var message = await InviteTracker.RefreshInvitesAsync();
+            using var service = GetService<InviteTrackerService>();
+
+            var message = await service.Service.RefreshInvitesAsync();
             await ReplyAsync(message);
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                InviteTracker.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

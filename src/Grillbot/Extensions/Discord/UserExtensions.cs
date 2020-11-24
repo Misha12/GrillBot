@@ -62,7 +62,7 @@ namespace Grillbot.Extensions.Discord
             }
             catch (HttpException ex)
             {
-                if (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (int)DiscordJsonCodes.CannotSendPM)
+                if (ex.DiscordCode == (int)DiscordJsonCodes.CannotSendPM)
                     return; // User have disabled PM.
 
                 throw;

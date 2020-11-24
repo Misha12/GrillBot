@@ -1,7 +1,6 @@
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
-using System.Diagnostics.CodeAnalysis;
 using System.Linq;
 using System.Threading.Tasks;
 using Discord;
@@ -21,25 +20,22 @@ namespace Grillbot.Modules
     [ModuleID("TeamSearchModule")]
     public class TeamSearchModule : BotModuleBase
     {
-        private TeamSearchService TeamSearchService { get; }
-
-        public TeamSearchModule(TeamSearchService teamSearchService, PaginationService paginationService) : base(paginationService)
+        public TeamSearchModule(IServiceProvider provider, PaginationService paginationService) : base(paginationService, provider)
         {
-            TeamSearchService = teamSearchService;
         }
 
         [Command("")]
         [Summary("Přidá zprávu o hledání.")]
-#pragma warning disable IDE0060 // Remove unused parameter
         public async Task LookingForTeamAsync([Remainder] string messageToAdd)
-#pragma warning restore IDE0060 // Remove unused parameter
         {
             if (await RouteTeamSearchAsync(messageToAdd))
                 return;
 
             try
             {
-                await TeamSearchService.CreateSearchAsync(Context.Guild, Context.User, Context.Channel, Context.Message);
+                using var service = GetService<TeamSearchService>();
+
+                await service.Service.CreateSearchAsync(Context.Guild, Context.User, Context.Channel, Context.Message);
                 await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
             }
             catch (Exception ex)
@@ -60,16 +56,13 @@ namespace Grillbot.Modules
         {
             var fields = route.Split(' ').Select(o => o.Trim()).ToArray();
 
-            switch(fields[0].ToLower())
+            switch (fields[0].ToLower())
             {
                 case "full":
                     await TeamSearchInfoFullAsync();
                     return true;
                 case "remove":
                     await RemoveTeamSearchAsync(Convert.ToInt32(fields[1]));
-                    return true;
-                case "cleanchannel":
-                    await CleanChannelAsync(fields[1]);
                     return true;
                 case "massremove":
                     await MassRemoveAsync(fields.Skip(1).Select(o => Convert.ToInt32(o)).ToArray());
@@ -83,7 +76,8 @@ namespace Grillbot.Modules
         [Summary("Vypíše seznam hledání.")]
         public async Task TeamSearchInfoAsync()
         {
-            var searches = await TeamSearchService.GetItemsAsync(Context.Channel.Id.ToString());
+            using var service = GetService<TeamSearchService>();
+            var searches = await service.Service.GetItemsAsync(Context.Channel.Id.ToString());
             await PrintSearchesAsync(searches);
         }
 
@@ -91,7 +85,8 @@ namespace Grillbot.Modules
         [Summary("Kompletní seznam hledání napříč kanály")]
         public async Task TeamSearchInfoFullAsync()
         {
-            var searches = await TeamSearchService.GetItemsAsync(null);
+            using var service = GetService<TeamSearchService>();
+            var searches = await service.Service.GetItemsAsync(null);
             await PrintSearchesAsync(searches, true);
         }
 
@@ -109,12 +104,12 @@ namespace Grillbot.Modules
             foreach (var search in searches)
             {
                 var builder = new EmbedFieldBuilder()
-                    .WithName($"**{search.ID}**  - **{search.ShortUsername}**{(allChannels ? $"v **{search.ChannelName}**" : "")}")
+                    .WithName($"**{search.ID}**  - **{search.ShortUsername}**{(allChannels ? $" v **{search.ChannelName}**" : "")}")
                     .WithValue($"\"{search.Message}\" [Jump]({search.MessageLink})");
 
                 currentPage.Add(builder);
 
-                if (currentPage.Count == EmbedBuilder.MaxFieldCount)
+                if (currentPage.Count == 10)
                 {
                     pages.Add(new PaginatedEmbedPage(null, new List<EmbedFieldBuilder>(currentPage)));
                     currentPage.Clear();
@@ -128,7 +123,7 @@ namespace Grillbot.Modules
             {
                 Pages = pages,
                 ResponseFor = Context.User,
-                Title = $"Hledání v {Context.Channel.Name}"
+                Title = allChannels ? "Hledání" : $"Hledání v {Context.Channel.Name}"
             };
 
             await SendPaginatedEmbedAsync(embed);
@@ -141,7 +136,8 @@ namespace Grillbot.Modules
             {
                 if (Context.User is SocketGuildUser user)
                 {
-                    await TeamSearchService.RemoveSearchAsync(searchId, user);
+                    using var service = GetService<TeamSearchService>();
+                    await service.Service.RemoveSearchAsync(searchId, user);
                     await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
                 }
             }
@@ -157,27 +153,21 @@ namespace Grillbot.Modules
 
                 throw;
             }
-
         }
 
         [Command("cleanChannel")]
-        [SuppressMessage("Style", "IDE0060:Remove unused parameter", Justification = "<Pending>")]
-        public async Task CleanChannelAsync(string channel)
+        public async Task CleanChannelAsync(IChannel channel)
         {
             var state = Context.Channel.EnterTypingState();
 
             try
             {
-                var mentionedChannel = Context.Message.MentionedChannels.FirstOrDefault();
+                using var service = GetService<TeamSearchService>();
 
-                if (mentionedChannel == null)
-                {
-                    await ReplyAsync("Nebyl tagnut žádný kanál.");
-                    return;
-                }
+                var messages = await service.Service.BatchCleanChannelAsync(channel.Id);
 
-                await TeamSearchService.BatchCleanChannelAsync(mentionedChannel.Id, async message => await ReplyAsync(message));
-                await ReplyAsync($"Čištění kanálu `{mentionedChannel.Name}` dokončeno");
+                await ReplyChunkedAsync(messages, 5);
+                await ReplyAsync($"Čištění kanálu `{channel.Name}` dokončeno");
             }
             finally
             {
@@ -192,21 +182,17 @@ namespace Grillbot.Modules
 
             try
             {
-                await TeamSearchService.BatchCleanAsync(searchIds, async message => await ReplyAsync(message));
+                using var service = GetService<TeamSearchService>();
+
+                var messages = await service.Service.BatchCleanAsync(searchIds);
+
+                await ReplyChunkedAsync(messages, 5);
                 await ReplyAsync("Úklid hledání dokončeno.");
             }
             finally
             {
                 state.Dispose();
             }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                TeamSearchService.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

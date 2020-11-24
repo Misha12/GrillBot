@@ -1,33 +1,29 @@
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
-    public class UnverifyChecker : IDisposable
+    public class UnverifyChecker
     {
-        private UsersRepository UsersRepository { get; }
-        private UnverifyRepository UnverifyRepository { get; }
         private UserSearchService UserSearchService { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public UnverifyChecker(UsersRepository repository, UnverifyRepository unverifyRepository, UserSearchService searchService)
+        public UnverifyChecker(UserSearchService searchService, IGrillBotRepository grillBotRepository)
         {
-            UsersRepository = repository;
-            UnverifyRepository = unverifyRepository;
             UserSearchService = searchService;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
         {
             ValidateServerOwner(guild, user);
-            await ValidateBotAdminAsync(user, guild, selfUnverify);
-            await ValidateImunityAsync(guild, user, selfUnverify);
+            await ValidateUserAsync(user, guild, selfUnverify);
             ValidateRoles(guild, user, selfUnverify);
             await ValidateIfNotUnverifiedAsync(guild, user);
         }
@@ -38,14 +34,17 @@ namespace Grillbot.Services.Unverify
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je vlastník serveru.");
         }
 
-        private async Task ValidateBotAdminAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
+        private async Task ValidateUserAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
         {
             if (selfUnverify) return;
 
-            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
             if (dbUser != null && (dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je nejvyšší administrátor bota.");
+
+            if (dbUser != null && !string.IsNullOrEmpty(dbUser.UnverifyImunityGroup))
+                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je imunní vůči unverify. Imunitní skupina: **{dbUser.UnverifyImunityGroup}**");
         }
 
         private void ValidateRoles(SocketGuild guild, SocketGuildUser user, bool selfUnverify)
@@ -67,26 +66,10 @@ namespace Grillbot.Services.Unverify
         private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
             var userID = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
-            var haveUnverify = await UnverifyRepository.HaveUnverifyAsync(userID.Value);
+            var haveUnverify = await GrillBotRepository.UnverifyRepository.HaveUnverifyAsync(userID.Value);
 
             if (haveUnverify)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
-        }
-
-        private async Task ValidateImunityAsync(SocketGuild guild, SocketUser user, bool selfUnverify)
-        {
-            if (selfUnverify) return;
-
-            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
-
-            if (dbUser != null && !string.IsNullOrEmpty(dbUser.UnverifyImunityGroup))
-                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je imunní vůči unverify. Imunitní skupina: **{dbUser.UnverifyImunityGroup}**");
-        }
-
-        public void Dispose()
-        {
-            UsersRepository.Dispose();
-            UnverifyRepository.Dispose();
         }
     }
 }

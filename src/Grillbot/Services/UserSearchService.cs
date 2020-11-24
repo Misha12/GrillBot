@@ -13,7 +13,7 @@ namespace Grillbot.Services
     {
         private BotState BotState { get; }
         private IGrillBotRepository GrillBotRepository { get; }
-        
+
         public UserSearchService(BotState botState, IGrillBotRepository grillBotRepository)
         {
             BotState = botState;
@@ -61,7 +61,7 @@ namespace Grillbot.Services
         {
             var result = new Dictionary<SocketGuildUser, long?>();
 
-            foreach(var user in users)
+            foreach (var user in users)
             {
                 var userId = await GetUserIDFromDiscordUserAsync(user.Guild, user);
                 result.Add(user, userId);

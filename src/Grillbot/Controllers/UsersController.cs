@@ -13,13 +13,13 @@ namespace Grillbot.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UsersController : Controller
     {
-        private UserService UserService { get; }
         private DiscordSocketClient Client { get; }
+        private UserService UserService { get; }
 
-        public UsersController(UserService userService, DiscordSocketClient client)
+        public UsersController(DiscordSocketClient client, UserService userService)
         {
-            UserService = userService;
             Client = client;
+            UserService = userService;
         }
 
         [HttpGet]
@@ -32,7 +32,7 @@ namespace Grillbot.Controllers
 
             var guilds = Client.Guilds.ToList();
             var users = await UserService.GetUsersList(filter);
-            var pagination = await UserService.CreatePaginationInfo(filter);
+            var pagination = await UserService.GetPaginationInfo(filter);
 
             return View(new WebAdminUserListViewModel(users, guilds, filter, pagination));
         }
@@ -40,7 +40,7 @@ namespace Grillbot.Controllers
         [HttpGet("UserInfo")]
         public async Task<IActionResult> UserInfoAsync([FromQuery] int id)
         {
-            var user = await UserService.GetCompleteUserInfoAsync(id);
+            var user = await UserService.GetUserAsync(id);
             return View(new WebAdminUserInfoViewModel(user));
         }
     }

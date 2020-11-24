@@ -3,6 +3,7 @@ using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -25,43 +26,31 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public List<Reminder> GetRemindersForInit()
+        public IQueryable<Reminder> GetRemindersForInit()
         {
             return GetBaseQuery(false, false)
-                .Where(o => o.RemindMessageID == null)
-                .ToList();
+                .Where(o => o.RemindMessageID == null);
         }
 
-        public Reminder FindReminderByID(long id)
+        public Task<Reminder> FindReminderByIDAsync(long id)
         {
             return GetBaseQuery(true, true)
-                .SingleOrDefault(o => o.RemindID == id);
+                .SingleOrDefaultAsync(o => o.RemindID == id);
         }
 
-        public Reminder FindReminderByMessageId(ulong messageId)
+        public Task<Reminder> FindReminderByMessageIdAsync(ulong messageId)
         {
             return GetBaseQuery(true, true)
-                .SingleOrDefault(o => o.RemindMessageID == messageId.ToString());
+                .SingleOrDefaultAsync(o => o.RemindMessageID == messageId.ToString());
         }
 
-        public Reminder FindReminderByOriginalMessage(ulong messageId)
+        public Task<Reminder> FindReminderByOriginalMessageAsync(ulong messageId)
         {
             return GetBaseQuery(true, true)
-                .FirstOrDefault(o => o.OriginalMessageID == messageId.ToString());
+                .FirstOrDefaultAsync(o => o.OriginalMessageID == messageId.ToString());
         }
 
-        public void RemoveRemind(long id)
-        {
-            var remind = FindReminderByID(id);
-
-            if (remind == null)
-                return;
-
-            Context.Reminders.Remove(remind);
-            Context.SaveChanges();
-        }
-
-        public List<Reminder> GetReminders(long? userId)
+        public IQueryable<Reminder> GetReminders(long? userId)
         {
             var query = GetBaseQuery(true, true);
 
@@ -70,13 +59,7 @@ namespace Grillbot.Database.Repository
 
             return query
                 .Where(o => o.At > DateTime.Now)
-                .OrderBy(o => o.At)
-                .ToList();
-        }
-
-        public bool ExistsReminder(long id)
-        {
-            return GetBaseQuery(false, false).Any(o => o.RemindID == id);
+                .OrderBy(o => o.At);
         }
 
         public List<Tuple<ulong, ulong, int>> GetLeaderboard()

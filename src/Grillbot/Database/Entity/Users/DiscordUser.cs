@@ -1,3 +1,4 @@
+using Grillbot.Database.Enums;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -56,6 +57,19 @@ namespace Grillbot.Database.Entity.Users
         public Unverify.Unverify Unverify { get; set; }
         public ISet<Unverify.UnverifyLog> OutgoingUnverifyOperations { get; set; }
         public ISet<Unverify.UnverifyLog> IncomingUnverifyOperations { get; set; }
+
+        [NotMapped]
+        public bool IsBotAdmin
+        {
+            get => (Flags & (long)UserFlags.BotAdmin) != 0;
+            set
+            {
+                if (value)
+                    Flags |= (long)UserFlags.BotAdmin;
+                else
+                    Flags &= ~(long)UserFlags.BotAdmin;
+            }
+        }
 
         public DiscordUser()
         {

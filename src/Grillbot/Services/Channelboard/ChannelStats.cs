@@ -4,11 +4,10 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions.Discord;
-using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Models.Channelboard;
 using Grillbot.Database.Entity.Users;
+using Grillbot.Database;
 
 namespace Grillbot.Services.Channelboard
 {
@@ -16,11 +15,11 @@ namespace Grillbot.Services.Channelboard
     {
         public const int ChannelboardTakeTop = 10;
 
-        private IServiceProvider Provider { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public ChannelStats(IServiceProvider provider)
+        public ChannelStats(IGrillBotRepository grillBotRepository)
         {
-            Provider = provider;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketUser socketUser)
@@ -78,11 +77,8 @@ namespace Grillbot.Services.Channelboard
 
             var removed = new HashSet<string>();
 
-            using var scope = Provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
-
             var channelList = guild.TextChannels.Select(o => o.Id).ToList();
-            var channels = repository.GetAllChannels(guild.Id, channelList);
+            var channels = GrillBotRepository.ChannelStatsRepository.GetAllChannels(guild.Id, channelList);
 
             foreach (var channelID in channels)
             {
@@ -91,11 +87,11 @@ namespace Grillbot.Services.Channelboard
                 if (discordChannel == null)
                 {
                     removed.Add($"> Kanál {channelID} byl smazán.");
-                    repository.RemoveChannel(channelID);
+                    await GrillBotRepository.ChannelStatsRepository.RemoveChannelAsync(channelID);
                 }
             }
 
-            repository.SaveChanges();
+            await GrillBotRepository.CommitAsync();
             return removed.Count == 0 ? null : removed.ToList();
         }
 
@@ -104,17 +100,7 @@ namespace Grillbot.Services.Channelboard
         /// </summary>
         public List<UserChannel> GetAllChannels(SocketGuild guild)
         {
-            using var scope = Provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
-            return repository.GetGroupedStats(guild.Id);
-        }
-
-        public UserChannel GetChannel(SocketGuild guild, IChannel channel)
-        {
-            using var scope = Provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ChannelStatsRepository>();
-
-            return repository.GetGroupedChannel(guild.Id, channel.Id);
+            return GrillBotRepository.ChannelStatsRepository.GetGroupedStats(guild.Id).ToList();
         }
     }
 }

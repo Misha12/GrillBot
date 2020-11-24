@@ -226,6 +226,7 @@
             }
 
             <h4 class="mt-4">Unverify historie</h4>
+            <h5>Obdržená</h5>
             @if (Model.User.UnverifyHistory.Count == 0)
             {
                 <div class="text-center">
@@ -251,6 +252,45 @@
                             <tr>
                                 <td>@unverify.DateTime.ToLocaleDatetime()</td>
                                 <td>@unverify.FromUser.GetFullName()</td>
+                                <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
+                                <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
+                                <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
+
+                                <td>
+                                    <button class="badge badge-secondary border-0" data-toggle="modal" data-target="#modal" data-title-text="Důvod unverify #@unverify.ID" data-body-text="@unverify.Profile.Reason">Zobrazit</button>
+                                </td>
+                            </tr>
+                        }
+                    </tbody>
+                </table>
+            }
+
+            <h5>Udělená</h5>
+            @if (Model.User.GivenUnverifyHistory.Count == 0)
+            {
+                <div class="text-center">
+                    Uživatel ještě nikdy neudělil unverify.
+                </div>
+            }
+            else
+            {
+                <table class="table table-sm">
+                    <thead>
+                        <tr>
+                            <th>Kdy</th>
+                            <th>Uděleno uživateli</th>
+                            <th>Čas</th>
+                            <th>Poč. rolí</th>
+                            <th>Poč.kanálů</th>
+                            <th>Důvod</th>
+                        </tr>
+                    </thead>
+                    <tbody>
+                        @foreach (var unverify in Model.User.GivenUnverifyHistory)
+                        {
+                            <tr>
+                                <td>@unverify.DateTime.ToLocaleDatetime()</td>
+                                <td>@unverify.ToUser.GetFullName()</td>
                                 <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
                                 <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
                                 <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>

@@ -20,17 +20,15 @@ using Grillbot.Services.Reminder;
 
 namespace Grillbot.Modules
 {
-    [ModuleID("ReminderModule")]
     [Name("Upozornění")]
     [Group("remind")]
+    [ModuleID(nameof(ReminderModule))]
     public class ReminderModule : BotModuleBase
     {
-        private ReminderService Reminder { get; }
         private DiscordSocketClient Discord { get; }
 
-        public ReminderModule(ReminderService reminder, PaginationService pagination, DiscordSocketClient discord) : base(paginationService: pagination)
+        public ReminderModule(PaginationService pagination, DiscordSocketClient discord, IServiceProvider provider) : base(pagination, provider)
         {
-            Reminder = reminder;
             Discord = discord;
         }
 
@@ -40,7 +38,9 @@ namespace Grillbot.Modules
         {
             try
             {
-                var reminders = await Reminder.GetRemindersAsync(Context.Guild, Context.User);
+                using var service = GetService<ReminderService>();
+
+                var reminders = await service.Service.GetRemindersAsync(Context.Guild, Context.User);
 
                 if (reminders.Count == 0)
                 {
@@ -67,9 +67,7 @@ namespace Grillbot.Modules
         {
             try
             {
-                var mentionedUser = user == "me" ? Context.User : null;
-                if (mentionedUser == null)
-                    mentionedUser = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
+                var mentionedUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
 
                 if(mentionedUser == null)
                 {
@@ -79,7 +77,8 @@ namespace Grillbot.Modules
 
                 var dateTimeAt = StringHelper.ParseDateTime(at);
 
-                await Reminder.CreateReminderAsync(Context.Guild, Context.User, mentionedUser, dateTimeAt, message, Context.Message);
+                using var service = GetService<ReminderService>();
+                await service.Service.CreateReminderAsync(Context.Guild, Context.User, mentionedUser, dateTimeAt, message, Context.Message);
 
                 await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {ReminderDefinitions.CopyRemindEmoji.Name}");
                 await Context.Message.AddReactionAsync(ReminderDefinitions.CopyRemindEmoji);
@@ -100,7 +99,8 @@ namespace Grillbot.Modules
         [Summary("Získej všechny upozornění.")]
         public async Task GetAllRemindsAsync()
         {
-            var reminders = Reminder.GetAllReminders();
+            using var service = GetService<ReminderService>();
+            var reminders = await service.Service.GetAllRemindersAsync();
 
             if (reminders.Count == 0)
             {
@@ -118,7 +118,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                Reminder.CancelReminderWithoutNotification(id, Context.User as SocketGuildUser);
+                using var service = GetService<ReminderService>();
+                await service.Service.CancelReminderWithoutNotification(id, Context.User as SocketGuildUser);
                 await ReplyAsync("Upozornění bylo staženo.");
             }
             catch (Exception ex)
@@ -140,7 +141,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                await Reminder.CancelReminderWithNotificationAsync(id, Context.User as SocketGuildUser);
+                using var service = GetService<ReminderService>();
+                await service.Service.CancelReminderWithNotificationAsync(id, Context.User as SocketGuildUser);
                 await ReplyAsync("Notifikace a ukončení bylo dokončeno.");
             }
             catch (Exception ex)
@@ -159,13 +161,14 @@ namespace Grillbot.Modules
         [Summary("Leaderboard uživatelů, kteří nejvíc odkládají připomenutí.")]
         public async Task RemindPostponeLeaderboardAsync()
         {
-            var leaderboard = await Reminder.GetLeaderboard();
+            using var service = GetService<ReminderService>();
+            var leaderboard = await service.Service.GetLeaderboard();
 
             var builder = new StringBuilder();
             for (int i = 0; i < leaderboard.Count; i++)
             {
                 var user = leaderboard[i];
-                builder.AppendLine($"> {(i + 1)}: *{user.Item1.GetDisplayName()}*: **{user.Item2.FormatWithSpaces()}x**");
+                builder.Append("> ").Append(i + 1).Append(": *").Append(user.Item1.GetDisplayName()).Append("*: **").Append(user.Item2.FormatWithSpaces()).AppendLine("x**");
             }
 
             var embed = new BotEmbed(Context.User, title: "Leaderboard nejvíce odkládajících osob.")

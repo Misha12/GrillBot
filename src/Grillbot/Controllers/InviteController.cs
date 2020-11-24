@@ -31,13 +31,5 @@ namespace Grillbot.Controllers
             var invitesFromGuild = await InviteTrackerService.GetStoredInvitesAsync(filter);
             return View(new InvitesListViewModel(DiscordClient.Guilds.ToList(), invitesFromGuild, filter));
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                InviteTrackerService.Dispose();
-
-            base.Dispose(disposing);
-        }
     }
 }

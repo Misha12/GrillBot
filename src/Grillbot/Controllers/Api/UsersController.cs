@@ -1,12 +1,12 @@
-﻿using System.Collections.Generic;
+using System.Collections.Generic;
 using System.Net;
 using System.Threading.Tasks;
+using Discord.WebSocket;
 using Grillbot.Enums;
-using Grillbot.Exceptions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Users;
 using Grillbot.Services.Permissions.Api;
-using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Mvc;
 
 namespace Grillbot.Controllers.Api
@@ -15,32 +15,37 @@ namespace Grillbot.Controllers.Api
     [Route("api/users")]
     public class UsersController : Controller
     {
-        private UserService UserService { get; }
-        public UsersController(UserService userService)
+        private DiscordSocketClient DiscordClient { get; }
+
+        public UsersController(DiscordSocketClient discordClient)
         {
-            UserService = userService;
+            DiscordClient = discordClient;
         }
 
-        [HttpPost("usersSimpleInfoBatch/{guild}")]
+        [HttpPost("usersSimpleInfoBatch/{guildId}")]
         [DiscordAuthAccessType(AccessType = AccessType.OnlyBot)]
         [ProducesResponseType(typeof(List<SimpleUserInfo>), (int)HttpStatusCode.OK)]
         [ProducesResponseType((int)HttpStatusCode.BadRequest)]
         // From body is a hack. Because query have length limit.
-        public async Task<IActionResult> GetUsersSimpleInfoBatch(ulong guild, [FromBody] GetUsersSimpleInfoBatchRequest request)
+        public async Task<IActionResult> GetUsersSimpleInfoBatch(ulong guildId, [FromBody] GetUsersSimpleInfoBatchRequest request)
         {
-            try
+            var guild = DiscordClient.GetGuild(guildId);
+
+            if (guild == null)
+                return BadRequest(new { Message = "Requested guild not found." });
+
+            await guild.SyncGuildAsync();
+
+            var users = new List<SimpleUserInfo>();
+            foreach(var id in request.UserIDs)
             {
-                var data = await UserService.GetSimpleUsersList(guild, request.UserIDs);
-                return Ok(data);
+                var user = await guild.GetUserFromGuildAsync(id);
+
+                if (user != null)
+                    users.Add(SimpleUserInfo.Create(user));
             }
-            catch(BadRequestException ex)
-            {
-                return BadRequest(new
-                {
-                    ex.Message,
-                    Data = ex.Data["Data"]
-                });
-            }
+
+            return Ok(users);
         }
     }
 }

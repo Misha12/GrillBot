@@ -1,4 +1,5 @@
-using Grillbot.Database.Repository;
+using Grillbot.Database;
+using Grillbot.Database.Entity.Config;
 using Grillbot.Enums;
 using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
@@ -29,8 +30,27 @@ namespace Grillbot.Services.Config
         {
             Configuration[key.ToString()] = data;
 
-            using var repository = ServiceProvider.GetService<GlobalConfigRepository>();
-            await repository.UpdateItemAsync(key, data);
+            using var scope = ServiceProvider.CreateScope();
+            using var repository = scope.ServiceProvider.GetService<IGrillBotRepository>();
+
+            var item = await repository.GlobalConfigRepository.GetItemAsync(key);
+
+            if (item == null)
+            {
+                item = new GlobalConfigItem()
+                {
+                    Key = key.ToString(),
+                    Value = data
+                };
+
+                await repository.AddAsync(item);
+            }
+            else
+            {
+                item.Value = data;
+            }
+
+            await repository.CommitAsync();
         }
     }
 }

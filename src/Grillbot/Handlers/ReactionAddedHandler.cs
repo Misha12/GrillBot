@@ -17,16 +17,14 @@ namespace Grillbot.Handlers
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }
         private PaginationService PaginationService { get; }
-        private UserService UserService { get; }
         private IServiceProvider Provider { get; }
 
-        public ReactionAddedHandler(DiscordSocketClient client, InternalStatistics internalStatistics,
-            PaginationService paginationService, UserService userService, IServiceProvider provider)
+        public ReactionAddedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, PaginationService paginationService,
+            IServiceProvider provider)
         {
             Client = client;
             InternalStatistics = internalStatistics;
             PaginationService = paginationService;
-            UserService = userService;
             Provider = provider;
         }
 
@@ -40,43 +38,15 @@ namespace Grillbot.Handlers
             if (reaction.User.IsSpecified && reaction.User.Value.IsUser())
             {
                 await PaginationService.HandleReactionAsync(reaction);
-                UserService.IncrementReaction(reaction);
-                await HandleRemindCopyAsync(reaction);
+                await scope.ServiceProvider.GetService<UserReactionsService>().IncrementReactionStatsAsync(reaction);
+                await scope.ServiceProvider.GetService<ReminderService>().HandleRemindCopyAsync(reaction);
 
                 if (channel is SocketTextChannel textChannel)
-                {
-                    IncrementPoints(textChannel.Guild, reaction);
-                }
+                    await scope.ServiceProvider.GetService<PointsService>().IncrementPointsAsync(textChannel.Guild, reaction);
 
                 if (message.HasValue)
-                {
-                    await PostponeReminderAsync(reaction, message.Value);
-                }
+                    await scope.ServiceProvider.GetService<ReminderService>().PostponeReminderAsync(message.Value, reaction);
             }
-        }
-
-        private void IncrementPoints(SocketGuild guild, SocketReaction reaction)
-        {
-            using var scope = Provider.CreateScope();
-            using var pointsService = scope.ServiceProvider.GetService<PointsService>();
-
-            pointsService.IncrementPoints(guild, reaction);
-        }
-
-        private async Task PostponeReminderAsync(SocketReaction reaction, IUserMessage message)
-        {
-            using var scope = Provider.CreateScope();
-            using var remindService = scope.ServiceProvider.GetService<ReminderService>();
-
-            await remindService.PostponeReminderAsync(message, reaction);
-        }
-
-        private async Task HandleRemindCopyAsync(SocketReaction reaction)
-        {
-            using var scope = Provider.CreateScope();
-            using var remindService = scope.ServiceProvider.GetService<ReminderService>();
-
-            await remindService.HandleRemindCopyAsync(reaction);
         }
 
         public void Dispose()

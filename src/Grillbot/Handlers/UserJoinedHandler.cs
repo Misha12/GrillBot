@@ -29,15 +29,11 @@ namespace Grillbot.Handlers
         {
             InternalStatistics.IncrementEvent("UserJoined");
 
-            await Logger.OnUserJoined(user).ConfigureAwait(false);
-            await ProcessInviteTrackerAsync(user);
-        }
-
-        private async Task ProcessInviteTrackerAsync(SocketGuildUser user)
-        {
             using var scope = Services.CreateScope();
-            using var inviteTracker = scope.ServiceProvider.GetService<InviteTrackerService>();
 
+            await Logger.OnUserJoined(user).ConfigureAwait(false);
+
+            var inviteTracker = scope.ServiceProvider.GetService<InviteTrackerService>();
             await inviteTracker.OnUserJoinedAsync(user);
         }
 

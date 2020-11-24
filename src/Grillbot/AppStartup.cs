@@ -34,8 +34,7 @@ namespace Grillbot
                 .AddMemoryCache()
                 .AddCors()
                 .AddMessageCache()
-                .AddHttpClient()
-                .AddConfiguration();
+                .AddHttpClient();
 
             services.AddSwaggerGen(setup =>
             {
@@ -86,7 +85,7 @@ namespace Grillbot
             pages.AddRazorRuntimeCompilation();
 #endif
 
-            var intents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | GatewayIntents.GuildInvites |
+            const GatewayIntents intents = GatewayIntents.Guilds | GatewayIntents.GuildMembers | GatewayIntents.GuildBans | GatewayIntents.GuildEmojis | GatewayIntents.GuildIntegrations | GatewayIntents.GuildInvites |
                 GatewayIntents.GuildVoiceStates | GatewayIntents.GuildPresences | GatewayIntents.GuildMessages | GatewayIntents.GuildMessageReactions | GatewayIntents.GuildMessageTyping | GatewayIntents.DirectMessages |
                 GatewayIntents.DirectMessageReactions | GatewayIntents.DirectMessageTyping;
             var config = new DiscordSocketConfig()
@@ -115,11 +114,6 @@ namespace Grillbot
                 .AddEmoteChain()
                 .AddStatistics()
                 .AddPaginationServices()
-                .AddChannelboard()
-                .AddUnverify()
-                .AddTeamSearch()
-                .AddUserManagement()
-                .AddDiscordAdminServices()
                 .AddDuckServices()
                 .AddHelpServices();
 

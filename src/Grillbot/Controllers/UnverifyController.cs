@@ -90,15 +90,5 @@ namespace Grillbot.Controllers
                 throw;
             }
         }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-            {
-                UnverifyService.Dispose();
-            }
-
-            base.Dispose(disposing);
-        }
     }
 }

@@ -130,14 +130,20 @@ namespace Grillbot.Services
             if (
                 exception.InnerException == null
                 && exception.Message.StartsWith("Server missed last heartbeat", StringComparison.InvariantCultureIgnoreCase)
-            ) return true;
+            )
+            {
+                return true;
+            }
 
             if (
                 (exception is TaskCanceledException || exception is HttpRequestException)
                 && exception.InnerException is IOException iOException
                 && iOException.InnerException is SocketException socketException
                 && (new[] { SocketError.TimedOut, SocketError.OperationAborted }).Contains(socketException.SocketErrorCode)
-            ) return true;
+            )
+            {
+                return true;
+            }
 
             return false;
         }
@@ -175,7 +181,7 @@ namespace Grillbot.Services
             if (exception == null)
                 return true;
 
-            return exception is not CommandException ce || !IsThrowHelpException(ce) && !IsConfigException(ce);
+            return exception is not CommandException ce || (!IsThrowHelpException(ce) && !IsConfigException(ce));
         }
 
         private bool IsThrowHelpException(CommandException exception) => exception?.InnerException != null && exception.InnerException is ThrowHelpException;

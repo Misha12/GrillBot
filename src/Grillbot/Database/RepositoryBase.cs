@@ -22,22 +22,9 @@ namespace Grillbot.Database
             return Context.SaveChanges();
         }
 
-        public int SaveChangesIfAny()
-        {
-            if (!Context.ChangeTracker.HasChanges())
-                return 0;
-
-            return Context.SaveChanges();
-        }
-
         public Task<int> SaveChangesAsync()
         {
             return Context.SaveChangesAsync();
-        }
-
-        public void Remove<TEntity>(TEntity entity) where TEntity : class
-        {
-            Context.Set<TEntity>().Remove(entity);
         }
     }
 }

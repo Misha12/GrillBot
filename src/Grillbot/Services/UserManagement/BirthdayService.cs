@@ -1,6 +1,6 @@
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Users;
 using Microsoft.EntityFrameworkCore;
@@ -12,22 +12,22 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement
 {
-    public class BirthdayService : IDisposable
+    public class BirthdayService
     {
-        private UsersRepository UsersRepository { get; }
         private DiscordSocketClient Discord { get; }
         private BotState BotState { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public BirthdayService(UsersRepository usersRepository, DiscordSocketClient discord, BotState botState)
+        public BirthdayService(IGrillBotRepository grillBotRepository, DiscordSocketClient discord, BotState botState)
         {
-            UsersRepository = usersRepository;
+            GrillBotRepository = grillBotRepository;
             Discord = discord;
             BotState = botState;
         }
 
         public async Task SetBirthdayAsync(SocketGuild guild, SocketUser user, DateTime dateTime, bool acceptAge)
         {
-            var dbUser = await UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
             if (dbUser.Birthday != null)
                 throw new ValidationException("Tento uživatel již má uložené datum narození.");
@@ -37,23 +37,23 @@ namespace Grillbot.Services.UserManagement
             else
                 dbUser.Birthday = new DateTime(1, dateTime.Month, dateTime.Day);
 
-            await UsersRepository.SaveChangesAsync();
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task ClearBirthdayAsync(SocketGuild guild, SocketUser user)
         {
-            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
             if (dbUser?.Birthday == null)
                 throw new ValidationException("Tento uživatel nemá uložené datum narození.");
 
             dbUser.Birthday = null;
-            await UsersRepository.SaveChangesAsync();
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task<List<DiscordUser>> GetUsersWithTodayBirthdayAsync(SocketGuild guild)
         {
-            var usersWithBirthday = await UsersRepository.GetUsersWithBirthday(guild.Id).ToListAsync();
+            var usersWithBirthday = await GrillBotRepository.UsersRepository.GetUsersWithBirthday(guild.Id).ToListAsync();
             var result = new List<DiscordUser>();
 
             foreach (var user in usersWithBirthday.Where(o => HaveTodayBirthday(o.Birthday.Value)))
@@ -75,13 +75,8 @@ namespace Grillbot.Services.UserManagement
 
         public async Task<bool> HaveUserBirthday(SocketGuild guild, SocketUser user)
         {
-            var dbUser = await UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
             return dbUser?.Birthday != null;
-        }
-
-        public void Dispose()
-        {
-            UsersRepository.Dispose();
         }
     }
 }

@@ -1,4 +1,5 @@
 using Grillbot.Database.Repository;
+using Microsoft.EntityFrameworkCore;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -77,6 +78,11 @@ namespace Grillbot.Database
                 return;
 
             Context.Set<TEntity>().RemoveRange(entities);
+        }
+
+        public void Detach<TEntity>(TEntity entity) where TEntity : class
+        {
+            Context.Entry(entity).State = EntityState.Detached;
         }
 
         public void Dispose()

@@ -8,6 +8,7 @@ using Grillbot.Services.UserManagement;
 using System;
 using System.Collections.Generic;
 using System.IO;
+using System.Linq;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -16,16 +17,13 @@ namespace Grillbot.Modules
     [Name("Práce s body")]
     [Group("points")]
     [Alias("body", "punkty")]
-    [ModuleID("PointsModule")]
+    [ModuleID(nameof(PointsModule))]
     [Remarks("Body se počítají podobným způsobem jako MEE6. Jednou za minutu 15-25 bodů za každou zprávu.\nPočítají se i reakce. " +
         "Princip u reakcí je stejný jako u zprávy. Jen omezení je jednou za půl minuty a rozsah je 0-10 bodů.")]
     public class PointsModule : BotModuleBase
     {
-        private PointsService PointsService { get; }
-
-        public PointsModule(PointsService pointsService)
+        public PointsModule(IServiceProvider provider) : base(provider: provider)
         {
-            PointsService = pointsService;
         }
 
         [Command("where")]
@@ -34,8 +32,10 @@ namespace Grillbot.Modules
         public async Task MyPointsAsync(IUser user = null)
         {
             var userEntity = user ?? Context.User;
-            
-            using var image = await PointsService.GetPointsAsync(Context.Guild, userEntity);
+
+            using var service = GetService<PointsService>();
+
+            using var image = await service.Service.GetPointsAsync(Context.Guild, userEntity);
             using var ms = new MemoryStream();
             image.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
             ms.Position = 0;
@@ -47,11 +47,13 @@ namespace Grillbot.Modules
         [Summary("Přidání/Odebrání bodů.")]
         public async Task GivePointsAsync(int amount, params IUser[] users)
         {
-            foreach (var user in users)
-            {
-                PointsService.GivePoints(Context.User, user, Context.Guild, amount);
-            }
+            using var service = GetService<PointsService>();
 
+            var tasks = users
+                .Select(o => service.Service.GivePointsAsync(Context.User, o, Context.Guild, amount))
+                .ToArray();
+
+            await Task.WhenAll(tasks);
             await ReplyAsync($"Body byly úspěšně {(amount > 0 ? "přidány" : "odebrány")}");
         }
 
@@ -59,7 +61,8 @@ namespace Grillbot.Modules
         [Summary("Převod bodů na jiný účet")]
         public async Task TransferPointsAsync(IUser from, IUser to, long amount = -1)
         {
-            var transferedPoints = PointsService.TransferPoints(Context.Guild, from, to, amount);
+            using var service = GetService<PointsService>();
+            var transferedPoints = await service.Service.TransferPointsAsync(Context.Guild, from, to, amount);
 
             await ReplyAsync($"Body byly převedeny.\n{FormatTransferedValue(transferedPoints)}");
         }
@@ -69,7 +72,8 @@ namespace Grillbot.Modules
         [Alias("board", "list", "top10")]
         public async Task PointsLeaderboardAsync(int page = 1)
         {
-            var leaderboard = PointsService.GetPointsLeaderboard(Context.Guild, false, page);
+            using var service = GetService<PointsService>();
+            var leaderboard = await service.Service.GetPointsLeaderboardAsync(Context.Guild, false, page);
 
             var embed = await CreateLeaderboardResultAsync(leaderboard);
             await ReplyAsync(embed: embed.Build());
@@ -80,7 +84,8 @@ namespace Grillbot.Modules
         [Alias("boardASC", "listASC", "obracenyList", "top10^-1", "bajkar")]
         public async Task PointsAscLeaderboardAsync(int page = 1)
         {
-            var leaderboard = PointsService.GetPointsLeaderboard(Context.Guild, true, page);
+            using var service = GetService<PointsService>();
+            var leaderboard = await service.Service.GetPointsLeaderboardAsync(Context.Guild, true, page);
             var embed = await CreateLeaderboardResultAsync(leaderboard);
 
             await ReplyAsync(embed: embed.Build());
@@ -105,7 +110,7 @@ namespace Grillbot.Modules
                 var position = item.Item3.FormatWithSpaces();
                 var username = user == null ? "Neexistující uživatel" : user.GetDisplayName();
 
-                builder.AppendLine($"> {position}: {username}: {FormatPointsValue(item.Item2)}");
+                builder.Append("> ").Append(position).Append(": ").Append(username).Append(": ").AppendLine(FormatPointsValue(item.Item2));
             }
 
             embed.WithDescription(builder.ToString());
@@ -129,13 +134,6 @@ namespace Grillbot.Modules
                 return $"**{points.FormatWithSpaces()}** bodů";
 
             return points == 1 ? "**1** bod" : $"**{points.FormatWithSpaces()}** body";
-        }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            PointsService.Dispose();
-
-            base.AfterExecute(command);
         }
     }
 }
