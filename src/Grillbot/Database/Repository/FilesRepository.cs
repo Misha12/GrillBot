@@ -22,27 +22,5 @@ namespace Grillbot.Database.Repository
             return Context.Files.AsQueryable()
                 .Select(o => o.Filename);
         }
-
-        public async Task UploadFileAsync(string filename, byte[] content)
-        {
-            var entity = await GetFileAsync(filename);
-
-            if (entity == null)
-            {
-                entity = new File()
-                {
-                    Content = content,
-                    Filename = filename
-                };
-
-                await Context.Files.AddAsync(entity);
-            }
-            else
-            {
-                entity.Content = content;
-            }
-
-            await SaveChangesAsync();
-        }
     }
 }

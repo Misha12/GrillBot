@@ -1,9 +1,10 @@
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -14,11 +15,8 @@ namespace Grillbot.Modules
     [ModuleID(nameof(FilesModule))]
     public class FilesModule : BotModuleBase
     {
-        private FilesRepository FilesRepository { get; }
-
-        public FilesModule(FilesRepository repository)
+        public FilesModule(IServiceProvider provider) : base(provider: provider)
         {
-            FilesRepository = repository;
         }
 
         [Command("upload")]
@@ -31,12 +29,29 @@ namespace Grillbot.Modules
                 return;
             }
 
+            var service = GetService<IGrillBotRepository>();
             foreach (var attachment in Context.Message.Attachments)
             {
                 var content = await attachment.DownloadFileAsync();
-                await FilesRepository.UploadFileAsync(attachment.Filename, content);
+                var file = await service.Service.FilesRepository.GetFileAsync(attachment.Filename);
+
+                if (file == null)
+                {
+                    file = new Database.Entity.File()
+                    {
+                        Filename = attachment.Filename,
+                        Content = content
+                    };
+
+                    await service.Service.AddAsync(file);
+                }
+                else
+                {
+                    file.Content = content;
+                }
             }
 
+            await service.Service.CommitAsync();
             await ReplyAsync(Context.Message.Attachments.Count > 1 ? "Soubory nahrány" : "Soubor nahrán");
         }
 
@@ -44,7 +59,8 @@ namespace Grillbot.Modules
         [Summary("Seznam souborů.")]
         public async Task ListFilesAsync()
         {
-            var filenames = await FilesRepository.GetFilenames().ToListAsync();
+            using var service = GetService<IGrillBotRepository>();
+            var filenames = await service.Service.FilesRepository.GetFilenames().ToListAsync();
 
             if (filenames.Count == 0)
             {
@@ -59,7 +75,8 @@ namespace Grillbot.Modules
         [Summary("Získání souboru.")]
         public async Task GetFileAsync([Remainder] string filename)
         {
-            var file = await FilesRepository.GetFileAsync(filename);
+            using var service = GetService<IGrillBotRepository>();
+            var file = await service.Service.FilesRepository.GetFileAsync(filename);
 
             if (file == null)
             {
@@ -74,7 +91,8 @@ namespace Grillbot.Modules
         [Summary("Smazání souboru")]
         public async Task RemoveFileAsync([Remainder] string filename)
         {
-            var file = await FilesRepository.GetFileAsync(filename);
+            using var service = GetService<IGrillBotRepository>();
+            var file = await service.Service.FilesRepository.GetFileAsync(filename);
 
             if (file == null)
             {
@@ -82,18 +100,10 @@ namespace Grillbot.Modules
                 return;
             }
 
-            FilesRepository.Remove(file);
-            await FilesRepository.SaveChangesAsync();
+            service.Service.Remove(file);
+            await service.Service.CommitAsync();
 
             await ReplyAsync("Soubor smazán.");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                FilesRepository.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }
