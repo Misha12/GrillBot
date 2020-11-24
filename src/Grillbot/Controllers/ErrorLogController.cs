@@ -1,7 +1,7 @@
 using System.Linq;
 using System.Threading.Tasks;
+using Grillbot.Database;
 using Grillbot.Database.Entity;
-using Grillbot.Database.Repository;
 using Grillbot.Models.ErrorLog;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
@@ -14,18 +14,18 @@ namespace Grillbot.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class ErrorLogController : Controller
     {
-        private ErrorLogRepository ErrorLogRepository { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public ErrorLogController(ErrorLogRepository errorLogRepository)
+        public ErrorLogController(IGrillBotRepository grillBotRepository)
         {
-            ErrorLogRepository = errorLogRepository;
+            GrillBotRepository = grillBotRepository;
         }
 
         [HttpGet]
         public async Task<IActionResult> Index(long? id = null)
         {
             const int tableDataLength = 90;
-            var logs = await ErrorLogRepository.GetLastLogs(25).Select(o => new ErrorLogItem()
+            var logs = await GrillBotRepository.ErrorLogRepository.GetLastLogs(25).Select(o => new ErrorLogItem()
             {
                 CreatedAt = o.CreatedAt,
                 ID = o.ID,
@@ -35,23 +35,21 @@ namespace Grillbot.Controllers
             if (id == null)
                 return View(new ErrorLogViewModel(null, logs, false));
 
-            var logItem = await ErrorLogRepository.FindLogByIDAsync(id.Value);
+            var logItem = await GrillBotRepository.ErrorLogRepository.FindLogByIDAsync(id.Value);
             return View(new ErrorLogViewModel(logItem, logs, true));
         }
 
         [HttpGet("{id}")]
         public async Task<IActionResult> RemoveItem(long id)
         {
-            await ErrorLogRepository.RemoveItemAsync(id);
+            var item = await GrillBotRepository.ErrorLogRepository.FindLogByIDAsync(id);
+
+            if (item == null)
+                return RedirectToAction("Index");
+
+            GrillBotRepository.Remove(item);
+            await GrillBotRepository.CommitAsync();
             return RedirectToAction("Index");
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                ErrorLogRepository.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

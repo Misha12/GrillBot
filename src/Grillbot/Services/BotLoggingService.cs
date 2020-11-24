@@ -13,11 +13,12 @@ using System.IO;
 using System.Net.Sockets;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
-using Grillbot.Database.Repository;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
 using Grillbot.Extensions;
 using Grillbot.Services.Config;
+using Grillbot.Database;
+using Grillbot.Database.Entity;
 
 namespace Grillbot.Services
 {
@@ -54,12 +55,14 @@ namespace Grillbot.Services
 
         public async Task OnLogAsync(LogMessage message)
         {
-            await PostException(message).ConfigureAwait(false);
+            using var scope = Services.CreateScope();
+
+            await PostException(message, scope.ServiceProvider).ConfigureAwait(false);
             Write(message.Severity, message.Message, message.Source, message.Exception);
             ApiStatistics.Increment(message);
         }
 
-        private async Task PostException(LogMessage message)
+        private async Task PostException(LogMessage message, IServiceProvider scopedProvider)
         {
             if (!CanSendExceptionToDiscord(message)) return;
 
@@ -79,14 +82,21 @@ namespace Grillbot.Services
                 }
             }
 
-            using var service = Services.GetService<ErrorLogRepository>();
-            var logEmbedCreator = Services.GetService<LogEmbedCreator>();
+            var repository = scopedProvider.GetService<IGrillBotRepository>();
+            var logEmbedCreator = scopedProvider.GetService<LogEmbedCreator>();
 
             try
             {
-                var entityRecord = service.CreateRecord(message.ToString());
-                var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entityRecord);
+                var entity = new ErrorLogItem()
+                {
+                    CreatedAt = DateTime.Now,
+                    Data = message.ToString(),
+                };
 
+                repository.Add(entity);
+                await repository.CommitAsync();
+
+                var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entity);
                 await (Client.GetChannel(LogRoomID.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
             }
             catch (Exception ex)
@@ -94,14 +104,14 @@ namespace Grillbot.Services
                 var chunks = message.ToString()
                     .SplitInParts(MessageSizeForException);
 
-                if(Client.GetChannel(LogRoomID.Value) is IMessageChannel channel)
+                if (Client.GetChannel(LogRoomID.Value) is IMessageChannel channel)
                 {
-                    foreach(var chunk in chunks)
+                    foreach (var chunk in chunks)
                     {
                         await channel.SendMessageAsync(chunk);
                     }
 
-                    foreach(var chunk in ex.ToString().SplitInParts(MessageSizeForException))
+                    foreach (var chunk in ex.ToString().SplitInParts(MessageSizeForException))
                     {
                         await channel.SendMessageAsync(chunk);
                     }
@@ -115,12 +125,11 @@ namespace Grillbot.Services
         {
             if (IsWebSocketException(exception)) return true;
 
+            if (exception is GatewayReconnectException || (exception.InnerException is GatewayReconnectException)) return true;
+
             if (
                 exception.InnerException == null
-                && (
-                    exception.Message.StartsWith("Server requested a reconnect", StringComparison.InvariantCultureIgnoreCase)
-                    || exception.Message.StartsWith("Server missed last heartbeat", StringComparison.InvariantCultureIgnoreCase)
-                )
+                && exception.Message.StartsWith("Server missed last heartbeat", StringComparison.InvariantCultureIgnoreCase)
             ) return true;
 
             if (
