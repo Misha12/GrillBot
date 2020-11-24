@@ -50,7 +50,7 @@ namespace Grillbot.Services
                 .AddTransient<UnverifyRepository>()
                 .AddTransient<ErrorLogRepository>()
                 .AddTransient<FilesRepository>()
-                .AddTransient<IUnitOfWork, UnitOfWork>();
+                .AddTransient<IGrillBotRepository, GrillBotRepository>();
 
             return services;
         }

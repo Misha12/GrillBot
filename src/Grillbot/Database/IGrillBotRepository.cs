@@ -5,7 +5,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Database
 {
-    public interface IUnitOfWork : IDisposable
+    public interface IGrillBotRepository : IDisposable
     {
         AutoReplyRepository AutoReplyRepository { get; }
         BotDbRepository BotDbRepository { get; }

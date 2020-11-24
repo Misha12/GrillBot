@@ -15,13 +15,13 @@ namespace Grillbot.Services
     {
         private IWebHostEnvironment HostingEnvironment { get; }
         private Logger.Logger Logger { get; }
-        private IUnitOfWork UnitOfWork { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IUnitOfWork unitOfWork)
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IGrillBotRepository grillBotRepository)
         {
             HostingEnvironment = hostingEnvironment;
             Logger = logger;
-            UnitOfWork = unitOfWork;
+            GrillBotRepository = grillBotRepository;
         }
 
         public SimpleBotStatus GetSimpleStatus()
@@ -66,7 +66,7 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<string, Tuple<int, long>>> GetDbReport()
         {
-            return await UnitOfWork.BotDbRepository.GetTableRowsCountAsync();
+            return await GrillBotRepository.BotDbRepository.GetTableRowsCountAsync();
         }
     }
 }

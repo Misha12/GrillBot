@@ -12,12 +12,12 @@ namespace Grillbot.Services
     public class UserSearchService
     {
         private BotState BotState { get; }
-        private IUnitOfWork UnitOfWork { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
         
-        public UserSearchService(BotState botState, IUnitOfWork unitOfWork)
+        public UserSearchService(BotState botState, IGrillBotRepository grillBotRepository)
         {
             BotState = botState;
-            UnitOfWork = unitOfWork;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task<List<SocketGuildUser>> FindUsersAsync(SocketGuild guild, string query)
@@ -48,7 +48,7 @@ namespace Grillbot.Services
             if (BotState.UserToID.ContainsKey(key))
                 return BotState.UserToID[key];
 
-            var id = await UnitOfWork.UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
+            var id = await GrillBotRepository.UsersRepository.FindUserIDFromDiscordIDAsync(guild.Id, user.Id);
 
             if (id == null)
                 return null;

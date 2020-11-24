@@ -17,21 +17,21 @@ namespace Grillbot.Modules.AutoReply
     {
         private ILogger<AutoReplyService> Logger { get; }
         private BotState BotState { get; }
-        private IUnitOfWork UnitOfWork { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
         private AllowedMentions AllowedMentions { get; } = new AllowedMentions(AllowedMentionTypes.Users);
 
-        public AutoReplyService(ILogger<AutoReplyService> logger, BotState botState, IUnitOfWork unitOfWork)
+        public AutoReplyService(ILogger<AutoReplyService> logger, BotState botState, IGrillBotRepository grillBotRepository)
         {
             Logger = logger;
             BotState = botState;
-            UnitOfWork = unitOfWork;
+            GrillBotRepository = grillBotRepository;
         }
 
         public void Init()
         {
             BotState.AutoReplyItems.Clear();
-            BotState.AutoReplyItems.AddRange(UnitOfWork.AutoReplyRepository.GetItems().ToList());
+            BotState.AutoReplyItems.AddRange(GrillBotRepository.AutoReplyRepository.GetItems().ToList());
             Logger.LogInformation($"AutoReply module loaded (loaded {BotState.AutoReplyItems.Count} templates)");
         }
 
@@ -116,10 +116,10 @@ namespace Grillbot.Modules.AutoReply
             if (item.IsDisabled == disabled)
                 throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
 
-            var dbItem = await UnitOfWork.AutoReplyRepository.FindItemByIdAsync(id);
+            var dbItem = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
             dbItem.IsDisabled = disabled;
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
             item.IsDisabled = disabled;
         }
 
@@ -140,8 +140,8 @@ namespace Grillbot.Modules.AutoReply
 
             item.SetCompareType(compareType);
 
-            await UnitOfWork.AddAsync(item);
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.AddAsync(item);
+            await GrillBotRepository.CommitAsync();
             BotState.AutoReplyItems.Add(item);
         }
 
@@ -152,7 +152,7 @@ namespace Grillbot.Modules.AutoReply
             if (item == null)
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** nebyla nalezena.");
 
-            var dbItem = await UnitOfWork.AutoReplyRepository.FindItemByIdAsync(id);
+            var dbItem = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
 
             dbItem.MustContains = mustContains;
             dbItem.ReplyMessage = reply;
@@ -160,7 +160,7 @@ namespace Grillbot.Modules.AutoReply
             dbItem.SetCompareType(compareType);
             dbItem.ChannelIDSnowflake = channel == "*" ? (ulong?)null : Convert.ToUInt64(channel);
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
 
             item.MustContains = dbItem.MustContains;
             item.ReplyMessage = dbItem.ReplyMessage;
@@ -174,9 +174,9 @@ namespace Grillbot.Modules.AutoReply
             if (!BotState.AutoReplyItems.Any(o => o.GuildIDSnowflake == guild.Id && o.ID == id))
                 throw new ArgumentException($"Automatická odpověď s ID **{id}** neexistuje.");
 
-            var entity = await UnitOfWork.AutoReplyRepository.FindItemByIdAsync(id);
-            UnitOfWork.Remove(entity);
-            await UnitOfWork.CommitAsync();
+            var entity = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
+            GrillBotRepository.Remove(entity);
+            await GrillBotRepository.CommitAsync();
             BotState.AutoReplyItems.RemoveAll(o => o.ID == id);
         }
 

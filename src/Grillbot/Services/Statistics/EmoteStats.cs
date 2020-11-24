@@ -21,12 +21,12 @@ namespace Grillbot.Services.Statistics
 {
     public class EmoteStats
     {
-        private IUnitOfWork UnitOfWork { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
         private UserSearchService UserSearchService { get; }
 
-        public EmoteStats(IUnitOfWork unitOfWork, UserSearchService userSearchService)
+        public EmoteStats(IGrillBotRepository grillBotRepository, UserSearchService userSearchService)
         {
-            UnitOfWork = unitOfWork;
+            GrillBotRepository = grillBotRepository;
             UserSearchService = userSearchService;
         }
 
@@ -38,7 +38,7 @@ namespace Grillbot.Services.Statistics
                 .Select(o => o.Value)
                 .DistinctBy(o => o.ToString());
 
-            var userEntity = await UnitOfWork.UsersRepository.GetOrCreateUserAsync(context.Guild.Id, context.User.Id, UsersIncludes.Emotes);
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(context.Guild.Id, context.User.Id, UsersIncludes.Emotes);
 
             TryIncrementUnicodeFromMessage(context.Message.Content, userEntity);
             foreach (var emote in mentionedEmotes)
@@ -56,7 +56,7 @@ namespace Grillbot.Services.Statistics
                 }
             }
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task IncrementFromReactionAsync(SocketReaction reaction)
@@ -64,7 +64,7 @@ namespace Grillbot.Services.Statistics
             if (reaction.Channel is not SocketGuildChannel channel) return;
             if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
-            var userEntity = await UnitOfWork.UsersRepository.GetOrCreateUserAsync(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
 
             if (reaction.Emote is DiscordEmoji emoji)
             {
@@ -78,7 +78,7 @@ namespace Grillbot.Services.Statistics
                     IncrementCounter(reaction.Emote.ToString(), false, userEntity);
             }
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task DecrementFromReactionAsync(SocketReaction reaction)
@@ -86,7 +86,7 @@ namespace Grillbot.Services.Statistics
             if (reaction.Channel is not SocketGuildChannel channel) return;
             if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
-            var userEntity = await UnitOfWork.UsersRepository.GetOrCreateUserAsync(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
 
             if (reaction.Emote is DiscordEmoji emoji)
             {
@@ -100,7 +100,7 @@ namespace Grillbot.Services.Statistics
                     DecrementCounter(emoteId, false, userEntity);
             }
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
         }
 
         private void TryIncrementUnicodeFromMessage(string content, DiscordUser user)
@@ -164,24 +164,24 @@ namespace Grillbot.Services.Statistics
 
         public GroupedEmoteItem GetValue(SocketGuild guild, string emoteId)
         {
-            return UnitOfWork.EmoteStatsRepository.GetStatsOfEmote(guild.Id, emoteId);
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmote(guild.Id, emoteId);
         }
 
         public List<GroupedEmoteItem> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)
         {
-            return UnitOfWork.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, excludeUnicode, descOrder).ToList();
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, excludeUnicode, descOrder).ToList();
         }
 
         public List<GroupedEmoteItem> GetAllUnicodeValues(bool descOrder, ulong guildID, int? limit = null)
         {
-            return UnitOfWork.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, false, descOrder, true).ToList();
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, false, descOrder, true).ToList();
         }
 
         public async Task<List<string>> CleanOldEmotesAsync(SocketGuild guild)
         {
             await guild.SyncGuildAsync();
 
-            var emoteClearCandidates = UnitOfWork.EmoteStatsRepository.GetEmotesForClear(guild.Id, 14);
+            var emoteClearCandidates = GrillBotRepository.EmoteStatsRepository.GetEmotesForClear(guild.Id, 14);
 
             if (emoteClearCandidates.Count == 0)
                 return new List<string>();
@@ -195,7 +195,7 @@ namespace Grillbot.Services.Statistics
                     var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
 
                     removed.Add($"> Smazán unicode emote **{candidate.RealID}**. Použití: 0, Poprvé použit: {formatedFirstOccured}, Naposledy použit: {formatedLastOccured}");
-                    await UnitOfWork.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.EmoteID);
+                    await GrillBotRepository.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.EmoteID);
                     continue;
                 }
 
@@ -203,11 +203,11 @@ namespace Grillbot.Services.Statistics
                 if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                 {
                     removed.Add($"> Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id}). Použito {candidate.UseCount.FormatWithSpaces()}x.");
-                    await UnitOfWork.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.RealID);
+                    await GrillBotRepository.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.RealID);
                 }
             }
 
-            await UnitOfWork.CommitAsync();
+            await GrillBotRepository.CommitAsync();
             return removed;
         }
 
@@ -218,7 +218,7 @@ namespace Grillbot.Services.Statistics
             if (userId == null)
                 return new List<EmoteStatItem>();
 
-            var query = UnitOfWork.EmoteStatsRepository.GetEmotesOfUser(userId.Value);
+            var query = GrillBotRepository.EmoteStatsRepository.GetEmotesOfUser(userId.Value);
 
             if (desc)
                 query = query.OrderByDescending(o => o.UseCount).ThenByDescending(o => o.LastOccuredAt);

@@ -6,7 +6,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Database
 {
-    public class UnitOfWork : IUnitOfWork
+    public class GrillBotRepository : IGrillBotRepository
     {
         private GrillBotContext Context { get; }
         private List<RepositoryBase> Repositories { get; }
@@ -25,7 +25,7 @@ namespace Grillbot.Database
         public UnverifyRepository UnverifyRepository => FindOrCreateRepository<UnverifyRepository>();
         public UsersRepository UsersRepository => FindOrCreateRepository<UsersRepository>();
 
-        public UnitOfWork(GrillBotContext context)
+        public GrillBotRepository(GrillBotContext context)
         {
             Context = context;
             Repositories = new List<RepositoryBase>();
