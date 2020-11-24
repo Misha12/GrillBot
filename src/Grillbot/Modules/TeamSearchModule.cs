@@ -8,7 +8,6 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.TeamSearch;
@@ -24,8 +23,7 @@ namespace Grillbot.Modules
     {
         private TeamSearchService TeamSearchService { get; }
 
-        public TeamSearchModule(ConfigRepository configRepository, TeamSearchService teamSearchService, PaginationService paginationService)
-            : base(configRepository, paginationService)
+        public TeamSearchModule(TeamSearchService teamSearchService, PaginationService paginationService) : base(paginationService)
         {
             TeamSearchService = teamSearchService;
         }

@@ -1,6 +1,6 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Extensions;
 using Grillbot.Helpers;
 using Grillbot.Models.Config.Dynamic;
@@ -14,25 +14,23 @@ using Img = System.Drawing.Image;
 
 namespace Grillbot.Services.MemeImages
 {
-    public class MemeImagesService : IDisposable
+    public class MemeImagesService
     {
-        private ConfigRepository ConfigRepository { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
         private Random Random { get; }
-        private FilesRepository FilesRepository { get; }
 
-        public MemeImagesService(ConfigRepository repository, FilesRepository filesRepository)
+        public MemeImagesService(IGrillBotRepository grillbotRepository)
         {
-            ConfigRepository = repository;
+            GrillBotRepository = grillbotRepository;
             Random = new Random();
-            FilesRepository = filesRepository;
         }
 
         public async Task<byte[]> GetRandomFileAsync(SocketGuild guild, string category)
         {
-            var config = ConfigRepository.FindConfig(guild.Id, "", category, false);
+            var config = await GrillBotRepository.ConfigRepository.FindConfigAsync(guild.Id, "", category, false);
             var configData = config.GetData<MemeImagesConfig>();
 
-            var filenamesQuery = FilesRepository.GetFilenames().Where(o => o.StartsWith($"{category}_"));
+            var filenamesQuery = GrillBotRepository.FilesRepository.GetFilenames().Where(o => o.StartsWith($"{category}_"));
 
             var filenames = await filenamesQuery
                 .AsAsyncEnumerable()
@@ -43,7 +41,7 @@ namespace Grillbot.Services.MemeImages
                 return null;
 
             var filename = filenames[Random.Next(filenames.Count)];
-            var file = await FilesRepository.GetFileAsync(filename);
+            var file = await GrillBotRepository.FilesRepository.GetFileAsync(filename);
 
             return file?.Content;
         }
@@ -69,12 +67,6 @@ namespace Grillbot.Services.MemeImages
         {
             var renderer = new PeepoAngryRenderer();
             return renderer.RenderAsync(forUser, config);
-        }
-
-        public void Dispose()
-        {
-            ConfigRepository.Dispose();
-            FilesRepository.Dispose();
         }
     }
 }

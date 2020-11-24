@@ -1,8 +1,8 @@
+using System;
 using System.Net;
 using System.Threading.Tasks;
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Duck;
 
@@ -13,12 +13,10 @@ namespace Grillbot.Modules
     [ModuleID("DuckModule")]
     public class DuckModule : BotModuleBase
     {
-        private DuckDataLoader DuckDataLoader { get; }
         private DuckEmbedRenderer Renderer { get; }
 
-        public DuckModule(ConfigRepository repository, DuckEmbedRenderer renderer, DuckDataLoader duckDataLoader) : base(repository)
+        public DuckModule(DuckEmbedRenderer renderer, IServiceProvider provider) : base(provider: provider)
         {
-            DuckDataLoader = duckDataLoader;
             Renderer = renderer;
         }
 
@@ -28,8 +26,10 @@ namespace Grillbot.Modules
         {
             try
             {
-                var config = GetMethodConfig<DuckConfig>("kachna", "");
-                var duckData = await DuckDataLoader.GetDuckCurrentState(config);
+                using var loader = GetService<DuckDataLoader>();
+
+                var config = await GetMethodConfigAsync<DuckConfig>("kachna", "");
+                var duckData = await loader.Service.GetDuckCurrentState(config);
 
                 var embed = Renderer.RenderEmbed(duckData, Context.User, config);
                 await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
@@ -38,14 +38,6 @@ namespace Grillbot.Modules
             {
                 await ReplyAsync(ex.Message);
             }
-        }
-
-        protected override void Dispose(bool disposing)
-        {
-            if (disposing)
-                DuckDataLoader.Dispose();
-
-            base.Dispose(disposing);
         }
     }
 }

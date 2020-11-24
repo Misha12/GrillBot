@@ -1,70 +1,72 @@
-﻿using Discord.Commands;
+using Discord.Commands;
+using Grillbot.Database;
 using Grillbot.Database.Entity.MethodConfig;
-using Grillbot.Database.Repository;
 using Grillbot.Models;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using System;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.TypeReaders
 {
     public class GroupCommandMatchTypeReader : TypeReader
     {
-        public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
+        public override async Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
         {
+            using var scope = services.CreateScope();
+
             if (int.TryParse(input, out int methodID))
             {
-                var methodsConfig = GetConfig(context, methodID, services);
+                var methodsConfig = await GetConfigAsync(context, methodID, scope.ServiceProvider);
 
                 if (methodsConfig == null)
-                    return Task.FromResult(TypeReaderResult.FromError(CommandError.ObjectNotFound, "Hledaná konfigurace nebyla nalezena."));
+                    return TypeReaderResult.FromError(CommandError.ObjectNotFound, "Hledaná konfigurace nebyla nalezena.");
 
-                return Task.FromResult(TypeReaderResult.FromSuccess(new GroupCommandMatch()
+                return TypeReaderResult.FromSuccess(new GroupCommandMatch()
                 {
                     Command = methodsConfig.Command,
                     Group = methodsConfig.Group,
                     MethodID = methodID
-                }));
+                });
             }
 
             if (!input.Contains("/"))
-                return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Neplatný formát skupina/název."));
+                return TypeReaderResult.FromError(CommandError.ParseFailed, "Neplatný formát skupina/název.");
 
             var groupAndCommand = input.Split('/');
 
-            if (!CommandExists(services, context, groupAndCommand[0], groupAndCommand[1]))
-                return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Neznámý příkaz `{input}`"));
+            if (!CommandExists(scope.ServiceProvider, context, groupAndCommand[0], groupAndCommand[1]))
+                return TypeReaderResult.FromError(CommandError.ParseFailed, $"Neznámý příkaz `{input}`");
 
-            var config = GetConfig(context, groupAndCommand[0], groupAndCommand[1], services);
+            var config = await GetConfigAsync(context, groupAndCommand[0], groupAndCommand[1], scope.ServiceProvider);
 
-            return Task.FromResult(TypeReaderResult.FromSuccess(new GroupCommandMatch()
+            return TypeReaderResult.FromSuccess(new GroupCommandMatch()
             {
                 Command = groupAndCommand[1],
                 Group = groupAndCommand[0],
                 MethodID = config?.ID
-            }));
+            });
         }
 
-        private MethodsConfig GetConfig(ICommandContext context, int methodID, IServiceProvider provider)
+        private async Task<MethodsConfig> GetConfigAsync(ICommandContext context, int methodID, IServiceProvider scopedProvider)
         {
-            using var scope = provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ConfigRepository>();
+            var repository = scopedProvider.GetService<IGrillBotRepository>();
 
-            return repository.GetMethod(context.Guild, methodID);
+            return await repository.ConfigRepository.GetAllMethods(context.Guild.Id)
+                .SingleOrDefaultAsync(o => o.ID == methodID);
         }
 
-        private MethodsConfig GetConfig(ICommandContext context, string group, string command, IServiceProvider provider)
+        private async Task<MethodsConfig> GetConfigAsync(ICommandContext context, string group, string command, IServiceProvider scopedProvider)
         {
-            using var scope = provider.CreateScope();
-            using var repository = scope.ServiceProvider.GetService<ConfigRepository>();
+            var repository = scopedProvider.GetService<IGrillBotRepository>();
 
-            return repository.FindConfig(context.Guild.Id, group, command);
+            return await repository.ConfigRepository.FindConfigAsync(context.Guild.Id, group, command);
         }
 
-        private bool CommandExists(IServiceProvider provider, ICommandContext context, string group, string command)
+        private bool CommandExists(IServiceProvider scopedProvider, ICommandContext context, string group, string command)
         {
-            using var scope = provider.CreateScope();
-            var commandService = scope.ServiceProvider.GetService<CommandService>();
+            var commandService = scopedProvider.GetService<CommandService>();
 
             var searchResult = commandService.Search(context, $"{group} {command}".Trim());
             return searchResult.IsSuccess;

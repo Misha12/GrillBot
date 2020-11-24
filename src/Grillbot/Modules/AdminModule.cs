@@ -1,7 +1,6 @@
 using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.AdminServices;
@@ -12,17 +11,12 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
-    [ModuleID("AdminModule")]
+    [ModuleID(nameof(AdminModule))]
     [Name("Administrační funkce")]
     public class AdminModule : BotModuleBase
     {
-        private IMessageCache MessageCache { get; }
-        private PinManagement PinManagement { get; }
-
-        public AdminModule(ConfigRepository config, IMessageCache messageCache, PinManagement pinManagement) : base(configRepository: config)
+        public AdminModule(IServiceProvider provider) : base(provider: provider)
         {
-            MessageCache = messageCache;
-            PinManagement = pinManagement;
         }
 
         [Command("pinpurge")]
@@ -35,7 +29,8 @@ namespace Grillbot.Modules
 
             try
             {
-                var result = await PinManagement.PinPurgeAsync(channel, takeCount, skipCount);
+                using var service = GetService<PinManagement>();
+                var result = await service.Service.PinPurgeAsync(channel, takeCount, skipCount);
                 await message.ModifyAsync(m => m.Content = $"Úklid pinů dokončen. Uklizeno pinů: **{result.FormatWithSpaces()}**");
             }
             finally
@@ -56,6 +51,7 @@ namespace Grillbot.Modules
                 Timeout = 30000
             };
 
+            count++; // Include command message.
             var messages = await channel.GetMessagesAsync(count, options: options).FlattenAsync();
 
             var olderTwoWeeks = messages.Where(o => (DateTime.UtcNow - o.CreatedAt).TotalDays >= 14.0);
@@ -68,8 +64,9 @@ namespace Grillbot.Modules
                 await oldMessage.DeleteMessageAsync(options);
             }
 
-            MessageCache.TryBulkDelete(messages.Select(o => o.Id));
-            await ReplyAndDeleteAsync($"Počet smazaných zpráv: {messages.Count()}", deleteOptions: options);
+            using var messageCache = GetService<IMessageCache>();
+            messageCache.Service.TryBulkDelete(messages.Select(o => o.Id));
+            await ReplyAndDeleteAsync($"Počet smazaných zpráv: **{messages.Count()}**", deleteOptions: options);
         }
     }
 }

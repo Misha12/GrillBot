@@ -1,7 +1,7 @@
 using Discord;
 using Discord.Commands;
 using Discord.Rest;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
@@ -22,13 +22,11 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public abstract class BotModuleBase : ModuleBase<SocketCommandContext>, IDisposable
     {
-        protected ConfigRepository ConfigRepository { get; }
         private PaginationService PaginationService { get; }
         private IServiceProvider Provider { get; }
 
-        protected BotModuleBase(ConfigRepository configRepository = null, PaginationService paginationService = null, IServiceProvider provider = null)
+        protected BotModuleBase(PaginationService paginationService = null, IServiceProvider provider = null)
         {
-            ConfigRepository = configRepository;
             PaginationService = paginationService;
             Provider = provider;
         }
@@ -41,12 +39,14 @@ namespace Grillbot.Modules
             return new ScopedService<TService>(service, scope);
         }
 
-        protected TConfig GetMethodConfig<TConfig>(string group, string command) where TConfig : class
+        protected async Task<TConfig> GetMethodConfigAsync<TConfig>(string group, string command) where TConfig : class
         {
-            if (ConfigRepository == null)
-                throw new InvalidOperationException("Cannot get method config, missing config instance.");
+            if (Provider == null)
+                throw new InvalidOperationException("Cannot get method config, missing provider.");
 
-            var config = ConfigRepository.FindConfig(Context.Guild.Id, group, command);
+            using var service = GetService<IGrillBotRepository>();
+
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, group, command);
             return config?.GetData<TConfig>() ?? throw new ConfigException();
         }
 
@@ -120,12 +120,7 @@ namespace Grillbot.Modules
         protected virtual void Dispose(bool disposing)
         {
             if (!disposedValue)
-            {
-                if (disposing && ConfigRepository != null)
-                    ConfigRepository.Dispose();
-
                 disposedValue = true;
-            }
         }
 
         public void Dispose()

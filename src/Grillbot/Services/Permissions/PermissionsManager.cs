@@ -1,26 +1,23 @@
 using Discord.Commands;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Database.Repository;
 using Grillbot.Enums;
-using System;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Permissions
 {
-    public class PermissionsManager : IDisposable
+    public class PermissionsManager
     {
-        private ConfigRepository Repository { get; }
         private BotState BotState { get; }
-        private UsersRepository UsersRepository { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public PermissionsManager(ConfigRepository repository, BotState botState, UsersRepository usersRepository)
+        public PermissionsManager(BotState botState, IGrillBotRepository grillBotRepository)
         {
-            Repository = repository;
             BotState = botState;
-            UsersRepository = usersRepository;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task<PermissionsResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command)
@@ -31,7 +28,7 @@ namespace Grillbot.Services.Permissions
             if (BotState.AppInfo.Owner.Id == context.User.Id)
                 return PermissionsResult.Success;
 
-            var dbUser = await UsersRepository.GetUserAsync(context.Guild.Id, context.User.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(context.Guild.Id, context.User.Id, UsersIncludes.None);
 
             if (dbUser == null)
                 return PermissionsResult.MissingPermissions;
@@ -39,7 +36,7 @@ namespace Grillbot.Services.Permissions
             if ((dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
                 return PermissionsResult.Success;
 
-            var config = Repository.FindConfig(context.Guild.Id, command.Module.Group, command.Name);
+            var config = await GrillBotRepository.ConfigRepository.FindConfigAsync(context.Guild.Id, command.Module.Group, command.Name);
 
             if (config == null)
                 return PermissionsResult.MethodNotFound;
@@ -83,12 +80,6 @@ namespace Grillbot.Services.Permissions
             }
 
             return PermissionsResult.MissingPermissions;
-        }
-
-        public void Dispose()
-        {
-            Repository.Dispose();
-            UsersRepository.Dispose();
         }
     }
 }

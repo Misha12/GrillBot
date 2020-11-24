@@ -1,11 +1,13 @@
 using Discord;
 using Discord.Commands;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
+using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Extensions;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,21 +19,18 @@ namespace Grillbot.Handlers
         private CommandService CommandService { get; }
         private IServiceProvider Services { get; }
         private ILogger<CommandExecutedHandler> Logger { get; }
-        private InternalStatistics InternalStatistics { get; }
-        private BotState BotState { get; }
 
-        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger,
-            InternalStatistics internalStatistics, BotState botState)
+        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger)
         {
             CommandService = commandService;
             Services = services;
             Logger = logger;
-            InternalStatistics = internalStatistics;
-            BotState = botState;
         }
 
-        private async Task CommandExecutedAsync(Discord.Optional<CommandInfo> command, ICommandContext context, IResult result)
+        private async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
+            using var scope = Services.CreateScope();
+
             if (!result.IsSuccess && result.Error != null)
             {
                 switch (result.Error.Value)
@@ -55,17 +54,18 @@ namespace Grillbot.Handlers
 
             try
             {
-                LogCommand(command, context);
+                await LogCommandAsync(command, context, scope.ServiceProvider);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "");
             }
 
-            BotState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
+            var botState = scope.ServiceProvider.GetService<BotState>();
+            botState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
-        private void LogCommand(Optional<CommandInfo> command, ICommandContext context)
+        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context, IServiceProvider scopedProvider)
         {
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
             var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
@@ -75,15 +75,23 @@ namespace Grillbot.Handlers
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
 
             if (command.IsSpecified)
-                InternalStatistics.IncrementCommand(commandName);
+                scopedProvider.GetService<InternalStatistics>().IncrementCommand(commandName);
 
             if (context.Guild != null && command.IsSpecified)
             {
                 var cmd = command.Value;
 
-                using var scope = Services.CreateScope();
-                using var configRepository = scope.ServiceProvider.GetService<ConfigRepository>();
-                configRepository.IncrementUsageCounter(context.Guild, cmd.Module.Group, cmd.Name);
+                var grillBotRepository = scopedProvider.GetService<IGrillBotRepository>();
+
+                var config = await grillBotRepository.ConfigRepository.FindConfigAsync(context.Guild.Id, cmd.Module.Group, cmd.Name, false);
+                if (config == null)
+                {
+                    config = MethodsConfig.Create(context.Guild, cmd.Module.Group, cmd.Name, false, new JObject());
+                    grillBotRepository.Add(config);
+                }
+
+                config.UsedCount++;
+                await grillBotRepository.CommitAsync();
             }
         }
 

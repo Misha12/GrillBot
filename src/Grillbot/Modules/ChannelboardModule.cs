@@ -7,6 +7,7 @@ using Grillbot.Services.Channelboard;
 using Grillbot.Models.Embed;
 using Grillbot.Extensions;
 using Grillbot.Attributes;
+using System;
 
 namespace Grillbot.Modules
 {
@@ -16,12 +17,10 @@ namespace Grillbot.Modules
     public class ChannelboardModule : BotModuleBase
     {
         private ChannelStats Stats { get; }
-        private ChannelboardWeb ChannelboardWeb { get; }
 
-        public ChannelboardModule(ChannelStats channelStats, ChannelboardWeb channelboardWeb)
+        public ChannelboardModule(ChannelStats channelStats, IServiceProvider provider) : base(provider: provider)
         {
             Stats = channelStats;
-            ChannelboardWeb = channelboardWeb;
         }
 
         [Command("")]
@@ -54,7 +53,8 @@ namespace Grillbot.Modules
         [Summary("Webový leaderboard.")]
         public async Task ChannelboardWebAsync()
         {
-            var url = ChannelboardWeb.GetWebUrl(Context);
+            using var service = GetService<ChannelboardWeb>();
+            var url = await service.Service.GetWebUrlAsync(Context);
 
             var message = $"Tady máš odkaz na channelboard serveru **{Context.Guild.Name}**: {url}.";
             await Context.Message.Author.SendPrivateMessageAsync(message).ConfigureAwait(false);
@@ -93,13 +93,6 @@ namespace Grillbot.Modules
 
             await ReplyChunkedAsync(clearedChannels, 10);
             await ReplyAsync("> Čištění dokončeno.").ConfigureAwait(false);
-        }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            ChannelboardWeb.Dispose();
-
-            base.AfterExecute(command);
         }
     }
 }

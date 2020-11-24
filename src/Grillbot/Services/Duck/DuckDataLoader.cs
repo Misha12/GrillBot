@@ -1,4 +1,3 @@
-using Grillbot.Database.Repository;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Duck;
 using Microsoft.Extensions.Logging;
@@ -14,14 +13,12 @@ namespace Grillbot.Services.Duck
     public class DuckDataLoader : IDisposable
     {
         private HttpClient HttpClient { get; }
-        private ConfigRepository ConfigRepository { get; }
         private ILogger<DuckDataLoader> Logger { get; }
         private JsonSerializer JsonSerializer { get; }
 
-        public DuckDataLoader(IHttpClientFactory httpClientFactory, ConfigRepository configRepository, ILogger<DuckDataLoader> logger)
+        public DuckDataLoader(IHttpClientFactory httpClientFactory, ILogger<DuckDataLoader> logger)
         {
             HttpClient = httpClientFactory.CreateClient();
-            ConfigRepository = configRepository;
             Logger = logger;
             JsonSerializer = new JsonSerializer();
         }
@@ -61,7 +58,6 @@ namespace Grillbot.Services.Duck
         public void Dispose()
         {
             HttpClient.Dispose();
-            ConfigRepository.Dispose();
         }
     }
 }

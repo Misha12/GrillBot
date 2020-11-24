@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -72,9 +72,9 @@ namespace Grillbot.Database.Entity.MethodConfig
         {
             return new MethodsConfig()
             {
-                Command = command,
+                Command = string.IsNullOrEmpty(command) ? "" : command,
                 Config = json,
-                Group = group,
+                Group = string.IsNullOrEmpty(group) ? "" : group,
                 GuildID = guildID.ToString(),
                 OnlyAdmins = onlyAdmins
             };

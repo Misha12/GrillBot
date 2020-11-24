@@ -1,5 +1,5 @@
 using Discord.WebSocket;
-using Grillbot.Database.Repository;
+using Grillbot.Database;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Unverify.Models;
@@ -11,20 +11,19 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
-    public class UnverifyProfileGenerator : IDisposable
+    public class UnverifyProfileGenerator
     {
         private UnverifyTimeParser TimeParser { get; }
         private UnverifyReasonParser ReasonParser { get; }
         private DiscordSocketClient Discord { get; }
-        private ConfigRepository ConfigRepository { get; }
+        private IGrillBotRepository GrillBotRepository { get; }
 
-        public UnverifyProfileGenerator(UnverifyTimeParser timeParser, UnverifyReasonParser reasonParser, DiscordSocketClient discord,
-            ConfigRepository configRepository)
+        public UnverifyProfileGenerator(UnverifyTimeParser timeParser, UnverifyReasonParser reasonParser, DiscordSocketClient discord, IGrillBotRepository grillBotRepository)
         {
             TimeParser = timeParser;
             ReasonParser = reasonParser;
             Discord = discord;
-            ConfigRepository = configRepository;
+            GrillBotRepository = grillBotRepository;
         }
 
         public async Task<UnverifyUserProfile> CreateProfileAsync(SocketGuildUser user, SocketGuild guild, string time, string data, bool isSelfunverify, List<string> toKeep,
@@ -39,7 +38,7 @@ namespace Grillbot.Services.Unverify
                 IsSelfUnverify = isSelfunverify
             };
 
-            var selfUnverifyConfig = GetSelfunverifyConfig(guild);
+            var selfUnverifyConfig = await GetSelfunverifyConfigAsync(guild);
 
             if (isSelfunverify && selfUnverifyConfig == null)
                 throw new InvalidOperationException("Neplatná konfigurace pro selfunverify");
@@ -126,9 +125,9 @@ namespace Grillbot.Services.Unverify
             profile.RolesToRemove.RemoveAll(o => o.IsEveryone || unavailableRoles.Any(x => x.Id == o.Id));
         }
 
-        private SelfUnverifyConfig GetSelfunverifyConfig(SocketGuild guild)
+        private async Task<SelfUnverifyConfig> GetSelfunverifyConfigAsync(SocketGuild guild)
         {
-            var config = ConfigRepository.FindConfig(guild.Id, "selfunverify", null);
+            var config = await GrillBotRepository.ConfigRepository.FindConfigAsync(guild.Id, "selfunverify", null);
             return config?.GetData<SelfUnverifyConfig>();
         }
 
@@ -169,11 +168,6 @@ namespace Grillbot.Services.Unverify
         {
             if (!ExistsInKeepDefinition(selfUnverifyConfig.RolesToKeep, name))
                 throw new ValidationException($"`{name.ToUpper()}` není ponechatelné.");
-        }
-
-        public void Dispose()
-        {
-            ConfigRepository?.Dispose();
         }
     }
 }

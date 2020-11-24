@@ -33,14 +33,18 @@ namespace Grillbot.Services
             return services
                 .AddScoped<EmoteStats>()
                 .AddScoped<AutoReplyService>()
-                .AddScoped<BotStatusService>();
+                .AddScoped<BotStatusService>()
+                .AddScoped<ChannelboardWeb>()
+                .AddScoped<DuckDataLoader>()
+                .AddScoped<MemeImagesService>()
+                .AddScoped<PermissionsManager>()
+                .AddScoped<PinManagement>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
         {
             services
                 .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
-                .AddTransient<ConfigRepository>()
                 .AddTransient<ChannelStatsRepository>()
                 .AddTransient<TeamSearchRepository>()
                 .AddTransient<UsersRepository>()
@@ -144,26 +148,10 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddPermissionsServices(this IServiceCollection services)
-        {
-            services
-                .AddTransient<PermissionsManager>();
-
-            return services;
-        }
-
         public static IServiceCollection AddPaginationServices(this IServiceCollection services)
         {
             services
                 .AddSingleton<PaginationService>();
-
-            return services;
-        }
-
-        public static IServiceCollection AddMemeImages(this IServiceCollection services)
-        {
-            services
-                .AddTransient<MemeImagesService>();
 
             return services;
         }
@@ -175,7 +163,7 @@ namespace Grillbot.Services
                 .AddTransient<UnverifyChecker>()
                 .AddTransient<UnverifyLogger>()
                 .AddTransient<UnverifyMessageGenerator>()
-                .AddTransient<UnverifyProfileGenerator>()
+                .AddScoped<UnverifyProfileGenerator>()
                 .AddTransient<UnverifyReasonParser>()
                 .AddTransient<UnverifyTimeParser>()
                 .AddSingleton<UnverifyTaskService>()
@@ -195,7 +183,6 @@ namespace Grillbot.Services
         public static IServiceCollection AddChannelboard(this IServiceCollection services)
         {
             services
-                .AddTransient<ChannelboardWeb>()
                 .AddTransient<ChannelStats>();
 
             return services;
@@ -218,7 +205,6 @@ namespace Grillbot.Services
         public static IServiceCollection AddDiscordAdminServices(this IServiceCollection services)
         {
             services
-                .AddTransient<PinManagement>()
                 .AddTransient<InviteTrackerService>();
 
             return services;
@@ -227,7 +213,7 @@ namespace Grillbot.Services
         public static IServiceCollection AddDuckServices(this IServiceCollection services)
         {
             services
-                .AddTransient<DuckDataLoader>()
+                
                 .AddTransient<DuckEmbedRenderer>();
 
             return services;

@@ -1,15 +1,16 @@
 using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Database;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Repository;
-using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
+using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Linq;
 using System;
@@ -23,10 +24,10 @@ namespace Grillbot.Modules
 {
     [Group("config")]
     [Name("Konfigurace bota")]
-    [ModuleID("ConfigModule")]
+    [ModuleID(nameof(ConfigModule))]
     public class ConfigModule : BotModuleBase
     {
-        public ConfigModule(ConfigRepository repository, PaginationService paginationService) : base(repository, paginationService) { }
+        public ConfigModule(PaginationService paginationService, IServiceProvider provider) : base(paginationService: paginationService, provider: provider) { }
 
         [Command("addMethod")]
         [Summary("Přidání metody do configu")]
@@ -40,8 +41,12 @@ namespace Grillbot.Modules
             }
 
             var adminsOnly = Convert.ToBoolean(onlyAdmins);
+            var config = MethodsConfig.Create(Context.Guild, command.Group, command.Command, adminsOnly, configJson);
 
-            var config = ConfigRepository.AddConfig(Context.Guild, command.Group, command.Command, adminsOnly, configJson);
+            using var service = GetService<IGrillBotRepository>();
+            await service.Service.AddAsync(config);
+            await service.Service.CommitAsync();
+
             await ReplyAsync($"Konfigurační záznam `{command},OA:{adminsOnly},ID:{config.ID}` byl úspěšně přidán.");
         }
 
@@ -57,13 +62,14 @@ namespace Grillbot.Modules
                 Title = "Konfigurace metod"
             };
 
-            var methods = ConfigRepository.GetAllMethods(Context.Guild, true);
+            using var service = GetService<IGrillBotRepository>();
+            var methods = await service.Service.ConfigRepository.GetAllMethods(Context.Guild.Id, true).ToListAsync();
 
-            foreach(var group in methods.GroupBy(o => o.Group))
+            foreach (var group in methods.GroupBy(o => o.Group))
             {
                 var page = new PaginatedEmbedPage(null);
 
-                foreach(var method in group)
+                foreach (var method in group)
                 {
                     var value = string.Join("\n", new[]
                     {
@@ -86,26 +92,42 @@ namespace Grillbot.Modules
         [Summary("Přepne administrátorský režim pro metodu.")]
         public async Task SwitchOnlyAdminsAsync(GroupCommandMatch method, string onlyAdmins)
         {
-            try
-            {
-                if (await CheckMissingMethodID(method)) return;
+            if (await CheckMissingMethodID(method)) return;
 
-                ConfigRepository.UpdateMethod(Context.Guild, method.MethodID.Value, Convert.ToBoolean(onlyAdmins));
-                await ReplyAsync("Příkaz byl úspěšně aktualizován.").ConfigureAwait(false);
-            }
-            catch (ArgumentException ex)
+            using var service = GetService<IGrillBotRepository>();
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, false);
+
+            if (config == null)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
             }
+
+            config.OnlyAdmins = Convert.ToBoolean(onlyAdmins);
+            await service.Service.CommitAsync();
+
+            await ReplyAsync("Příkaz byl úspěšně aktualizován.").ConfigureAwait(false);
         }
 
-        [Command("updateJsonConfig")]
+        [Command("updateJson")]
         [Summary("Aktualizace configu")]
         public async Task UpdateJsonConfigAsync(GroupCommandMatch method, [Remainder] JObject jsonConfig)
         {
             if (await CheckMissingMethodID(method)) return;
 
-            ConfigRepository.UpdateMethod(Context.Guild, method.MethodID.Value, jsonConfig: jsonConfig);
+            using var service = GetService<IGrillBotRepository>();
+
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, false);
+
+            if (config == null)
+            {
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
+            }
+
+            config.Config = jsonConfig;
+            await service.Service.CommitAsync();
+
             await ReplyAsync("Metoda byla úspěšně aktualizována").ConfigureAwait(false);
         }
 
@@ -146,15 +168,24 @@ namespace Grillbot.Modules
                     return;
             }
 
-            try
+            using var service = GetService<IGrillBotRepository>();
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, true);
+
+            if (config == null)
             {
-                ConfigRepository.AddPermission(Context.Guild, method.MethodID.Value, targetID, (PermType)permType, (AllowType)allowType);
-                await ReplyAsync("Oprávnění bylo úspěšně přidáno.").ConfigureAwait(false);
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
             }
-            catch (ArgumentException ex)
+
+            config.Permissions.Add(new MethodPerm()
             {
-                await ReplyAsync(ex.Message);
-            }
+                AllowType = (AllowType)allowType,
+                DiscordID = targetID,
+                PermType = (PermType)permType
+            });
+
+            await service.Service.CommitAsync();
+            await ReplyAsync("Oprávnění bylo úspěšně přidáno.");
         }
 
         [Command("getMethod")]
@@ -162,10 +193,11 @@ namespace Grillbot.Modules
         public async Task ListPermissionsAsync(GroupCommandMatch method)
         {
             if (await CheckMissingMethodID(method)) return;
-            await Context.Guild.SyncGuildAsync().ConfigureAwait(false);
+            await Context.Guild.SyncGuildAsync();
 
-            var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
-            await ReplyAsync($"ID: `{config.ID}`\nSkupina/Příkaz: `{config.Group}/{config.Command}`\nOnlyAdmins: `{config.OnlyAdmins}`").ConfigureAwait(false);
+            using var service = GetService<IGrillBotRepository>();
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, true);
+            await ReplyAsync($"ID: `{config.ID}`\nSkupina/Příkaz: `{config.Group}/{config.Command}`\nOnlyAdmins: `{config.OnlyAdmins}`");
 
             var rowsData = config.Permissions.Select(o =>
             {
@@ -187,11 +219,11 @@ namespace Grillbot.Modules
             if (rowsData.Count > 0)
             {
                 rowsData.Insert(0, "ID\tUživatel/Role\tTyp práva\tTyp povolení");
-                await ReplyAsync($"```{string.Join("\n", rowsData)}```").ConfigureAwait(false);
+                await ReplyAsync($"```{string.Join("\n", rowsData)}```");
             }
             else
             {
-                await ReplyAsync("Tato metoda nemá nastaveny žádné oprávnění.").ConfigureAwait(false);
+                await ReplyAsync("Tato metoda nemá nastaveny žádné oprávnění.");
             }
         }
 
@@ -201,8 +233,27 @@ namespace Grillbot.Modules
         {
             if (await CheckMissingMethodID(method)) return;
 
-            ConfigRepository.RemovePermission(Context.Guild, method.MethodID.Value, permID);
-            await ReplyAsync("Oprávnění bylo odebráno").ConfigureAwait(false);
+            using var service = GetService<IGrillBotRepository>();
+
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, true);
+
+            if (config == null)
+            {
+                await ReplyAsync("Požadovaná metoda neexistuje");
+                return;
+            }
+
+            var permission = config.Permissions.FirstOrDefault(o => o.PermID == permID);
+
+            if (permission == null)
+            {
+                await ReplyAsync("Požadované oprávnění neexistuje.");
+                return;
+            }
+
+            config.Permissions.Remove(permission);
+            await service.Service.CommitAsync();
+            await ReplyAsync("Oprávnění bylo odebráno");
         }
 
         [Command("getJson")]
@@ -211,9 +262,16 @@ namespace Grillbot.Modules
         {
             if (await CheckMissingMethodID(method)) return;
 
-            var config = ConfigRepository.GetMethod(Context.Guild, method.MethodID.Value);
+            using var service = GetService<IGrillBotRepository>();
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, false);
 
-            if(config.ConfigData.Length >= Discord.DiscordConfig.MaxMessageSize)
+            if (config == null)
+            {
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
+            }
+
+            if (config.ConfigData.Length >= DiscordConfig.MaxMessageSize - 11)
             {
                 using var stream = new MemoryStream(Encoding.UTF8.GetBytes(config.ConfigData));
                 await Context.Channel.SendFileAsync(stream, $"{method.Group}_{method.Command}.json");
@@ -229,15 +287,18 @@ namespace Grillbot.Modules
         {
             if (await CheckMissingMethodID(method)) return;
 
-            try
+            using var service = GetService<IGrillBotRepository>();
+            var config = await service.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, method.Group, method.Command, true);
+
+            if (config == null)
             {
-                ConfigRepository.RemoveMethod(Context.Guild.Id, method.MethodID.Value);
-                await ReplyAsync("Metoda byla odebrána.");
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
             }
-            catch (InvalidOperationException ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
+
+            service.Service.Remove(config);
+            await service.Service.CommitAsync();
+            await ReplyAsync("Metoda byla odebrána.");
         }
 
         private async Task<bool> CheckMissingMethodID(GroupCommandMatch command)
@@ -255,7 +316,16 @@ namespace Grillbot.Modules
         [Summary("Smazání všech konfigurací o serveru")]
         public async Task RemoveGuildAsync(ulong guildID)
         {
-            ConfigRepository.RemoveGuild(guildID);
+            using var service = GetService<IGrillBotRepository>();
+
+            var configs = await service.Service.ConfigRepository.GetAllMethods(guildID, true).ToListAsync();
+
+            if (configs.Count > 0)
+            {
+                service.Service.RemoveCollection(configs);
+                await service.Service.CommitAsync();
+            }
+
             await ReplyAsync($"Guild `{guildID}` byla úspěšně z databáze uklizena.");
         }
 
@@ -263,7 +333,8 @@ namespace Grillbot.Modules
         [Summary("Kompletní export konfigurace do JSON souboru.")]
         public async Task ExportConfigurationAsync()
         {
-            var configs = ConfigRepository.GetAllMethods(Context.Guild, true);
+            using var service = GetService<IGrillBotRepository>();
+            var configs = await service.Service.ConfigRepository.GetAllMethods(Context.Guild.Id, true).ToListAsync();
             var json = JsonConvert.SerializeObject(configs);
 
             using var ms = new MemoryStream(Encoding.UTF8.GetBytes(json));
@@ -292,24 +363,40 @@ namespace Grillbot.Modules
             var state = Context.Channel.EnterTypingState();
             try
             {
+                using var service = GetService<IGrillBotRepository>();
+
                 foreach (var method in importedData)
                 {
-                    ConfigRepository.ImportConfiguration(method);
-                    await ReplyAsync($"> Importována metoda: `{method}`");
+                    if (await service.Service.ConfigRepository.ConfigExistsAsync(method.GuildIDSnowflake, method.Group, method.Command))
+                    {
+                        await ReplyAsync($"> Metoda `{method}` již existuje. **Ignoruji!**");
+                        continue;
+                    }
+
+                    var entity = MethodsConfig.Create(method.GuildIDSnowflake, method.Group, method.Command, method.OnlyAdmins, method.Config);
+
+                    foreach (var perm in method.Permissions)
+                    {
+                        entity.Permissions.Add(new MethodPerm()
+                        {
+                            AllowType = perm.AllowType,
+                            DiscordID = perm.DiscordID,
+                            PermType = perm.PermType
+                        });
+                    }
+
+                    await service.Service.AddAsync(entity);
+                    await ReplyAsync($"> Import metody `{method}` připraven.");
                 }
-            }
-            catch (InvalidOperationException ex)
-            {
-                await ReplyAsync(ex.Message);
-                await Context.Message.AddReactionAsync(new Emoji("❌"));
-                return;
+
+                await service.Service.CommitAsync();
             }
             finally
             {
                 state.Dispose();
             }
 
-            await ReplyAsync("Import byl úspěšně dokončen.");
+            await ReplyAsync("Uložení bylo úspěšné. Data importována.");
             await Context.Message.AddReactionAsync(new Emoji("✅"));
         }
 
@@ -317,15 +404,21 @@ namespace Grillbot.Modules
         [Summary("Přejmenování metody")]
         public async Task RenameMethod(int id, string group, string command)
         {
-            try
+            using var service = GetService<IGrillBotRepository>();
+
+            var config = await service.Service.ConfigRepository.GetAllMethods(Context.Guild.Id, false)
+                .SingleOrDefaultAsync(o => o.ID == id);
+
+            if (config == null)
             {
-                ConfigRepository.RenameMethod(Context.Guild.Id, id, group, command);
-                await ReplyAsync("Metoda byla přejmenována.");
+                await ReplyAsync("Požadovaná metoda neexistuje.");
+                return;
             }
-            catch (NotFoundException ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
+
+            config.Group = group;
+            config.Command = command;
+            await service.Service.CommitAsync();
+            await ReplyAsync("Metoda byla přejmenována.");
         }
     }
 }

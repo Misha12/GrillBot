@@ -1,12 +1,5 @@
-using Discord;
-using Discord.WebSocket;
 using Grillbot.Database.Entity.MethodConfig;
-using Grillbot.Database.Enums;
-using Grillbot.Exceptions;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
-using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -28,15 +21,6 @@ namespace Grillbot.Database.Repository
             return query;
         }
 
-        public MethodsConfig FindConfig(ulong guildID, string group, string command, bool withPerms = true)
-        {
-            CorrectValue(ref group);
-            CorrectValue(ref command);
-
-            var query = GetBaseQuery(withPerms);
-            return query.FirstOrDefault(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
-        }
-
         public Task<MethodsConfig> FindConfigAsync(ulong guildID, string group, string command, bool withPerms = true)
         {
             CorrectValue(ref group);
@@ -46,188 +30,25 @@ namespace Grillbot.Database.Repository
                 .SingleOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
 
-        public MethodsConfig AddConfig(SocketGuild guild, string group, string command, bool onlyAdmins, JObject json)
-        {
-            CorrectValue(ref group);
-            CorrectValue(ref command);
-
-            var entity = MethodsConfig.Create(guild, group, command, onlyAdmins, json);
-
-            Context.MethodsConfig.Add(entity);
-            Context.SaveChanges();
-
-            return entity;
-        }
-
-        public List<MethodsConfig> GetAllMethods(SocketGuild guild, bool withPermissions = false)
+        public IQueryable<MethodsConfig> GetAllMethods(ulong guildID, bool withPermissions = false)
         {
             var query = GetBaseQuery(withPermissions);
-            return query.Where(o => o.GuildID == guild.Id.ToString()).ToList();
+            return query.Where(o => o.GuildID == guildID.ToString());
         }
 
-        public MethodsConfig UpdateMethod(SocketGuild guild, int methodID, bool? onlyAdmins = null, JObject jsonConfig = null)
-        {
-            var item = GetBaseQuery(false)
-                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
-
-            if (item == null)
-                throw new ArgumentException("Požadovaná metoda neexistuje");
-
-            if (onlyAdmins != null)
-                item.OnlyAdmins = onlyAdmins.Value;
-
-            if (jsonConfig != null)
-                item.Config = jsonConfig;
-
-            Context.SaveChanges();
-            return item;
-        }
-
-        public MethodsConfig AddPermission(SocketGuild guild, int methodID, string targetID, PermType permType, AllowType allowType)
-        {
-            var item = GetBaseQuery(true).FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
-
-            if (item == null)
-                throw new ArgumentException("Požadovaná metoda neexistuje.");
-
-            item.Permissions.Add(new MethodPerm()
-            {
-                AllowType = allowType,
-                DiscordID = targetID,
-                PermType = permType
-            });
-
-            Context.SaveChanges();
-            return item;
-        }
-
-        public MethodsConfig GetMethod(IGuild guild, int methodID)
-        {
-            var item = GetBaseQuery(true)
-                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
-
-            if (item == null)
-                throw new ArgumentException("Požadovaná metoda neexistuje");
-
-            return item;
-        }
-
-        public void RemovePermission(SocketGuild guild, int methodID, int permID)
-        {
-            var item = GetBaseQuery(true)
-                .FirstOrDefault(o => o.GuildID == guild.Id.ToString() && o.ID == methodID);
-
-            if (item == null)
-                throw new ArgumentException("Požadovaná metoda neexistuje");
-
-            var permission = item.Permissions.FirstOrDefault(o => o.PermID == permID);
-
-            if (permission == null)
-                throw new ArgumentException("Takové oprávnění neexistuje");
-
-            item.Permissions.Remove(permission);
-            Context.SaveChanges();
-        }
-
-        public void IncrementUsageCounter(IGuild guild, string group, string command)
-        {
-            CorrectValue(ref group);
-            CorrectValue(ref command);
-
-            var guildID = guild?.Id.ToString();
-
-            var entity = GetBaseQuery(false)
-                .FirstOrDefault(o => o.GuildID == guildID && o.Group == group && o.Command == command);
-
-            if (entity == null)
-            {
-                entity = MethodsConfig.Create(guild, group, command, false, null);
-                Context.MethodsConfig.Add(entity);
-            }
-
-            entity.UsedCount++;
-            Context.SaveChanges();
-        }
-
-        public List<MethodsConfig> GetAllConfigurations()
-        {
-            return GetBaseQuery(true)
-                .OrderByDescending(o => o.UsedCount)
-                .ToList();
-        }
-
-        private void CorrectValue(ref string value)
+        public void CorrectValue(ref string value)
         {
             if (value == null)
                 value = "";
         }
 
-        public void RemoveMethod(ulong guildID, int methodID)
-        {
-            var method = GetBaseQuery(true)
-                .SingleOrDefault(o => o.GuildID == guildID.ToString() && o.ID == methodID);
-
-            if (method == null)
-                throw new NotFoundException($"Konfigurace pro metodu s ID `{methodID}` nebyla nalezena.");
-
-            Context.MethodsConfig.Remove(method);
-            Context.SaveChanges();
-        }
-
-        public void RemoveGuild(ulong guildID)
-        {
-            var guild = guildID.ToString();
-
-            var methods = GetBaseQuery(true)
-                .Where(o => o.GuildID == guild)
-                .ToList();
-
-            if (methods.Count == 0)
-                return;
-
-            Context.MethodsConfig.RemoveRange(methods);
-            Context.SaveChanges();
-        }
-
-        public void ImportConfiguration(MethodsConfig config)
-        {
-            if (config.Group == null) config.Group = "";
-            if (config.Command == null) config.Command = "";
-
-            if (GetBaseQuery(false).Any(o => o.GuildID == config.GuildID && o.Group == config.Group && o.Command == config.Command))
-                throw new InvalidOperationException($"Metoda `{config}` již existuje.");
-
-            var entity = MethodsConfig.Create(config.GuildIDSnowflake, config.Group, config.Command, config.OnlyAdmins, config.Config);
-
-            foreach (var perm in config.Permissions)
-            {
-                entity.Permissions.Add(new MethodPerm()
-                {
-                    AllowType = perm.AllowType,
-                    DiscordID = perm.DiscordID,
-                    PermType = perm.PermType
-                });
-            }
-
-            Context.MethodsConfig.Add(entity);
-            Context.SaveChanges();
-        }
-
-        public void RenameMethod(ulong guildID, int id, string group, string command)
+        public Task<bool> ConfigExistsAsync(ulong guildID, string group, string command)
         {
             CorrectValue(ref group);
             CorrectValue(ref command);
 
-            var entity = GetBaseQuery(false)
-                .SingleOrDefault(o => o.GuildID == guildID.ToString() && o.ID == id);
-
-            if (entity == null)
-                throw new NotFoundException($"Metoda s ID `{id}` neexistuje.");
-
-            entity.Group = group;
-            entity.Command = command;
-
-            Context.SaveChanges();
+            return GetBaseQuery(false)
+                .AnyAsync(o => o.GuildID == guildID.ToString() && o.Group == group && o.Command == command);
         }
     }
 }

@@ -23,11 +23,8 @@ namespace Grillbot.Modules
     [ModuleID("UnverifyModule")]
     public class UnverifyModule : BotModuleBase
     {
-        private UnverifyService Service { get; }
-
-        public UnverifyModule(PaginationService paginationService, UnverifyService service) : base(paginationService: paginationService)
+        public UnverifyModule(PaginationService paginationService, IServiceProvider provider) : base(paginationService: paginationService, provider: provider)
         {
-            Service = service;
         }
 
         [Command("")]
@@ -46,7 +43,8 @@ namespace Grillbot.Modules
                 if (usersToUnverify.Count == 0)
                     return;
 
-                var messages = await Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
+                using var service = GetService<UnverifyService>();
+                var messages = await service.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
                 await ReplyChunkedAsync(messages, 1);
             }
             catch (Exception ex)
@@ -93,7 +91,8 @@ namespace Grillbot.Modules
         [Remarks("Zadává se identifikace uživatele. To znamená ID uživatele, tag, nebo jméno (username, nebo alias).\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify remove @GrillBot`")]
         public async Task RemoveUnverifyAsync(SocketGuildUser user)
         {
-            var message = await Service.RemoveUnverifyAsync(Context.Guild, user, Context.User);
+            using var service = GetService<UnverifyService>();
+            var message = await service.Service.RemoveUnverifyAsync(Context.Guild, user, Context.User);
             await ReplyAsync(message);
         }
 
@@ -101,7 +100,8 @@ namespace Grillbot.Modules
         [Summary("Seznam všech lidí, co má dočasně odebraný přístup.")]
         public async Task ListUnverifyAsync()
         {
-            var profiles = await Service.GetCurrentUnverifies(Context.Guild);
+            using var service = GetService<UnverifyService>();
+            var profiles = await service.Service.GetCurrentUnverifies(Context.Guild);
 
             if (profiles.Count == 0)
             {
@@ -175,7 +175,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                var message = await Service.UpdateUnverifyAsync(user, Context.Guild, time, Context.User);
+                using var service = GetService<UnverifyService>();
+                var message = await service.Service.UpdateUnverifyAsync(user, Context.Guild, time, Context.User);
                 await ReplyAsync(message).ConfigureAwait(false);
             }
             catch (Exception ex)
@@ -194,7 +195,8 @@ namespace Grillbot.Modules
         [Summary("Statistiky unverify")]
         public async Task StatsAsync()
         {
-            var unverifies = await Service.GetCurrentUnverifies(Context.Guild);
+            using var service = GetService<UnverifyService>();
+            var unverifies = await service.Service.GetCurrentUnverifies(Context.Guild);
 
             var embed = new BotEmbed(Context.User, title: "Statistiky unverify")
                 .AddField("SelfUnverify", unverifies.Count(o => o.Profile.IsSelfUnverify).FormatWithSpaces(), true)
@@ -216,7 +218,8 @@ namespace Grillbot.Modules
                 return;
             }
 
-            await Service.SetImunityAsync(Context.Guild, user, groupName);
+            using var service = GetService<UnverifyService>();
+            await service.Service.SetImunityAsync(Context.Guild, user, groupName);
             await ReplyAsync("Imunita nastavena.");
         }
 
@@ -224,7 +227,8 @@ namespace Grillbot.Modules
         [Summary("Získání seznamu skupin s imunitou.")]
         public async Task PrintGroupsAsync()
         {
-            var groups = await Service.GetImunityGroupsAsync(Context.Guild);
+            using var service = GetService<UnverifyService>();
+            var groups = await service.Service.GetImunityGroupsAsync(Context.Guild);
             var formated = groups.Select(o => $"> `{o.Key}`: {FormatHelper.FormatUsersCountCz(o.Value)}");
 
             await ReplyChunkedAsync(formated.SplitInParts(10));
@@ -236,7 +240,8 @@ namespace Grillbot.Modules
         {
             try
             {
-                await Service.RemoveImunityAsync(Context.Guild, user);
+                using var service = GetService<UnverifyService>();
+                await service.Service.RemoveImunityAsync(Context.Guild, user);
                 await ReplyAsync("Imunita odebrána.");
             }
             catch (ValidationException ex)
@@ -255,7 +260,8 @@ namespace Grillbot.Modules
                 return;
             }
 
-            var usernames = await Service.GetUnverifyGroupUsersAsync(Context.Guild, groupName);
+            using var service = GetService<UnverifyService>();
+            var usernames = await service.Service.GetUnverifyGroupUsersAsync(Context.Guild, groupName);
 
             await ReplyAsync($"`{groupName}` ({FormatHelper.FormatUsersCountCz(usernames.Count)})");
             if (usernames.Count > 0)
@@ -263,12 +269,5 @@ namespace Grillbot.Modules
         }
 
         #endregion
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            Service.Dispose();
-
-            base.AfterExecute(command);
-        }
     }
 }

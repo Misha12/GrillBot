@@ -1,7 +1,6 @@
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Models.Config.Dynamic;
@@ -21,7 +20,7 @@ namespace Grillbot.Modules
     {
         private UnverifyService Service { get; }
 
-        public SelfUnverifyModule(UnverifyService service, ConfigRepository configRepository) : base(configRepository: configRepository)
+        public SelfUnverifyModule(UnverifyService service, IServiceProvider provider) : base(provider: provider)
         {
             Service = service;
         }
@@ -83,7 +82,7 @@ namespace Grillbot.Modules
         [Summary("Definice přístupů, co si může uživatel ponechat.")]
         public async Task GetDefsListAsync()
         {
-            var config = GetMethodConfig<SelfUnverifyConfig>("selfunverify", null);
+            var config = await GetMethodConfigAsync<SelfUnverifyConfig>("selfunverify", null);
 
             var embed = new BotEmbed(Context.User, title: "Ponechatelné role a kanály")
                 .AddField("Max. počet ponechatelných", config.MaxRolesToKeep.FormatWithSpaces(), false);

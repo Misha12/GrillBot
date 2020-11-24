@@ -2,7 +2,6 @@ using Discord.Commands;
 using System.Threading.Tasks;
 using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
-using Grillbot.Database.Repository;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Extensions.Discord;
 using Grillbot.Enums;
@@ -15,11 +14,8 @@ namespace Grillbot.Modules
     [Name("Ostatní zbytečnosti")]
     public class MemeModule : BotModuleBase
     {
-        private MemeImagesService Service { get; }
-
-        public MemeModule(MemeImagesService service, ConfigRepository config) : base(configRepository: config)
+        public MemeModule(IServiceProvider provider) : base(provider: provider)
         {
-            Service = service;
         }
 
         [Command("nudes")]
@@ -36,7 +32,8 @@ namespace Grillbot.Modules
 
         private async Task SendAsync(string category)
         {
-            var content = await Service.GetRandomFileAsync(Context.Guild, category);
+            using var service = GetService<MemeImagesService>();
+            var content = await service.Service.GetRandomFileAsync(Context.Guild, category);
 
             if (content == null)
             {
@@ -53,9 +50,10 @@ namespace Grillbot.Modules
             if (forUser == null)
                 forUser = Context.User;
 
-            var config = GetMethodConfig<PeepoloveConfig>(null, "peepolove");
+            var config = await GetMethodConfigAsync<PeepoloveConfig>(null, "peepolove");
 
-            using var bitmap = await Service.CreatePeepoloveAsync(forUser, config);
+            using var service = GetService<MemeImagesService>();
+            using var bitmap = await service.Service.CreatePeepoloveAsync(forUser, config);
             await ReplyImageAsync(bitmap, "peepolove.png");
         }
 
@@ -67,8 +65,9 @@ namespace Grillbot.Modules
             if (forUser == null)
                 forUser = Context.User;
 
-            var config = GetMethodConfig<PeepoAngryConfig>(null, "peepoangry");
-            using var bitmap = await Service.PeepoAngryAsync(forUser, config);
+            var config = await GetMethodConfigAsync<PeepoAngryConfig>(null, "peepoangry");
+            using var service = GetService<MemeImagesService>();
+            using var bitmap = await service.Service.PeepoAngryAsync(forUser, config);
             await ReplyImageAsync(bitmap, "peepoangry.png");
         }
 
@@ -82,7 +81,7 @@ namespace Grillbot.Modules
         [Remarks("Možné formáty odpovědi jsou 'text', 'bin', nebo 'hex'.")]
         public async Task GreetAsync(string mode)
         {
-            var config = GetMethodConfig<GreetingConfig>("", "grillhi");
+            var config = await GetMethodConfigAsync<GreetingConfig>("", "grillhi");
 
             if (string.IsNullOrEmpty(mode))
                 mode = config.OutputMode.ToString().ToLower();
@@ -118,7 +117,7 @@ namespace Grillbot.Modules
 
             if (!supportedBases.Contains(@base)) return;
 
-            var config = GetMethodConfig<GreetingConfig>("", "grillhi");
+            var config = await GetMethodConfigAsync<GreetingConfig>("", "grillhi");
 
             var message = config.MessageTemplate.Replace("{person}", Context.User.GetFullName());
             var converted = ConvertToBinOrHexa(message, @base);
@@ -129,13 +128,6 @@ namespace Grillbot.Modules
         private string ConvertToBinOrHexa(string message, int @base)
         {
             return string.Join(" ", message.Select(o => Convert.ToString(o, @base)));
-        }
-
-        protected override void AfterExecute(CommandInfo command)
-        {
-            Service.Dispose();
-
-            base.AfterExecute(command);
         }
     }
 }

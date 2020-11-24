@@ -11,7 +11,7 @@ namespace Grillbot.Services.Permissions.Preconditions
         public override async Task<PreconditionResult> CheckPermissionsAsync(ICommandContext context, CommandInfo command, IServiceProvider services)
         {
             using var scope = services.CreateScope();
-            using var permsManager = (PermissionsManager)scope.ServiceProvider.GetService(typeof(PermissionsManager));
+            var permsManager = (PermissionsManager)scope.ServiceProvider.GetService(typeof(PermissionsManager));
 
             return (await permsManager.CheckPermissionsAsync(context, command)) switch
             {
