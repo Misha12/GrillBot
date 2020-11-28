@@ -363,7 +363,7 @@ namespace Grillbot.Services.Unverify
         {
             BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(user.Guild, user));
 
-            var unverify = GrillBotRepository.UnverifyRepository.FindUnverifyByUser(user.Guild.Id, user.Id);
+            var unverify = await GrillBotRepository.UnverifyRepository.FindUnverifyByUser(user.Guild.Id, user.Id);
 
             if (unverify == null)
                 return;
