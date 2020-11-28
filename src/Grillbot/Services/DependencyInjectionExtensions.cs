@@ -1,5 +1,4 @@
 using Grillbot.Database;
-using Grillbot.Database.Repository;
 using Grillbot.Handlers;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
