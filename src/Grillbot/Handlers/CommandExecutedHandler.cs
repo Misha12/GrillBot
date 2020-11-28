@@ -19,18 +19,21 @@ namespace Grillbot.Handlers
         private CommandService CommandService { get; }
         private IServiceProvider Services { get; }
         private ILogger<CommandExecutedHandler> Logger { get; }
+        private BotState BotState { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger)
+        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger, BotState botState,
+            InternalStatistics internalStatistics)
         {
             CommandService = commandService;
             Services = services;
             Logger = logger;
+            BotState = botState;
+            InternalStatistics = internalStatistics;
         }
 
         private async Task CommandExecutedAsync(Optional<CommandInfo> command, ICommandContext context, IResult result)
         {
-            using var scope = Services.CreateScope();
-
             if (!result.IsSuccess && result.Error != null)
             {
                 switch (result.Error.Value)
@@ -54,18 +57,17 @@ namespace Grillbot.Handlers
 
             try
             {
-                await LogCommandAsync(command, context, scope.ServiceProvider);
+                await LogCommandAsync(command, context);
             }
             catch (Exception ex)
             {
                 Logger.LogError(ex, "");
             }
 
-            var botState = scope.ServiceProvider.GetService<BotState>();
-            botState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
+            BotState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
-        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context, IServiceProvider scopedProvider)
+        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
         {
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
             var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
@@ -75,13 +77,14 @@ namespace Grillbot.Handlers
             Logger.LogInformation("Executed {0}.\t{1}", commandName, args);
 
             if (command.IsSpecified)
-                scopedProvider.GetService<InternalStatistics>().IncrementCommand(commandName);
+                InternalStatistics.IncrementCommand(commandName);
 
             if (context.Guild != null && command.IsSpecified)
             {
                 var cmd = command.Value;
 
-                var grillBotRepository = scopedProvider.GetService<IGrillBotRepository>();
+                using var scope = Services.CreateScope();
+                var grillBotRepository = scope.ServiceProvider.GetService<IGrillBotRepository>();
 
                 var config = await grillBotRepository.ConfigRepository.FindConfigAsync(context.Guild.Id, cmd.Module.Group, cmd.Name, false);
                 if (config == null)

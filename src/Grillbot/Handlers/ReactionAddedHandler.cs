@@ -30,9 +30,9 @@ namespace Grillbot.Handlers
 
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
-            using var scope = Provider.CreateScope();
-
             InternalStatistics.IncrementEvent("ReactionAdded");
+
+            using var scope = Provider.CreateScope();
             await scope.ServiceProvider.GetService<EmoteStats>().IncrementFromReactionAsync(reaction);
 
             if (reaction.User.IsSpecified && reaction.User.Value.IsUser())

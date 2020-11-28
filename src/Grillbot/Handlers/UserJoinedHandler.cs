@@ -29,10 +29,10 @@ namespace Grillbot.Handlers
         {
             InternalStatistics.IncrementEvent("UserJoined");
 
-            using var scope = Services.CreateScope();
 
             await Logger.OnUserJoined(user).ConfigureAwait(false);
 
+            using var scope = Services.CreateScope();
             var inviteTracker = scope.ServiceProvider.GetService<InviteTrackerService>();
             await inviteTracker.OnUserJoinedAsync(user);
         }

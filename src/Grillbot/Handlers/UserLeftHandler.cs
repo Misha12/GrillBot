@@ -30,7 +30,6 @@ namespace Grillbot.Handlers
             await Logger.OnUserLeft(user).ConfigureAwait(false);
 
             using var scope = Provider.CreateScope();
-
             await scope.ServiceProvider.GetService<UnverifyService>().OnUserLeftGuildAsync(user);
         }
 
