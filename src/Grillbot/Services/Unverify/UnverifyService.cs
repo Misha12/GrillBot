@@ -287,15 +287,19 @@ namespace Grillbot.Services.Unverify
                 else
                     await UnverifyLogger.LogRemoveAsync(rolesToReturn, channelsToReturn, guild, user, fromUser);
 
-                var tasks = new List<Task>();
+                foreach (var channel in channelsToReturn)
+                {
+                    if (channel.Channel is SocketGuildChannel socketGuildChannel)
+                    {
+                        await socketGuildChannel.AddPermissionOverwriteAsync(user, channel.Perms);
+                    }
+                }
 
-                tasks.AddRange(channelsToReturn.Select(o => (o.Channel as SocketGuildChannel)?.AddPermissionOverwriteAsync(user, o.Perms)).Where(o => o != null));
-                tasks.Add(user.AddRolesAsync(rolesToReturn));
+                await user.AddRolesAsync(rolesToReturn);
 
-                if (mutedRole != null && user.Roles.Any(x => x == mutedRole))
-                    tasks.Add(user.RemoveRoleAsync(mutedRole));
+                if (mutedRole != null)
+                    await user.RemoveRoleAsync(mutedRole);
 
-                await Task.WhenAll(tasks.ToArray());
                 userEntity.Unverify = null;
                 await GrillBotRepository.CommitAsync();
                 Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
@@ -336,7 +340,7 @@ namespace Grillbot.Services.Unverify
             {
                 GrillBotRepository.Remove(unverify);
                 await GrillBotRepository.CommitAsync();
-                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
+                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == unverify.User.GuildIDSnowflake && o.UserId == unverify.User.UserIDSnowflake);
                 return;
             }
 
@@ -346,7 +350,7 @@ namespace Grillbot.Services.Unverify
             {
                 GrillBotRepository.Remove(unverify);
                 await GrillBotRepository.CommitAsync();
-                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
+                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == unverify.User.UserIDSnowflake);
                 return;
             }
 
@@ -398,22 +402,32 @@ namespace Grillbot.Services.Unverify
 
             var channelsToReturn = data.ChannelsToRemove
                 .Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
-                .Where(o => o.Channel != null).ToList();
+                .Where(o => o.Channel is SocketGuildChannel)
+                .Where(o =>
+                {
+                    var perms = ((SocketGuildChannel)o.Channel).GetPermissionOverwrite(user);
+                    return perms != null && (perms.Value.AllowValue != o.AllowValue || perms.Value.DenyValue != o.DenyValue);
+                })
+                .ToList();
 
             await UnverifyLogger.LogRecoverAsync(rolesToReturn, channelsToReturn, guild, user, fromUser);
 
-            var tasks = new List<Task>();
-
             if (rolesToReturn.Count > 0)
-                tasks.Add(user.AddRolesAsync(rolesToReturn));
+                await user.AddRolesAsync(rolesToReturn);
 
             if (channelsToReturn.Count > 0)
-                tasks.AddRange(channelsToReturn.Select(o => (o.Channel as SocketGuildChannel)?.AddPermissionOverwriteAsync(user, o.Perms)).Where(o => o != null));
+            {
+                foreach (var channel in channelsToReturn)
+                {
+                    if (channel.Channel is SocketGuildChannel socketGuildChannel)
+                    {
+                        await socketGuildChannel.AddPermissionOverwriteAsync(user, channel.Perms);
+                    }
+                }
+            }
 
-            if (mutedRole != null && user.Roles.Any(o => o == mutedRole))
-                tasks.Add(user.RemoveRoleAsync(mutedRole));
-
-            await Task.WhenAll(tasks.ToArray());
+            if (mutedRole != null)
+                await user.RemoveRoleAsync(mutedRole);
         }
 
         #region Imunity
