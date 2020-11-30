@@ -1,8 +1,8 @@
+using Discord;
 using Grillbot.Models;
 using Grillbot.Services.BackgroundTasks;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
-using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
@@ -12,13 +12,13 @@ namespace Grillbot.Services
     public class BackgroundTaskService : BackgroundService
     {
         private BackgroundTaskQueue Queue { get; }
-        private ILogger<BackgroundTaskService> Logger { get; }
+        private BotLoggingService BotLoggingService { get; }
         private IServiceProvider Provider { get; }
 
-        public BackgroundTaskService(BackgroundTaskQueue queue, ILogger<BackgroundTaskService> logger, IServiceProvider provider)
+        public BackgroundTaskService(BackgroundTaskQueue queue, IServiceProvider provider, BotLoggingService botLoggingService)
         {
             Queue = queue;
-            Logger = logger;
+            BotLoggingService = botLoggingService;
             Provider = provider;
         }
 
@@ -54,16 +54,20 @@ namespace Grillbot.Services
 
             try
             {
-                Logger.LogDebug("Executing background task {0}", task.TaskType.FullName);
+                var logMessage = new LogMessage(LogSeverity.Debug, nameof(BackgroundTaskService), $"Executing background task {task.TaskType.FullName}");
+                await BotLoggingService.OnLogAsync(logMessage);
+
                 await service.TriggerBackgroundTaskAsync(task);
             }
             catch(Exception ex)
             {
-                Logger.LogError(ex, "Executing background task {0} failed.", task.TaskType.FullName);
+                var logMessage = new LogMessage(LogSeverity.Error, nameof(BackgroundTaskService), $"Executing background task {task.TaskType.FullName} failed.", ex);
+                await BotLoggingService.OnLogAsync(logMessage);
             }
             finally
             {
-                Logger.LogInformation("Background task executing finished ({0})", task.TaskType.FullName);
+                var logMessage = new LogMessage(LogSeverity.Info, nameof(BackgroundTaskService), $"Background task executing finished ({task.TaskType.FullName})");
+                await BotLoggingService.OnLogAsync(logMessage);
             }
         }
     }
