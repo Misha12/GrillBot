@@ -545,7 +545,7 @@ namespace Grillbot.Services.Unverify
                 }
             }
 
-            AppLogger.LogInformation($"Unverify loaded.");
+            AppLogger.LogInformation("Unverify loaded.");
         }
 
         public async Task TriggerBackgroundTaskAsync(object data)

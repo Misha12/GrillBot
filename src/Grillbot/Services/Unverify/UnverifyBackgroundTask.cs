@@ -1,4 +1,3 @@
-using Discord.WebSocket;
 using Grillbot.Models;
 using System;
 

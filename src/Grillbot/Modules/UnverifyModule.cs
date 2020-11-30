@@ -38,7 +38,7 @@ namespace Grillbot.Modules
                 if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
                     return;
 
-                var usersToUnverify = Context.Message.MentionedUsers.OfType<SocketUser>().ToList();
+                var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
 
                 if (usersToUnverify.Count == 0)
                     return;

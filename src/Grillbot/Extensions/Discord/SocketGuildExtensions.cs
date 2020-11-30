@@ -97,7 +97,7 @@ namespace Grillbot.Extensions.Discord
             {
                 return await guild.GetBanAsync(user);
             }
-            catch (HttpException ex) when (ex.DiscordCode.HasValue && ex.DiscordCode.Value == (int)DiscordJsonCodes.UnknownBan)
+            catch (HttpException ex) when (ex.DiscordCode == (int)DiscordJsonCodes.UnknownBan)
             {
                 return null;
             }
