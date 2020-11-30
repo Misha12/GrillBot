@@ -9,6 +9,7 @@ using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Models.Unverify;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Unverify.Models;
 using Grillbot.Services.Unverify.Models.Log;
@@ -23,7 +24,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
 {
-    public class UnverifyService : IInitiable
+    public class UnverifyService : IInitiable, IBackgroundTaskObserver
     {
         private UnverifyChecker Checker { get; }
         private UnverifyProfileGenerator UnverifyProfileGenerator { get; }
@@ -35,10 +36,12 @@ namespace Grillbot.Services.Unverify
         private BotLoggingService Logger { get; }
         private ILogger<UnverifyService> AppLogger { get; }
         private IGrillBotRepository GrillBotRepository { get; }
+        private BackgroundTaskQueue Queue { get; }
 
         public UnverifyService(UnverifyChecker checker, UnverifyProfileGenerator profileGenerator, UnverifyLogger logger,
             UnverifyMessageGenerator messageGenerator, UnverifyTimeParser timeParser, BotState botState, DiscordSocketClient discord,
-            BotLoggingService loggingService, ILogger<UnverifyService> appLogger, IGrillBotRepository grillBotRepository)
+            BotLoggingService loggingService, ILogger<UnverifyService> appLogger, IGrillBotRepository grillBotRepository,
+            BackgroundTaskQueue queue)
         {
             Checker = checker;
             UnverifyProfileGenerator = profileGenerator;
@@ -50,6 +53,7 @@ namespace Grillbot.Services.Unverify
             Logger = loggingService;
             AppLogger = appLogger;
             GrillBotRepository = grillBotRepository;
+            Queue = queue;
         }
 
         public async Task<List<string>> SetUnverifyAsync(List<SocketUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
@@ -121,7 +125,7 @@ namespace Grillbot.Services.Unverify
                 };
 
                 await GrillBotRepository.CommitAsync();
-                BotState.UnverifyCache.Add(CreateUnverifyCacheKey(guild, user), profile.EndDateTime);
+                Queue.Add(new UnverifyBackgroundTask(guild.Id, user.Id, profile.EndDateTime));
 
                 var pmMessage = MessageGenerator.CreateUnverifyPMMessage(profile, guild);
                 await user.SendPrivateMessageAsync(pmMessage);
@@ -130,21 +134,19 @@ namespace Grillbot.Services.Unverify
             }
             catch (Exception ex)
             {
-                var tasks = new[]
-                {
-                    mutedRole != null ? user.RemoveRoleAsync(mutedRole) : null,
-                    user.AddRolesAsync(profile.RolesToRemove)
-                }.Where(o => o != null).ToList();
+                if (mutedRole != null)
+                    await user.RemoveRoleAsync(mutedRole);
+
+                await user.AddRolesAsync(profile.RolesToRemove);
 
                 foreach (var channelOverride in profile.ChannelsToRemove)
                 {
                     var channel = guild.GetChannel(channelOverride.ChannelID);
 
                     if (channel != null)
-                        tasks.Add(channel.AddPermissionOverwriteAsync(user, channelOverride.Perms));
+                        await channel.AddPermissionOverwriteAsync(user, channelOverride.Perms);
                 }
 
-                await Task.WhenAll(tasks.ToArray());
                 var errorMessage = new LogMessage(LogSeverity.Warning, nameof(UnverifyService), "An error occured when unverify removing access.", ex);
                 await Logger.OnLogAsync(errorMessage);
 
@@ -158,19 +160,15 @@ namespace Grillbot.Services.Unverify
             return config.GetData<UnverifyConfig>();
         }
 
-        private string CreateUnverifyCacheKey(SocketGuild guild, SocketGuildUser user)
-        {
-            return $"{guild.Id}|{user.Id}";
-        }
-
         public async Task<string> UpdateUnverifyAsync(SocketGuildUser user, SocketGuild guild, string time, SocketUser fromUser)
         {
-            var cacheKey = CreateUnverifyCacheKey(guild, user);
-            if (!BotState.UnverifyCache.ContainsKey(cacheKey))
+            var task = Queue.Get<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
+
+            if (task == null)
                 throw new NotFoundException("Aktualizace času nelze pro hledaného uživatele provést. Unverify nenalezeno.");
 
-            if ((BotState.UnverifyCache[cacheKey] - DateTime.Now).TotalSeconds < 30.0D)
-                throw new ValidationException("Aktualizace data a času již není možná. Zbývá méně, než půl minuty.");
+            if (task.CanProcess() || (task.At - DateTime.Now).TotalSeconds < 30.0D)
+                throw new ValidationException("Aktualizace data a času již není možná. Vypršel čas, nebo zbývá méně, než půl minuty.");
 
             var endDateTime = TimeParser.Parse(time, minimumMinutes: 10);
             await UnverifyLogger.LogUpdateAsync(DateTime.Now, endDateTime, guild, fromUser, user);
@@ -181,7 +179,7 @@ namespace Grillbot.Services.Unverify
             userEntity.Unverify.StartDateTime = DateTime.Now;
             await GrillBotRepository.CommitAsync();
 
-            BotState.UnverifyCache[cacheKey] = endDateTime;
+            task.At = endDateTime;
 
             var pmMessage = MessageGenerator.CreateUpdatePMMessage(guild, endDateTime);
             await user.SendPrivateMessageAsync(pmMessage);
@@ -227,19 +225,16 @@ namespace Grillbot.Services.Unverify
             return result;
         }
 
-        public async Task AutoUnverifyRemoveAsync(string guildID, string userID)
+        public async Task AutoUnverifyRemoveAsync(ulong guildID, ulong userID)
         {
             try
             {
-                var guildIDSnowflake = Convert.ToUInt64(guildID);
-                var userIDSnowflake = Convert.ToUInt64(userID);
-
-                var unverify = await GrillBotRepository.UnverifyRepository.FindUnverifyByUser(guildIDSnowflake, userIDSnowflake);
+                var unverify = await GrillBotRepository.UnverifyRepository.FindUnverifyByUser(guildID, userID);
 
                 if (unverify == null)
                     return;
 
-                var guild = DiscordClient.GetGuild(guildIDSnowflake);
+                var guild = DiscordClient.GetGuild(guildID);
 
                 if (guild == null)
                 {
@@ -248,7 +243,7 @@ namespace Grillbot.Services.Unverify
                     return;
                 }
 
-                var user = await guild.GetUserFromGuildAsync(userIDSnowflake);
+                var user = await guild.GetUserFromGuildAsync(userID);
 
                 if (user == null)
                 {
@@ -303,7 +298,7 @@ namespace Grillbot.Services.Unverify
                 await Task.WhenAll(tasks.ToArray());
                 userEntity.Unverify = null;
                 await GrillBotRepository.CommitAsync();
-                BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(guild, user));
+                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
 
                 if (!isAuto)
                 {
@@ -341,7 +336,7 @@ namespace Grillbot.Services.Unverify
             {
                 GrillBotRepository.Remove(unverify);
                 await GrillBotRepository.CommitAsync();
-                BotState.UnverifyCache.Remove($"{unverify.User.GuildID}|{unverify.User.UserID}");
+                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
                 return;
             }
 
@@ -351,17 +346,17 @@ namespace Grillbot.Services.Unverify
             {
                 GrillBotRepository.Remove(unverify);
                 await GrillBotRepository.CommitAsync();
-                BotState.UnverifyCache.Remove($"{guild.Id}|{unverify.User.UserID}");
+                Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
                 return;
             }
 
             await RemoveUnverifyAsync(guild, user, fromUser);
-            BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(guild, user));
+            Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == guild.Id && o.UserId == user.Id);
         }
 
         public async Task OnUserLeftGuildAsync(SocketGuildUser user)
         {
-            BotState.UnverifyCache.Remove(CreateUnverifyCacheKey(user.Guild, user));
+            Queue.TryRemove<UnverifyBackgroundTask>(o => o.GuildId == user.Guild.Id && o.UserId == user.Id);
 
             var unverify = await GrillBotRepository.UnverifyRepository.FindUnverifyByUser(user.Guild.Id, user.Id);
 
@@ -524,9 +519,6 @@ namespace Grillbot.Services.Unverify
 
         public async Task InitAsync()
         {
-            if (BotState.UnverifyCache.Count > 0)
-                BotState.UnverifyCache.Clear();
-
             foreach (var guild in DiscordClient.Guilds)
             {
                 var unverifies = await GrillBotRepository.UsersRepository.GetUsersWithUnverify(guild.Id).ToListAsync();
@@ -534,14 +526,20 @@ namespace Grillbot.Services.Unverify
 
                 foreach (var unverify in unverifies)
                 {
-                    var user = await guild.GetUserFromGuildAsync(unverify.UserIDSnowflake);
-                    var key = CreateUnverifyCacheKey(guild, user);
-
-                    BotState.UnverifyCache.Add(key, unverify.Unverify.EndDateTime);
+                    var task = new UnverifyBackgroundTask(guild.Id, unverify.UserIDSnowflake, unverify.Unverify.EndDateTime);
+                    Queue.Add(task);
                 }
             }
 
-            AppLogger.LogInformation($"Unverify loaded. Loaded entities: {BotState.UnverifyCache.Count}");
+            AppLogger.LogInformation($"Unverify loaded.");
+        }
+
+        public async Task TriggerBackgroundTaskAsync(object data)
+        {
+            if (data is not UnverifyBackgroundTask task)
+                return;
+
+            await AutoUnverifyRemoveAsync(task.GuildId, task.UserId);
         }
     }
 }

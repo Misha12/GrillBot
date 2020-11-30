@@ -18,10 +18,6 @@ namespace Grillbot
         // Value: List of invites for guild.
         public Dictionary<ulong, List<InviteModel>> InviteCache { get; set; }
 
-        // Key: $"{guild.Id}|{user.Id}"
-        // Value is end datetime of unverify.
-        public Dictionary<string, DateTime> UnverifyCache { get; set; }
-
         public List<IUser> CurrentReturningUnverifyFor { get; set; }
 
         public RestApplication AppInfo { get; set; }
@@ -38,7 +34,6 @@ namespace Grillbot
         {
             LastPointsCalculation = new Dictionary<string, DateTime>();
             InviteCache = new Dictionary<ulong, List<InviteModel>>();
-            UnverifyCache = new Dictionary<string, DateTime>();
             CurrentReturningUnverifyFor = new List<IUser>();
             UserToID = new Dictionary<string, long>();
             AutoReplyItems = new List<AutoReplyItem>();

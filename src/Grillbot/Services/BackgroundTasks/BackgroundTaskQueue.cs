@@ -37,15 +37,22 @@ namespace Grillbot.Services.BackgroundTasks
         public void TryRemove<TBackgroundTaskType>(Func<TBackgroundTaskType, bool> selector) where TBackgroundTaskType : BackgroundTask
         {
             var tasks = Tasks
-                .Where(o => o.Value is TBackgroundTaskType task && selector(task));
+                .Where(o => o.Value is TBackgroundTaskType task && selector(task))
+                .ToList();
 
-            if (!tasks.Any())
+            if (tasks.Count == 0)
                 return;
 
             foreach(var task in tasks)
             {
                 Tasks.TryRemove(task);
             }
+        }
+
+        public TBackgroundTask Get<TBackgroundTask>(Func<TBackgroundTask, bool> selector) where TBackgroundTask : BackgroundTask
+        {
+            return (TBackgroundTask)Tasks
+                .FirstOrDefault(o => o.Value is TBackgroundTask task && selector(task)).Value;
         }
     }
 }

@@ -50,7 +50,6 @@ namespace Grillbot.Services
                 .AddScoped<UnverifyMessageGenerator>()
                 .AddScoped<UnverifyReasonParser>()
                 .AddScoped<UnverifyTimeParser>()
-                .AddSingleton<UnverifyTaskService>()
                 .AddScoped<UnverifyModelConverter>()
                 .AddScoped<WebAccessService>()
                 .AddScoped<UserService>()
