@@ -58,7 +58,7 @@ namespace Grillbot.Database.Repository
                 query = query.Where(o => o.UserID == userId.Value);
 
             return query
-                .Where(o => o.At > DateTime.Now)
+                .Where(o => o.At > DateTime.Now && o.RemindMessageID != null)
                 .OrderBy(o => o.At);
         }
 

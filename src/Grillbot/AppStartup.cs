@@ -10,6 +10,7 @@ using Grillbot.Services.Permissions.Api;
 using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
+using Grillbot.Services.BackgroundTasks;
 
 namespace Grillbot
 {
@@ -115,7 +116,8 @@ namespace Grillbot
                 .AddStatistics()
                 .AddPaginationServices()
                 .AddDuckServices()
-                .AddHelpServices();
+                .AddHelpServices()
+                .AddBackgroundTasks();
 
             services
                 .AddHostedService<GrillBotService>();

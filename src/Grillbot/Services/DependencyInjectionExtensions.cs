@@ -59,8 +59,7 @@ namespace Grillbot.Services
                 .AddScoped<PointsService>()
                 .AddScoped<PointsRenderService>()
                 .AddScoped<UserSearchService>()
-                .AddScoped<BirthdayService>()
-                .AddSingleton<ReminderTaskService>();
+                .AddScoped<BirthdayService>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)

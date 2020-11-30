@@ -11,6 +11,9 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Enums;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Embed;
+using Grillbot.Services.BackgroundTasks;
+using Grillbot.Services.Initiable;
 using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
@@ -18,24 +21,24 @@ using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
 
 namespace Grillbot.Services.Reminder
 {
-    public class ReminderService
+    public class ReminderService : IBackgroundTaskObserver, IInitiable
     {
         private IGrillBotRepository GrillBotRepository { get; }
-        private ReminderTaskService ReminderTaskService { get; }
         private DiscordSocketClient Discord { get; }
         private IMessageCache MessageCache { get; }
         private ILogger<ReminderService> Logger { get; }
         private UserSearchService UserSearchService { get; }
+        private BackgroundTaskQueue Queue { get; }
 
-        public ReminderService(ReminderTaskService reminderTaskService, DiscordSocketClient discord,
-            IMessageCache messageCache, ILogger<ReminderService> logger, UserSearchService searchService, IGrillBotRepository grillBotRepository)
+        public ReminderService(DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger,
+            UserSearchService searchService, IGrillBotRepository grillBotRepository, BackgroundTaskQueue queue)
         {
-            ReminderTaskService = reminderTaskService;
             Discord = discord;
             MessageCache = messageCache;
             Logger = logger;
             UserSearchService = searchService;
             GrillBotRepository = grillBotRepository;
+            Queue = queue;
         }
 
         public async Task CreateReminderAsync(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
@@ -58,7 +61,7 @@ namespace Grillbot.Services.Reminder
             toUserEntity.Reminders.Add(remindEntity);
 
             await GrillBotRepository.CommitAsync();
-            ReminderTaskService.AddReminder(remindEntity);
+            Queue.Add(new ReminderBackgroundTask(remindEntity));
         }
 
         private void ValidateReminderCreation(DateTime at, string message)
@@ -96,7 +99,7 @@ namespace Grillbot.Services.Reminder
             if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
                 throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
 
-            ReminderTaskService.RemoveTask(id);
+            Queue.TryRemove<ReminderBackgroundTask>(o => o.Id == id);
         }
 
         public async Task CancelReminderWithNotificationAsync(long id, SocketGuildUser user)
@@ -110,8 +113,8 @@ namespace Grillbot.Services.Reminder
             if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
                 throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
 
-            await ReminderTaskService.ProcessReminderForclyAsync(id);
-            ReminderTaskService.RemoveTask(id);
+            await TriggerReminder(id, true);
+            Queue.TryRemove<ReminderBackgroundTask>(o => o.Id == id);
         }
 
         public async Task PostponeReminderAsync(IUserMessage message, SocketReaction reaction)
@@ -119,7 +122,7 @@ namespace Grillbot.Services.Reminder
             if (!(message.Channel is IPrivateChannel))
                 return;
 
-            if (!(await CanPostponeRemindAsync(message, reaction)))
+            if (!await CanPostponeRemindAsync(message, reaction))
             {
                 var logMessage = $"Embeds: {message.Embeds.Count}, IsEmoji: {reaction.Emote is Emoji}, Time: {DateTime.UtcNow - message.CreatedAt}";
                 Logger.LogInformation($"Skipped postpone remind for {(reaction.User.IsSpecified ? $"UnknownUser({reaction.UserId})" : reaction.User.Value.Username)}\n{logMessage}");
@@ -139,9 +142,8 @@ namespace Grillbot.Services.Reminder
             remind.PostponeCounter++;
 
             await message.DeleteMessageAsync();
-
-            ReminderTaskService.AddReminder(remind);
             await GrillBotRepository.CommitAsync();
+            Queue.Add(new ReminderBackgroundTask(remind));
         }
 
         public async Task<List<Tuple<SocketGuildUser, int>>> GetLeaderboard()
@@ -176,7 +178,7 @@ namespace Grillbot.Services.Reminder
                     reaction.Emote is not Emoji emoji ||
                     !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
                     !reaction.User.IsSpecified ||
-                    (DateTime.UtcNow - message.CreatedAt).TotalHours >= 12.0d
+                    (DateTime.UtcNow - message.CreatedAt).TotalHours >= 24.0d
                 )
                 {
                     return false;
@@ -197,9 +199,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task HandleRemindCopyAsync(SocketReaction reaction)
         {
-            if (reaction.Emote is not Emoji emoji) return;
-            if (emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name) return;
-            if (!reaction.User.IsSpecified) return;
+            if (reaction.Emote is not Emoji emoji || emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name || !reaction.User.IsSpecified) return;
 
             var originalRemind = await GrillBotRepository.ReminderRepository.FindReminderByOriginalMessageAsync(reaction.MessageId);
             if (originalRemind == null) return;
@@ -227,6 +227,95 @@ namespace Grillbot.Services.Reminder
             {
                 await reaction.Channel.SendMessageAsync($"{reaction.User.Value.Mention} {ex.Message}");
             }
+        }
+
+        public async Task TriggerBackgroundTaskAsync(object data)
+        {
+            if (data is not ReminderBackgroundTask task)
+                return;
+
+            await TriggerReminder(task.Id, false);
+        }
+
+        public async Task TriggerReminder(long id, bool force)
+        {
+            var entity = await GrillBotRepository.ReminderRepository.FindReminderByIDAsync(id);
+
+            if (entity == null)
+                return;
+
+            var message = await NotifyUserAsync(entity, force);
+            entity.RemindMessageIDSnowflake = message?.Id;
+            await GrillBotRepository.CommitAsync();
+        }
+
+        public void Init() { }
+
+        public async Task InitAsync()
+        {
+            var reminders = await GrillBotRepository.ReminderRepository.GetRemindersForInit().ToListAsync();
+
+            foreach (var reminder in reminders)
+            {
+                var task = new ReminderBackgroundTask(reminder);
+                Queue.Add(task);
+            }
+
+            Logger.LogInformation($"Reminders loaded. Loaded count: {reminders.Count}");
+        }
+
+        private async Task<IUserMessage> NotifyUserAsync(ReminderEntity entity, bool force)
+        {
+            var guild = Discord.GetGuild(entity.User.GuildIDSnowflake);
+
+            if (guild == null)
+                return null;
+
+            var toUser = await guild.GetUserFromGuildAsync(entity.User.UserIDSnowflake);
+
+            if (toUser == null)
+                return null;
+
+            var fromUser = entity.FromUser == null ? null : await guild.GetUserFromGuildAsync(entity.FromUser.UserIDSnowflake);
+
+            try
+            {
+                var embed = CreateRemindEmbed(fromUser, entity, force);
+                var message = await toUser.SendMessageAsync(embed: embed.Build());
+                await message.AddReactionsAsync(ReminderDefinitions.AllHourEmojis);
+
+                return message;
+            }
+            catch (HttpException ex)
+            {
+                if (ex.DiscordCode == (int)DiscordJsonCodes.CannotSendPM)
+                {
+                    Logger.LogInformation($"Cannot send private message to user {toUser.GetFullName()} ({toUser.Id}). User have disabled PM.");
+                    return null;
+                }
+
+                throw;
+            }
+        }
+
+        private BotEmbed CreateRemindEmbed(SocketGuildUser fromUser, ReminderEntity entity, bool force)
+        {
+            var embed = new BotEmbed(Discord.CurrentUser, title: (force ? "Okamžité u" : "U") + "pozornění");
+
+            if(entity.PostponeCounter > 0)
+                embed.AddField("Pozor", $"Toto připomenutí bylo odloženo **{entity.PostponeCounter}x**.", false);
+
+            embed
+                .AddField("ID", $"#{entity.RemindID}", true);
+
+            if (fromUser != null)
+                embed.AddField("Od uživatele", fromUser.GetFullName(), true);
+
+            embed
+                .AddField("Zpráva", entity.Message, false)
+                .AddField("Možnosti", "Pokud si přeješ toto upozornění posunout, tak klikni na příslušnou emoji reakci podle počtu hodin.", false);
+
+            return embed;
         }
     }
 }
