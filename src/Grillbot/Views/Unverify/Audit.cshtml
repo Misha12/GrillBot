@@ -135,15 +135,30 @@
 
                                 @if (item.Operation == UnverifyLogOperation.Unverify || item.Operation == UnverifyLogOperation.Selfunverify || item.Operation == UnverifyLogOperation.Update)
                                 {
-                                    <div class="row">
-                                        <div class="col-4 font-weight-bold">Začátek:</div>
-                                        <div class="col">@item.Profile.StartDateTime.ToLocaleDatetime()</div>
-                                    </div>
+                                    if (item.Operation == UnverifyLogOperation.Update)
+                                    {
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Začátek:</div>
+                                            <div class="col">@item.UpdateData.StartDateTime.ToLocaleDatetime()</div>
+                                        </div>
 
-                                    <div class="row">
-                                        <div class="col-4 font-weight-bold">Konec:</div>
-                                        <div class="col">@item.Profile.EndDateTime.ToLocaleDatetime()</div>
-                                    </div>
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Konec:</div>
+                                            <div class="col">@item.UpdateData.StartDateTime.ToLocaleDatetime()</div>
+                                        </div>
+                                    }
+                                    else
+                                    {
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Začátek:</div>
+                                            <div class="col">@item.Profile.StartDateTime.ToLocaleDatetime()</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Konec:</div>
+                                            <div class="col">@item.Profile.EndDateTime.ToLocaleDatetime()</div>
+                                        </div>
+                                    }
                                 }
                             </div>
 

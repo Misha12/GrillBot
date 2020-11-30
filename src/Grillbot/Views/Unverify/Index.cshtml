@@ -32,7 +32,7 @@
                         <a class="page-link" href="?page=@(page - 1)" tabindex="-1">Zpět</a>
                     </li>
                     <li class="page-item">
-                        <span class="page-link" href="#">@(page)</span>
+                        <span class="page-link" href="#">@(page) / @Model.Unverifies.Count</span>
                     </li>
                     <li class="page-item @(page == Model.Unverifies.Count ? "disabled" : "")">
                         <a class="page-link" href="?page=@(page + 1)">Vpřed</a>
