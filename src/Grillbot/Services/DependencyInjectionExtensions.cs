@@ -2,6 +2,7 @@ using Grillbot.Database;
 using Grillbot.Handlers;
 using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Channelboard;
 using Grillbot.Services.Config;
 using Grillbot.Services.Duck;
@@ -58,7 +59,8 @@ namespace Grillbot.Services
                 .AddScoped<PointsService>()
                 .AddScoped<PointsRenderService>()
                 .AddScoped<UserSearchService>()
-                .AddScoped<BirthdayService>();
+                .AddScoped<BirthdayService>()
+                .AddScoped<AuditService>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)

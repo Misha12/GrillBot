@@ -15,7 +15,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("/")]
-    [Route("Admin")]
     [Route("Admin/Unverify")]
     [ApiExplorerSettings(IgnoreApi = true)]
     public class UnverifyController : Controller

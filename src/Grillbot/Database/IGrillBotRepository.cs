@@ -20,6 +20,7 @@ namespace Grillbot.Database
         TeamSearchRepository TeamSearchRepository { get; }
         UnverifyRepository UnverifyRepository { get; }
         UsersRepository UsersRepository { get; }
+        AuditLogsRepository AuditLogs { get; }
 
         void Add<TEntity>(TEntity entity) where TEntity : class;
         Task AddAsync<TEntity>(TEntity entity) where TEntity : class;
