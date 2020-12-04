@@ -1,4 +1,5 @@
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
@@ -291,7 +292,15 @@ namespace Grillbot.Services.Unverify
                 {
                     if (channel.Channel is SocketGuildChannel socketGuildChannel)
                     {
-                        await socketGuildChannel.AddPermissionOverwriteAsync(user, channel.Perms);
+                        try
+                        {
+                            await socketGuildChannel.AddPermissionOverwriteAsync(user, channel.Perms);
+                        }
+                        catch (HttpException ex)
+                        {
+                            var message = new LogMessage(LogSeverity.Error, nameof(UnverifyService), $"An error occured when unverify returning access to channel {channel.Channel.Name} for user {user.GetFullName()}", ex);
+                            await Logger.OnLogAsync(message);
+                        }
                     }
                 }
 
