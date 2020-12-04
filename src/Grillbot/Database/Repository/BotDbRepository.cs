@@ -17,7 +17,7 @@ namespace Grillbot.Database.Repository
             // This SQL returns all tables in DB and count of records.
 
             var counters = new Dictionary<string, Tuple<int, long>>();
-            var query = @"SELECT t.NAME AS TableName, p.rows, SUM(a.total_pages) * 8 AS TotalSpaceKB
+            const string query = @"SELECT t.NAME AS TableName, p.rows, SUM(a.total_pages) * 8 AS TotalSpaceKB
                           FROM sys.tables t
                           INNER JOIN sys.indexes i ON t.OBJECT_ID = i.object_id
                           INNER JOIN sys.partitions p ON i.object_id = p.OBJECT_ID AND i.index_id = p.index_id

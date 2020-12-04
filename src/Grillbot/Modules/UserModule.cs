@@ -136,10 +136,10 @@ namespace Grillbot.Modules
                 embed.AddField("Aktivní klienti", string.Join(", ", clients), false);
 
             if (mostActiveChannel != null)
-                embed.AddField("Nejaktivnější kanál", $"#{mostActiveChannel.Channel.Name} ({mostActiveChannel.Count.FormatWithSpaces()})", false);
+                embed.AddField("Nejaktivnější kanál", $"<#{mostActiveChannel.Channel.Id}> ({mostActiveChannel.Count.FormatWithSpaces()})", false);
 
             if (lastActiveChannel != null)
-                embed.AddField("Poslední zpráva v", $"#{lastActiveChannel.Channel.Name} ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false);
+                embed.AddField("Poslední zpráva v", $"<#{lastActiveChannel.Channel.Id}> ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false);
 
             embed
                 .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);

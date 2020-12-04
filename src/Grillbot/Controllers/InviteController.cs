@@ -13,8 +13,8 @@ namespace Grillbot.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class InviteController : Controller
     {
-        private InviteTrackerService InviteTrackerService { get; set; }
-        private DiscordSocketClient DiscordClient { get; set; }
+        private InviteTrackerService InviteTrackerService { get; }
+        private DiscordSocketClient DiscordClient { get; }
 
         public InviteController(InviteTrackerService inviteTrackerService, DiscordSocketClient discordClient)
         {

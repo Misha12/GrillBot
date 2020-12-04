@@ -61,7 +61,7 @@ namespace Grillbot.Modules
         private async Task GetTopEmoteUsage(bool descOrder)
         {
             using var service = GetService<EmoteStats>();
-            
+
             var fields = service.Service.GetAllValues(descOrder, Context.Guild.Id, true)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
@@ -186,7 +186,7 @@ namespace Grillbot.Modules
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo(true)))
                 .ToList();
 
-            if (!emotes.Any())
+            if (emotes.Count == 0)
             {
                 await ReplyAsync("Tento uživatel ještě nepoužil žádný emote.");
                 return;

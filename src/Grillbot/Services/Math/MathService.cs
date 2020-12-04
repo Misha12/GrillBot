@@ -109,7 +109,9 @@ namespace Grillbot.Services.Math
                         {
                             task.Dispose();
                         }
+#pragma warning disable RCS1075 // Avoid empty catch clause that catches System.Exception.
                         catch (Exception) { /* This exception we can ignore. */ }
+#pragma warning restore RCS1075 // Avoid empty catch clause that catches System.Exception.
 
                         result = new MathCalcResult()
                         {

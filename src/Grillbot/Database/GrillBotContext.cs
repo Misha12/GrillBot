@@ -34,15 +34,8 @@ namespace Grillbot.Database
                 builder.HasIndex(o => o.GuildID);
             });
 
-            modelBuilder.Entity<UserChannel>(builder =>
-            {
-                builder.HasIndex(o => o.UserID);
-            });
-
-            modelBuilder.Entity<Reminder>(builder =>
-            {
-                builder.HasOne(o => o.FromUser);
-            });
+            modelBuilder.Entity<UserChannel>(builder => builder.HasIndex(o => o.UserID));
+            modelBuilder.Entity<Reminder>(builder => builder.HasOne(o => o.FromUser));
 
             modelBuilder.Entity<EmoteStatItem>(builder =>
             {
@@ -50,10 +43,7 @@ namespace Grillbot.Database
                 builder.HasIndex(o => new { o.UserID, o.UseCount });
             });
 
-            modelBuilder.Entity<Unverify>(builder =>
-            {
-                builder.HasOne(o => o.SetLogOperation).WithOne(o => o.Unverify);
-            });
+            modelBuilder.Entity<Unverify>(builder => builder.HasOne(o => o.SetLogOperation).WithOne(o => o.Unverify));
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }

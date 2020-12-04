@@ -14,8 +14,6 @@ namespace Grillbot.Helpers
         public static async Task<BotEmbed> CreateSimpleEmbedAsync(DiscordUser user, SocketCommandContext context)
         {
             var roleWithColor = user.User.Roles.FindHighestRoleWithColor();
-            var roleNames = user.User.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Name);
-
             var embed = new BotEmbed(context.User, roleWithColor?.Color, "Informace o uživateli", user.User.GetUserAvatarUrl());
 
             var joinedAt = user.User.JoinedAt?.LocalDateTime.ToLocaleDatetime();
@@ -23,7 +21,7 @@ namespace Grillbot.Helpers
             var selfUnverifies = user.UnverifyHistory.Where(o => o.Operation == UnverifyLogOperation.Selfunverify);
 
             embed
-                .AddField("ID", user.User.Id.ToString(), true)
+                .AddField("ID", $"{user.User.Id} ({user.ID})", true)
                 .AddField("Jméno", user.User.GetFullName(), true)
                 .AddField("Stav", user.User.Status.ToString(), true)
                 .AddField("Založen", user.User.CreatedAt.LocalDateTime.ToLocaleDatetime(), true)
@@ -32,8 +30,9 @@ namespace Grillbot.Helpers
             if (user.User.VoiceChannel != null)
                 embed.AddField("Umlčen (Klient/Server)", $"{user.User.IsSelfMuted().TranslateToCz()}/{user.User.IsMuted().TranslateToCz()}", true);
 
+            var roles = user.User.Roles.Where(o => !o.IsEveryone).OrderByDescending(o => o.Position).Select(o => o.Mention);
             embed
-                .AddField("Role", !roleNames.Any() ? "Nejsou" : string.Join(", ", roleNames), false);
+                .AddField("Role", !roles.Any() ? "Nejsou" : string.Join(", ", roles), false);
 
             if (user.User.PremiumSince != null)
                 embed.AddField("Boost od", user.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime(), true);

@@ -3,9 +3,7 @@ using Grillbot.Extensions.Discord;
 using System;
 using System.Drawing;
 using System.Drawing.Drawing2D;
-using System.Drawing.Text;
 using System.IO;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement

@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using System;
 using System.ComponentModel.DataAnnotations;
@@ -48,7 +48,7 @@ namespace Grillbot.Database.Entity
         [Column]
         [Required]
         public string GuildID { get; set; }
-        
+
         [NotMapped]
         public ulong GuildIDSnowflake
         {
@@ -68,7 +68,7 @@ namespace Grillbot.Database.Entity
 
         public void SetCompareType(string type)
         {
-            switch(type.ToLower())
+            switch (type.ToLower())
             {
                 case "absolute":
                 case "==":

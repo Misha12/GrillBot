@@ -1,8 +1,9 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace Grillbot.Exceptions
 {
+    [Serializable]
     public class ThrowHelpException : Exception
     {
         public ThrowHelpException()

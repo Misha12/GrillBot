@@ -29,7 +29,6 @@ namespace Grillbot.Handlers
         {
             InternalStatistics.IncrementEvent("UserJoined");
 
-
             await Logger.OnUserJoined(user).ConfigureAwait(false);
 
             using var scope = Services.CreateScope();

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Runtime.Serialization;
 
 namespace Grillbot.Exceptions
@@ -20,6 +20,10 @@ namespace Grillbot.Exceptions
         }
 
         protected BadRequestException(SerializationInfo info, StreamingContext context) : base(info, context)
+        {
+        }
+
+        public BadRequestException(string message) : base(message)
         {
         }
     }
