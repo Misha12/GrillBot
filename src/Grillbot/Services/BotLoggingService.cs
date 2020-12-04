@@ -15,7 +15,6 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
-using Grillbot.Extensions;
 using Grillbot.Services.Config;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
@@ -85,37 +84,30 @@ namespace Grillbot.Services
             var repository = scopedProvider.GetService<IGrillBotRepository>();
             var logEmbedCreator = scopedProvider.GetService<LogEmbedCreator>();
 
+            var entity = new ErrorLogItem()
+            {
+                CreatedAt = DateTime.Now,
+                Data = message.ToString(),
+            };
+
+            await repository.AddAsync(entity);
+            await repository.CommitAsync();
+
             try
             {
-                var entity = new ErrorLogItem()
-                {
-                    CreatedAt = DateTime.Now,
-                    Data = message.ToString(),
-                };
-
-                repository.Add(entity);
-                await repository.CommitAsync();
-
                 var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entity);
                 await (Client.GetChannel(LogRoomID.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
             }
             catch (Exception ex)
             {
-                var chunks = message.ToString()
-                    .SplitInParts(MessageSizeForException);
-
-                if (Client.GetChannel(LogRoomID.Value) is IMessageChannel channel)
+                var errEntity = new ErrorLogItem()
                 {
-                    foreach (var chunk in chunks)
-                    {
-                        await channel.SendMessageAsync(chunk);
-                    }
+                    CreatedAt = DateTime.Now,
+                    Data = ex.ToString()
+                };
 
-                    foreach (var chunk in ex.ToString().SplitInParts(MessageSizeForException))
-                    {
-                        await channel.SendMessageAsync(chunk);
-                    }
-                }
+                await repository.AddAsync(errEntity);
+                await repository.CommitAsync();
             }
         }
 
