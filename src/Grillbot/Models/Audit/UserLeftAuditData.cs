@@ -1,3 +1,4 @@
+using Discord;
 using Discord.WebSocket;
 
 namespace Grillbot.Models.Audit
@@ -7,14 +8,16 @@ namespace Grillbot.Models.Audit
         public int MemberCount { get; set; }
         public bool IsBan { get; set; }
         public string BanReason { get; set; }
+        public AuditUserInfo User { get; set; }
 
-        public static UserLeftAuditData CreateDbItem(SocketGuild guild, bool isBan, string banReason)
+        public static UserLeftAuditData CreateDbItem(SocketGuild guild, IUser user, bool isBan, string banReason)
         {
             return new UserLeftAuditData()
             {
                 BanReason = banReason,
                 IsBan = isBan,
-                MemberCount = guild.MemberCount
+                MemberCount = guild.MemberCount,
+                User = AuditUserInfo.Create(user)
             };
         }
     }

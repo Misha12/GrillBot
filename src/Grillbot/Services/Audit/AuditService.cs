@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Commands;
+using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity.AuditLog;
@@ -57,16 +58,31 @@ namespace Grillbot.Services.Audit
             if (user == null)
                 return;
 
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(user.Guild, user);
             var ban = await user.Guild.FindBanAsync(user);
+            RestAuditLogEntry dcAuditLogItem;
+
+            if (ban != null)
+            {
+                dcAuditLogItem = (await user.Guild.GetAuditLogDataAsync(actionType: ActionType.Ban))?
+                    .FirstOrDefault(o => (o.Data as BanAuditLogData)?.Target.Id == user.Id);
+            }
+            else
+            {
+                dcAuditLogItem = (await user.Guild.GetAuditLogDataAsync(actionType: ActionType.Kick))?
+                    .FirstOrDefault(o => (o.Data as KickAuditLogData)?.Target.Id == user.Id);
+            }
+
+            long? executor = null;
+            if (dcAuditLogItem != null)
+                executor = await UserSearchService.GetUserIDFromDiscordUserAsync(user.Guild, dcAuditLogItem.User);
 
             var entity = new AuditLogItem()
             {
                 Type = AuditLogType.UserLeft,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = user.Guild.Id,
-                UserId = userId,
-                Data = JObject.FromObject(UserLeftAuditData.CreateDbItem(user.Guild, ban != null, ban?.Reason))
+                UserId = executor,
+                Data = JObject.FromObject(UserLeftAuditData.CreateDbItem(user.Guild, user, ban != null, ban?.Reason))
             };
 
             await GrillBotRepository.AddAsync(entity);
