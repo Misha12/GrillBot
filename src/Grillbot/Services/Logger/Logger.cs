@@ -68,16 +68,6 @@ namespace Grillbot.Services.Logger
                 EventPostProcess("MessageEdited");
         }
 
-        public async Task OnUserJoined(SocketGuildUser user)
-        {
-            if (!CanProcessEvent("UserJoined")) return;
-
-            var method = new UserJoined(Client, ConfigurationService);
-            await method.ProcessAsync(user).ConfigureAwait(false);
-
-            EventPostProcess("UserJoined");
-        }
-
         private void EventPostProcess(string name)
         {
             AppLogger.LogInformation($"Logger event {name} triggered.");

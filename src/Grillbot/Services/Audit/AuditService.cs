@@ -4,6 +4,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity.AuditLog;
+using Grillbot.Database.Enums.Includes;
 using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
@@ -83,6 +84,27 @@ namespace Grillbot.Services.Audit
                 GuildIdSnowflake = user.Guild.Id,
                 UserId = executor,
                 Data = JObject.FromObject(UserLeftAuditData.CreateDbItem(user.Guild, user, ban != null, ban?.Reason))
+            };
+
+            await GrillBotRepository.AddAsync(entity);
+            await GrillBotRepository.CommitAsync();
+        }
+
+        public async Task LogUserJoinAsync(SocketGuildUser user)
+        {
+            if (user == null)
+                return;
+
+            var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(user.Guild.Id, user.Id, UsersIncludes.None);
+            await GrillBotRepository.CommitAsync();
+
+            var entity = new AuditLogItem()
+            {
+                Type = AuditLogType.UserJoined,
+                CreatedAt = DateTime.Now,
+                GuildIdSnowflake = user.Guild.Id,
+                UserId = userEntity.ID,
+                Data = JObject.FromObject(UserJoinedAuditData.Create(user.Guild))
             };
 
             await GrillBotRepository.AddAsync(entity);

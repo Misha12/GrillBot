@@ -15,6 +15,8 @@ namespace Grillbot.Database.Repository
         {
             var query = Context.AuditLogs.AsQueryable()
                 .Include(o => o.User)
+                .ThenInclude(o => o.UsedInvite)
+                .ThenInclude(o => o.Creator)
                 .Where(o => o.GuildId == filter.GuildId);
 
             if (filter.UserIds?.Count > 0)

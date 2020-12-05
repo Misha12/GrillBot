@@ -27,6 +27,7 @@ namespace Grillbot.Models.Audit
 
         public CommandAuditData CommandAuditData => Type == AuditLogType.Command ? JsonData.ToObject<CommandAuditData>().GetFilledModel(Guild) : null;
         public UserLeftAuditData UserLeftAuditData => Type == AuditLogType.UserLeft ? JsonData.ToObject<UserLeftAuditData>() : null;
+        public UserJoinedAuditData UserJoinedAuditData => Type == AuditLogType.UserJoined ? JsonData.ToObject<UserJoinedAuditData>().GetFilledModel(User) : null;
 
         #endregion
 

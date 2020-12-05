@@ -8,6 +8,9 @@ namespace Grillbot.Enums
         Command,
 
         [Display(Name = "Uživatel opustil server")]
-        UserLeft
+        UserLeft,
+
+        [Display(Name = "Uživatel se připojil na server")]
+        UserJoined
     }
 }

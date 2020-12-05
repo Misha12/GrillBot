@@ -1,9 +1,9 @@
 using System;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.InviteTracker;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 
@@ -12,15 +12,13 @@ namespace Grillbot.Handlers
     public class UserJoinedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
         private IServiceProvider Services { get; }
 
-        public UserJoinedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics,
+        public UserJoinedHandler(DiscordSocketClient client, InternalStatistics internalStatistics,
             IServiceProvider services)
         {
             Client = client;
-            Logger = logger;
             InternalStatistics = internalStatistics;
             Services = services;
         }
@@ -29,11 +27,10 @@ namespace Grillbot.Handlers
         {
             InternalStatistics.IncrementEvent("UserJoined");
 
-            await Logger.OnUserJoined(user).ConfigureAwait(false);
-
             using var scope = Services.CreateScope();
-            var inviteTracker = scope.ServiceProvider.GetService<InviteTrackerService>();
-            await inviteTracker.OnUserJoinedAsync(user);
+
+            await scope.ServiceProvider.GetService<AuditService>().LogUserJoinAsync(user);
+            await scope.ServiceProvider.GetService<InviteTrackerService>().OnUserJoinedAsync(user);
         }
 
         #region IDisposable Support
