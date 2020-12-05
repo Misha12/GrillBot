@@ -5,6 +5,9 @@ namespace Grillbot.Enums
     public enum AuditLogType
     {
         [Display(Name = "Příkaz")]
-        Command
+        Command,
+
+        [Display(Name = "Uživatel opustil server")]
+        UserLeft
     }
 }

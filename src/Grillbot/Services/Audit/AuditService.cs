@@ -51,6 +51,19 @@ namespace Grillbot.Services.Audit
             await GrillBotRepository.CommitAsync();
         }
 
+        public async Task LogUserLeftAsync(SocketGuildUser user)
+        {
+            if (user == null)
+                return;
+
+            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(user.Guild, user);
+
+            var entity = new AuditLogItem()
+            {
+                Type = AuditLogType.UserLeft
+            };
+        }
+
         public async Task<List<AuditItem>> GetAuditLogsAsync(LogsFilter filter)
         {
             var guild = Client.GetGuild(filter.GuildId);
@@ -63,7 +76,7 @@ namespace Grillbot.Services.Audit
                 .Skip(queryFilter.Skip).Take(queryFilter.Take).ToListAsync();
 
             var items = new List<AuditItem>();
-            foreach(var item in data)
+            foreach (var item in data)
             {
                 var user = item.User == null ? null : await UserHelper.MapUserAsync(Client, BotState, item.User);
                 items.Add(AuditItem.Create(guild, item, user));
