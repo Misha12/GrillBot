@@ -11,6 +11,9 @@ namespace Grillbot.Enums
         UserLeft,
 
         [Display(Name = "Uživatel se připojil na server")]
-        UserJoined
+        UserJoined,
+
+        [Display(Name = "Zpráva editována")]
+        MessageEdited
     }
 }

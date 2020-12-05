@@ -57,17 +57,6 @@ namespace Grillbot.Services.Logger
             EventPostProcess("MessageDeleted");
         }
 
-        public async Task OnMessageEdited(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
-        {
-            if (!CanProcessEvent("MessageEdited")) return;
-
-            var method = new MessageEdited(Client, ConfigurationService, MessageCache);
-            var result = await method.ProcessAsync(messageBefore, messageAfter, channel).ConfigureAwait(false);
-
-            if (result)
-                EventPostProcess("MessageEdited");
-        }
-
         private void EventPostProcess(string name)
         {
             AppLogger.LogInformation($"Logger event {name} triggered.");

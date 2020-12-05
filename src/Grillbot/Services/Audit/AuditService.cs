@@ -10,6 +10,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
+using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
@@ -25,13 +26,16 @@ namespace Grillbot.Services.Audit
         private UserSearchService UserSearchService { get; }
         private DiscordSocketClient Client { get; }
         private BotState BotState { get; }
+        private IMessageCache MessageCache { get; }
 
-        public AuditService(IGrillBotRepository grillBotRepository, UserSearchService userSearchService, DiscordSocketClient client, BotState botState)
+        public AuditService(IGrillBotRepository grillBotRepository, UserSearchService userSearchService, DiscordSocketClient client, BotState botState,
+            IMessageCache messageCache)
         {
             GrillBotRepository = grillBotRepository;
             UserSearchService = userSearchService;
             Client = client;
             BotState = botState;
+            MessageCache = messageCache;
         }
 
         public async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
@@ -109,6 +113,33 @@ namespace Grillbot.Services.Audit
 
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
+        }
+
+        public async Task LogMessageEditedAsync(Cacheable<IMessage, ulong> before, SocketMessage after, ISocketMessageChannel channel, SocketGuild guild)
+        {
+            var oldMessage = before.HasValue ? before.Value : MessageCache.Get(before.Id);
+            if (!IsMessageEdited(oldMessage, after)) return;
+
+            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, after.Author);
+
+            var entity = new AuditLogItem()
+            {
+                Type = AuditLogType.MessageEdited,
+                CreatedAt = DateTime.Now,
+                GuildIdSnowflake = guild.Id,
+                UserId = userId,
+                Data = JObject.FromObject(MessageEditedAuditData.CreateDbItem(channel, oldMessage, after))
+            };
+
+            await GrillBotRepository.AddAsync(entity);
+            await GrillBotRepository.CommitAsync();
+
+            MessageCache.Update(after);
+        }
+
+        private bool IsMessageEdited(IMessage before, IMessage after)
+        {
+            return before != null && after != null && before.Author.IsUser() && before.Content != after.Content;
         }
 
         public async Task<List<AuditItem>> GetAuditLogsAsync(LogsFilter filter)

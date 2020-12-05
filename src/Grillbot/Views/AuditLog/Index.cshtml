@@ -138,6 +138,9 @@
                             case AuditLogType.UserJoined:
                                 <partial name="~/Views/AuditLog/LogViews/UserJoinedPartialView.cshtml" model="item.UserJoinedAuditData" />
                                 break;
+                            case AuditLogType.MessageEdited:
+                                <partial name="~/Views/AuditLog/LogViews/MessageEditedPartialView.cshtml" model="item.MessageEditedAuditData" />
+                                break;
                         }
                     </div>
 
