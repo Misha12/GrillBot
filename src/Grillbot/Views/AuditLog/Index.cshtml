@@ -116,7 +116,7 @@
                                     <div class="col">
                                         @if (item.User == null)
                                         {
-                                            <text>Bot</text>
+                                            <text>Neznámý uživatel, nebo bot</text>
                                         }
                                         else
                                         {
@@ -131,6 +131,9 @@
                         {
                             case AuditLogType.Command:
                                 <partial name="~/Views/AuditLog/LogViews/CommandPartialView.cshtml" model="item.CommandAuditData" />
+                                break;
+                            case AuditLogType.UserLeft:
+                                <partial name="~/Views/AuditLog/LogViews/UserLeftPartialView.cshtml" model="item.UserLeftAuditData" />
                                 break;
                         }
                     </div>

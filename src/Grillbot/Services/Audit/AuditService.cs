@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
+using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
@@ -57,11 +58,19 @@ namespace Grillbot.Services.Audit
                 return;
 
             var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(user.Guild, user);
+            var ban = await user.Guild.FindBanAsync(user);
 
             var entity = new AuditLogItem()
             {
-                Type = AuditLogType.UserLeft
+                Type = AuditLogType.UserLeft,
+                CreatedAt = DateTime.Now,
+                GuildIdSnowflake = user.Guild.Id,
+                UserId = userId,
+                Data = JObject.FromObject(UserLeftAuditData.CreateDbItem(user.Guild, ban != null, ban?.Reason))
             };
+
+            await GrillBotRepository.AddAsync(entity);
+            await GrillBotRepository.CommitAsync();
         }
 
         public async Task<List<AuditItem>> GetAuditLogsAsync(LogsFilter filter)

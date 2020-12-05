@@ -78,16 +78,6 @@ namespace Grillbot.Services.Logger
             EventPostProcess("UserJoined");
         }
 
-        public async Task OnUserLeft(SocketGuildUser user)
-        {
-            if (!CanProcessEvent("UserLeft")) return;
-
-            var method = new UserLeft(Client, ConfigurationService);
-            await method.ProcessAsync(user).ConfigureAwait(false);
-
-            EventPostProcess("UserLeft");
-        }
-
         private void EventPostProcess(string name)
         {
             AppLogger.LogInformation($"Logger event {name} triggered.");

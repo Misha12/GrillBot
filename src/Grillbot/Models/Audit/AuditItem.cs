@@ -1,5 +1,4 @@
 using Discord.WebSocket;
-using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
 using Grillbot.Models.Users;
@@ -27,6 +26,7 @@ namespace Grillbot.Models.Audit
         #region Typed properties
 
         public CommandAuditData CommandAuditData => Type == AuditLogType.Command ? JsonData.ToObject<CommandAuditData>().GetFilledModel(Guild) : null;
+        public UserLeftAuditData UserLeftAuditData => Type == AuditLogType.UserLeft ? JsonData.ToObject<UserLeftAuditData>() : null;
 
         #endregion
 
