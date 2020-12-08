@@ -15,6 +15,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -142,6 +143,65 @@ namespace Grillbot.Services.Audit
             return before != null && after != null && before.Author.IsUser() && before.Content != after.Content;
         }
 
+        public async Task LogMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel, SocketGuild guild)
+        {
+            var deletedMessage = message.HasValue ? message.Value : MessageCache.TryRemove(message.Id);
+
+            var entity = new AuditLogItem()
+            {
+                Type = AuditLogType.MessageDeleted,
+                CreatedAt = DateTime.Now,
+                GuildIdSnowflake = guild.Id,
+            };
+
+            if (deletedMessage == null)
+                ProcessMessageDeletedWithoutCache(entity, channel);
+            else
+                await ProcessMessageDeletedWithCacheAsync(entity, channel, deletedMessage, guild);
+
+            if (MessageCache.Exists(message.Id))
+                MessageCache.TryRemove(message.Id);
+
+            await MessageCache.AppendAroundAsync(channel, message.Id, 100);
+            await GrillBotRepository.AddAsync(entity);
+            await GrillBotRepository.CommitAsync();
+        }
+
+        private void ProcessMessageDeletedWithoutCache(AuditLogItem entity, ISocketMessageChannel channel)
+        {
+            entity.Data = JObject.FromObject(MessageDeletedAuditData.CreateDbItem(channel));
+        }
+
+        private async Task ProcessMessageDeletedWithCacheAsync(AuditLogItem entity, ISocketMessageChannel channel, IMessage message, SocketGuild guild)
+        {
+            entity.Data = JObject.FromObject(MessageDeletedAuditData.CreateDbItem(channel, message));
+
+            var auditLog = (await guild.GetAuditLogDataAsync(actionType: ActionType.MessageDeleted)).Find(o =>
+            {
+                var data = (MessageDeleteAuditLogData)o.Data;
+                return data.Target.Id == message.Author.Id && data.ChannelId == channel.Id;
+            });
+
+            entity.UserId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, auditLog?.User ?? message.Author);
+
+            if(message.Attachments.Count > 0)
+            {
+                foreach(var attachment in message.Attachments)
+                {
+                    var fileContent = await attachment.DownloadFileAsync();
+
+                    if (fileContent == null)
+                        continue;
+
+                    entity.Files.Add(new Database.Entity.File()
+                    {
+                        Content = fileContent,
+                        Filename = $"{Path.GetFileNameWithoutExtension(attachment.Filename)}_{attachment.Id}{Path.GetExtension(attachment.Filename)}"
+                    });
+                }
+            }
+        }
+
         public async Task<List<AuditItem>> GetAuditLogsAsync(LogsFilter filter)
         {
             var guild = Client.GetGuild(filter.GuildId);
@@ -203,6 +263,25 @@ namespace Grillbot.Services.Audit
                 Type = filter.Type,
                 UserIds = userIds.ToList()
             };
+        }
+
+        public async Task<Database.Entity.File> GetFileAsync(string filename)
+        {
+            return await GrillBotRepository.AuditLogs.FindFileByFilenameAsync(filename);
+        }
+
+        public async Task DeleteItemAsync(long id)
+        {
+            var item = await GrillBotRepository.AuditLogs.FindItemByIdAsync(id);
+
+            if (item == null)
+                return;
+
+            if (item.Files.Count > 0)
+                GrillBotRepository.RemoveCollection(item.Files);
+
+            GrillBotRepository.Remove(item);
+            await GrillBotRepository.CommitAsync();
         }
     }
 }

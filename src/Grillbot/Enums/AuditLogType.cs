@@ -14,6 +14,9 @@ namespace Grillbot.Enums
         UserJoined,
 
         [Display(Name = "Zpráva editována")]
-        MessageEdited
+        MessageEdited,
+
+        [Display(Name = "Zpráva smazána")]
+        MessageDeleted
     }
 }

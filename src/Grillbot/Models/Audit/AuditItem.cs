@@ -4,6 +4,8 @@ using Grillbot.Enums;
 using Grillbot.Models.Users;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Models.Audit
 {
@@ -17,6 +19,8 @@ namespace Grillbot.Models.Audit
 
         private JObject JsonData { get; }
 
+        public List<string> AttachmentNames { get; set; }
+
         public AuditItem() { }
         public AuditItem(JObject jsonData)
         {
@@ -29,6 +33,7 @@ namespace Grillbot.Models.Audit
         public UserLeftAuditData UserLeftAuditData => Type == AuditLogType.UserLeft ? JsonData.ToObject<UserLeftAuditData>() : null;
         public UserJoinedAuditData UserJoinedAuditData => Type == AuditLogType.UserJoined ? JsonData.ToObject<UserJoinedAuditData>().GetFilledModel(User) : null;
         public MessageEditedAuditData MessageEditedAuditData => Type == AuditLogType.MessageEdited ? JsonData.ToObject<MessageEditedAuditData>().GetFilledModel(Guild) : null;
+        public MessageDeletedAuditData MessageDeletedAuditData => Type == AuditLogType.MessageDeleted ? JsonData.ToObject<MessageDeletedAuditData>().GetFilledModel(Guild) : null;
 
         #endregion
 
@@ -40,7 +45,8 @@ namespace Grillbot.Models.Audit
                 Guild = guild,
                 Id = dbItem.Id,
                 Type = dbItem.Type,
-                User = user
+                User = user,
+                AttachmentNames = dbItem.Files.Select(o => o.Filename).ToList()
             };
         }
     }

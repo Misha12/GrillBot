@@ -1,4 +1,3 @@
-using Discord;
 using Discord.WebSocket;
 using Grillbot.Services.Config;
 using Grillbot.Services.Logger.LoggerMethods;
@@ -6,16 +5,13 @@ using Grillbot.Services.MessageCache;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
-using System.Net.Http;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Logger
 {
     public class Logger : IDisposable
     {
-        private HttpClient HttpClient { get; }
         private DiscordSocketClient Client { get; }
-        private IMessageCache MessageCache { get; }
         private ILogger<Logger> AppLogger { get; }
         private ConfigurationService ConfigurationService { get; }
         public Dictionary<string, uint> Counters { get; }
@@ -27,13 +23,10 @@ namespace Grillbot.Services.Logger
         public Logger(DiscordSocketClient client, IMessageCache messageCache, ILogger<Logger> logger, ConfigurationService configurationService)
         {
             Client = client;
-            MessageCache = messageCache;
             AppLogger = logger;
             ConfigurationService = configurationService;
 
             Counters = new Dictionary<string, uint>();
-
-            HttpClient = new HttpClient();
         }
 
         public async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
@@ -45,16 +38,6 @@ namespace Grillbot.Services.Logger
 
             if (result)
                 EventPostProcess("GuildMemberUpdated");
-        }
-
-        public async Task OnMessageDelete(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
-        {
-            if (!CanProcessEvent("MessageDeleted")) return;
-
-            var method = new MessageDeleted(Client, ConfigurationService, MessageCache, HttpClient, AppLogger);
-            await method.ProcessAsync(message, channel).ConfigureAwait(false);
-
-            EventPostProcess("MessageDeleted");
         }
 
         private void EventPostProcess(string name)
@@ -75,7 +58,6 @@ namespace Grillbot.Services.Logger
 
         public void Dispose()
         {
-            HttpClient.Dispose();
             Counters.Clear();
         }
 

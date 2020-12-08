@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using System;
 using System.Collections.Generic;
@@ -10,13 +11,7 @@ namespace Grillbot.Services
 {
     public class PaginationService
     {
-        private Dictionary<ulong, PaginatedEmbed> Embeds { get; set; }
-
-        private Emoji FirstPageEmoji => new Emoji("⏮️");
-        private Emoji PrevPageEmoji => new Emoji("◀️");
-        private Emoji NextPageEmoji => new Emoji("▶️");
-        private Emoji LastPageEmoji => new Emoji("⏭️");
-
+        private Dictionary<ulong, PaginatedEmbed> Embeds { get; }
         private DiscordSocketClient DiscordClient { get; }
 
         public PaginationService(DiscordSocketClient discordClient)
@@ -44,13 +39,13 @@ namespace Grillbot.Services
             if (embed.Pages.Count > 1)
             {
                 if (embed.Pages.Count > 2)
-                    await message.AddReactionAsync(FirstPageEmoji);
+                    await message.AddReactionAsync(EmojiHelper.TrackPrevious);
 
-                await message.AddReactionAsync(PrevPageEmoji);
-                await message.AddReactionAsync(NextPageEmoji);
+                await message.AddReactionAsync(EmojiHelper.ArrowBackward);
+                await message.AddReactionAsync(EmojiHelper.ArrowForward);
 
                 if (embed.Pages.Count > 2)
-                    await message.AddReactionAsync(LastPageEmoji);
+                    await message.AddReactionAsync(EmojiHelper.TrackNext);
 
                 AddEmbed(message, embed);
             }
@@ -62,13 +57,13 @@ namespace Grillbot.Services
                 return;
 
             bool changed = false;
-            if (emoji.Equals(FirstPageEmoji))
+            if (emoji.Equals(EmojiHelper.TrackPrevious))
                 changed = embed.FirstPage();
-            else if (emoji.Equals(PrevPageEmoji))
+            else if (emoji.Equals(EmojiHelper.ArrowBackward))
                 changed = embed.PrevPage();
-            else if (emoji.Equals(NextPageEmoji))
+            else if (emoji.Equals(EmojiHelper.ArrowForward))
                 changed = embed.NextPage();
-            else if (emoji.Equals(LastPageEmoji))
+            else if (emoji.Equals(EmojiHelper.TrackNext))
                 changed = embed.LastPage();
 
             if (changed)

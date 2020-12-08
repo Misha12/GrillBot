@@ -35,5 +35,23 @@ namespace Grillbot.Controllers
             var viewModel = new AuditViewModel(logs, filter, pagination, DiscordClient.Guilds.ToList());
             return View(viewModel);
         }
+
+        [HttpGet("DownloadFile")]
+        public async Task<IActionResult> DownloadFileAsync([FromQuery] string filename)
+        {
+            var file = await AuditService.GetFileAsync(filename);
+
+            if (file == null)
+                return NotFound();
+
+            return File(file.Content, "application/octet-stream", file.Filename);
+        }
+
+        [HttpGet("Delete/{id}")]
+        public async Task<IActionResult> DeleteRecordAsync(long id)
+        {
+            await AuditService.DeleteItemAsync(id);
+            return RedirectToAction("Index");
+        }
     }
 }

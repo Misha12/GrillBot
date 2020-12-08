@@ -36,11 +36,11 @@ namespace Grillbot.Modules
                 using var service = GetService<TeamSearchService>();
 
                 await service.Service.CreateSearchAsync(Context.Guild, Context.User, Context.Channel, Context.Message);
-                await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
+                await Context.Message.AddReactionAsync(EmojiHelper.OKEmoji);
             }
             catch (Exception ex)
             {
-                await Context.Message.AddReactionAsync(ReactHelpers.NOKEmoji);
+                await Context.Message.AddReactionAsync(EmojiHelper.NOKEmoji);
 
                 if (ex is ValidationException)
                 {
@@ -138,12 +138,12 @@ namespace Grillbot.Modules
                 {
                     using var service = GetService<TeamSearchService>();
                     await service.Service.RemoveSearchAsync(searchId, user);
-                    await Context.Message.AddReactionAsync(ReactHelpers.OKEmoji);
+                    await Context.Message.AddReactionAsync(EmojiHelper.OKEmoji);
                 }
             }
             catch (Exception ex)
             {
-                await Context.Message.AddReactionAsync(ReactHelpers.NOKEmoji);
+                await Context.Message.AddReactionAsync(EmojiHelper.NOKEmoji);
 
                 if (ex is ValidationException || ex is UnauthorizedAccessException)
                 {

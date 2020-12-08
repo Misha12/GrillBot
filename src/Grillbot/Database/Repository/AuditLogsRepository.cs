@@ -1,7 +1,9 @@
+using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Database.Repository
 {
@@ -44,19 +46,54 @@ namespace Grillbot.Database.Repository
             switch(filter.Order)
             {
                 case AuditLogOrder.Server when filter.SortDesc:
-                    return query.OrderByDescending(o => o.GuildId).ThenByDescending(o => o.Id);
+                    query = query.OrderByDescending(o => o.GuildId).ThenByDescending(o => o.Id);
+                    break;
                 case AuditLogOrder.Server when !filter.SortDesc:
-                    return query.OrderBy(o => o.GuildId).ThenBy(o => o.Id);
+                    query = query.OrderBy(o => o.GuildId).ThenBy(o => o.Id);
+                    break;
                 case AuditLogOrder.User when filter.SortDesc:
-                    return query.OrderByDescending(o => o.UserId).ThenByDescending(o => o.Id);
+                    query = query.OrderByDescending(o => o.UserId).ThenByDescending(o => o.Id);
+                    break;
                 case AuditLogOrder.User when !filter.SortDesc:
-                    return query.OrderBy(o => o.UserId).ThenBy(o => o.Id);
+                    query = query.OrderBy(o => o.UserId).ThenBy(o => o.Id);
+                    break;
                 default:
                     if (filter.SortDesc)
-                        return query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
+                        query = query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
                     else
-                        return query.OrderBy(o => o.CreatedAt).ThenBy(o => o.Id);
+                        query = query.OrderBy(o => o.CreatedAt).ThenBy(o => o.Id);
+                    break;
             }
+
+            return query.Select(o => new AuditLogItem()
+            {
+                CreatedAt = o.CreatedAt,
+                DcAuditLogId = o.DcAuditLogId,
+                Files = o.Files.Select(x => new Entity.File()
+                {
+                    Filename = x.Filename
+                }).ToHashSet(),
+                DcAuditLogIdSnowflake = o.DcAuditLogIdSnowflake,
+                GuildId = o.GuildId,
+                Id = o.Id,
+                JsonData = o.JsonData,
+                Type = o.Type,
+                User = o.User,
+                UserId = o.UserId
+            });
+        }
+
+        public Task<File> FindFileByFilenameAsync(string filename)
+        {
+            return Context.Files.AsQueryable()
+                .SingleOrDefaultAsync(o => o.AuditLogItemId != null && o.Filename == filename);
+        }
+
+        public Task<AuditLogItem> FindItemByIdAsync(long id)
+        {
+            return Context.AuditLogs.AsQueryable()
+                .Include(o => o.Files)
+                .FirstOrDefaultAsync(o => o.Id == id);
         }
     }
 }
