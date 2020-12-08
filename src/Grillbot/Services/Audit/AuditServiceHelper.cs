@@ -45,7 +45,9 @@ namespace Grillbot.Services.Audit
             { ActionType.EmojiDeleted, AuditEmoteInfo.Create },
             { ActionType.EmojiUpdated, AuditEmoteUpdated.Create },
             { ActionType.Prune, AuditPruneMembers.Create },
-            { ActionType.Unban, AuditUnban.Create }
+            { ActionType.Unban, AuditUnban.Create },
+            { ActionType.MessagePinned, AuditMessagePinInfo.Create },
+            { ActionType.MessageUnpinned, AuditMessagePinInfo.Create }
         };
 
         public static bool IsTypeDefined(ActionType type)
