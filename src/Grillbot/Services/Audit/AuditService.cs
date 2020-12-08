@@ -11,10 +11,10 @@ using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
 using Grillbot.Models.Embed;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Config;
 using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -23,7 +23,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services.Audit
 {
-    public class AuditService
+    public class AuditService : IBackgroundTaskObserver, IBackgroundTaskScheduleable
     {
         private IGrillBotRepository GrillBotRepository { get; }
         private UserSearchService UserSearchService { get; }
@@ -55,10 +55,10 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.Command,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = context.Guild.Id,
-                UserId = userId,
-                Data = JObject.FromObject(CommandAuditData.CreateDbItem(context, command.Value))
+                UserId = userId
             };
 
+            entity.SetData(CommandAuditData.CreateDbItem(context, command.Value));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
         }
@@ -91,10 +91,10 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.UserLeft,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = user.Guild.Id,
-                UserId = executor,
-                Data = JObject.FromObject(UserLeftAuditData.CreateDbItem(user.Guild, user, ban != null, ban?.Reason))
+                UserId = executor
             };
 
+            entity.SetData(UserLeftAuditData.CreateDbItem(user.Guild, user, ban != null, ban?.Reason));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
         }
@@ -112,10 +112,10 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.UserJoined,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = user.Guild.Id,
-                UserId = userEntity.ID,
-                Data = JObject.FromObject(UserJoinedAuditData.Create(user.Guild))
+                UserId = userEntity.ID
             };
 
+            entity.SetData(UserJoinedAuditData.Create(user.Guild));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
         }
@@ -132,10 +132,10 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.MessageEdited,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = guild.Id,
-                UserId = userId,
-                Data = JObject.FromObject(MessageEditedAuditData.CreateDbItem(channel, oldMessage, after))
+                UserId = userId
             };
 
+            entity.SetData(MessageEditedAuditData.CreateDbItem(channel, oldMessage, after));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
 
@@ -159,7 +159,7 @@ namespace Grillbot.Services.Audit
             };
 
             if (deletedMessage == null)
-                ProcessMessageDeletedWithoutCache(entity, channel);
+                entity.SetData(MessageDeletedAuditData.CreateDbItem(channel));
             else
                 await ProcessMessageDeletedWithCacheAsync(entity, channel, deletedMessage, guild);
 
@@ -171,14 +171,9 @@ namespace Grillbot.Services.Audit
             await GrillBotRepository.CommitAsync();
         }
 
-        private void ProcessMessageDeletedWithoutCache(AuditLogItem entity, ISocketMessageChannel channel)
-        {
-            entity.Data = JObject.FromObject(MessageDeletedAuditData.CreateDbItem(channel));
-        }
-
         private async Task ProcessMessageDeletedWithCacheAsync(AuditLogItem entity, ISocketMessageChannel channel, IMessage message, SocketGuild guild)
         {
-            entity.Data = JObject.FromObject(MessageDeletedAuditData.CreateDbItem(channel, message));
+            entity.SetData(MessageDeletedAuditData.CreateDbItem(channel, message));
 
             var auditLog = (await guild.GetAuditLogDataAsync(actionType: ActionType.MessageDeleted)).Find(o =>
             {
@@ -322,6 +317,86 @@ namespace Grillbot.Services.Audit
 
             GrillBotRepository.Remove(item);
             await GrillBotRepository.CommitAsync();
+        }
+
+        public async Task TriggerBackgroundTaskAsync(object data)
+        {
+            if (data is not DownloadAuditLogBackgroundTask task)
+                return;
+
+            var guild = Client.GetGuild(task.GuildId);
+
+            if (guild == null)
+                return;
+
+            var logIdsQuery = GrillBotRepository.AuditLogs.GetLastAuditLogIdsQuery(guild.Id);
+            var lastLogIds = (await logIdsQuery.ToListAsync()).ConvertAll(o => Convert.ToUInt64(o));
+
+            foreach (var type in task.ActionTypes)
+            {
+                if (!AuditServiceHelper.IsTypeDefined(type))
+                    continue;
+
+                var logs = await guild.GetAuditLogDataAsync(100, type);
+
+                if (logs.Count == 0)
+                    continue;
+
+                foreach (var log in logs)
+                {
+                    if (lastLogIds.Contains(log.Id))
+                        continue;
+
+                    var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, log.User);
+
+                    if(userId == null)
+                    {
+                        var entity = await GrillBotRepository.UsersRepository.CreateAndGetUserAsync(guild.Id, log.User.Id);
+                        userId = entity.ID;
+                    }
+
+                    var item = new AuditLogItem()
+                    {
+                        CreatedAt = log.CreatedAt.LocalDateTime,
+                        DcAuditLogIdSnowflake = log.Id,
+                        UserId = userId,
+                        GuildIdSnowflake = guild.Id,
+                        Type = AuditServiceHelper.AuditLogTypeMap[type]
+                    };
+
+                    var logMappingMethod = AuditServiceHelper.AuditLogDataMap[type];
+
+                    if (logMappingMethod != null)
+                    {
+                        var mappedItem = logMappingMethod(log.Data);
+
+                        if (mappedItem != null)
+                            item.SetData(mappedItem);
+                    }
+
+                    await GrillBotRepository.AddAsync(item);
+                }
+            }
+
+            await GrillBotRepository.CommitAsync();
+        }
+
+        public bool CanScheduleTask(DateTime lastScheduleAt)
+        {
+            return true;// TODO
+            //return (DateTime.Now - lastScheduleAt).TotalMinutes >= 5.0D;
+        }
+
+        public List<BackgroundTask> GetBackgroundTasks()
+        {
+            var tasks = new List<BackgroundTask>();
+
+            foreach (var guild in Client.Guilds)
+            {
+                tasks.Add(new DownloadAuditLogBackgroundTask(guild));
+            }
+
+            return tasks;
         }
     }
 }

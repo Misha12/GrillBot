@@ -1,6 +1,6 @@
 using Grillbot.Database.Entity.Users;
 using Grillbot.Enums;
-using Newtonsoft.Json.Linq;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
@@ -42,11 +42,30 @@ namespace Grillbot.Database.Entity.AuditLog
 
         public string JsonData { get; set; }
 
-        [NotMapped]
-        public JObject Data
+        public TData GetData<TData>()
         {
-            get => string.IsNullOrEmpty(JsonData) ? null : JObject.Parse(JsonData);
-            set => JsonData = value?.ToString(Newtonsoft.Json.Formatting.None);
+            var settings = new JsonSerializerSettings()
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore
+            };
+
+            if (string.IsNullOrEmpty(JsonData))
+                return default;
+            else
+                return JsonConvert.DeserializeObject<TData>(JsonData, settings);
+        }
+
+        public void SetData(object data)
+        {
+            var settings = new JsonSerializerSettings()
+            {
+                NullValueHandling = NullValueHandling.Ignore,
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                Formatting = Formatting.None
+            };
+
+            JsonData = JsonConvert.SerializeObject(data, settings);
         }
 
         public AuditLogType Type { get; set; }

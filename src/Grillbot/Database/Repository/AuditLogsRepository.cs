@@ -2,6 +2,7 @@ using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -94,6 +95,15 @@ namespace Grillbot.Database.Repository
             return Context.AuditLogs.AsQueryable()
                 .Include(o => o.Files)
                 .FirstOrDefaultAsync(o => o.Id == id);
+        }
+
+        public IQueryable<string> GetLastAuditLogIdsQuery(ulong guildId)
+        {
+            var halfYearBack = DateTime.Now.AddMonths(-6);
+
+            return Context.AuditLogs.AsQueryable()
+                .Where(o => o.DcAuditLogId != null && o.CreatedAt >= halfYearBack && o.GuildId == guildId.ToString())
+                .Select(o => o.DcAuditLogId);
         }
     }
 }
