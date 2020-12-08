@@ -2,6 +2,7 @@ using Grillbot.Database.Entity.Users;
 using Grillbot.Enums;
 using Newtonsoft.Json.Linq;
 using System;
+using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
 
@@ -49,5 +50,11 @@ namespace Grillbot.Database.Entity.AuditLog
         }
 
         public AuditLogType Type { get; set; }
+        public ISet<File> Files { get; set; }
+
+        public AuditLogItem()
+        {
+            Files = new HashSet<File>();
+        }
     }
 }

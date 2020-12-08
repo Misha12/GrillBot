@@ -52,6 +52,7 @@ namespace Grillbot.Database
                 builder.HasIndex(o => o.GuildId, "IX_AuditLogs_GuildId");
 
                 builder.HasOne(o => o.User).WithMany(o => o.AuditLogs);
+                builder.HasMany(o => o.Files).WithOne(o => o.AuditLogItem);
             });
         }
 
