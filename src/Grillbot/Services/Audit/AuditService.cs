@@ -10,6 +10,8 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
+using Grillbot.Models.Embed;
+using Grillbot.Services.Config;
 using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
@@ -28,15 +30,17 @@ namespace Grillbot.Services.Audit
         private DiscordSocketClient Client { get; }
         private BotState BotState { get; }
         private IMessageCache MessageCache { get; }
+        private ConfigurationService ConfigurationService { get; }
 
         public AuditService(IGrillBotRepository grillBotRepository, UserSearchService userSearchService, DiscordSocketClient client, BotState botState,
-            IMessageCache messageCache)
+            IMessageCache messageCache, ConfigurationService configurationService)
         {
             GrillBotRepository = grillBotRepository;
             UserSearchService = userSearchService;
             Client = client;
             BotState = botState;
             MessageCache = messageCache;
+            ConfigurationService = configurationService;
         }
 
         public async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
@@ -184,9 +188,9 @@ namespace Grillbot.Services.Audit
 
             entity.UserId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, auditLog?.User ?? message.Author);
 
-            if(message.Attachments.Count > 0)
+            if (message.Attachments.Count > 0)
             {
-                foreach(var attachment in message.Attachments)
+                foreach (var attachment in message.Attachments)
                 {
                     var fileContent = await attachment.DownloadFileAsync();
 
@@ -200,6 +204,42 @@ namespace Grillbot.Services.Audit
                     });
                 }
             }
+        }
+
+        public async Task ProcessBoostChangeAsync(SocketGuildUser before, SocketGuildUser after)
+        {
+            var boosterRoleId = ConfigurationService.GetValue(GlobalConfigItems.ServerBoosterRoleId);
+
+            if (string.IsNullOrEmpty(boosterRoleId) || after.Roles.SequenceEqual(before.Roles))
+                return;
+
+            var boosterRoleIdValue = Convert.ToUInt64(boosterRoleId);
+            var hasBefore = before.Roles.Any(o => o.Id == boosterRoleIdValue);
+            var hasAfter = after.Roles.Any(o => o.Id == boosterRoleIdValue);
+
+            if (!hasBefore && hasAfter)
+                await NotifyBoostChangeAsync(after, "Uživatel na serveru je nyní Server Booster.");
+            else if (hasBefore && !hasAfter)
+                await NotifyBoostChangeAsync(after, "Uživatel na serveru již není Server Booster.");
+        }
+
+        private async Task NotifyBoostChangeAsync(SocketGuildUser user, string message)
+        {
+            var adminChannelId = ConfigurationService.GetValue(GlobalConfigItems.AdminChannel);
+            if (string.IsNullOrEmpty(adminChannelId))
+                return;
+
+            var channel = Client.GetChannel(Convert.ToUInt64(adminChannelId));
+
+            if (channel == null)
+                return;
+
+            var embed = new BotEmbed(title: message, color: new Color(255, 0, 207))
+                .AddField("Uživatel", user?.ToString() ?? "Neznámý", false)
+                .WithThumbnail(user?.GetUserAvatarUrl())
+                .WithFooter($"UserId: {user?.Id ?? 0}", null);
+
+            await (channel as ISocketMessageChannel)?.SendMessageAsync(embed: embed.Build());
         }
 
         public async Task<List<AuditItem>> GetAuditLogsAsync(LogsFilter filter)

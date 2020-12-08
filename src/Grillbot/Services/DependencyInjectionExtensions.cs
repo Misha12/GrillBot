@@ -130,7 +130,6 @@ namespace Grillbot.Services
 
             services
                 .AddSingleton<BotLoggingService>()
-                .AddSingleton<Logger.Logger>()
                 .AddTransient<LogEmbedCreator>()
                 .AddSingleton<ApiStatistics>();
 

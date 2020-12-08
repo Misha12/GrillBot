@@ -3,7 +3,6 @@ using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using System;
@@ -14,14 +13,12 @@ namespace Grillbot.Handlers
     public class MessageEditedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
         private IServiceProvider Provider { get; }
 
-        public MessageEditedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics, IServiceProvider provider)
+        public MessageEditedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, IServiceProvider provider)
         {
             Client = client;
-            Logger = logger;
             InternalStatistics = internalStatistics;
             Provider = provider;
         }

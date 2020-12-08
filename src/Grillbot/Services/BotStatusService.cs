@@ -6,7 +6,6 @@ using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
 using System.Diagnostics;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services
@@ -14,13 +13,11 @@ namespace Grillbot.Services
     public class BotStatusService
     {
         private IWebHostEnvironment HostingEnvironment { get; }
-        private Logger.Logger Logger { get; }
         private IGrillBotRepository GrillBotRepository { get; }
 
-        public BotStatusService(IWebHostEnvironment hostingEnvironment, Logger.Logger logger, IGrillBotRepository grillBotRepository)
+        public BotStatusService(IWebHostEnvironment hostingEnvironment, IGrillBotRepository grillBotRepository)
         {
             HostingEnvironment = hostingEnvironment;
-            Logger = logger;
             GrillBotRepository = grillBotRepository;
         }
 
@@ -36,11 +33,6 @@ namespace Grillbot.Services
                 ThreadStatus = GetThreadStatus(process),
                 ActiveCpuTime = process.TotalProcessorTime
             };
-        }
-
-        public Dictionary<string, uint> GetLoggerStats()
-        {
-            return Logger.Counters.OrderByDescending(o => o.Value).ToDictionary(o => o.Key, o => o.Value);
         }
 
         private string GetInstanceType()

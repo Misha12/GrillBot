@@ -8,7 +8,6 @@ namespace Grillbot.Models.BotStatus
     public class ReportsViewModel
     {
         public Dictionary<string, ulong> Commands { get; set; }
-        public Dictionary<string, uint> Logger { get; set; }
         public Dictionary<string, ulong> Events { get; set; }
         public Dictionary<string, Tuple<int, long>> Database { get; set; }
         public GCMemoryInfo GCMemoryInfo { get; set; }
