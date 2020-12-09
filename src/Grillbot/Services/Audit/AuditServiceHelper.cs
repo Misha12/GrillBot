@@ -47,7 +47,11 @@ namespace Grillbot.Services.Audit
             { ActionType.Prune, AuditPruneMembers.Create },
             { ActionType.Unban, AuditUnban.Create },
             { ActionType.MessagePinned, AuditMessagePinInfo.Create },
-            { ActionType.MessageUnpinned, AuditMessagePinInfo.Create }
+            { ActionType.MessageUnpinned, AuditMessagePinInfo.Create },
+            { ActionType.BotAdded, AuditBotAdded.Create },
+            { ActionType.OverwriteCreated, AuditOverwriteInfo.Create },
+            { ActionType.OverwriteDeleted, AuditOverwriteInfo.Create },
+            { ActionType.OverwriteUpdated, AuditOverwriteUpdated.Create }
         };
 
         public static bool IsTypeDefined(ActionType type)
