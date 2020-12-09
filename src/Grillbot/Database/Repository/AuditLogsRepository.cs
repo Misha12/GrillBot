@@ -44,27 +44,10 @@ namespace Grillbot.Database.Repository
             if (filter.To != null)
                 query = query.Where(o => o.CreatedAt < filter.To.Value);
 
-            switch(filter.Order)
-            {
-                case AuditLogOrder.Server when filter.SortDesc:
-                    query = query.OrderByDescending(o => o.GuildId).ThenByDescending(o => o.Id);
-                    break;
-                case AuditLogOrder.Server when !filter.SortDesc:
-                    query = query.OrderBy(o => o.GuildId).ThenBy(o => o.Id);
-                    break;
-                case AuditLogOrder.User when filter.SortDesc:
-                    query = query.OrderByDescending(o => o.UserId).ThenByDescending(o => o.Id);
-                    break;
-                case AuditLogOrder.User when !filter.SortDesc:
-                    query = query.OrderBy(o => o.UserId).ThenBy(o => o.Id);
-                    break;
-                default:
-                    if (filter.SortDesc)
-                        query = query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
-                    else
-                        query = query.OrderBy(o => o.CreatedAt).ThenBy(o => o.Id);
-                    break;
-            }
+            if (filter.SortDesc)
+                query = query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
+            else
+                query = query.OrderBy(o => o.CreatedAt).ThenBy(o => o.Id);
 
             return query.Select(o => new AuditLogItem()
             {

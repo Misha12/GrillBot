@@ -56,16 +56,6 @@
 
             <div class="form-row">
                 <div class="col-md-12">
-                    <div class="d-flex flex-wrap">
-                        @foreach (var item in Html.GetEnumSelectList<AuditLogOrder>())
-                        {
-                            <span class="mr-3">
-                                @Html.RadioButtonFor(o => o.Filter.Order, (AuditLogOrder)Convert.ToInt32(item.Value), new { id = $"Order_{item.Value}" })
-                                <label for="Order_@item.Value" class="mb-0">@item.Text</label>
-                            </span>
-                        }
-                    </div>
-
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="sortdesc" asp-for="Filter.SortDesc">
                         <label class="custom-control-label" for="sortdesc">Sestupně</label>

@@ -9,7 +9,6 @@ namespace Grillbot.Database.Entity.AuditLog
         public string GuildId { get; set; }
         public List<long> UserIds { get; set; }
         public bool IncludeAnonymous { get; set; }
-        public AuditLogOrder Order { get; set; }
         public bool SortDesc { get; set; }
         public AuditLogType? Type { get; set; }
         public int Skip { get; set; }
