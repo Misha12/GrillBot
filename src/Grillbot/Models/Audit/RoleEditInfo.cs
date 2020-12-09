@@ -17,7 +17,6 @@ namespace Grillbot.Models.Audit
         public bool Added { get; set; }
 
         public RoleEditInfo() { }
-        
         public RoleEditInfo(MemberRoleEditInfo info)
         {
             RoleId = info.RoleId;

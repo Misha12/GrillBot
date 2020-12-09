@@ -1,6 +1,5 @@
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
-using Grillbot.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;

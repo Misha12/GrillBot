@@ -56,7 +56,10 @@ namespace Grillbot.Services.Audit
             { ActionType.MemberRoleUpdated, AuditMemberUpdated.Create },
             { ActionType.RoleCreated, Role.Create },
             { ActionType.RoleDeleted, Role.Create },
-            { ActionType.RoleUpdated, RoleUpdated.Create }
+            { ActionType.RoleUpdated, RoleUpdated.Create },
+            { ActionType.WebhookCreated, Webhook.Create },
+            { ActionType.WebhookDeleted, Webhook.Create },
+            { ActionType.WebhookUpdated, WebhookUpdated.Create }
         };
 
         public static bool IsTypeDefined(ActionType type)
