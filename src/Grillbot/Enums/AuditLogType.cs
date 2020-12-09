@@ -61,9 +61,6 @@ namespace Grillbot.Enums
         [Display(Name = "Upraven uživatel")]
         MemberUpdated,
 
-        [Display(Name = "Upraveny role uživatele")]
-        MemberRoleUpdated,
-
         [Display(Name = "Vytvořena role")]
         RoleCreated,
 

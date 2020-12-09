@@ -290,7 +290,6 @@ namespace Grillbot.Services.Audit
                 From = filter.From,
                 GuildId = filter.GuildId.ToString(),
                 IncludeAnonymous = filter.IncludeAnonymous,
-                Order = filter.Order,
                 Skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize,
                 SortDesc = filter.SortDesc,
                 Take = PaginationInfo.DefaultPageSize,

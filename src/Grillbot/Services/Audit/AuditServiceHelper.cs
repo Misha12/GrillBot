@@ -23,7 +23,7 @@ namespace Grillbot.Services.Audit
             { ActionType.Prune, AuditLogType.Prune },
             { ActionType.Unban, AuditLogType.Unban },
             { ActionType.MemberUpdated, AuditLogType.MemberUpdated },
-            { ActionType.MemberRoleUpdated, AuditLogType.MemberRoleUpdated },
+            { ActionType.MemberRoleUpdated, AuditLogType.MemberUpdated },
             { ActionType.BotAdded, AuditLogType.BotAdded },
             { ActionType.RoleCreated, AuditLogType.RoleCreated },
             { ActionType.RoleDeleted, AuditLogType.RoleDeleted },
@@ -51,7 +51,12 @@ namespace Grillbot.Services.Audit
             { ActionType.BotAdded, AuditBotAdded.Create },
             { ActionType.OverwriteCreated, AuditOverwriteInfo.Create },
             { ActionType.OverwriteDeleted, AuditOverwriteInfo.Create },
-            { ActionType.OverwriteUpdated, AuditOverwriteUpdated.Create }
+            { ActionType.OverwriteUpdated, AuditOverwriteUpdated.Create },
+            { ActionType.MemberUpdated, AuditMemberUpdated.Create },
+            { ActionType.MemberRoleUpdated, AuditMemberUpdated.Create },
+            { ActionType.RoleCreated, Role.Create },
+            { ActionType.RoleDeleted, Role.Create },
+            { ActionType.RoleUpdated, RoleUpdated.Create }
         };
 
         public static bool IsTypeDefined(ActionType type)
