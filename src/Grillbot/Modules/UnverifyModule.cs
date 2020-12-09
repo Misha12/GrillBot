@@ -33,29 +33,32 @@ namespace Grillbot.Modules
             "Dále je důvod, proč daná osoba přišla o přístup.\nJe možné získat imunitu na unverify.\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify 30m Přišel jsi o přístup @User1#1234 @User2#1354 ...`")]
         public async Task SetUnverifyAsync(string time, [Remainder] string reasonAndUserMentions = null)
         {
-            try
+            using (Context.Channel.EnterTypingState())
             {
-                if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
-                    return;
-
-                var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
-
-                if (usersToUnverify.Count == 0)
-                    return;
-
-                using var service = GetService<UnverifyService>();
-                var messages = await service.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
-                await ReplyChunkedAsync(messages, 1);
-            }
-            catch (Exception ex)
-            {
-                if (ex is ValidationException || ex is FormatException || ex is ArgumentException)
+                try
                 {
-                    await ReplyAsync(ex.Message);
-                    return;
-                }
+                    if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
+                        return;
 
-                throw;
+                    var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
+
+                    if (usersToUnverify.Count == 0)
+                        return;
+
+                    using var service = GetService<UnverifyService>();
+                    var messages = await service.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
+                    await ReplyChunkedAsync(messages, 1);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is ValidationException || ex is FormatException || ex is ArgumentException)
+                    {
+                        await ReplyAsync(ex.Message);
+                        return;
+                    }
+
+                    throw;
+                }
             }
         }
 
