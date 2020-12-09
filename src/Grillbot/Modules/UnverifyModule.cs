@@ -94,9 +94,12 @@ namespace Grillbot.Modules
         [Remarks("Zadává se identifikace uživatele. To znamená ID uživatele, tag, nebo jméno (username, nebo alias).\n\nCelý příkaz je pak vypadá např.:\n`{prefix}unverify remove @GrillBot`")]
         public async Task RemoveUnverifyAsync(SocketGuildUser user)
         {
-            using var service = GetService<UnverifyService>();
-            var message = await service.Service.RemoveUnverifyAsync(Context.Guild, user, Context.User);
-            await ReplyAsync(message);
+            using (Context.Channel.EnterTypingState())
+            {
+                using var service = GetService<UnverifyService>();
+                var message = await service.Service.RemoveUnverifyAsync(Context.Guild, user, Context.User);
+                await ReplyAsync(message);
+            }
         }
 
         [Command("list")]
