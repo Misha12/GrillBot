@@ -33,25 +33,28 @@ namespace Grillbot.Modules
             if (await SelfUnverifyRoutingAsync(time, subjects))
                 return;
 
-            try
+            using (Context.Channel.EnterTypingState())
             {
-                if (Context.User is not SocketGuildUser user)
-                    return;
-
-                using var service = GetService<UnverifyService>();
-
-                var message = await service.Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
-                await ReplyAsync(message);
-            }
-            catch (Exception ex)
-            {
-                if (ex is ArgumentException || ex is ValidationException || ex is FormatException)
+                try
                 {
-                    await ReplyAsync(ex.Message);
-                    return;
-                }
+                    if (Context.User is not SocketGuildUser user)
+                        return;
 
-                throw;
+                    using var service = GetService<UnverifyService>();
+
+                    var message = await service.Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
+                    await ReplyAsync(message);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is ArgumentException || ex is ValidationException || ex is FormatException)
+                    {
+                        await ReplyAsync(ex.Message);
+                        return;
+                    }
+
+                    throw;
+                }
             }
         }
 
