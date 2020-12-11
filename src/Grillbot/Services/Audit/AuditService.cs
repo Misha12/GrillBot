@@ -382,20 +382,12 @@ namespace Grillbot.Services.Audit
 
         public bool CanScheduleTask(DateTime lastScheduleAt)
         {
-            return true;// TODO
-            //return (DateTime.Now - lastScheduleAt).TotalMinutes >= 5.0D;
+            return (DateTime.Now - lastScheduleAt).TotalMinutes >= 5.0D; // Every 5 minute
         }
 
         public List<BackgroundTask> GetBackgroundTasks()
         {
-            var tasks = new List<BackgroundTask>();
-
-            foreach (var guild in Client.Guilds)
-            {
-                tasks.Add(new DownloadAuditLogBackgroundTask(guild));
-            }
-
-            return tasks;
+            return Client.Guilds.Select(o => (BackgroundTask)new DownloadAuditLogBackgroundTask(o)).ToList();
         }
     }
 }
