@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -18,6 +19,8 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 
         [JsonIgnore]
         public IChannel Channel { get; set; }
+
+        public AuditMessagePinInfo() { }
 
         public AuditMessagePinInfo(ulong messageId, ulong channelId)
         {
@@ -46,6 +49,14 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 Message = messageChannel.GetMessageAsync(MessageId).Result;
 
             return this;
+        }
+
+        public static AuditMessagePinInfo FromJsonIfValid(AuditLogType type, string json)
+        {
+            if (type != AuditLogType.MessagePinned && type != AuditLogType.MessageUnpinned)
+                return null;
+
+            return JsonConvert.DeserializeObject<AuditMessagePinInfo>(json);
         }
     }
 }

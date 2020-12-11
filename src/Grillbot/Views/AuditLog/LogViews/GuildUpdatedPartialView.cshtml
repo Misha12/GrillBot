@@ -1,0 +1,136 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.GuildUpdated;
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th style="width: 40%">Vlastnost:</th>
+                    <th>Před</th>
+                    <th>Po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.AfkTimeout != null)
+                {
+                    <tr>
+                        <th>AFK Timeout</th>
+                        <td>@(Model.AfkTimeout.Before == null ? "Není" : TimeSpan.FromSeconds(Model.AfkTimeout.Before.Value).TotalMinutes + " min")</td>
+                        <td>@(Model.AfkTimeout.After == null ? "Není" : TimeSpan.FromSeconds(Model.AfkTimeout.After.Value).TotalMinutes + " min")</td>
+                    </tr>
+                }
+
+                @if (Model.AfkChannel != null)
+                {
+                    <tr>
+                        <th>AFK kanál</th>
+                        <td>@(Model.AfkChannel.Before == null ? "-" : "#" + Model.AfkChannel.Before.Name)</td>
+                        <td>@(Model.AfkChannel.After == null ? "-" : "#" + Model.AfkChannel.After.Name)</td>
+                    </tr>
+                }
+
+                @if (Model.DefaultMessageNotifications != null)
+                {
+                    <tr>
+                        <th>Výchozí notifikace zpráv</th>
+                        <td>@(Model.DefaultMessageNotifications.Before?.ToString() ?? "-")</td>
+                        <td>@(Model.DefaultMessageNotifications.After?.ToString() ?? "-")</td>
+                    </tr>
+                }
+
+                @if (Model.Name != null)
+                {
+                    <tr>
+                        <th>Název</th>
+                        <td>@Model.Name.Before</td>
+                        <td>@Model.Name.After</td>
+                    </tr>
+                }
+
+                @if (Model.RegionId != null)
+                {
+                    <tr>
+                        <th>Hlasový region</th>
+                        <td>@Model.RegionId.Before</td>
+                        <td>@Model.RegionId.After</td>
+                    </tr>
+                }
+
+                @if (Model.IconHash != null)
+                {
+                    <tr>
+                        <th>Hash ikony</th>
+                        <td><code>@Model.IconHash.Before</code></td>
+                        <td><code>@Model.IconHash.After</code></td>
+                    </tr>
+                }
+
+                @if (Model.VerificationLevel != null)
+                {
+                    <tr>
+                        <th>Úroveň ověření</th>
+                        <td>@Model.VerificationLevel.Before</td>
+                        <td>@Model.VerificationLevel.After</td>
+                    </tr>
+                }
+
+                @if (Model.Owner != null)
+                {
+                    <tr>
+                        <th>Vlastník</th>
+                        <td>@Model.Owner.Before.GetFullName()</td>
+                        <td>@Model.Owner.After.GetFullName()</td>
+                    </tr>
+                }
+
+                @if (Model.MfaLevel != null)
+                {
+                    <tr>
+                        <th>Dvoufázové ověření</th>
+                        <td>@((Model.MfaLevel.Before == Discord.MfaLevel.Enabled).TranslateToCz())</td>
+                        <td>@((Model.MfaLevel.After == Discord.MfaLevel.Enabled).TranslateToCz())</td>
+                    </tr>
+                }
+
+                @if (Model.ExplicitContentFilter != null)
+                {
+                    <tr>
+                        <th>Filtr explicitního obsahu</th>
+                        <td>@Model.ExplicitContentFilter.Before</td>
+                        <td>@Model.ExplicitContentFilter.After</td>
+                    </tr>
+                }
+
+                @if (Model.SystemChannel != null)
+                {
+                    <tr>
+                        <th>Systémový kanál</th>
+                        <td>@(Model.SystemChannel.Before == null ? "-" : "#" + Model.SystemChannel.Before.Name)</td>
+                        <td>@(Model.SystemChannel.After == null ? "-" : "#" + Model.SystemChannel.After.Name)</td>
+                    </tr>
+                }
+
+                @if (Model.EmbedChannel != null)
+                {
+                    <tr>
+                        <th>Ukázkový kanál</th>
+                        <td>@(Model.EmbedChannel.Before == null ? "-" : "#" + Model.EmbedChannel.Before.Name)</td>
+                        <td>@(Model.EmbedChannel.After == null ? "-" : "#" + Model.EmbedChannel.After.Name)</td>
+                    </tr>
+                }
+
+                @if (Model.IsEmbedable != null)
+                {
+                    <tr>
+                        <th>Lze použít ukázkový kanál</th>
+                        <td>@Model.IsEmbedable.Before.TranslateToCz()</td>
+                        <td>@Model.IsEmbedable.After.TranslateToCz()</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+
+
+    </div>
+</div>

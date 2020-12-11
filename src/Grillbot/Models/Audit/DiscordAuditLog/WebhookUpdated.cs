@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -38,6 +39,11 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 
             Channel = new DiffData<IChannel>(oldChannel, newChannel);
             return this;
+        }
+
+        public static WebhookUpdated FromJsonIfValid(AuditLogType type, string json)
+        {
+            return type == AuditLogType.WebhookUpdated ? JsonConvert.DeserializeObject<WebhookUpdated>(json) : null;
         }
     }
 }

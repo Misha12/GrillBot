@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit
@@ -24,6 +25,8 @@ namespace Grillbot.Models.Audit
         [JsonProperty("slowmode")]
         public int? SlowModeInterval { get; set; }
 
+        public AuditChannelInfo() { }
+
         public AuditChannelInfo(ulong id, string name, ChannelType type, bool? isNsfw, int? slowmode, int? bitrate)
         {
             ChannelId = id;
@@ -45,6 +48,14 @@ namespace Grillbot.Models.Audit
                 return new AuditChannelInfo(deleteData);
             else
                 return null;
+        }
+
+        public static AuditChannelInfo FromJsonIfValid(AuditLogType type, string json)
+        {
+            if (type != AuditLogType.ChannelCreated && type != AuditLogType.ChannelDeleted)
+                return null;
+
+            return JsonConvert.DeserializeObject<AuditChannelInfo>(json);
         }
     }
 }

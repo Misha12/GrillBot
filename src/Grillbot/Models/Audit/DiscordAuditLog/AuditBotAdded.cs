@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit
@@ -18,6 +19,11 @@ namespace Grillbot.Models.Audit
             {
                 Bot = AuditUserInfo.Create(data.Target)
             };
+        }
+
+        public static AuditBotAdded FromJsonIfValid(AuditLogType type, string json)
+        {
+            return type == AuditLogType.BotAdded ? JsonConvert.DeserializeObject<AuditBotAdded>(json) : null;
         }
     }
 }

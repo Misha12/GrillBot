@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -22,6 +23,11 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 Id = data.EmoteId,
                 Name = data.NewName != data.OldName ? new DiffData<string>(data.OldName, data.NewName) : null
             };
+        }
+
+        public static AuditEmoteUpdated FromJsonIfValid(AuditLogType type, string json)
+        {
+            return type == AuditLogType.EmojiUpdated ? JsonConvert.DeserializeObject<AuditEmoteUpdated>(json) : null;
         }
     }
 }

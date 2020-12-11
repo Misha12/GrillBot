@@ -1,6 +1,6 @@
 ﻿@model Grillbot.Models.Audit.AuditViewModel;
 
-@{ 
+@{
     ViewData["Title"] = "Logování provozu";
 }
 
@@ -137,6 +137,61 @@
                                 break;
                             case AuditLogType.MessageDeleted:
                                 <partial name="~/Views/AuditLog/LogViews/MessageDeletedPartialView.cshtml" model="item.MessageDeletedAuditData" />
+                                break;
+                            case AuditLogType.BotAdded:
+                                <partial name="~/Views/AuditLog/LogViews/BotAddPartialView.cshtml" model="item.BotAdded" />
+                                break;
+                            case AuditLogType.ChannelCreated:
+                            case AuditLogType.ChannelDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/ChannelInfoPartialView.cshtml" model="item.ChannelInfo" />
+                                break;
+                            case AuditLogType.GuildUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/GuildUpdatedPartialView.cshtml" model="item.GuildUpdated" />
+                                break;
+                            case AuditLogType.ChannelUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/ChannelUpdatedPartialView.cshtml" model="item.ChannelUpdated" />
+                                break;
+                            case AuditLogType.EmojiCreated:
+                            case AuditLogType.EmojiDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/EmoteInfoPartialView.cshtml" model="item.EmoteInfo" />
+                                break;
+                            case AuditLogType.EmojiUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/EmoteUpdatedPartialView.cshtml" model="item.EmoteUpdated" />
+                                break;
+                            case AuditLogType.OverwriteCreated:
+                            case AuditLogType.OverwriteDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/OverwriteInfoPartialView.cshtml" model="item.OverwriteInfo" />
+                                break;
+                            case AuditLogType.OverwriteUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/OverwriteUpdatedPartialView.cshtml" model="item.OverwriteUpdated" />
+                                break;
+                            case AuditLogType.Prune:
+                                <partial name="~/Views/AuditLog/LogViews/PruneMembersPartialView.cshtml" model="item.PruneMembers" />
+                                break;
+                            case AuditLogType.Unban:
+                                <partial name="~/Views/AuditLog/LogViews/UnbanPartialView.cshtml" model="item.Unban" />
+                                break;
+                            case AuditLogType.MemberUpdated:
+                            case AuditLogType.MemberRoleUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/MemberUpdatedPartialView.cshtml" model="item.MemberUpdated" />
+                                break;
+                            case AuditLogType.RoleCreated:
+                            case AuditLogType.RoleDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/RolePartialView.cshtml" model="item.Role" />
+                                break;
+                            case AuditLogType.RoleUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/RoleUpdatedPartialView.cshtml" model="item.RoleUpdated" />
+                                break;
+                            case AuditLogType.WebhookCreated:
+                            case AuditLogType.WebhookDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/WebhookPartialView.cshtml" model="item.Webhook" />
+                                break;
+                            case AuditLogType.WebhookUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/WebhookUpdatedPartialView.cshtml" model="item.WebhookUpdated" />
+                                break;
+                            case AuditLogType.MessagePinned:
+                            case AuditLogType.MessageUnpinned:
+                                <partial name="~/Views/AuditLog/LogViews/PinInfoPartialView.cshtml" model="item.PinInfo" />
                                 break;
                         }
 

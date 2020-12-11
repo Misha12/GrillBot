@@ -1,5 +1,8 @@
 using Discord;
 using Discord.Rest;
+using Discord.WebSocket;
+using Grillbot.Enums;
+using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -21,6 +24,9 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonIgnore]
         public IRole TargetRole { get; set; }
 
+        [JsonProperty("type")]
+        public PermissionTarget TargetType { get; set; }
+
         [JsonProperty("perms")]
         public DiffData<OverwritePermissionsValue> Permissions { get; set; }
 
@@ -33,6 +39,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             {
                 ChannelId = data.ChannelId,
                 TargetId = data.OverwriteTargetId,
+                TargetType = data.OverwriteType
             };
 
             if(data.OldPermissions.AllowValue != data.NewPermissions.AllowValue || data.OldPermissions.DenyValue != data.NewPermissions.DenyValue)
@@ -44,6 +51,23 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
 
             return item;
+        }
+
+        public AuditOverwriteUpdated GetFilledModel(SocketGuild guild)
+        {
+            Channel = guild.GetChannel(ChannelId);
+
+            if (TargetType == PermissionTarget.Role)
+                TargetRole = guild.GetRole(TargetId);
+            else if (TargetType == PermissionTarget.User)
+                TargetUser = guild.GetUserFromGuildAsync(TargetId).Result;
+
+            return this;
+        }
+
+        public static AuditOverwriteUpdated FromJsonIfValid(AuditLogType type, string json)
+        {
+            return type == AuditLogType.OverwriteUpdated ? JsonConvert.DeserializeObject<AuditOverwriteUpdated>(json) : null;
         }
     }
 }

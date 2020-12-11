@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 using System.Collections.Generic;
@@ -57,7 +58,24 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         public AuditMemberUpdated GetFilledModel(SocketGuild guild)
         {
             User = guild.GetUserFromGuildAsync(UserId).Result;
+
+            if(Roles != null)
+            {
+                foreach(var role in Roles)
+                {
+                    role.Role = guild.GetRole(role.RoleId);
+                }
+            }
+
             return this;
+        }
+
+        public static AuditMemberUpdated FromJsonIfValid(AuditLogType type, string json)
+        {
+            if (type != AuditLogType.MemberRoleUpdated && type != AuditLogType.MemberUpdated)
+                return null;
+
+            return JsonConvert.DeserializeObject<AuditMemberUpdated>(json);
         }
     }
 }

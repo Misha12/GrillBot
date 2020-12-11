@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Rest;
+using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -14,6 +15,8 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 
         [JsonIgnore]
         public IChannel Channel { get; set; }
+
+        public Webhook() { }
 
         public Webhook(string name, ulong channelId)
         {
@@ -32,6 +35,14 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 return new Webhook(deleteData);
             else
                 return null;
+        }
+
+        public static Webhook FromJsonIfValid(AuditLogType type, string json)
+        {
+            if (type != AuditLogType.WebhookCreated && type != AuditLogType.WebhookDeleted)
+                return null;
+
+            return JsonConvert.DeserializeObject<Webhook>(json);
         }
     }
 }

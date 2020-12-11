@@ -1,0 +1,85 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.AuditOverwriteUpdated;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Kanál</div>
+            <div class="col">@Model.Channel.Name</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Cíl výjimky</div>
+            <div class="col">
+                @if (Model.TargetType == Discord.PermissionTarget.Role)
+                {
+                    @Model.TargetRole?.Name <text> (Role)</text>
+                }
+                else if (Model.TargetType== Discord.PermissionTarget.User)
+                {
+                    @Model.TargetUser?.GetFullName(); <text> (Uživatel)</text>
+                }
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Typ oprávnění</th>
+                    <th>Práva před</th>
+                    <th>Práva po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                <tr>
+                    <th>Povoleno</th>
+                    @if (Model.Permissions.Before.AllowValue == 0)
+                    {
+                        <td>-</td>
+                    }
+                    else
+                    {
+                        <td>@(string.Join(", ", Model.Permissions.Before.Permissions.ToAllowList().Select(o => o.ToString())))</td>
+                    }
+
+                    @if (Model.Permissions.After.AllowValue == 0)
+                    {
+                        <td>-</td>
+                    }
+                    else
+                    {
+                        <td>@(string.Join(", ", Model.Permissions.After.Permissions.ToAllowList().Select(o => o.ToString())))</td>
+                    }
+                </tr>
+
+                <tr>
+                    <th>Zakázáno</th>
+
+                    @if (Model.Permissions.Before.DenyValue == 0)
+                    {
+                        <td>-</td>
+                    }
+                    else
+                    {
+                        <td>@(string.Join(", ", Model.Permissions.Before.Permissions.ToDenyList().Select(o => o.ToString())))</td>
+                    }
+
+                    @if (Model.Permissions.After.DenyValue == 0)
+                    {
+                        <td>-</td>
+                    }
+                    else
+                    {
+                        <td>@(string.Join(", ", Model.Permissions.After.Permissions.ToDenyList().Select(o => o.ToString())))</td>
+                    }
+                </tr>
+            </tbody>
+        </table>
+    </div>
+</div>

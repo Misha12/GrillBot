@@ -1,0 +1,35 @@
+﻿@model Grillbot.Models.Audit.DiscordAuditLog.WebhookUpdated;
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Typ úpravy</th>
+                    <th>Před</th>
+                    <th>Po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Channel != null)
+                {
+                    <tr>
+                        <th>Kanál</th>
+                        <td>@(Model.Channel.Before == null ? "-" : "#" + Model.Channel.Before.Name)</td>
+                        <td>@(Model.Channel.After == null ? "-" : "#" + Model.Channel.After.Name)</td>
+                    </tr>
+                }
+
+                @if (Model.Name != null)
+                {
+                    <tr>
+                        <th>Název</th>
+                        <td>@Model.Name.Before</td>
+                        <td>@Model.Name.After</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

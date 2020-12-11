@@ -23,7 +23,7 @@ namespace Grillbot.Services.Audit
             { ActionType.Prune, AuditLogType.Prune },
             { ActionType.Unban, AuditLogType.Unban },
             { ActionType.MemberUpdated, AuditLogType.MemberUpdated },
-            { ActionType.MemberRoleUpdated, AuditLogType.MemberUpdated },
+            { ActionType.MemberRoleUpdated, AuditLogType.MemberRoleUpdated },
             { ActionType.BotAdded, AuditLogType.BotAdded },
             { ActionType.RoleCreated, AuditLogType.RoleCreated },
             { ActionType.RoleDeleted, AuditLogType.RoleDeleted },

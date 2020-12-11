@@ -1,0 +1,90 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.RoleUpdated;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">ID role:</div>
+            <div class="col">@Model.RoleId</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th>Typ úpravy</th>
+                    <th>Před</th>
+                    <th>Po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if(Model.Color != null)
+                {
+                    <tr>
+                        <th>Barva</th>
+                        <td>
+                            <span class="badge" style="background-color: @Model.Color.Before; width: 100px">&nbsp;</span>
+                        </td>
+                        <td>
+                            <span class="badge" style="background-color: @Model.Color.After; width: 100px">&nbsp;</span>
+                        </td>
+                    </tr>
+                }
+
+                @if(Model.Mentionable != null)
+                {
+                    <tr>
+                        <th>Tagovatelná</th>
+                        <td>@Model.Mentionable.Before.TranslateToCz()</td>
+                        <td>@Model.Mentionable.After.TranslateToCz()</td>
+                    </tr>
+                }
+
+                @if(Model.IsHoisted != null)
+                {
+                    <tr>
+                        <th>Zobrazeno v liště</th>
+                        <td>@Model.IsHoisted.Before.TranslateToCz()</td>
+                        <td>@Model.IsHoisted.After.TranslateToCz()</td>
+                    </tr>
+                }
+
+                @if(Model.Name != null)
+                {
+                    <tr>
+                        <th>Název</th>
+                        <td>@Model.Name.Before</td>
+                        <td>@Model.Name.After</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>
+
+@if(Model.PermsValue != null)
+{
+    <div class="row mt-3">
+        <div class="col-md-12">
+            <h5>Oprávnění před</h5>
+
+            @foreach (var perm in Model.GuildPerms.Before.ToList())
+            {
+                <span class="badge badge-light">
+                    @perm.ToString()
+                </span>
+            }
+
+            <h5>Oprávnění po</h5>
+            @foreach (var perm in Model.GuildPerms.After.ToList())
+            {
+                <span class="badge badge-light">
+                    @perm.ToString()
+                </span>
+            }
+        </div>
+    </div>
+}

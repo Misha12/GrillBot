@@ -101,7 +101,7 @@ namespace Grillbot.Services.Audit
 
         public async Task LogUserJoinAsync(SocketGuildUser user)
         {
-            if (user == null)
+            if (user == null || !user.IsUser())
                 return;
 
             var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(user.Guild.Id, user.Id, UsersIncludes.None);

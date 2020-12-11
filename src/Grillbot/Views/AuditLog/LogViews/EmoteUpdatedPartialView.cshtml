@@ -1,0 +1,35 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.AuditEmoteUpdated;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">ID</div>
+            <div class="col">@Model.Id</div>
+        </div>
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th style="width: 40%">Vlastnost:</th>
+                    <th>Před</th>
+                    <th>Po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Name != null)
+                {
+                    <tr>
+                        <th>Název</th>
+                        <td>@Model.Name.Before</td>
+                        <td>@Model.Name.After</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

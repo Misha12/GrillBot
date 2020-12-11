@@ -1,0 +1,54 @@
+@model Grillbot.Models.Audit.AuditChannelInfo;
+
+<div class="row mt-3">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">ID:</div>
+            <div class="col">@Model.ChannelId</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Typ:</div>
+            <div class="col">@Model.ChannelType</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Název:</div>
+            <div class="col">@Model.ChannelName</div>
+        </div>
+
+
+    </div>
+</div>
+
+<div class="row mt-3">
+    <div class="col-md-5">
+        @if (Model.ChannelType == Discord.ChannelType.Text)
+        {
+            <div class="row">
+                <div class="col-4 font-weight-bold">SlowMode:</div>
+                <div class="col">@(Model.SlowModeInterval == 0 ? "Není" : Model.SlowModeInterval?.FormatWithSpaces())</div>
+            </div>
+        }
+
+        @if (Model.ChannelType == Discord.ChannelType.Voice)
+        {
+            <div class="row">
+                <div class="col-4 font-weight-bold">Bitrate:</div>
+                <div class="col">@(((int)Math.Round((Model.Bitrate ?? 0) * 0.001)).FormatWithSpaces()) kbps</div>
+            </div>
+        }
+    </div>
+
+    <div class="col-md-7">
+        @if (Model.ChannelType == Discord.ChannelType.Text)
+        {
+            <div class="row">
+                <div class="col-4 font-weight-bold">NSFW:</div>
+                <div class="col">@((Model.IsNsfw ?? false).TranslateToCz())</div>
+            </div>
+        }
+    </div>
+</div>

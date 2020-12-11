@@ -1,6 +1,7 @@
 using Discord.WebSocket;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
+using Grillbot.Models.Audit.DiscordAuditLog;
 using Grillbot.Models.Users;
 using Newtonsoft.Json;
 using System;
@@ -17,7 +18,7 @@ namespace Grillbot.Models.Audit
         public SocketGuild Guild { get; set; }
         public AuditLogType Type { get; set; }
 
-        private string JsonData { get; set; }
+        private string JsonData { get; }
 
         public List<string> AttachmentNames { get; set; }
 
@@ -34,6 +35,22 @@ namespace Grillbot.Models.Audit
         public UserJoinedAuditData UserJoinedAuditData => Type == AuditLogType.UserJoined ? JsonConvert.DeserializeObject<UserJoinedAuditData>(JsonData).GetFilledModel(User) : null;
         public MessageEditedAuditData MessageEditedAuditData => Type == AuditLogType.MessageEdited ? JsonConvert.DeserializeObject<MessageEditedAuditData>(JsonData).GetFilledModel(Guild) : null;
         public MessageDeletedAuditData MessageDeletedAuditData => Type == AuditLogType.MessageDeleted ? JsonConvert.DeserializeObject<MessageDeletedAuditData>(JsonData).GetFilledModel(Guild) : null;
+        public AuditBotAdded BotAdded => AuditBotAdded.FromJsonIfValid(Type, JsonData);
+        public AuditChannelInfo ChannelInfo => AuditChannelInfo.FromJsonIfValid(Type, JsonData);
+        public GuildUpdated GuildUpdated => GuildUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
+        public AuditChannelUpdated ChannelUpdated => AuditChannelUpdated.FromJsonIfValid(Type, JsonData);
+        public AuditEmoteInfo EmoteInfo => AuditEmoteInfo.FromJsonIfValid(Type, JsonData);
+        public AuditEmoteUpdated EmoteUpdated => AuditEmoteUpdated.FromJsonIfValid(Type, JsonData);
+        public AuditOverwriteInfo OverwriteInfo => AuditOverwriteInfo.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
+        public AuditOverwriteUpdated OverwriteUpdated => AuditOverwriteUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
+        public AuditPruneMembers PruneMembers => AuditPruneMembers.FromJsonIfValid(Type, JsonData);
+        public AuditUnban Unban => AuditUnban.FromJsonIfValid(Type, JsonData);
+        public AuditMemberUpdated MemberUpdated => AuditMemberUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
+        public Role Role => Role.FromJsonIfValid(Type, JsonData);
+        public RoleUpdated RoleUpdated => RoleUpdated.FromJsonIfValid(Type, JsonData);
+        public Webhook Webhook => Webhook.FromJsonIfValid(Type, JsonData);
+        public WebhookUpdated WebhookUpdated => WebhookUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
+        public AuditMessagePinInfo PinInfo => AuditMessagePinInfo.FromJsonIfValid(Type, JsonData).GetFilledModel(Guild);
 
         #endregion
 

@@ -83,6 +83,9 @@ namespace Grillbot.Enums
         MessagePinned,
 
         [Display(Name = "Zpráva odepnuta")]
-        MessageUnpinned
+        MessageUnpinned,
+
+        [Display(Name = "Změněny role uživatele")]
+        MemberRoleUpdated
     }
 }

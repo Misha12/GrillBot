@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 
@@ -28,6 +29,8 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 
         [JsonProperty("perms")]
         public OverwritePermissionsValue Permissions { get; set; }
+
+        public AuditOverwriteInfo() { }
 
         public AuditOverwriteInfo(ulong channelId, Overwrite overwrite)
         {
@@ -65,6 +68,14 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
 
             return this;
+        }
+
+        public static AuditOverwriteInfo FromJsonIfValid(AuditLogType type, string json)
+        {
+            if (type != AuditLogType.OverwriteCreated && type != AuditLogType.OverwriteDeleted)
+                return null;
+
+            return JsonConvert.DeserializeObject<AuditOverwriteInfo>(json);
         }
     }
 }
