@@ -3,6 +3,7 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
+using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -16,13 +17,15 @@ namespace Grillbot.Services.BackgroundTasks
         private IServiceProvider Provider { get; }
         private BotLoggingService BotLoggingService { get; }
 
-        private DateTime LastScheduleAt { get; set; }
+        private Dictionary<Type, DateTime> LastSchedulesAt { get; set; }
 
         public BackgroundTaskScheduler(BackgroundTaskQueue queue, IServiceProvider provider, BotLoggingService botLoggingService)
         {
             Queue = queue;
             Provider = provider;
             BotLoggingService = botLoggingService;
+
+            LastSchedulesAt = new Dictionary<Type, DateTime>();
         }
 
         protected override async Task ExecuteAsync(CancellationToken stoppingToken)
@@ -45,14 +48,17 @@ namespace Grillbot.Services.BackgroundTasks
 
                     foreach (var type in serviceTypes)
                     {
-                        var service = scope.ServiceProvider.GetService(type) as IBackgroundTaskScheduleable;
+                        if (scope.ServiceProvider.GetService(type) is not IBackgroundTaskScheduleable service)
+                            continue;
 
-                        if (service.CanScheduleTask(LastScheduleAt))
+                        if (service.CanScheduleTask(GetLastSchedule(type)))
                         {
                             foreach(var task in service.GetBackgroundTasks())
                             {
                                 Queue.Add(task);
                             }
+                            
+                            LastSchedulesAt[type] = DateTime.Now;
                         }
                     }
                 }
@@ -63,10 +69,17 @@ namespace Grillbot.Services.BackgroundTasks
                 }
                 finally
                 {
-                    LastScheduleAt = DateTime.Now;
                     await Task.Delay(TimeSpan.FromMinutes(1), stoppingToken);
                 }
             }
+        }
+
+        private DateTime GetLastSchedule(Type type)
+        {
+            if (!LastSchedulesAt.ContainsKey(type))
+                return DateTime.MinValue;
+
+            return LastSchedulesAt[type];
         }
     }
 }
