@@ -68,7 +68,22 @@ namespace Grillbot.Database.Repository
         public Task<AuditLogItem> FindItemByIdAsync(long id)
         {
             return Context.AuditLogs.AsQueryable()
-                .Include(o => o.Files)
+                .Select(o => new AuditLogItem()
+                {
+                    CreatedAt = o.CreatedAt,
+                    DcAuditLogId = o.DcAuditLogId,
+                    Files = o.Files.Select(x => new File()
+                    {
+                        AuditLogItemId = x.AuditLogItemId,
+                        Filename = x.Filename
+                    }).ToHashSet(),
+                    GuildId = o.GuildId,
+                    Id = o.Id,
+                    JsonData = o.JsonData,
+                    Type = o.Type,
+                    UserId = o.UserId,
+                    User = o.User
+                })
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -84,8 +99,23 @@ namespace Grillbot.Database.Repository
         public IQueryable<AuditLogItem> GetAuditLogsBeforeDate(DateTime dateTime, ulong guildId)
         {
             return Context.AuditLogs.AsQueryable()
-                .Include(o => o.Files)
-                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime);
+                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime)
+                .Select(o => new AuditLogItem()
+                {
+                    CreatedAt = o.CreatedAt,
+                    DcAuditLogId = o.DcAuditLogId,
+                    Files = o.Files.Select(x => new File()
+                    {
+                        AuditLogItemId = x.AuditLogItemId,
+                        Filename = x.Filename
+                    }).ToHashSet(),
+                    GuildId = o.GuildId,
+                    Id = o.Id,
+                    JsonData = o.JsonData,
+                    Type = o.Type,
+                    UserId = o.UserId,
+                    User = o.User
+                });
         }
     }
 }
