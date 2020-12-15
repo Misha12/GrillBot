@@ -44,7 +44,7 @@ namespace Grillbot
                     Contact = new OpenApiContact()
                     {
                         Name = "GrillBot",
-                        Url = new Uri(ThisAssembly.Git.RepositoryUrl)
+                        Url = new Uri("https://github.com/Misha12/GrillBot")
                     },
                     License = new OpenApiLicense() { Name = "MIT" },
                     Title = "GrillBot API",
