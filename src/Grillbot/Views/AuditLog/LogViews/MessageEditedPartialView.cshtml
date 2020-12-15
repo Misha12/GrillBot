@@ -1,0 +1,42 @@
+﻿@model Grillbot.Models.Audit.MessageEditedAuditData;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Kanál:</div>
+            <div class="col">#@(Model.Channel?.Name ?? "Neznámý kanál")</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">&nbsp;</div>
+            <div class="col">
+                <a href="@Model.JumpUrl" class="text-white">
+                    <u>Přejít na zprávu</u>
+                </a>
+            </div>
+        </div>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h5 class="mt-2">Zpráva před</h5>
+        <pre class="alert alert-dark">@Model.Before</pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h5>Zpráva po</h5>
+        <pre class="alert alert-dark">@Model.After</pre>
+    </div>
+</div>
+
+<div class="row">
+    <div class="col-md-12">
+        <h5>Rozdíl</h5>
+        <pre class="alert alert-dark">@Model.CreateDiff()</pre>
+    </div>
+</div>

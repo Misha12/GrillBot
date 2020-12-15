@@ -20,7 +20,7 @@ namespace Grillbot.Modules
     [DisabledChannelCheck]
     [ModuleUnloadCheck]
     [RequirePermissions]
-    public abstract class BotModuleBase : ModuleBase<SocketCommandContext>, IDisposable
+    public abstract class BotModuleBase : ModuleBase<SocketCommandContext>
     {
         private PaginationService PaginationService { get; }
         private IServiceProvider Provider { get; }
@@ -113,20 +113,5 @@ namespace Grillbot.Modules
 
             return await Context.Channel.SendFileAsync(ms, filename);
         }
-
-        #region IDisposable Support
-        private bool disposedValue = false;
-
-        protected virtual void Dispose(bool disposing)
-        {
-            if (!disposedValue)
-                disposedValue = true;
-        }
-
-        public void Dispose()
-        {
-            Dispose(true);
-        }
-        #endregion
     }
 }

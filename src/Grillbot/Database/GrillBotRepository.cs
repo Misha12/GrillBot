@@ -25,6 +25,7 @@ namespace Grillbot.Database
         public TeamSearchRepository TeamSearchRepository => FindOrCreateRepository<TeamSearchRepository>();
         public UnverifyRepository UnverifyRepository => FindOrCreateRepository<UnverifyRepository>();
         public UsersRepository UsersRepository => FindOrCreateRepository<UsersRepository>();
+        public AuditLogsRepository AuditLogs => FindOrCreateRepository<AuditLogsRepository>();
 
         public GrillBotRepository(GrillBotContext context)
         {

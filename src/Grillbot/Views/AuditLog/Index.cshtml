@@ -1,0 +1,225 @@
+﻿@model Grillbot.Models.Audit.AuditViewModel;
+
+@{
+    ViewData["Title"] = "Logování provozu";
+}
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h3 class="card-title font-weight-light mb-0 pb-0">Logování provozu</h3>
+        </div>
+
+        <form method="get" class="card-header">
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Filter.GuildID">Server</label>
+                    <select class="form-control" asp-for="Filter.GuildId">
+                        @foreach (var guild in Model.Guilds)
+                        {
+                            <option value="@guild.Id">@guild.Name</option>
+                        }
+                    </select>
+                </div>
+
+                <div class="col-md-4 mb-0">
+                    <label for="Filter.FromUserQuery">Uživatelské jméno</label>
+                    <input class="form-control" asp-for="Filter.UserQuery" />
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeFrom">Datum a čas od</label>
+                    <input type="datetime-local" class="form-control" asp-for="Filter.From">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-4 mb-3">
+                    <label for="Request.Operation">Typ</label>
+                    <select class="form-control" asp-for="Filter.Type" asp-items="Html.GetEnumSelectList<AuditLogType>()">
+                        <option value="">Nezáleží</option>
+                    </select>
+                </div>
+
+                <div class="col-md-4">
+                    <div class="custom-control custom-checkbox mt-4">
+                        <input type="checkbox" class="custom-control-input" id="ignorebots" asp-for="Filter.IgnoreBots">
+                        <label class="custom-control-label" for="ignorebots">Vynechat operace provedené boty</label>
+                    </div>
+                </div>
+
+                <div class="col-md-4 mb-3">
+                    <label for="Request.DateTimeTo">Datum a čas do</label>
+                    <input type="datetime-local" class="form-control" asp-for="Filter.To">
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-12">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="sortdesc" asp-for="Filter.SortDesc">
+                        <label class="custom-control-label" for="sortdesc">Sestupně</label>
+                    </div>
+                </div>
+            </div>
+
+            <div class="form-row">
+                <div class="col-md-4 d-flex justify-content-start mt-3">
+                    <ul class="pagination justify-content-center mb-0">
+                        <li class="page-item @(!Model.PaginationInfo.CanPrev ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page - 1), 'Filter.Page')" type="button">Vpřed</button>
+                        </li>
+                        <li class="page-item">
+                            <span class="page-link">@Model.PaginationInfo.Page / @Model.PaginationInfo.PagesCount</span>
+                        </li>
+                        <li class="page-item @(!Model.PaginationInfo.CanNext ? "disabled" : "")">
+                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page + 1), 'Filter.Page')" type="button">Vpřed</button>
+                        </li>
+                    </ul>
+                </div>
+
+                <div class="col-md-6"></div>
+
+                <div class="col-md-2 d-flex justify-content-between align-items-end">
+                    <button class="btn btn-danger" type="button" onclick="clearFilter(false)">Vyčistit</button>
+                    <button type="submit" class="btn btn-success">Potvrdit</button>
+                </div>
+            </div>
+        </form>
+
+        <div class="card-body">
+            @foreach (var item in Model.Items)
+            {
+                <div class="card bg-dark mb-3">
+                    <div class="card-header">
+                        #@item.Id - @item.Type.GetDisplayName()
+                    </div>
+
+                    <div class="card-body">
+                        <div class="row">
+                            <div class="col-md-5">
+                                <div class="row">
+                                    <div class="col-4 font-weight-bold">Zapsáno:</div>
+                                    <div class="col">@item.CreatedAt.ToLocaleDatetime()</div>
+                                </div>
+                            </div>
+
+                            <div class="col-md-7">
+                                <div class="row">
+                                    <div class="col-4 font-weight-bold">Provedl:</div>
+                                    <div class="col">
+                                        @if (item.User == null)
+                                        {
+                                            <text>Neznámý uživatel, nebo bot</text>
+                                        }
+                                        else
+                                        {
+                                            @item.User.User.GetFullName();
+                                        }
+                                    </div>
+                                </div>
+                            </div>
+                        </div>
+
+                        @switch (item.Type)
+                        {
+                            case AuditLogType.Command:
+                                <partial name="~/Views/AuditLog/LogViews/CommandPartialView.cshtml" model="item.CommandAuditData" />
+                                break;
+                            case AuditLogType.UserLeft:
+                                <partial name="~/Views/AuditLog/LogViews/UserLeftPartialView.cshtml" model="item.UserLeftAuditData" />
+                                break;
+                            case AuditLogType.UserJoined:
+                                <partial name="~/Views/AuditLog/LogViews/UserJoinedPartialView.cshtml" model="item.UserJoinedAuditData" />
+                                break;
+                            case AuditLogType.MessageEdited:
+                                <partial name="~/Views/AuditLog/LogViews/MessageEditedPartialView.cshtml" model="item.MessageEditedAuditData" />
+                                break;
+                            case AuditLogType.MessageDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/MessageDeletedPartialView.cshtml" model="item.MessageDeletedAuditData" />
+                                break;
+                            case AuditLogType.BotAdded:
+                                <partial name="~/Views/AuditLog/LogViews/BotAddPartialView.cshtml" model="item.BotAdded" />
+                                break;
+                            case AuditLogType.ChannelCreated:
+                            case AuditLogType.ChannelDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/ChannelInfoPartialView.cshtml" model="item.ChannelInfo" />
+                                break;
+                            case AuditLogType.GuildUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/GuildUpdatedPartialView.cshtml" model="item.GuildUpdated" />
+                                break;
+                            case AuditLogType.ChannelUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/ChannelUpdatedPartialView.cshtml" model="item.ChannelUpdated" />
+                                break;
+                            case AuditLogType.EmojiCreated:
+                            case AuditLogType.EmojiDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/EmoteInfoPartialView.cshtml" model="item.EmoteInfo" />
+                                break;
+                            case AuditLogType.EmojiUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/EmoteUpdatedPartialView.cshtml" model="item.EmoteUpdated" />
+                                break;
+                            case AuditLogType.OverwriteCreated:
+                            case AuditLogType.OverwriteDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/OverwriteInfoPartialView.cshtml" model="item.OverwriteInfo" />
+                                break;
+                            case AuditLogType.OverwriteUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/OverwriteUpdatedPartialView.cshtml" model="item.OverwriteUpdated" />
+                                break;
+                            case AuditLogType.Prune:
+                                <partial name="~/Views/AuditLog/LogViews/PruneMembersPartialView.cshtml" model="item.PruneMembers" />
+                                break;
+                            case AuditLogType.Unban:
+                                <partial name="~/Views/AuditLog/LogViews/UnbanPartialView.cshtml" model="item.Unban" />
+                                break;
+                            case AuditLogType.MemberUpdated:
+                            case AuditLogType.MemberRoleUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/MemberUpdatedPartialView.cshtml" model="item.MemberUpdated" />
+                                break;
+                            case AuditLogType.RoleCreated:
+                            case AuditLogType.RoleDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/RolePartialView.cshtml" model="item.Role" />
+                                break;
+                            case AuditLogType.RoleUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/RoleUpdatedPartialView.cshtml" model="item.RoleUpdated" />
+                                break;
+                            case AuditLogType.WebhookCreated:
+                            case AuditLogType.WebhookDeleted:
+                                <partial name="~/Views/AuditLog/LogViews/WebhookPartialView.cshtml" model="item.Webhook" />
+                                break;
+                            case AuditLogType.WebhookUpdated:
+                                <partial name="~/Views/AuditLog/LogViews/WebhookUpdatedPartialView.cshtml" model="item.WebhookUpdated" />
+                                break;
+                            case AuditLogType.MessagePinned:
+                            case AuditLogType.MessageUnpinned:
+                                <partial name="~/Views/AuditLog/LogViews/PinInfoPartialView.cshtml" model="item.PinInfo" />
+                                break;
+                        }
+
+                        @if (item.AttachmentNames.Count > 0)
+                        {
+                            <h5 class="mt-2">Přílohy</h5>
+                            <div class="row">
+                                <div class="col-md-12">
+                                    <ul>
+                                        @foreach (var attachment in item.AttachmentNames)
+                                        {
+                                            <li>
+                                                <a class="text-white" asp-action="DownloadFile" asp-route-filename="@attachment">
+                                                    <u>@attachment</u>
+                                                </a>
+                                            </li>
+                                        }
+                                    </ul>
+                                </div>
+                            </div>
+                        }
+                    </div>
+
+                    <div class="card-footer d-flex justify-content-end align-items-end">
+                        <a class="btn btn-danger" asp-action="DeleteRecord" asp-route-id="@item.Id">Smazat</a>
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

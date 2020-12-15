@@ -1,0 +1,44 @@
+﻿@model Grillbot.Models.Audit.UserJoinedAuditData;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Počet uživatelů:</div>
+            <div class="col">@Model.MemberCount.FormatWithSpaces()</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Účet založen:</div>
+            <div class="col">@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</div>
+        </div>
+    </div>
+</div>
+
+@if (Model.User.UsedInvite != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="mt-2">Použitá pozvánka</h5>
+
+            <div class="row mt-2">
+                <div class="col-12">
+                    @if (Model.User.UsedInvite.Code == Model.User.Guild.VanityURLCode)
+                    {
+                        <b>Vanity (@Model.User.UsedInvite.Code)</b>
+                    }
+                    else
+                    {
+                        <b>
+                            <a href="/Admin/Users?Filter.GuildID=@Model.User.Guild.Id&Filter.UsedInviteCode=@Model.User.UsedInvite.Code" class="text-white">
+                                <u>@Model.User.UsedInvite.Code</u>
+                            </a>
+                            <br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())
+                        </b>
+                    }
+                </div>
+            </div>
+        </div>
+    </div>
+}

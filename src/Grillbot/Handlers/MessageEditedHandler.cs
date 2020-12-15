@@ -1,9 +1,10 @@
-﻿using Discord;
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -12,14 +13,14 @@ namespace Grillbot.Handlers
     public class MessageEditedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
+        private IServiceProvider Provider { get; }
 
-        public MessageEditedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics)
+        public MessageEditedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, IServiceProvider provider)
         {
             Client = client;
-            Logger = logger;
             InternalStatistics = internalStatistics;
+            Provider = provider;
         }
 
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
@@ -27,7 +28,12 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("MessageUpdated");
 
             if (!messageAfter.Author.IsUser() || channel is IPrivateChannel) return;
-            await Logger.OnMessageEdited(messageBefore, messageAfter, channel).ConfigureAwait(false);
+            if (channel is SocketGuildChannel guildChannel)
+            {
+                using var scope = Provider.CreateScope();
+
+                await scope.ServiceProvider.GetService<AuditService>().LogMessageEditedAsync(messageBefore, messageAfter, channel, guildChannel.Guild);
+            }
         }
 
         public void Dispose()

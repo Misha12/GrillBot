@@ -1,4 +1,5 @@
 using Grillbot.Database.Entity;
+using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Database.Entity.Config;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.Unverify;
@@ -44,6 +45,15 @@ namespace Grillbot.Database
             });
 
             modelBuilder.Entity<Unverify>(builder => builder.HasOne(o => o.SetLogOperation).WithOne(o => o.Unverify));
+
+            modelBuilder.Entity<AuditLogItem>(builder =>
+            {
+                builder.HasIndex(o => o.DcAuditLogId, "IX_AuditLogs_DcAuditLogId");
+                builder.HasIndex(o => o.GuildId, "IX_AuditLogs_GuildId");
+
+                builder.HasOne(o => o.User).WithMany(o => o.AuditLogs);
+                builder.HasMany(o => o.Files).WithOne(o => o.AuditLogItem);
+            });
         }
 
         public virtual DbSet<TeamSearch> TeamSearch { get; set; }
@@ -59,5 +69,6 @@ namespace Grillbot.Database
         public virtual DbSet<UnverifyLog> UnverifyLogs { get; set; }
         public virtual DbSet<ErrorLogItem> Errors { get; set; }
         public virtual DbSet<File> Files { get; set; }
+        public virtual DbSet<AuditLogItem> AuditLogs { get; set; }
     }
 }

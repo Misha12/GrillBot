@@ -1,6 +1,6 @@
 using Discord.WebSocket;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Unverify;
 using Microsoft.Extensions.DependencyInjection;
@@ -12,14 +12,12 @@ namespace Grillbot.Handlers
     public class UserLeftHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
         private IServiceProvider Provider { get; }
 
-        public UserLeftHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics, IServiceProvider provider)
+        public UserLeftHandler(DiscordSocketClient client, InternalStatistics internalStatistics, IServiceProvider provider)
         {
             Client = client;
-            Logger = logger;
             InternalStatistics = internalStatistics;
             Provider = provider;
         }
@@ -27,10 +25,10 @@ namespace Grillbot.Handlers
         private async Task OnUserLeftAsync(SocketGuildUser user)
         {
             InternalStatistics.IncrementEvent("UserLeft");
-            await Logger.OnUserLeft(user).ConfigureAwait(false);
 
             using var scope = Provider.CreateScope();
             await scope.ServiceProvider.GetService<UnverifyService>().OnUserLeftGuildAsync(user);
+            await scope.ServiceProvider.GetService<AuditService>().LogUserLeftAsync(user);
         }
 
         public void Dispose()

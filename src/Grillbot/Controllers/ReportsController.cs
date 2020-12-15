@@ -41,7 +41,6 @@ namespace Grillbot.Controllers
                 BotStatus = StatusService.GetSimpleStatus(),
                 Commands = InternalStatistics.GetCommands(),
                 Events = InternalStatistics.GetEvents(),
-                Logger = StatusService.GetLoggerStats(),
                 GCMemoryInfo = GC.GetGCMemoryInfo(),
                 Api = ApiStatistics.Data.FindAll(o => o.Count > 0),
                 LoginState = DiscordClient.LoginState,

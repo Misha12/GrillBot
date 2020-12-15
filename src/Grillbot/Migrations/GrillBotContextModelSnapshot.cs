@@ -19,6 +19,45 @@ namespace Grillbot.Migrations
                 .HasAnnotation("Relational:MaxIdentifierLength", 128)
                 .HasAnnotation("ProductVersion", "5.0.0");
 
+            modelBuilder.Entity("Grillbot.Database.Entity.AuditLog.AuditLogItem", b =>
+                {
+                    b.Property<long>("Id")
+                        .ValueGeneratedOnAdd()
+                        .HasColumnType("bigint")
+                        .UseIdentityColumn();
+
+                    b.Property<DateTime>("CreatedAt")
+                        .HasColumnType("datetime2");
+
+                    b.Property<string>("DcAuditLogId")
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("GuildId")
+                        .IsRequired()
+                        .HasMaxLength(30)
+                        .HasColumnType("nvarchar(30)");
+
+                    b.Property<string>("JsonData")
+                        .HasColumnType("nvarchar(max)");
+
+                    b.Property<int>("Type")
+                        .HasColumnType("int");
+
+                    b.Property<long?>("UserId")
+                        .HasColumnType("bigint");
+
+                    b.HasKey("Id");
+
+                    b.HasIndex("UserId");
+
+                    b.HasIndex(new[] { "DcAuditLogId" }, "IX_AuditLogs_DcAuditLogId");
+
+                    b.HasIndex(new[] { "GuildId" }, "IX_AuditLogs_GuildId");
+
+                    b.ToTable("AuditLogs");
+                });
+
             modelBuilder.Entity("Grillbot.Database.Entity.AutoReplyItem", b =>
                 {
                     b.Property<int>("ID")
@@ -91,10 +130,15 @@ namespace Grillbot.Migrations
                     b.Property<string>("Filename")
                         .HasColumnType("nvarchar(450)");
 
+                    b.Property<long?>("AuditLogItemId")
+                        .HasColumnType("bigint");
+
                     b.Property<byte[]>("Content")
                         .HasColumnType("varbinary(max)");
 
                     b.HasKey("Filename");
+
+                    b.HasIndex("AuditLogItemId");
 
                     b.ToTable("Files");
                 });
@@ -434,6 +478,24 @@ namespace Grillbot.Migrations
                     b.ToTable("UserChannels");
                 });
 
+            modelBuilder.Entity("Grillbot.Database.Entity.AuditLog.AuditLogItem", b =>
+                {
+                    b.HasOne("Grillbot.Database.Entity.Users.DiscordUser", "User")
+                        .WithMany("AuditLogs")
+                        .HasForeignKey("UserId");
+
+                    b.Navigation("User");
+                });
+
+            modelBuilder.Entity("Grillbot.Database.Entity.File", b =>
+                {
+                    b.HasOne("Grillbot.Database.Entity.AuditLog.AuditLogItem", "AuditLogItem")
+                        .WithMany("Files")
+                        .HasForeignKey("AuditLogItemId");
+
+                    b.Navigation("AuditLogItem");
+                });
+
             modelBuilder.Entity("Grillbot.Database.Entity.MethodConfig.MethodPerm", b =>
                 {
                     b.HasOne("Grillbot.Database.Entity.MethodConfig.MethodsConfig", "Method")
@@ -538,6 +600,11 @@ namespace Grillbot.Migrations
                     b.Navigation("User");
                 });
 
+            modelBuilder.Entity("Grillbot.Database.Entity.AuditLog.AuditLogItem", b =>
+                {
+                    b.Navigation("Files");
+                });
+
             modelBuilder.Entity("Grillbot.Database.Entity.MethodConfig.MethodsConfig", b =>
                 {
                     b.Navigation("Permissions");
@@ -550,6 +617,8 @@ namespace Grillbot.Migrations
 
             modelBuilder.Entity("Grillbot.Database.Entity.Users.DiscordUser", b =>
                 {
+                    b.Navigation("AuditLogs");
+
                     b.Navigation("CreatedInvites");
 
                     b.Navigation("Channels");

@@ -1,3 +1,4 @@
+using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Database.Enums;
 using System;
 using System.Collections.Generic;
@@ -57,6 +58,7 @@ namespace Grillbot.Database.Entity.Users
         public Unverify.Unverify Unverify { get; set; }
         public ISet<Unverify.UnverifyLog> OutgoingUnverifyOperations { get; set; }
         public ISet<Unverify.UnverifyLog> IncomingUnverifyOperations { get; set; }
+        public ISet<AuditLogItem> AuditLogs { get; set; }
 
         [NotMapped]
         public bool IsBotAdmin
@@ -79,6 +81,7 @@ namespace Grillbot.Database.Entity.Users
             UsedEmotes = new HashSet<EmoteStatItem>();
             OutgoingUnverifyOperations = new HashSet<Unverify.UnverifyLog>();
             IncomingUnverifyOperations = new HashSet<Unverify.UnverifyLog>();
+            AuditLogs = new HashSet<AuditLogItem>();
         }
     }
 }

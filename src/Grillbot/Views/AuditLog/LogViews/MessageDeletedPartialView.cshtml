@@ -1,0 +1,57 @@
+﻿@model Grillbot.Models.Audit.MessageDeletedAuditData;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">V cache</div>
+            <div class="col">
+                <span class="badge badge-@(Model.IsInCache ? "success" : "warning")">
+                    @Model.IsInCache.TranslateToCz()
+                </span>
+            </div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Kanál</div>
+            <div class="col">@("#" + Model.Channel?.Name ?? "Neznámý kanál")</div>
+        </div>
+    </div>
+</div>
+
+@if (Model.Author != null || Model.CreatedAt != DateTime.MinValue)
+{
+    <div class="row">
+        <div class="col-md-5">
+            @if (Model.Author != null)
+            {
+                <div class="row">
+                    <div class="col-4 font-weight-bold">Autor</div>
+                    <div class="col">@Model.Author.Username#@Model.Author.Discriminator</div>
+                </div>
+            }
+        </div>
+
+        <div class="col-md-7">
+            @if (Model.CreatedAt != DateTime.MinValue)
+            {
+                <div class="row">
+                    <div class="col-4 font-weight-bold">Vytvořeno</div>
+                    <div class="col">@Model.CreatedAt.ToLocaleDatetime()</div>
+                </div>
+            }
+        </div>
+    </div>
+}
+
+@if (!string.IsNullOrEmpty(Model.Content))
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="mt-2">Zpráva</h5>
+
+            <pre class="alert alert-dark">@Model.Content</pre>
+        </div>
+    </div>
+}

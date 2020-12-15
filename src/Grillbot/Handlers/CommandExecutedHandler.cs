@@ -3,6 +3,7 @@ using Discord.Commands;
 using Grillbot.Database;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Extensions;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -55,9 +56,14 @@ namespace Grillbot.Handlers
                 }
             }
 
+            using var scope = Services.CreateScope();
+
             try
             {
-                await LogCommandAsync(command, context);
+                var auditService = scope.ServiceProvider.GetService<AuditService>();
+                await auditService.LogCommandAsync(command, context);
+
+                await LogCommandAsync(command, context, scope.ServiceProvider);
             }
             catch (Exception ex)
             {
@@ -67,7 +73,7 @@ namespace Grillbot.Handlers
             BotState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
-        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
+        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context, IServiceProvider scopedProvider)
         {
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
             var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
@@ -83,8 +89,7 @@ namespace Grillbot.Handlers
             {
                 var cmd = command.Value;
 
-                using var scope = Services.CreateScope();
-                var grillBotRepository = scope.ServiceProvider.GetService<IGrillBotRepository>();
+                var grillBotRepository = scopedProvider.GetService<IGrillBotRepository>();
 
                 var config = await grillBotRepository.ConfigRepository.FindConfigAsync(context.Guild.Id, cmd.Module.Group, cmd.Name, false);
                 if (config == null)

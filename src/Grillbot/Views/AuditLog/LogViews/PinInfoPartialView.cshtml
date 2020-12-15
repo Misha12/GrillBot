@@ -1,0 +1,35 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.AuditMessagePinInfo;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Kanál</div>
+            <div class="col">@(Model.Channel == null ? "-" : "#" + Model.Channel.Name)</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        @if (Model.Message != null)
+        {
+            <div class="row">
+                <div class="col-4 font-weight-bold"></div>
+                <div class="col">
+                    <a href="@Model.Message.GetJumpUrl()" class="text-white">
+                        <u>Přejít na zprávu</u>
+                    </a>
+                </div>
+            </div>
+        }
+    </div>
+</div>
+
+@if(Model.Message != null)
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h5>Zpráva</h5>
+
+            <pre class="alert alert-dark">@Model.Message.Content</pre>
+        </div>
+    </div>
+}

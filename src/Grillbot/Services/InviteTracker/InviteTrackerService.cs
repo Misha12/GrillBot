@@ -133,6 +133,9 @@ namespace Grillbot.Services.InviteTracker
 
         public async Task OnUserJoinedAsync(SocketGuildUser user)
         {
+            if (!user.IsUser())
+                return;
+
             var latestInvites = await GetLatestInvitesOfGuildAsync(user.Guild);
             var usedInvite = FindUsedInvite(user.Guild, latestInvites);
 

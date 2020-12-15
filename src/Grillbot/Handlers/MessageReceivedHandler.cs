@@ -45,8 +45,6 @@ namespace Grillbot.Handlers
             var context = new SocketCommandContext(Client, userMessage);
             if (context.IsPrivate) return;
 
-            using var scope = Services.CreateScope();
-
             int argPos = 0;
             if (IsCommand(userMessage, ref argPos))
             {
@@ -58,6 +56,8 @@ namespace Grillbot.Handlers
             }
             else
             {
+                using var scope = Services.CreateScope();
+
                 if (context.Guild != null)
                 {
                     await scope.ServiceProvider.GetService<PointsService>().IncrementPointsAsync(context.Guild, message);

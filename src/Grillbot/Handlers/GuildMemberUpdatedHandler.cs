@@ -1,7 +1,8 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.Logger;
 using Grillbot.Services.Statistics;
+using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
 
@@ -10,22 +11,31 @@ namespace Grillbot.Handlers
     public class GuildMemberUpdatedHandler : IInitiable, IDisposable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
+        private IServiceProvider Provider { get; }
 
-        public GuildMemberUpdatedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics)
+        private DateTime LastEventAt { get; set; }
+
+        public GuildMemberUpdatedHandler(DiscordSocketClient client, InternalStatistics internalStatistics, IServiceProvider provider)
         {
-            Logger = logger;
             Client = client;
             InternalStatistics = internalStatistics;
+            Provider = provider;
 
             Client.GuildMemberUpdated += OnGuildMemberUpdatedAsync;
         }
 
         private async Task OnGuildMemberUpdatedAsync(SocketGuildUser guildUserBefore, SocketGuildUser guildUserAfter)
         {
+            if (LastEventAt != DateTime.MinValue && (DateTime.UtcNow - LastEventAt).TotalSeconds < 1.0D)
+                return;
+
             InternalStatistics.IncrementEvent("GuildMemberUpdated");
-            await Logger.OnGuildMemberUpdatedAsync(guildUserBefore, guildUserAfter).ConfigureAwait(false);
+
+            using var scope = Provider.CreateScope();
+            await scope.ServiceProvider.GetService<AuditService>().ProcessBoostChangeAsync(guildUserBefore, guildUserAfter);
+
+            LastEventAt = DateTime.UtcNow;
         }
 
         public void Dispose()

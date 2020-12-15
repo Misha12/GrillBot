@@ -4,8 +4,8 @@ using Discord;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services;
+using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
-using Grillbot.Services.Logger;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.UserManagement;
@@ -16,17 +16,15 @@ namespace Grillbot.Handlers
     public class MessageDeletedHandler : IDisposable, IInitiable
     {
         private DiscordSocketClient Client { get; }
-        private Logger Logger { get; }
         private InternalStatistics InternalStatistics { get; }
         private PaginationService PaginationService { get; }
         private IMessageCache MessageCache { get; }
         private IServiceProvider Provider { get; }
 
-        public MessageDeletedHandler(DiscordSocketClient client, Logger logger, InternalStatistics internalStatistics,
+        public MessageDeletedHandler(DiscordSocketClient client, InternalStatistics internalStatistics,
             PaginationService paginationService, IMessageCache messageCache, IServiceProvider provider)
         {
             Client = client;
-            Logger = logger;
             InternalStatistics = internalStatistics;
             PaginationService = paginationService;
             MessageCache = messageCache;
@@ -54,7 +52,11 @@ namespace Grillbot.Handlers
             if (user != null)
                 await scope.ServiceProvider.GetService<UserMessagesService>().DecrementMessageStats(user.Guild, user, channel);
 
-            await Logger.OnMessageDelete(message, channel).ConfigureAwait(false);
+            if (channel is SocketGuildChannel socketGuildChannel)
+            {
+                await scope.ServiceProvider.GetService<AuditService>().LogMessageDeletedAsync(message, channel, socketGuildChannel.Guild);
+            }
+
             PaginationService.DeleteEmbed(message.Id);
         }
 

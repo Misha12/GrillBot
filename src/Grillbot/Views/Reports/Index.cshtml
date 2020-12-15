@@ -116,38 +116,6 @@
                 </div>
             }
 
-            <h4 class="mt-3">Logger</h4>
-            @if (Model.Logger.Count == 0)
-            {
-                <div class="row text-center">
-                    <div class="col">Ještě neprovedla žádná událost.</div>
-                </div>
-            }
-            else
-            {
-                <div class="row">
-                    <div class="col">
-                        <table class="table table-sm">
-                            <thead>
-                                <tr>
-                                    <th>Název</th>
-                                    <th>Počet</th>
-                                </tr>
-                            </thead>
-                            <tbody>
-                                @foreach (var _event in Model.Logger)
-                                {
-                                    <tr>
-                                        <td>@_event.Key</td>
-                                        <td>@_event.Value.FormatWithSpaces()</td>
-                                    </tr>
-                                }
-                            </tbody>
-                        </table>
-                    </div>
-                </div>
-            }
-
             <h3 class="mt-3">Události</h3>
             @if (Model.Events.Count == 0)
             {

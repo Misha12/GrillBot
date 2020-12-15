@@ -1,10 +1,13 @@
 using Discord;
+using Discord.Net;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.MessageCache
@@ -26,7 +29,7 @@ namespace Grillbot.Services.MessageCache
         {
             var options = new RequestOptions() { RetryMode = RetryMode.RetryRatelimit | RetryMode.RetryTimeouts, Timeout = 5000 };
 
-            foreach(var channel in Client.Guilds.SelectMany(o => o.TextChannels))
+            foreach (var channel in Client.Guilds.SelectMany(o => o.TextChannels))
             {
                 await InitChannel(Data, channel, options);
             }
@@ -51,15 +54,16 @@ namespace Grillbot.Services.MessageCache
 
         public async Task AppendAroundAsync(IMessageChannel channel, ulong messageID, int limit = 50)
         {
-            limit /= 2;
-
-            var messages = (await channel.GetMessagesAsync(messageID, Direction.After, limit).FlattenAsync()).ToList();
-            messages.AddRange(await channel.GetMessagesAsync(messageID, Direction.Before, limit).FlattenAsync());
-
-            foreach (var message in messages)
+            try
             {
-                Data.TryAdd(message.Id, message);
+                var messages = await channel.GetMessagesAsync(messageID, Direction.Around, limit).FlattenAsync();
+
+                foreach (var message in messages)
+                {
+                    Data.TryAdd(message.Id, message);
+                }
             }
+            catch (HttpException ex) when (ex.HttpCode == HttpStatusCode.InternalServerError) { /* Internal server error can ignore. */ }
         }
 
         public IMessage TryRemove(ulong id)

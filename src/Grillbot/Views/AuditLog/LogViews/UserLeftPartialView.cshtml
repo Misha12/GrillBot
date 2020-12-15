@@ -1,0 +1,33 @@
+﻿@model Grillbot.Models.Audit.UserLeftAuditData;
+
+<div class="row">
+    <div class="col-md-5">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Uživatel:</div>
+            <div class="col">@Model.User.Username#@Model.User.Discriminator</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Počet členů:</div>
+            <div class="col">@Model.MemberCount.FormatWithSpaces()</div>
+        </div>
+    </div>
+
+    <div class="col-md-7">
+        <div class="row">
+            <div class="col-4 font-weight-bold">Udělen ban:</div>
+            <div class="col">@Model.IsBan.TranslateToCz()</div>
+        </div>
+    </div>
+</div>
+
+@if (!string.IsNullOrEmpty(Model.BanReason))
+{
+    <div class="row">
+        <div class="col-md-12">
+            <h5 class="mt-2">Důvod banu</h5>
+
+            <pre class="alert alert-dark">@Model.BanReason</pre>
+        </div>
+    </div>
+}

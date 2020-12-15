@@ -3,9 +3,10 @@ using System.Linq;
 using System.Threading.Tasks;
 using Grillbot.Enums;
 using Grillbot.Database.Enums.Includes;
-using Grillbot.Models.Users;
 using UserEntity = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Enums;
+using Microsoft.Data.SqlClient;
+using Grillbot.Models.Users;
 
 namespace Grillbot.Database.Repository
 {
@@ -201,6 +202,17 @@ namespace Grillbot.Database.Repository
         {
             return GetBaseQuery(UsersIncludes.None)
                 .Where(o => o.GuildID == guildID.ToString() && o.UnverifyImunityGroup != null);
+        }
+
+        public async Task<UserEntity> CreateAndGetUserAsync(ulong guildId, ulong userId)
+        {
+            await Context.Database.ExecuteSqlRawAsync(
+                "INSERT INTO DiscordUsers (GuildID, UserID, Points, GivenReactionsCount, ObtainedReactionsCount, Flags) VALUES (@guild, @user, 0, 0, 0, 0)",
+                new SqlParameter("@guild", guildId.ToString()),
+                new SqlParameter("@user", userId.ToString())
+            );
+
+            return await GetUserAsync(guildId, userId, UsersIncludes.None);
         }
     }
 }

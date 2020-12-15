@@ -1,0 +1,62 @@
+@model Grillbot.Models.Audit.DiscordAuditLog.AuditChannelUpdated;
+
+<div class="row mt-3">
+    <div class="col-md-12">
+        <table class="table table-sm">
+            <thead>
+                <tr>
+                    <th style="width: 40%">Vlastnost:</th>
+                    <th>Před</th>
+                    <th>Po</th>
+                </tr>
+            </thead>
+
+            <tbody>
+                @if (Model.Name != null)
+                {
+                    <tr>
+                        <th>Název</th>
+                        <td>@Model.Name.Before</td>
+                        <td>@Model.Name.After</td>
+                    </tr>
+                }
+
+                @if (Model.Topic != null)
+                {
+                    <tr>
+                        <th>Popis</th>
+                        <td>@Model.Topic.Before</td>
+                        <td>@Model.Topic.After</td>
+                    </tr>
+                }
+
+                @if (Model.SlowModeInterval != null)
+                {
+                    <tr>
+                        <th>SlowMode</th>
+                        <td>@(Model.SlowModeInterval.Before == 0 ? "Nen�" : Model.SlowModeInterval.Before?.FormatWithSpaces())</td>
+                        <td>@(Model.SlowModeInterval.After == 0 ? "Nen�" : Model.SlowModeInterval.After?.FormatWithSpaces())</td>
+                    </tr>
+                }
+
+                @if (Model.IsNsfw != null)
+                {
+                    <tr>
+                        <th>NSFW</th>
+                        <td>@((Model.IsNsfw.Before ?? false).TranslateToCz())</td>
+                        <td>@((Model.IsNsfw.After ?? false).TranslateToCz())</td>
+                    </tr>
+                }
+
+                @if (Model.Bitrate != null)
+                {
+                    <tr>
+                        <th>Bitrate</th>
+                        <td>@(((int)Math.Round((Model.Bitrate.Before ?? 0) * 0.001)).FormatWithSpaces()) kbps</td>
+                        <td>@(((int)Math.Round((Model.Bitrate.After ?? 0) * 0.001)).FormatWithSpaces()) kbps</td>
+                    </tr>
+                }
+            </tbody>
+        </table>
+    </div>
+</div>

@@ -8,7 +8,8 @@ namespace Grillbot.Services.BackgroundTasks
         {
             services
                 .AddSingleton<BackgroundTaskQueue>()
-                .AddHostedService<BackgroundTaskService>();
+                .AddHostedService<BackgroundTaskService>()
+                .AddHostedService<BackgroundTaskScheduler>();
 
             return services;
         }
