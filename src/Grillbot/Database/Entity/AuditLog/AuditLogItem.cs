@@ -31,6 +31,7 @@ namespace Grillbot.Database.Entity.AuditLog
             set => GuildId = value.ToString();
         }
 
+        [StringLength(30)]
         public string DcAuditLogId { get; set; }
 
         [NotMapped]
