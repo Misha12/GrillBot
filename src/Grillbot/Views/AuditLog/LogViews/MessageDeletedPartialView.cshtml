@@ -4,7 +4,11 @@
     <div class="col-md-5">
         <div class="row">
             <div class="col-4 font-weight-bold">V cache</div>
-            <div class="col">@Model.IsInCache.TranslateToCz()</div>
+            <div class="col">
+                <span class="badge badge-@(Model.IsInCache ? "success" : "warning")">
+                    @Model.IsInCache.TranslateToCz()
+                </span>
+            </div>
         </div>
     </div>
 
@@ -41,7 +45,7 @@
     </div>
 }
 
-@if(!string.IsNullOrEmpty(Model.Content))
+@if (!string.IsNullOrEmpty(Model.Content))
 {
     <div class="row">
         <div class="col-md-12">

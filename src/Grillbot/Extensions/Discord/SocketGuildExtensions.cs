@@ -102,5 +102,12 @@ namespace Grillbot.Extensions.Discord
                 return null;
             }
         }
+
+        public static async Task<List<SocketGuildUser>> GetBotsAsync(this SocketGuild guild)
+        {
+            await guild.SyncGuildAsync();
+
+            return guild.Users.Where(o => o.IsBot).ToList();
+        }
     }
 }

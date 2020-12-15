@@ -25,11 +25,6 @@
                 <div class="col-md-4 mb-0">
                     <label for="Filter.FromUserQuery">Uživatelské jméno</label>
                     <input class="form-control" asp-for="Filter.UserQuery" />
-
-                    <div class="custom-control custom-checkbox">
-                        <input type="checkbox" class="custom-control-input" id="anonymous" asp-for="Filter.IncludeAnonymous">
-                        <label class="custom-control-label" for="anonymous">Včetně anonymních</label>
-                    </div>
                 </div>
 
                 <div class="col-md-4 mb-3">
@@ -46,7 +41,12 @@
                     </select>
                 </div>
 
-                <div class="col-md-4"></div>
+                <div class="col-md-4">
+                    <div class="custom-control custom-checkbox mt-4">
+                        <input type="checkbox" class="custom-control-input" id="ignorebots" asp-for="Filter.IgnoreBots">
+                        <label class="custom-control-label" for="ignorebots">Vynechat operace provedené boty</label>
+                    </div>
+                </div>
 
                 <div class="col-md-4 mb-3">
                     <label for="Request.DateTimeTo">Datum a čas do</label>

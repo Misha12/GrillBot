@@ -22,17 +22,10 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.GuildId == filter.GuildId);
 
             if (filter.UserIds?.Count > 0)
-            {
-                if (!filter.IncludeAnonymous)
-                    query = query.Where(o => o.UserId != null && filter.UserIds.Contains(o.UserId.Value));
-                else
-                    query = query.Where(o => o.UserId == null || filter.UserIds.Contains(o.UserId.Value));
-            }
-            else
-            {
-                if (!filter.IncludeAnonymous)
-                    query = query.Where(o => o.UserId != null);
-            }
+                query = query.Where(o => o.UserId != null && filter.UserIds.Contains(o.UserId.Value));
+
+            if(filter.IgnoredIds?.Count > 0)
+                query = query.Where(o => o.UserId != null && !filter.IgnoredIds.Contains(o.UserId.Value));
 
             if (filter.Type != null)
                 query = query.Where(o => o.Type == filter.Type.Value);

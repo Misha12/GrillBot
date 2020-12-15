@@ -14,6 +14,8 @@ namespace Grillbot.Models.Audit
         [JsonProperty("tag_id")]
         public string Discriminator { get; set; }
 
+        public AuditUserInfo() { }
+
         public static AuditUserInfo Create(IUser user)
         {
             return new AuditUserInfo()

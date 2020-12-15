@@ -10,6 +10,7 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
+using Grillbot.Models.Audit.DiscordAuditLog;
 using Grillbot.Models.Embed;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Config;
@@ -19,6 +20,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Audit
@@ -94,7 +96,7 @@ namespace Grillbot.Services.Audit
                 UserId = executor
             };
 
-            entity.SetData(UserLeftAuditData.CreateDbItem(user.Guild, user, ban != null, ban?.Reason));
+            entity.SetData(UserLeftAuditData.Create(user.Guild, user, ban != null, ban?.Reason));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
         }
@@ -135,7 +137,7 @@ namespace Grillbot.Services.Audit
                 UserId = userId
             };
 
-            entity.SetData(MessageEditedAuditData.CreateDbItem(channel, oldMessage, after));
+            entity.SetData(MessageEditedAuditData.Create(channel, oldMessage, after));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
 
@@ -159,7 +161,7 @@ namespace Grillbot.Services.Audit
             };
 
             if (deletedMessage == null)
-                entity.SetData(MessageDeletedAuditData.CreateDbItem(channel));
+                entity.SetData(MessageDeletedAuditData.Create(channel));
             else
                 await ProcessMessageDeletedWithCacheAsync(entity, channel, deletedMessage, guild);
 
@@ -173,7 +175,7 @@ namespace Grillbot.Services.Audit
 
         private async Task ProcessMessageDeletedWithCacheAsync(AuditLogItem entity, ISocketMessageChannel channel, IMessage message, SocketGuild guild)
         {
-            entity.SetData(MessageDeletedAuditData.CreateDbItem(channel, message));
+            entity.SetData(MessageDeletedAuditData.Create(channel, message));
 
             var auditLog = (await guild.GetAuditLogDataAsync(actionType: ActionType.MessageDeleted)).Find(o =>
             {
@@ -282,6 +284,9 @@ namespace Grillbot.Services.Audit
             var users = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
             var userIds = (await UserSearchService.ConvertUsersToIDsAsync(users)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
 
+            var botAccounts = filter.IgnoreBots ? await guild.GetBotsAsync() : new List<SocketGuildUser>();
+            var botAccountIds = (await UserSearchService.ConvertUsersToIDsAsync(botAccounts)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
+
             if (filter.Page < 0)
                 filter.Page = 0;
 
@@ -289,13 +294,13 @@ namespace Grillbot.Services.Audit
             {
                 From = filter.From,
                 GuildId = filter.GuildId.ToString(),
-                IncludeAnonymous = filter.IncludeAnonymous,
                 Skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize,
                 SortDesc = filter.SortDesc,
                 Take = PaginationInfo.DefaultPageSize,
                 To = filter.To,
                 Type = filter.Type,
-                UserIds = userIds.ToList()
+                UserIds = userIds.ToList(),
+                IgnoredIds = botAccountIds.ToList()
             };
         }
 
@@ -346,14 +351,7 @@ namespace Grillbot.Services.Audit
                     if (lastLogIds.Contains(log.Id))
                         continue;
 
-                    var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, log.User);
-
-                    if(userId == null)
-                    {
-                        var entity = await GrillBotRepository.UsersRepository.CreateAndGetUserAsync(guild.Id, log.User.Id);
-                        userId = entity.ID;
-                    }
-
+                    var userId = await GetOrCreateUserId(guild, log.User);
                     var item = new AuditLogItem()
                     {
                         CreatedAt = log.CreatedAt.LocalDateTime,
@@ -388,6 +386,126 @@ namespace Grillbot.Services.Audit
         public List<BackgroundTask> GetBackgroundTasks()
         {
             return Client.Guilds.Select(o => (BackgroundTask)new DownloadAuditLogBackgroundTask(o)).ToList();
+        }
+
+        public async Task<Tuple<int, int>> ImportLogsAsync(List<IMessage> messages, SocketGuild guild, Func<int, Task> onChange)
+        {
+            int importedMessages = 0;
+
+            foreach (var message in messages)
+            {
+                var entity = new AuditLogItem()
+                {
+                    CreatedAt = message.CreatedAt.LocalDateTime,
+                    GuildIdSnowflake = guild.Id
+                };
+
+                var embed = message.Embeds.First();
+
+                if (string.IsNullOrEmpty(embed.Title))
+                    continue;
+
+                switch (embed.Title)
+                {
+                    case var val when Regex.IsMatch(val, @".*Připojil\s*se\s*uživatel.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.UserJoined;
+                            entity.SetData(UserJoinedAuditData.Create(Convert.ToInt32(embed.Fields[2].Value)));
+
+                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
+                            if (user == null) continue;
+
+                            entity.UserId = await GetOrCreateUserId(guild, user);
+                        }
+                        break;
+                    case var val when Regex.IsMatch(val, @".*Zpráva\s*byla\s*upravena.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.MessageEdited;
+
+                            var auditData = MessageEditedAuditData.Create(embed.Fields);
+                            if (auditData == null) continue;
+                            entity.SetData(auditData);
+
+                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
+                            if (user == null) continue;
+
+                            entity.UserId = await GetOrCreateUserId(guild, user);
+                        }
+                        break;
+                    case var val when Regex.IsMatch(val, @".*Uživatel\s*opustil\s*server.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.UserLeft;
+
+                            var auditData = UserLeftAuditData.Create(embed.Fields);
+                            if (auditData == null) continue;
+                            entity.SetData(auditData);
+
+                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
+                        }
+                        break;
+                    case var val when Regex.IsMatch(val, @".*Zpráva\s*byla\s*odebrána.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.MessageDeleted;
+
+                            var auditData = MessageDeletedAuditData.Create(embed.Fields);
+                            if (auditData == null) continue;
+                            entity.SetData(auditData);
+
+                            var user = await guild.GetUserFromGuildAsync(embed.Fields[3].Value) ?? (IUser)await guild.GetUserFromGuildAsync(auditData.Author.Username, auditData.Author.Discriminator);
+                            if (user == null) user = Client.CurrentUser;
+
+                            entity.UserId = await GetOrCreateUserId(guild, user);
+                        }
+                        break;
+                    case var val when Regex.IsMatch(val, @".*Zpráva\s*nebyla\s*nalezena\s*v\s*cache.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.MessageDeleted;
+
+                            var auditData = MessageDeletedAuditData.Create(embed.Fields[0]);
+                            if (auditData == null) continue;
+                            entity.SetData(auditData);
+
+                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
+                        }
+                        break;
+                    case var val when Regex.IsMatch(val, @".*Uživatel\s*na\s*serveru\s*byl\s*aktualizován.*", RegexOptions.IgnoreCase):
+                        {
+                            entity.Type = AuditLogType.MemberUpdated;
+
+                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
+                            if (user == null) continue;
+
+                            var auditData = AuditMemberUpdated.Create(embed.Fields, user);
+                            if (auditData == null) continue;
+                            entity.SetData(auditData);
+
+                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
+                        }
+                        break;
+                    default:
+                        continue;
+                }
+
+                await GrillBotRepository.AddAsync(entity);
+
+                importedMessages++;
+                if(importedMessages % 5 == 0)
+                    await onChange(importedMessages);
+            }
+
+            await GrillBotRepository.CommitAsync();
+            return Tuple.Create(importedMessages, messages.Count);
+        }
+
+        private async Task<long> GetOrCreateUserId(SocketGuild guild, IUser user)
+        {
+            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
+
+            if (userId != null)
+                return userId.Value;
+
+            var entity = await GrillBotRepository.UsersRepository.CreateAndGetUserAsync(guild.Id, user.Id);
+            return entity.ID;
         }
     }
 }

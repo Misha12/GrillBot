@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace Grillbot.Extensions
 {
@@ -32,6 +33,30 @@ namespace Grillbot.Extensions
                 str = str.Substring(0, maxLength - 3) + "...";
 
             return str;
+        }
+
+        public static string ClearCodeBlocks(this string str)
+        {
+            if (str.StartsWith("```"))
+                str = str[3..];
+
+            if (str.EndsWith("```"))
+                str = str[0..^3];
+
+            return str;
+        }
+
+        public static bool TranslateCzToBool(this string str)
+        {
+            if (string.IsNullOrEmpty(str))
+                return false;
+
+            return str.ToLower() == "ano";
+        }
+
+        public static string Repeat(this string str, int count)
+        {
+            return string.Concat(Enumerable.Repeat(str, count));
         }
     }
 }

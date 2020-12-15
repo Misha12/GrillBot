@@ -5,7 +5,9 @@ using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 using System.Collections.Generic;
+using System.Collections.Immutable;
 using System.Linq;
+using System.Text.RegularExpressions;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
 {
@@ -53,6 +55,21 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             {
                 return null;
             }
+        }
+
+        public static AuditMemberUpdated Create(ImmutableArray<EmbedField> fields, IUser user)
+        {
+            var aliasRegex = new Regex(@"(.*)\s*->\s*(.*)", RegexOptions.IgnoreCase);
+            var aliasMatch = aliasRegex.Match(fields[2].Value);
+
+            if (!aliasMatch.Success)
+                return null;
+
+            return new AuditMemberUpdated()
+            {
+                UserId = user.Id,
+                Nickname = new DiffData<string>(aliasMatch.Groups[1].Value, aliasMatch.Groups[2].Value)
+            };
         }
 
         public AuditMemberUpdated GetFilledModel(SocketGuild guild)
