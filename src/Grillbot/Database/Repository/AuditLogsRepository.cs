@@ -80,5 +80,12 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.DcAuditLogId != null && o.CreatedAt >= halfYearBack && o.GuildId == guildId.ToString())
                 .Select(o => o.DcAuditLogId);
         }
+
+        public IQueryable<AuditLogItem> GetAuditLogsBeforeDate(DateTime dateTime, ulong guildId)
+        {
+            return Context.AuditLogs.AsQueryable()
+                .Include(o => o.Files)
+                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime);
+        }
     }
 }

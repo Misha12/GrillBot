@@ -451,8 +451,7 @@ namespace Grillbot.Services.Audit
                             if (auditData == null) continue;
                             entity.SetData(auditData);
 
-                            var user = await guild.GetUserFromGuildAsync(embed.Fields[3].Value) ?? (IUser)await guild.GetUserFromGuildAsync(auditData.Author.Username, auditData.Author.Discriminator);
-                            if (user == null) user = Client.CurrentUser;
+                            var user = (await guild.GetUserFromGuildAsync(embed.Fields[3].Value) ?? (IUser)await guild.GetUserFromGuildAsync(auditData.Author.Username, auditData.Author.Discriminator)) ?? Client.CurrentUser;
 
                             entity.UserId = await GetOrCreateUserId(guild, user);
                         }
@@ -489,12 +488,27 @@ namespace Grillbot.Services.Audit
                 await GrillBotRepository.AddAsync(entity);
 
                 importedMessages++;
-                if(importedMessages % 5 == 0)
+                if (importedMessages % 5 == 0)
                     await onChange(importedMessages);
             }
 
             await GrillBotRepository.CommitAsync();
             return Tuple.Create(importedMessages, messages.Count);
+        }
+
+        public async Task<int> ClearOldDataAsync(DateTime before, SocketGuild guild)
+        {
+            var oldData = await GrillBotRepository.AuditLogs.GetAuditLogsBeforeDate(before, guild.Id).ToListAsync();
+
+            foreach (var item in oldData.Where(o => o.Files.Count > 0))
+            {
+                GrillBotRepository.RemoveCollection(item.Files);
+            }
+
+            GrillBotRepository.RemoveCollection(oldData);
+            await GrillBotRepository.CommitAsync();
+
+            return oldData.Count;
         }
 
         private async Task<long> GetOrCreateUserId(SocketGuild guild, IUser user)

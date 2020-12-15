@@ -94,5 +94,20 @@ namespace Grillbot.Modules
                 }
             }
         }
+
+        [Command("clear")]
+        [Summary("**NENÁVRATNĚ** Smaže všechny logy před zadaným datem.")]
+        public async Task ClearOldLogsAsync(DateTime before)
+        {
+            var infoMessage = await ReplyAsync("Probíhá čištění.");
+
+            using (Context.Channel.EnterTypingState())
+            {
+                using var service = GetService<AuditService>();
+                var clearedCount = await service.Service.ClearOldDataAsync(before, Context.Guild);
+
+                await infoMessage.ModifyAsync(o => o.Content = $"Čištění dokončeno.\nVyčištěno záznamů: {clearedCount.FormatWithSpaces()}");
+            }
+        }
     }
 }
