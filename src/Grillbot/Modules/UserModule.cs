@@ -69,7 +69,7 @@ namespace Grillbot.Modules
                 }
 
                 using var service = GetService<WebAccessService>();
-                var password = service.Service.CreateWebAdminAccessAsync(Context.Guild, user);
+                var password = await service.Service.CreateWebAdminAccessAsync(Context.Guild, user);
 
                 await userMention.SendPrivateMessageAsync(
                     $"Byl ti udělen přístup do webové administrace. Uživatelské jméno je tvůj globální discord nick.\nHeslo máš zde: `{password}`. Uchovej si ho.");
