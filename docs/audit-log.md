@@ -1,6 +1,6 @@
 # Features: Audit log
 
-Audit log storing logging data from selected events to database and periodicaly downloading Discord Audit log. 
+Audit log storing logging data from selected events to database and periodicaly downloading Discord Audit log.
 Downloading from Discord Audit log is because discord allows only a few months.
 
 Audit logs can browse and delete from WebAdmin.
@@ -48,4 +48,3 @@ Removes old log before specific date.
 | Parameter | Type     | Description                                                                                          |
 | --------- | -------- | ---------------------------------------------------------------------------------------------------- |
 | before    | DateTime | Break date and time. All records before this date will be deleted. DateTime is in `ISO 8601` format. |
-
