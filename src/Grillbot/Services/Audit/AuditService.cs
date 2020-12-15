@@ -187,7 +187,7 @@ namespace Grillbot.Services.Audit
 
             if (message.Attachments.Count > 0)
             {
-                foreach (var attachment in message.Attachments)
+                foreach (var attachment in message.Attachments.Where(o => o.Size < 10 * 1024)) // Max 10MB
                 {
                     var fileContent = await attachment.DownloadFileAsync();
 
