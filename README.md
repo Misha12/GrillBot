@@ -38,9 +38,7 @@ Only Discord.NET package is distributed as pre-release from MyGet feed.
 - [Swashbuckle.AspNetCore](https://www.nuget.org/packages/Swashbuckle.AspNetCore/)
 - [System.Drawing.Common](https://www.nuget.org/packages/System.Drawing.Common/)
 - [System.Drawing.Primitives](https://www.nuget.org/packages/System.Drawing.Primitives/)
-
-### GrillBotMath
-
+- [DiffPlex](https://www.nuget.org/packages/DiffPlex/)
 - [Newtonsoft.JSON](https://www.nuget.org/packages/Newtonsoft.Json/)
 - [MathParser.org-mXParser](https://www.nuget.org/packages/MathParser.org-mXparser/)
 
@@ -73,7 +71,6 @@ Choice between command line parameters or environment variables is your. GrillBo
 | CommandPrefix         | Message content, that must starts to invoke command.                                                                             | `$`                  |
 | EmoteChain_CheckCount | Count of same emotes before bot send emote.                                                                                      | `5`                  |
 | ActivityMessage       | Now playing info. Includes git latest commit, current branch and lastest tag. If you do not want display any test, enter `None`. | `Some message`       |
-| LoggerRoom            | ID of channel to send logging data (MessageEdited, MessageDeleted, ...).                                                         | `531058805233156096` |
 | AdminChannel          | ID of channel for administration purposes. Such as booster notifications.                                                        | `531058805233156096` |
 | ServerBoosterRoleId   | ID of role with Nitro Server Booster role.                                                                                       | `585529323960664074` |
 | ErrorLogChannel       | ID of channel for logging errors.                                                                                                | `531058805233156096` |
@@ -111,7 +108,8 @@ GrillBot.exe APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
 - [Meme](docs/meme.md)
 - [Reminder](docs/reminder.md)
 - [Users management](docs/users-management.md)
+- [Audit Log](docs/audit-log.md)
 
 ## Docker
 
-Latest tag is published on [DockerHub](https://hub.docker.com/repository/docker/misha12/grillbot). SQL script with latest DB schema is included in release.
+Latest tag is published on [DockerHub](https://hub.docker.com/r/misha12/grillbot). SQL script with latest DB schema is included in release.
