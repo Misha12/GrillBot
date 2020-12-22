@@ -161,7 +161,7 @@ namespace Grillbot.Services.Unverify
             if (groups.ContainsKey(name))
                 return true;
 
-            return groups.Values.Where(o => o != null).Any(o => o.Contains(name));
+            return groups.Values.Any(o => o != null && o.Contains(name));
         }
 
         private void CheckDefinitions(SelfUnverifyConfig selfUnverifyConfig, string name)
