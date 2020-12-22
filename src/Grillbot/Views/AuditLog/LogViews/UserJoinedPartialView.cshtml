@@ -9,36 +9,28 @@
     </div>
 
     <div class="col-md-7">
+        @if (Model.User.User != null)
+        {
+            <div class="row">
+                <div class="col-4 font-weight-bold">Účet založen:</div>
+                <div class="col">@Model.User?.User?.CreatedAt.LocalDateTime.ToLocaleDatetime()</div>
+            </div>
+        }
+
         <div class="row">
-            <div class="col-4 font-weight-bold">Účet založen:</div>
-            <div class="col">@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</div>
+            <div class="col-4 font-weight-bold">ID účtu:</div>
+            <div class="col">@Model.User?.DiscordId</div>
         </div>
     </div>
 </div>
 
-@if (Model.User.UsedInvite != null)
+@if (Model.User?.UsedInvite != null)
 {
     <div class="row">
         <div class="col-md-12">
             <h5 class="mt-2">Použitá pozvánka</h5>
 
-            <div class="row mt-2">
-                <div class="col-12">
-                    @if (Model.User.UsedInvite.Code == Model.User.Guild.VanityURLCode)
-                    {
-                        <b>Vanity (@Model.User.UsedInvite.Code)</b>
-                    }
-                    else
-                    {
-                        <b>
-                            <a href="/Admin/Users?Filter.GuildID=@Model.User.Guild.Id&Filter.UsedInviteCode=@Model.User.UsedInvite.Code" class="text-white">
-                                <u>@Model.User.UsedInvite.Code</u>
-                            </a>
-                            <br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())
-                        </b>
-                    }
-                </div>
-            </div>
+            <partial name="InvitePartialView" model="Model.User.UsedInvite" />
         </div>
     </div>
 }

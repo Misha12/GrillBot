@@ -240,14 +240,16 @@ namespace Grillbot.Services.InviteTracker
             var result = new List<InviteModel>();
             foreach (var invite in invites)
             {
+                var isVanity = invite.Code == guild.VanityURLCode;
+
                 if (invite.Creator == null)
                 {
-                    result.Add(new InviteModel(invite, null, invite.UsedUsers.Count));
+                    result.Add(new InviteModel(invite, null, isVanity, invite.UsedUsers.Count));
                     continue;
                 }
 
                 var creator = await guild.GetUserFromGuildAsync(invite.Creator.UserIDSnowflake);
-                result.Add(new InviteModel(invite, creator, invite.UsedUsers.Count));
+                result.Add(new InviteModel(invite, creator, isVanity, invite.UsedUsers.Count));
             }
 
             return result;

@@ -18,6 +18,7 @@ namespace Grillbot.Models.Users
     public class DiscordUser
     {
         public long ID { get; set; }
+        public ulong DiscordId { get; set; }
         public SocketGuild Guild { get; set; }
         public SocketGuildUser User { get; set; }
         public long Points { get; set; }
@@ -63,10 +64,11 @@ namespace Grillbot.Models.Users
                 WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,
                 UnverifyEndsAt = dbUser.Unverify?.EndDateTime,
-                UnverifyImunityGroup = dbUser.UnverifyImunityGroup
+                UnverifyImunityGroup = dbUser.UnverifyImunityGroup,
+                DiscordId = dbUser.UserIDSnowflake
             };
 
-            if (botAppInfo.Owner.Id == user.Id)
+            if (user != null && botAppInfo.Owner.Id == user.Id)
                 result.Flags |= (long)UserFlags.BotAdmin;
 
             result.Channels = dbUser.Channels
@@ -82,7 +84,7 @@ namespace Grillbot.Models.Users
                 if (dbUser.UsedInvite.Creator != null)
                     inviteCreator = await guild.GetUserFromGuildAsync(dbUser.UsedInvite.Creator.UserIDSnowflake);
 
-                result.UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator);
+                result.UsedInvite = new InviteModel(dbUser.UsedInvite, inviteCreator, dbUser.UsedInviteCode == guild.VanityURLCode);
             }
             else if(!string.IsNullOrEmpty(dbUser.UsedInviteCode))
             {
@@ -106,7 +108,7 @@ namespace Grillbot.Models.Users
                 result.Reminders.Add(new RemindItem(remind, fromUser));
             }
 
-            result.CreatedInvites = dbUser.CreatedInvites.Select(o => new InviteModel(o, user, o.UsedUsers.Count)).ToList();
+            result.CreatedInvites = dbUser.CreatedInvites.Select(o => new InviteModel(o, user, false, o.UsedUsers.Count)).ToList();
 
             return result;
         }

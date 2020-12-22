@@ -1,5 +1,6 @@
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
+using Grillbot.Enums;
 using Microsoft.EntityFrameworkCore;
 using System;
 using System.Linq;
@@ -13,40 +14,26 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        public IQueryable<AuditLogItem> GetAuditLogsQuery(AuditLogQueryFilter filter)
+        private IQueryable<AuditLogItem> GetBaseQuery(bool includeUser)
         {
-            var query = Context.AuditLogs.AsQueryable()
-                .Include(o => o.User)
-                .ThenInclude(o => o.UsedInvite)
-                .ThenInclude(o => o.Creator)
-                .Where(o => o.GuildId == filter.GuildId);
+            var query = Context.AuditLogs.AsQueryable();
 
-            if (filter.UserIds?.Count > 0)
-                query = query.Where(o => o.UserId != null && filter.UserIds.Contains(o.UserId.Value));
-
-            if(filter.IgnoredIds?.Count > 0)
-                query = query.Where(o => o.UserId != null && !filter.IgnoredIds.Contains(o.UserId.Value));
-
-            if (filter.Type != null)
-                query = query.Where(o => o.Type == filter.Type.Value);
-
-            if (filter.From != null)
-                query = query.Where(o => o.CreatedAt >= filter.From.Value);
-
-            if (filter.To != null)
-                query = query.Where(o => o.CreatedAt < filter.To.Value);
-
-            if (filter.SortDesc)
-                query = query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);
-            else
-                query = query.OrderBy(o => o.CreatedAt).ThenBy(o => o.Id);
+            if (includeUser)
+            {
+                query = query
+                    .Include(o => o.User)
+                    .ThenInclude(o => o.UsedInvite)
+                    .ThenInclude(o => o.Creator);
+            }
 
             return query.Select(o => new AuditLogItem()
             {
                 CreatedAt = o.CreatedAt,
+                User = o.User,
                 DcAuditLogId = o.DcAuditLogId,
-                Files = o.Files.Select(x => new Entity.File()
+                Files = o.Files.Select(x => new File()
                 {
+                    AuditLogItemId = x.AuditLogItemId,
                     Filename = x.Filename
                 }).ToHashSet(),
                 DcAuditLogIdSnowflake = o.DcAuditLogIdSnowflake,
@@ -54,9 +41,15 @@ namespace Grillbot.Database.Repository
                 Id = o.Id,
                 JsonData = o.JsonData,
                 Type = o.Type,
-                User = o.User,
-                UserId = o.UserId
+                UserId = o.UserId,
+                GuildIdSnowflake = o.GuildIdSnowflake
             });
+        }
+
+        public IQueryable<AuditLogItem> GetAuditLogsQuery(AuditLogQueryFilter filter)
+        {
+            var query = GetBaseQuery(true);
+            return filter.GetDbQuery(query);
         }
 
         public Task<File> FindFileByFilenameAsync(string filename)
@@ -67,23 +60,7 @@ namespace Grillbot.Database.Repository
 
         public Task<AuditLogItem> FindItemByIdAsync(long id)
         {
-            return Context.AuditLogs.AsQueryable()
-                .Select(o => new AuditLogItem()
-                {
-                    CreatedAt = o.CreatedAt,
-                    DcAuditLogId = o.DcAuditLogId,
-                    Files = o.Files.Select(x => new File()
-                    {
-                        AuditLogItemId = x.AuditLogItemId,
-                        Filename = x.Filename
-                    }).ToHashSet(),
-                    GuildId = o.GuildId,
-                    Id = o.Id,
-                    JsonData = o.JsonData,
-                    Type = o.Type,
-                    UserId = o.UserId,
-                    User = o.User
-                })
+            return GetBaseQuery(false)
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
@@ -98,24 +75,16 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<AuditLogItem> GetAuditLogsBeforeDate(DateTime dateTime, ulong guildId)
         {
-            return Context.AuditLogs.AsQueryable()
-                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime)
-                .Select(o => new AuditLogItem()
-                {
-                    CreatedAt = o.CreatedAt,
-                    DcAuditLogId = o.DcAuditLogId,
-                    Files = o.Files.Select(x => new File()
-                    {
-                        AuditLogItemId = x.AuditLogItemId,
-                        Filename = x.Filename
-                    }).ToHashSet(),
-                    GuildId = o.GuildId,
-                    Id = o.Id,
-                    JsonData = o.JsonData,
-                    Type = o.Type,
-                    UserId = o.UserId,
-                    User = o.User
-                });
+            return GetBaseQuery(false)
+                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime);
+        }
+
+        public Task<AuditLogItem> FindLastItemAsync(long userId, AuditLogType type)
+        {
+            return GetBaseQuery(true)
+                .Where(o => o.Type == type && o.UserId == userId)
+                .OrderByDescending(o => o.Id)
+                .FirstOrDefaultAsync();
         }
     }
 }

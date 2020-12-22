@@ -290,6 +290,8 @@ namespace Grillbot.Services.Audit
             if (filter.Page < 0)
                 filter.Page = 0;
 
+            var types = filter.GetSelectedTypes();
+
             return new AuditLogQueryFilter()
             {
                 From = filter.From,
@@ -298,7 +300,7 @@ namespace Grillbot.Services.Audit
                 SortDesc = filter.SortDesc,
                 Take = PaginationInfo.DefaultPageSize,
                 To = filter.To,
-                Type = filter.Type,
+                Types = types.ToArray(),
                 UserIds = userIds.ToList(),
                 IgnoredIds = botAccountIds.ToList()
             };
@@ -430,17 +432,6 @@ namespace Grillbot.Services.Audit
                             if (user == null) continue;
 
                             entity.UserId = await GetOrCreateUserId(guild, user);
-                        }
-                        break;
-                    case var val when Regex.IsMatch(val, @".*Uživatel\s*opustil\s*server.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.UserLeft;
-
-                            var auditData = UserLeftAuditData.Create(embed.Fields);
-                            if (auditData == null) continue;
-                            entity.SetData(auditData);
-
-                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
                         }
                         break;
                     case var val when Regex.IsMatch(val, @".*Zpráva\s*byla\s*odebrána.*", RegexOptions.IgnoreCase):

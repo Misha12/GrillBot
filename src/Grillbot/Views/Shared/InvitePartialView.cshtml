@@ -1,0 +1,22 @@
+﻿@model Grillbot.Services.InviteTracker.InviteModel;
+
+@if (Model != null)
+{
+    <div class="row mt-2">
+        <div class="col-12">
+            @if (Model.IsVanity)
+            {
+                <b>Vanity (@Model.Code)</b>
+            }
+            else
+            {
+                <b>
+                    <a href="/Admin/Users&Filter.UsedInviteCode=@Model.Code" class="text-white">
+                        <u>@Model.Code</u>
+                    </a>
+                    <br />@(Model.Creator?.GetFullName() ?? "Neznámý uživatel") (@Model.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())
+                </b>
+            }
+        </div>
+    </div>
+}

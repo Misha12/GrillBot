@@ -68,7 +68,14 @@ namespace Grillbot.Database
 
         public void Remove<TEntity>(TEntity entity) where TEntity : class
         {
-            Context.Set<TEntity>().Remove(entity);
+            try
+            {
+                Context.Set<TEntity>().Remove(entity);
+            }
+            catch (Exception)
+            {
+                Context.Entry(entity).State = EntityState.Deleted;
+            }
         }
 
         public void RemoveCollection<TEntity>(IEnumerable<TEntity> entities) where TEntity : class

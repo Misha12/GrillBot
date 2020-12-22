@@ -7,85 +7,85 @@ namespace Grillbot.Enums
         [Display(Name = "Příkaz")]
         Command,
 
-        [Display(Name = "Uživatel opustil server")]
+        [Display(Name = "Uživatel opustil server", GroupName = "Připojení a odpojení")]
         UserLeft,
 
-        [Display(Name = "Uživatel se připojil na server")]
+        [Display(Name = "Uživatel se připojil na server", GroupName = "Připojení a odpojení")]
         UserJoined,
 
-        [Display(Name = "Zpráva editována")]
+        [Display(Name = "Zpráva editována", GroupName = "Zprávy")]
         MessageEdited,
 
-        [Display(Name = "Zpráva smazána")]
+        [Display(Name = "Zpráva smazána", GroupName = "Zprávy")]
         MessageDeleted,
 
-        [Display(Name = "Přidán bot")]
+        [Display(Name = "Přidán bot", GroupName = "Uživatelé")]
         BotAdded,
 
-        [Display(Name = "Vytvořen kanál")]
+        [Display(Name = "Vytvořen kanál", GroupName = "Kanály")]
         ChannelCreated,
 
         [Display(Name = "Upraven server")]
         GuildUpdated,
 
-        [Display(Name = "Smazán kanál")]
+        [Display(Name = "Smazán kanál", GroupName = "Kanály")]
         ChannelDeleted,
 
-        [Display(Name = "Upraven kanál")]
+        [Display(Name = "Upraven kanál", GroupName = "Kanály")]
         ChannelUpdated,
 
-        [Display(Name = "Vytvořen emote")]
+        [Display(Name = "Vytvořen emote", GroupName = "Emoty")]
         EmojiCreated,
 
-        [Display(Name = "Smazán emote")]
+        [Display(Name = "Smazán emote", GroupName = "Emoty")]
         EmojiDeleted,
 
-        [Display(Name = "Upraven emote")]
+        [Display(Name = "Upraven emote", GroupName = "Emoty")]
         EmojiUpdated,
 
-        [Display(Name = "Vytvořena výjimka do kanálu")]
+        [Display(Name = "Vytvořena výjimka do kanálu", GroupName = "Oprávnění v kanálech")]
         OverwriteCreated,
 
-        [Display(Name = "Smazána výjimka do kanálu")]
+        [Display(Name = "Smazána výjimka do kanálu", GroupName = "Oprávnění v kanálech")]
         OverwriteDeleted,
 
-        [Display(Name = "Upravena výjimka do kanálu")]
+        [Display(Name = "Upravena výjimka do kanálu", GroupName = "Oprávnění v kanálech")]
         OverwriteUpdated,
 
-        [Display(Name = "Hromadné vyhození neaktivních")]
+        [Display(Name = "Hromadné vyhození neaktivních", GroupName = "Uživatelé")]
         Prune,
 
-        [Display(Name = "Unban")]
+        [Display(Name = "Unban", GroupName = "Uživatelé")]
         Unban,
 
-        [Display(Name = "Upraven uživatel")]
+        [Display(Name = "Upraven uživatel", GroupName = "Uživatelé")]
         MemberUpdated,
 
-        [Display(Name = "Vytvořena role")]
+        [Display(Name = "Vytvořena role", GroupName = "Role")]
         RoleCreated,
 
-        [Display(Name = "Smazána role")]
+        [Display(Name = "Smazána role", GroupName = "Role")]
         RoleDeleted,
 
-        [Display(Name = "Aktualizována role")]
+        [Display(Name = "Aktualizována role", GroupName = "Role")]
         RoleUpdated,
 
-        [Display(Name = "Vytvořen webhook")]
+        [Display(Name = "Vytvořen webhook", GroupName = "Webhook")]
         WebhookCreated,
 
-        [Display(Name = "Smazán webhook")]
+        [Display(Name = "Smazán webhook", GroupName = "Webhook")]
         WebhookDeleted,
 
-        [Display(Name = "Aktualizován webhook")]
+        [Display(Name = "Aktualizován webhook", GroupName = "Webhook")]
         WebhookUpdated,
 
-        [Display(Name = "Zpráva připnuta")]
+        [Display(Name = "Zpráva připnuta", GroupName = "Zprávy")]
         MessagePinned,
 
-        [Display(Name = "Zpráva odepnuta")]
+        [Display(Name = "Zpráva odepnuta", GroupName = "Zprávy")]
         MessageUnpinned,
 
-        [Display(Name = "Změněny role uživatele")]
+        [Display(Name = "Změněny role uživatele", GroupName = "Uživatelé")]
         MemberRoleUpdated
     }
 }

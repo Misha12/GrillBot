@@ -12,19 +12,21 @@ namespace Grillbot.Services.InviteTracker
         public DateTimeOffset? CreatedAt { get; set; }
         public IUser Creator { get; set; }
         public int? Uses { get; set; }
+        public bool IsVanity { get; set; }
 
         public InviteModel(string code)
         {
             Code = code;
         }
 
-        public InviteModel(Invite entity, IUser creator, int? uses = null)
+        public InviteModel(Invite entity, IUser creator, bool isVanity, int? uses = null)
         {
             Code = entity.Code;
             ChannelId = entity.ChannelIdSnowflake;
             CreatedAt = entity.CreatedAt != null ? new DateTimeOffset(entity.CreatedAt.Value) : (DateTimeOffset?)null;
             Creator = creator;
             Uses = uses;
+            IsVanity = isVanity;
         }
 
         public InviteModel(RestInviteMetadata metadata)

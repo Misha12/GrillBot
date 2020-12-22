@@ -19,10 +19,6 @@ namespace Grillbot.Helpers
                 return null;
 
             var socketUser = await guild.GetUserFromGuildAsync(dBUser.UserIDSnowflake);
-
-            if (socketUser == null)
-                return null;
-
             return await DiscordUser.CreateAsync(guild, socketUser, dBUser, discord, state.AppInfo);
         }
 

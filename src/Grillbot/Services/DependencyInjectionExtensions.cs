@@ -66,7 +66,11 @@ namespace Grillbot.Services
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
         {
             services
-                .AddDbContext<GrillBotContext>(options => options.UseSqlServer(connectionString), ServiceLifetime.Transient, ServiceLifetime.Transient)
+                .AddDbContext<GrillBotContext>(options =>
+                {
+                    options.UseSqlServer(connectionString);
+                    //options.EnableSensitiveDataLogging(); // In a case of emergency. Only in DEBUG.
+                }, ServiceLifetime.Transient, ServiceLifetime.Transient)
                 .AddTransient<IGrillBotRepository, GrillBotRepository>();
 
             return services;

@@ -8,8 +8,8 @@
         </div>
 
         <div class="row">
-            <div class="col-4 font-weight-bold">Počet členů:</div>
-            <div class="col">@Model.MemberCount.FormatWithSpaces()</div>
+            <div class="col-4 font-weight-bold">ID účtu:</div>
+            <div class="col">@Model.User.Id</div>
         </div>
     </div>
 
@@ -17,6 +17,11 @@
         <div class="row">
             <div class="col-4 font-weight-bold">Udělen ban:</div>
             <div class="col">@Model.IsBan.TranslateToCz()</div>
+        </div>
+
+        <div class="row">
+            <div class="col-4 font-weight-bold">Počet členů:</div>
+            <div class="col">@Model.MemberCount.FormatWithSpaces()</div>
         </div>
     </div>
 </div>

@@ -36,8 +36,39 @@
             <div class="form-row">
                 <div class="col-md-4 mb-3">
                     <label for="Request.Operation">Typ</label>
-                    <select class="form-control" asp-for="Filter.Type" asp-items="Html.GetEnumSelectList<AuditLogType>()">
+                    <select class="form-control" name="Filter.Types">
                         <option value="">Nezáleží</option>
+
+                        <optgroup label="Kombinace typů">
+                            @foreach (var item in ExtendedAuditLogTypes.Instance.Types.OrderBy(o => o.Value.Item1))
+                            {
+                                if (item.Key == Model.Filter.Types)
+                                {
+                                    <option title="@item.Value.Item2" value="@item.Key" selected>@item.Value.Item1</option>
+                                }
+                                else
+                                {
+                                    <option title="@item.Value.Item2" value="@item.Key">@item.Value.Item1</option>
+                                }
+                            }
+                        </optgroup>
+
+                        @foreach (var group in Html.GetEnumSelectList<AuditLogType>().GroupBy(o => o.Group).OrderBy(o => string.IsNullOrEmpty(o?.Key?.Name) ? new string('Z', 555) : o.Key.Name))
+                        {
+                            <optgroup label="@(string.IsNullOrEmpty(group?.Key?.Name) ? "Ostatní typy" : group.Key.Name)">
+                                @foreach (var item in group.OrderBy(o => o.Text))
+                                {
+                                    @if (Model.Filter.Types == item.Value)
+                                    {
+                                        <option value="@item.Value" selected>@item.Text</option>
+                                    }
+                                    else
+                                    {
+                                        <option value="@item.Value">@item.Text</option>
+                                    }
+                                }
+                            </optgroup>
+                        }
                     </select>
                 </div>
 
@@ -114,7 +145,7 @@
                                         }
                                         else
                                         {
-                                            @item.User.User.GetFullName();
+                                            @item.User.User.GetFullName().Replace("Unknown user", "Neznámý uživatel");
                                         }
                                     </div>
                                 </div>
