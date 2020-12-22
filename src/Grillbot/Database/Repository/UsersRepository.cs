@@ -129,6 +129,7 @@ namespace Grillbot.Database.Repository
             var user = userID.ToString();
 
             var entity = await GetBaseQuery(UsersIncludes.None)
+                .AsNoTracking()
                 .Select(o => new { o.GuildID, o.UserID, o.ID })
                 .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
 
