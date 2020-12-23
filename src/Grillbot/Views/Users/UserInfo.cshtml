@@ -238,6 +238,7 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
+                            <th>Typ</th>
                             <th>Kdy</th>
                             <th>Provedl</th>
                             <th>Čas</th>
@@ -250,6 +251,7 @@
                         @foreach (var unverify in Model.User.UnverifyHistory)
                         {
                             <tr>
+                                <td>@unverify.Operation</td>
                                 <td>@unverify.DateTime.ToLocaleDatetime()</td>
                                 <td>@unverify.FromUser.GetFullName()</td>
                                 <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
@@ -277,6 +279,7 @@
                 <table class="table table-sm">
                     <thead>
                         <tr>
+                            <th>Typ</th>
                             <th>Kdy</th>
                             <th>Uděleno uživateli</th>
                             <th>Čas</th>
@@ -289,6 +292,7 @@
                         @foreach (var unverify in Model.User.GivenUnverifyHistory)
                         {
                             <tr>
+                                <td>@unverify.Operation</td>
                                 <td>@unverify.DateTime.ToLocaleDatetime()</td>
                                 <td>@unverify.ToUser.GetFullName()</td>
                                 <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
