@@ -64,12 +64,12 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefaultAsync(o => o.Id == id);
         }
 
-        public IQueryable<string> GetLastAuditLogIdsQuery(ulong guildId)
+        public IQueryable<string> GetLastAuditLogIdsQuery(ulong guildId, AuditLogType type)
         {
             var halfYearBack = DateTime.Now.AddMonths(-6);
 
             return Context.AuditLogs.AsQueryable()
-                .Where(o => o.DcAuditLogId != null && o.CreatedAt >= halfYearBack && o.GuildId == guildId.ToString())
+                .Where(o => o.DcAuditLogId != null && o.CreatedAt >= halfYearBack && o.GuildId == guildId.ToString() && o.Type == type)
                 .Select(o => o.DcAuditLogId);
         }
 

@@ -329,46 +329,43 @@ namespace Grillbot.Services.Audit
             if (guild == null)
                 return;
 
-            var logIdsQuery = GrillBotRepository.AuditLogs.GetLastAuditLogIdsQuery(guild.Id);
-            var lastLogIds = (await logIdsQuery.ToListAsync()).ConvertAll(o => Convert.ToUInt64(o));
+            if (!AuditServiceHelper.IsTypeDefined(task.ActionType))
+                return;
 
-            foreach (var type in task.ActionTypes)
+            var logs = await guild.GetAuditLogDataAsync(100, task.ActionType);
+            if (logs.Count == 0)
+                return;
+
+            var auditLogType = AuditServiceHelper.AuditLogTypeMap[task.ActionType];
+            var logIds = (await GrillBotRepository.AuditLogs.GetLastAuditLogIdsQuery(guild.Id, auditLogType).ToListAsync())
+                .ConvertAll(o => Convert.ToUInt64(o));
+
+            foreach (var log in logs)
             {
-                if (!AuditServiceHelper.IsTypeDefined(type))
+                if (logIds.Contains(log.Id))
                     continue;
 
-                var logs = await guild.GetAuditLogDataAsync(100, type);
-
-                if (logs.Count == 0)
-                    continue;
-
-                foreach (var log in logs)
+                var userId = await GetOrCreateUserId(guild, log.User);
+                var item = new AuditLogItem()
                 {
-                    if (lastLogIds.Contains(log.Id))
-                        continue;
+                    CreatedAt = log.CreatedAt.LocalDateTime,
+                    DcAuditLogIdSnowflake = log.Id,
+                    UserId = userId,
+                    GuildIdSnowflake = guild.Id,
+                    Type = auditLogType
+                };
 
-                    var userId = await GetOrCreateUserId(guild, log.User);
-                    var item = new AuditLogItem()
-                    {
-                        CreatedAt = log.CreatedAt.LocalDateTime,
-                        DcAuditLogIdSnowflake = log.Id,
-                        UserId = userId,
-                        GuildIdSnowflake = guild.Id,
-                        Type = AuditServiceHelper.AuditLogTypeMap[type]
-                    };
+                var logMappingMethod = AuditServiceHelper.AuditLogDataMap[task.ActionType];
 
-                    var logMappingMethod = AuditServiceHelper.AuditLogDataMap[type];
+                if (logMappingMethod != null)
+                {
+                    var mappedItem = logMappingMethod(log.Data);
 
-                    if (logMappingMethod != null)
-                    {
-                        var mappedItem = logMappingMethod(log.Data);
-
-                        if (mappedItem != null)
-                            item.SetData(mappedItem);
-                    }
-
-                    await GrillBotRepository.AddAsync(item);
+                    if (mappedItem != null)
+                        item.SetData(mappedItem);
                 }
+
+                await GrillBotRepository.AddAsync(item);
             }
 
             await GrillBotRepository.CommitAsync();
@@ -376,12 +373,39 @@ namespace Grillbot.Services.Audit
 
         public bool CanScheduleTask(DateTime lastScheduleAt)
         {
-            return (DateTime.Now - lastScheduleAt).TotalMinutes >= 5.0D; // Every 5 minute
+            return (DateTime.Now - lastScheduleAt).TotalMinutes >= 10.0D; // Every 10 minutes
         }
 
         public List<BackgroundTask> GetBackgroundTasks()
         {
-            return Client.Guilds.Select(o => (BackgroundTask)new DownloadAuditLogBackgroundTask(o)).ToList();
+            var types = new[]
+            {
+                ActionType.GuildUpdated,
+                ActionType.ChannelCreated,
+                ActionType.ChannelDeleted,
+                ActionType.ChannelUpdated,
+                ActionType.EmojiCreated,
+                ActionType.EmojiDeleted,
+                ActionType.EmojiUpdated,
+                ActionType.OverwriteCreated,
+                ActionType.OverwriteDeleted,
+                ActionType.OverwriteUpdated,
+                ActionType.Prune,
+                ActionType.Unban,
+                ActionType.MemberUpdated,
+                ActionType.MemberRoleUpdated,
+                ActionType.BotAdded,
+                ActionType.RoleCreated,
+                ActionType.RoleDeleted,
+                ActionType.RoleUpdated,
+                ActionType.WebhookCreated,
+                ActionType.WebhookDeleted,
+                ActionType.WebhookUpdated,
+                ActionType.MessagePinned,
+                ActionType.MessageUnpinned
+            };
+
+            return Client.Guilds.SelectMany(g => types.Select(type => (BackgroundTask)new DownloadAuditLogBackgroundTask(g, type))).ToList();
         }
 
         public async Task<Tuple<int, int>> ImportLogsAsync(List<IMessage> messages, SocketGuild guild, Func<int, Task> onChange)
