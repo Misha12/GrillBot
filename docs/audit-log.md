@@ -33,7 +33,7 @@ Audit log database using more tables to store data. `DiscordUsers` to store user
 
 ## Commands
 
-### log import `{loggerChannel}`
+### log import `{loggerChannel}` (**Deprecated**)
 
 Imports logger data from old logger channel and converts to new Audit logs.
 
