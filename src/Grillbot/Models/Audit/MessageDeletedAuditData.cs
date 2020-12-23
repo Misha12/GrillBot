@@ -1,11 +1,7 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Extensions;
 using Newtonsoft.Json;
 using System;
-using System.Collections.Immutable;
-using System.Globalization;
-using System.Text.RegularExpressions;
 
 namespace Grillbot.Models.Audit
 {
@@ -50,42 +46,6 @@ namespace Grillbot.Models.Audit
                 return new MessageDeletedAuditData(channel.Id, false);
             else
                 return new MessageDeletedAuditData(channel.Id, true, AuditUserInfo.Create(message.Author), message.CreatedAt.LocalDateTime, message.Content);
-        }
-
-        public static MessageDeletedAuditData Create(ImmutableArray<EmbedField> fields)
-        {
-            if (fields.Length < 3)
-                return null;
-
-            var userIdentification = fields[0].Value.Split("#");
-
-            if (userIdentification.Length < 2)
-                return null;
-
-            var author = new AuditUserInfo()
-            {
-                Discriminator = userIdentification[1],
-                Username = userIdentification[0]
-            };
-
-            int channelIdIndex = fields.Length == 3 ? 1 : 2;
-            int contentIndex = fields.Length == 3 ? 2 : 4;
-
-            var baseData = Create(fields[channelIdIndex]);
-            baseData.IsInCache = true;
-            baseData.Author = author;
-            baseData.CreatedAt = fields.Length > 3 && DateTime.TryParseExact(fields[1].Value, "dd. MM. yyyy HH:mm:ss", CultureInfo.InvariantCulture, DateTimeStyles.None, out DateTime dateTime) ? dateTime : DateTime.MinValue;
-            baseData.Content = fields[contentIndex].Value.ClearCodeBlocks();
-
-            return baseData;
-        }
-
-        public static MessageDeletedAuditData Create(EmbedField field)
-        {
-            var channelIdRegex = new Regex(@".*\s\((\d*)\)", RegexOptions.IgnoreCase);
-            var channelIdMatch = channelIdRegex.Match(field.Value);
-
-            return new MessageDeletedAuditData(channelIdMatch.Success ? Convert.ToUInt64(channelIdMatch.Groups[1].Value) : 0, false);
         }
 
         public MessageDeletedAuditData GetFilledModel(SocketGuild guild)

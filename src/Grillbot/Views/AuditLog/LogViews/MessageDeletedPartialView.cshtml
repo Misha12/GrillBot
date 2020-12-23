@@ -15,7 +15,7 @@
     <div class="col-md-7">
         <div class="row">
             <div class="col-4 font-weight-bold">Kanál</div>
-            <div class="col">@("#" + Model.Channel?.Name ?? "Neznámý kanál")</div>
+            <div class="col">@(Model.Channel != null ? "#" + Model.Channel.Name : "Neznámý kanál")</div>
         </div>
     </div>
 </div>
@@ -28,7 +28,7 @@
             {
                 <div class="row">
                     <div class="col-4 font-weight-bold">Autor</div>
-                    <div class="col">@Model.Author.Username#@Model.Author.Discriminator</div>
+                    <div class="col">@Model.Author</div>
                 </div>
             }
         </div>

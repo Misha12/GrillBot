@@ -434,30 +434,6 @@ namespace Grillbot.Services.Audit
                             entity.UserId = await GetOrCreateUserId(guild, user);
                         }
                         break;
-                    case var val when Regex.IsMatch(val, @".*Zpráva\s*byla\s*odebrána.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.MessageDeleted;
-
-                            var auditData = MessageDeletedAuditData.Create(embed.Fields);
-                            if (auditData == null) continue;
-                            entity.SetData(auditData);
-
-                            var user = (await guild.GetUserFromGuildAsync(embed.Fields[3].Value) ?? (IUser)await guild.GetUserFromGuildAsync(auditData.Author.Username, auditData.Author.Discriminator)) ?? Client.CurrentUser;
-
-                            entity.UserId = await GetOrCreateUserId(guild, user);
-                        }
-                        break;
-                    case var val when Regex.IsMatch(val, @".*Zpráva\s*nebyla\s*nalezena\s*v\s*cache.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.MessageDeleted;
-
-                            var auditData = MessageDeletedAuditData.Create(embed.Fields[0]);
-                            if (auditData == null) continue;
-                            entity.SetData(auditData);
-
-                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
-                        }
-                        break;
                     case var val when Regex.IsMatch(val, @".*Uživatel\s*na\s*serveru\s*byl\s*aktualizován.*", RegexOptions.IgnoreCase):
                         {
                             entity.Type = AuditLogType.MemberUpdated;

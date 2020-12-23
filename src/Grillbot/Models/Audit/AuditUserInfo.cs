@@ -25,5 +25,10 @@ namespace Grillbot.Models.Audit
                 Username = user.Username
             };
         }
+
+        public override string ToString()
+        {
+            return string.IsNullOrEmpty(Discriminator) ? Username : $"{Username}#{Discriminator}";
+        }
     }
 }

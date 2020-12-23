@@ -3,6 +3,7 @@ using Grillbot.Models.Audit;
 using Grillbot.Services.Audit;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.StaticFiles;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,11 +16,13 @@ namespace Grillbot.Controllers
     {
         private AuditService AuditService { get; }
         private DiscordSocketClient DiscordClient { get; }
+        private FileExtensionContentTypeProvider ContentTypeProvider { get; }
 
-        public AuditLogController(AuditService auditService, DiscordSocketClient discordClient)
+        public AuditLogController(AuditService auditService, DiscordSocketClient discordClient, FileExtensionContentTypeProvider contentTypeProvider)
         {
             AuditService = auditService;
             DiscordClient = discordClient;
+            ContentTypeProvider = contentTypeProvider;
         }
 
         public async Task<IActionResult> IndexAsync(LogsFilter filter = null)
@@ -44,7 +47,8 @@ namespace Grillbot.Controllers
             if (file == null)
                 return NotFound();
 
-            return File(file.Content, "application/octet-stream", file.Filename);
+            var contentType = ContentTypeProvider.TryGetContentType(file.Filename, out string type) ? type : "application/octet-stream";
+            return File(file.Content, contentType);
         }
 
         [HttpGet("Delete/{id}")]

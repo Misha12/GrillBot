@@ -11,6 +11,7 @@ using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using Grillbot.Services.BackgroundTasks;
+using Microsoft.AspNetCore.StaticFiles;
 
 namespace Grillbot
 {
@@ -78,6 +79,7 @@ namespace Grillbot
             });
 
             services
+                .AddScoped<FileExtensionContentTypeProvider>()
                 .AddControllersWithViews();
 
             var pages = services.AddRazorPages();
