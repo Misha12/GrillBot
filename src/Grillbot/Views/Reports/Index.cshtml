@@ -212,6 +212,42 @@
                     </div>
                 </div>
             }
+
+            <h4>Úlohy na pozadí</h4>
+            @if (Model.BackgroundTasks.Count == 0)
+            {
+                <div class="row text-center">
+                    <div class="col">Žádné úlohy na pozadí nečekají.</div>
+                </div>
+            }
+            else
+            {
+                <div class="row">
+                    <div class="col">
+                        <table class="table table-sm">
+                            <thead>
+                                <tr>
+                                    <th>Typ úlohy</th>
+                                    <th>Služba</th>
+                                    <th>Ke zpracování</th>
+                                    <th>Nelze nyní zpracovat</th>
+                                </tr>
+                            </thead>
+                            <tbody>
+                                @foreach(var item in Model.BackgroundTasks)
+                                {
+                                    <tr>
+                                        <td>@item.TaskName</td>
+                                        <td>@item.ServiceName</td>
+                                        <td>@item.CanProcessCount.FormatWithSpaces()</td>
+                                        <td>@item.CantProcessCount.FormatWithSpaces()</td>
+                                    </tr>
+                                }
+                            </tbody>
+                        </table>
+                    </div>
+                </div>
+            }
         </div>
     </div>
 </div>

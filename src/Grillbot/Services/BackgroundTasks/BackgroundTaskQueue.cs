@@ -1,6 +1,8 @@
 using Grillbot.Models;
+using Grillbot.Models.BotStatus;
 using System;
 using System.Collections.Concurrent;
+using System.Collections.Generic;
 using System.Linq;
 
 namespace Grillbot.Services.BackgroundTasks
@@ -53,6 +55,20 @@ namespace Grillbot.Services.BackgroundTasks
         {
             return (TBackgroundTask)Tasks
                 .FirstOrDefault(o => o.Value is TBackgroundTask task && selector(task)).Value;
+        }
+
+        public List<BackgroundTaskQueueGroup> GetStatus()
+        {
+            var groups = Tasks
+                .Select(o => o.Value)
+                .GroupBy(o => $"{o.GetType().Name}/{o.TaskType.Name}")
+                .Select(o => new BackgroundTaskQueueGroup(o.First())
+                {
+                    CanProcessCount = o.Count(o => o.CanProcess()),
+                    CantProcessCount = o.Count(o => !o.CanProcess())
+                });
+
+            return groups.ToList();
         }
     }
 }

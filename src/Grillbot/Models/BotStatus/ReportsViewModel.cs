@@ -16,5 +16,6 @@ namespace Grillbot.Models.BotStatus
         public ConnectionState ConnectionState { get; set; }
         public int Latency { get; set; }
         public LoginState LoginState { get; set; }
+        public List<BackgroundTaskQueueGroup> BackgroundTasks { get; set; }
     }
 }

@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Models.BotStatus;
 using Grillbot.Services;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Statistics.ApiStats;
 using Microsoft.AspNetCore.Authorization;
@@ -21,15 +22,17 @@ namespace Grillbot.Controllers
         private ApiStatistics ApiStatistics { get; }
         private DiscordSocketClient DiscordClient { get; }
         private IHostApplicationLifetime ApplicationLifetime { get; }
+        private BackgroundTaskQueue BackgroundTaskQueue { get; }
 
         public ReportsController(BotStatusService statusService, InternalStatistics internalStatistics, ApiStatistics apiStatistics,
-            DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime)
+            DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime, BackgroundTaskQueue backgroundTaskQueue)
         {
             StatusService = statusService;
             InternalStatistics = internalStatistics;
             ApiStatistics = apiStatistics;
             DiscordClient = discordClient;
             ApplicationLifetime = applicationLifetime;
+            BackgroundTaskQueue = backgroundTaskQueue;
         }
 
         public async Task<IActionResult> IndexAsync()
@@ -45,7 +48,8 @@ namespace Grillbot.Controllers
                 Api = ApiStatistics.Data.FindAll(o => o.Count > 0),
                 LoginState = DiscordClient.LoginState,
                 ConnectionState = DiscordClient.ConnectionState,
-                Latency = DiscordClient.Latency
+                Latency = DiscordClient.Latency,
+                BackgroundTasks = BackgroundTaskQueue.GetStatus()
             };
 
             result.Database = await getDbStatusTask;
