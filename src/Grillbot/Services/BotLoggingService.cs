@@ -56,9 +56,9 @@ namespace Grillbot.Services
         {
             using var scope = Services.CreateScope();
 
-            await PostException(message, scope.ServiceProvider).ConfigureAwait(false);
             Write(message.Severity, message.Message, message.Source, message.Exception);
             ApiStatistics.Increment(message);
+            await PostException(message, scope.ServiceProvider).ConfigureAwait(false);
         }
 
         private async Task PostException(LogMessage message, IServiceProvider scopedProvider)
@@ -87,7 +87,7 @@ namespace Grillbot.Services
             var entity = new ErrorLogItem()
             {
                 CreatedAt = DateTime.Now,
-                Data = message.ToString(),
+                Data = $"{message.Source} {message.Message}\n{message.Exception}"
             };
 
             await repository.AddAsync(entity);
