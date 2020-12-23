@@ -74,7 +74,7 @@ namespace Grillbot.Services.UserManagement
             entity.IncomingUnverifyOperations = (await incomingUnverifiesQuery.ToListAsync()).ToHashSet();
 
             var outgoingUnverifiesQuery = GrillBotRepository.UnverifyRepository.GetOutgoingUnverifies(entity.ID)
-                .Where(o => o.Operation == UnverifyLogOperation.Selfunverify || o.Operation == UnverifyLogOperation.Unverify);
+                .Where(o => o.Operation == UnverifyLogOperation.Unverify);
             entity.OutgoingUnverifyOperations = (await outgoingUnverifiesQuery.ToListAsync()).ToHashSet();
 
             var createdInvitesQuery = GrillBotRepository.InviteRepository.GetInvitesOfUser(entity.ID)
