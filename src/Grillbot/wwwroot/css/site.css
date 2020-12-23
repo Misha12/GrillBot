@@ -20,3 +20,9 @@ h2 {
 .form-row label {
     margin-bottom: 0;
 }
+
+.btn.blocked {
+    pointer-events: none;
+    background-color: #00bc8c !important;
+    border-color: #00bc8c !important;
+}

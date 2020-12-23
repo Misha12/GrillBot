@@ -140,12 +140,7 @@ namespace Grillbot.Services.Unverify
             var filter = await Converter.ConvertAuditFilter(formData);
             var logsCount = await GrillBotRepository.UnverifyRepository.GetLogs(filter, true).CountAsync();
 
-            return new PaginationInfo()
-            {
-                CanPrev = filter.Skip != 0,
-                CanNext = filter.Skip + filter.Take < logsCount,
-                Page = formData.Page,
-            };
+            return new PaginationInfo(filter.Skip, formData.Page, logsCount);
         }
 
         public async Task<UnverifyLog> SaveLogOperationAsync(UnverifyLogOperation operation, JObject jsonData, long fromUserID, long toUserID)

@@ -2,6 +2,12 @@
 
 @{
     ViewData["Title"] = "Logování provozu";
+
+    if (Model.PaginationInfo != null)
+    {
+        Model.PaginationInfo.PaginationKey = "Filter.Page";
+        Model.PaginationInfo.WithCounts = true;
+    }
 }
 
 <div class="container">
@@ -96,17 +102,7 @@
 
             <div class="form-row">
                 <div class="col-md-4 d-flex justify-content-start mt-3">
-                    <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item @(!Model.PaginationInfo.CanPrev ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page - 1), 'Filter.Page')" type="button">Vpřed</button>
-                        </li>
-                        <li class="page-item">
-                            <span class="page-link">@Model.PaginationInfo.Page / @Model.PaginationInfo.PagesCount</span>
-                        </li>
-                        <li class="page-item @(!Model.PaginationInfo.CanNext ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page + 1), 'Filter.Page')" type="button">Vpřed</button>
-                        </li>
-                    </ul>
+                    <partial name="PaginationPartialView" model="Model.PaginationInfo" />
                 </div>
 
                 <div class="col-md-6"></div>
@@ -119,6 +115,13 @@
         </form>
 
         <div class="card-body">
+            @if (Model.Items.Count == 0)
+            {
+                <div class="alert alert-dark">
+                    Žádný záznam nebyl nalezen. Zkuste upravit filtry a provést vyhledávání znovu.
+                </div>
+            }
+
             @foreach (var item in Model.Items)
             {
                 <div class="card bg-dark mb-3">

@@ -1,0 +1,34 @@
+﻿@model PaginationInfo;
+
+<ul class="pagination justify-content-center mb-0">
+    <li class="page-item @(!Model.CanPrev ? "disabled" : "")">
+        @if (!string.IsNullOrEmpty(Model.PaginationKey))
+        {
+            <button class="page-link" onclick="switchPage(@(Model.Page - 1), '@Model.PaginationKey')" type="button">Zpět</button>
+        }
+        else
+        {
+            <button class="page-link" onclick="switchPage(@(Model.Page - 1))" type="button">Zpět</button>
+        }
+    </li>
+    <li class="page-item">
+        <span class="page-link">@Model.Page / @Model.PagesCount</span>
+    </li>
+    <li class="page-item @(!Model.CanNext ? "disabled" : "")">
+        @if (!string.IsNullOrEmpty(Model.PaginationKey))
+        {
+            <button class="page-link" onclick="switchPage(@(Model.Page + 1), '@Model.PaginationKey')" type="button">Vpřed</button>
+        }
+        else
+        {
+            <button class="page-link" onclick="switchPage(@(Model.Page + 1))" type="button">Vpřed</button>
+        }
+    </li>
+</ul>
+
+@if (Model.WithCounts)
+{
+    <span class="btn btn-success ml-2 blocked" title="Celkový počet záznamů">
+        <small>Záznamů:</small> @Model.TotalCount
+    </span>
+}

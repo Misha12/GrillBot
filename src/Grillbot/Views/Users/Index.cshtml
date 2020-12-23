@@ -3,6 +3,12 @@
 
 @{
     ViewData["Title"] = "Uživatelé webové administace";
+
+    if (Model.Pagination != null)
+    {
+        Model.Pagination.PaginationKey = "Filter.Page";
+        Model.Pagination.WithCounts = true;
+    }
 }
 
 <div class="container">
@@ -74,17 +80,7 @@
 
             <div class="form-row">
                 <div class="col-md-4 d-flex justify-content-start mt-3">
-                    <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item @(!Model.Pagination.CanPrev ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.Pagination.Page - 1), 'Filter.Page')" type="button">Vpřed</button>
-                        </li>
-                        <li class="page-item">
-                            <span class="page-link">@Model.Pagination.Page / @Model.Pagination.PagesCount</span>
-                        </li>
-                        <li class="page-item @(!Model.Pagination.CanNext ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.Pagination.Page + 1), 'Filter.Page')" type="button">Vpřed</button>
-                        </li>
-                    </ul>
+                    <partial name="PaginationPartialView" model="Model.Pagination" />
                 </div>
 
                 <div class="col-md-6"></div>

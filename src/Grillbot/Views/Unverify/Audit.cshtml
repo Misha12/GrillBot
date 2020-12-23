@@ -22,6 +22,9 @@
                 return "white";
         }
     }
+
+    if(Model.PaginationInfo != null)
+        Model.PaginationInfo.WithCounts = true;
 }
 
 <div class="container">
@@ -92,23 +95,13 @@
                     </div>
                 </div>
 
-                <div class="col-md-2"></div>
+                <div class="col-md-1"></div>
 
-                <div class="col-md-2 d-flex justify-content-center">
-                    <ul class="pagination justify-content-center mb-0">
-                        <li class="page-item @(!Model.PaginationInfo.CanPrev ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page - 1))" type="button">Vpřed</button>
-                        </li>
-                        <li class="page-item">
-                            <span class="page-link">@Model.PaginationInfo.Page</span>
-                        </li>
-                        <li class="page-item @(!Model.PaginationInfo.CanNext ? "disabled" : "")">
-                            <button class="page-link" onclick="switchPage(@(Model.PaginationInfo.Page + 1))" type="button">Vpřed</button>
-                        </li>
-                    </ul>
+                <div class="col-md-4 d-flex justify-content-center">
+                    <partial name="PaginationPartialView" model="Model.PaginationInfo" />
                 </div>
 
-                <div class="col-md-3"></div>
+                <div class="col-md-2"></div>
 
                 <div class="col-md-2 d-flex justify-content-between align-items-end">
                     <button class="btn btn-danger" type="button" onclick="clearFilter(false)">Vyčistit</button>

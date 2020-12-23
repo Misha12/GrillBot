@@ -270,13 +270,7 @@ namespace Grillbot.Services.Audit
             var queryFilter = await CreateQueryFilterAsync(filter, guild);
             var totalCount = await GrillBotRepository.AuditLogs.GetAuditLogsQuery(queryFilter).CountAsync();
 
-            return new PaginationInfo()
-            {
-                Page = filter.Page,
-                CanNext = queryFilter.Skip + PaginationInfo.DefaultPageSize < totalCount,
-                CanPrev = queryFilter.Skip != 0,
-                PagesCount = (int)System.Math.Ceiling(totalCount / (double)PaginationInfo.DefaultPageSize)
-            };
+            return new PaginationInfo(queryFilter.Skip, filter.Page, totalCount);
         }
 
         private async Task<AuditLogQueryFilter> CreateQueryFilterAsync(LogsFilter filter, SocketGuild guild)

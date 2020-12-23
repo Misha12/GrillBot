@@ -111,13 +111,7 @@ namespace Grillbot.Services.UserManagement
                 filter.Page = 0;
 
             var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize;
-            return new PaginationInfo()
-            {
-                CanNext = skip + PaginationInfo.DefaultPageSize < totalCount,
-                CanPrev = skip != 0,
-                Page = filter.Page,
-                PagesCount = (int)System.Math.Ceiling(totalCount / (double)PaginationInfo.DefaultPageSize)
-            };
+            return new PaginationInfo(skip, filter.Page, totalCount);
         }
 
         public async Task<List<DiscordUser>> GetUsersList(WebAdminUserListFilter filter)
