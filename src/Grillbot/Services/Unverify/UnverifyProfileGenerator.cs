@@ -47,7 +47,7 @@ namespace Grillbot.Services.Unverify
             {
                 toKeep = toKeep.Select(o => o.ToLower()).Distinct().ToList();
                 if (toKeep.Count > selfUnverifyConfig.MaxRolesToKeep)
-                    throw new ValidationException($"Lze si ponechat maximálně následující počet rolí: {selfUnverifyConfig.MaxRolesToKeep}");
+                    throw new ValidationException($"Lze si ponechat maximálně následující počet přístupů: {selfUnverifyConfig.MaxRolesToKeep}");
             }
 
             await SetRolesAsync(result, user, guild, isSelfunverify, toKeep, selfUnverifyConfig, mutedRole);
@@ -87,7 +87,7 @@ namespace Grillbot.Services.Unverify
 
                     if (group.Value.Contains(toKeepItem))
                     {
-                        var roleItem = profile.RolesToRemove.Find(o => o.Name == (group.Key == "_" ? toKeepItem : group.Key));
+                        var roleItem = profile.RolesToRemove.Find(o => string.Equals(o.Name, group.Key == "_" ? toKeepItem : group.Key, StringComparison.InvariantCultureIgnoreCase));
 
                         if (roleItem != null)
                         {
