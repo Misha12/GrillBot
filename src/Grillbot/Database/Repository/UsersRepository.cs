@@ -75,7 +75,7 @@ namespace Grillbot.Database.Repository
             var query = GetBaseQuery(includes)
                 .Where(o => o.GuildID == filter.Guild.Id.ToString());
 
-            if (filter.Users.Count > 0)
+            if (filter.Users != null)
             {
                 var ids = filter.Users.ConvertAll(o => o.Id.ToString());
                 query = query.Where(o => ids.Contains(o.UserID));

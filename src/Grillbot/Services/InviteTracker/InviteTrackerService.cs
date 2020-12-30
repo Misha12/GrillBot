@@ -232,8 +232,7 @@ namespace Grillbot.Services.InviteTracker
         {
             var guild = Discord.GetGuild(filter.GuildID);
             var usersFromQuery = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery))
-                .Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList();
+            var userIds = usersFromQuery != null ? (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery)).Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList() : null;
 
             var invites = await GrillBotRepository.InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc).ToListAsync();
 

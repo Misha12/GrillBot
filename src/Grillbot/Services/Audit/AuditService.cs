@@ -276,7 +276,7 @@ namespace Grillbot.Services.Audit
         private async Task<AuditLogQueryFilter> CreateQueryFilterAsync(LogsFilter filter, SocketGuild guild)
         {
             var users = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = (await UserSearchService.ConvertUsersToIDsAsync(users)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
+            var userIds = users != null ? (await UserSearchService.ConvertUsersToIDsAsync(users)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o) : null;
 
             var botAccounts = filter.IgnoreBots ? await guild.GetBotsAsync() : new List<SocketGuildUser>();
             var botAccountIds = (await UserSearchService.ConvertUsersToIDsAsync(botAccounts)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
@@ -295,7 +295,7 @@ namespace Grillbot.Services.Audit
                 Take = PaginationInfo.DefaultPageSize,
                 To = filter.To,
                 Types = types.ToArray(),
-                UserIds = userIds.ToList(),
+                UserIds = userIds?.ToList(),
                 IgnoredIds = botAccountIds.ToList()
             };
         }

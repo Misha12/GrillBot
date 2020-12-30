@@ -34,13 +34,13 @@ namespace Grillbot.Database.Repository
                 .Include(o => o.ToUser)
                 .Where(o => o.FromUser.GuildID == filter.Guild.Id.ToString() && o.ToUser.GuildID == filter.Guild.Id.ToString());
 
-            if (filter.FromUsers.Count > 0)
+            if (filter.FromUsers != null)
             {
                 var fromUsersIds = filter.FromUsers.Select(o => o.Id.ToString()).ToArray();
                 query = query.Where(o => fromUsersIds.Contains(o.FromUser.UserID));
             }
 
-            if (filter.ToUsers.Count > 0)
+            if (filter.ToUsers != null)
             {
                 var toUsersQuery = filter.ToUsers.Select(o => o.Id.ToString()).ToArray();
                 query = query.Where(o => toUsersQuery.Contains(o.ToUser.UserID));

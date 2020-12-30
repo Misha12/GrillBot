@@ -31,7 +31,7 @@ namespace Grillbot.Database.Repository
             if (createdTo != null)
                 query = query.Where(o => o.CreatedAt < createdTo);
 
-            if (creatorUserIds != null && creatorUserIds.Count > 0)
+            if (creatorUserIds != null)
                 query = query.Where(o => o.CreatorId != null && creatorUserIds.Contains(o.CreatorId.Value));
 
             if (!desc)

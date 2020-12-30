@@ -21,7 +21,7 @@ namespace Grillbot.Database.Entity.AuditLog
         {
             query = query.Where(o => o.GuildId == GuildId);
 
-            if (UserIds?.Count > 0)
+            if (UserIds != null)
                 query = query.Where(o => UserIds.Contains(o.UserId.Value));
 
             if (Types?.Length > 0)

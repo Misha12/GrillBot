@@ -23,7 +23,7 @@ namespace Grillbot.Services
         public async Task<List<SocketGuildUser>> FindUsersAsync(SocketGuild guild, string query)
         {
             if (string.IsNullOrEmpty(query))
-                return new List<SocketGuildUser>();
+                return null;
 
             await guild.SyncGuildAsync();
 
@@ -59,6 +59,9 @@ namespace Grillbot.Services
 
         public async Task<Dictionary<SocketGuildUser, long?>> ConvertUsersToIDsAsync(List<SocketGuildUser> users)
         {
+            if (users == null)
+                return null;
+
             var result = new Dictionary<SocketGuildUser, long?>();
 
             foreach (var user in users)
