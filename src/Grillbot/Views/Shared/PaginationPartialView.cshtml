@@ -1,14 +1,28 @@
 ﻿@model PaginationInfo;
 
 <ul class="pagination justify-content-center mb-0">
+    @if (Model.PagesCount > 1)
+    {
+        <li class="page-item @(!Model.CanPrev ? "disabled" : "")">
+            @if (!string.IsNullOrEmpty(Model.PaginationKey))
+            {
+                <button class="page-link" onclick="switchPage(1, '@Model.PaginationKey')" type="button">&lt;&lt;</button>
+            }
+            else
+            {
+                <button class="page-link" onclick="switchPage(1)" type="button">&lt;&lt;</button>
+            }
+        </li>
+    }
+
     <li class="page-item @(!Model.CanPrev ? "disabled" : "")">
         @if (!string.IsNullOrEmpty(Model.PaginationKey))
         {
-            <button class="page-link" onclick="switchPage(@(Model.Page - 1), '@Model.PaginationKey')" type="button">Zpět</button>
+            <button class="page-link" onclick="switchPage(@(Model.Page - 1), '@Model.PaginationKey')" type="button">&lt;</button>
         }
         else
         {
-            <button class="page-link" onclick="switchPage(@(Model.Page - 1))" type="button">Zpět</button>
+            <button class="page-link" onclick="switchPage(@(Model.Page - 1))" type="button">&lt;</button>
         }
     </li>
     <li class="page-item">
@@ -17,13 +31,27 @@
     <li class="page-item @(!Model.CanNext ? "disabled" : "")">
         @if (!string.IsNullOrEmpty(Model.PaginationKey))
         {
-            <button class="page-link" onclick="switchPage(@(Model.Page + 1), '@Model.PaginationKey')" type="button">Vpřed</button>
+            <button class="page-link" onclick="switchPage(@(Model.Page + 1), '@Model.PaginationKey')" type="button">&gt;</button>
         }
         else
         {
-            <button class="page-link" onclick="switchPage(@(Model.Page + 1))" type="button">Vpřed</button>
+            <button class="page-link" onclick="switchPage(@(Model.Page + 1))" type="button">&gt;</button>
         }
     </li>
+
+    @if (Model.PagesCount > 1)
+    {
+        <li class="page-item @(!Model.CanNext ? "disabled" : "")">
+            @if (!string.IsNullOrEmpty(Model.PaginationKey))
+            {
+                <button class="page-link" onclick="switchPage(@(Model.PagesCount), '@Model.PaginationKey')" type="button">&gt;&gt;</button>
+            }
+            else
+            {
+                <button class="page-link" onclick="switchPage(@(Model.PagesCount))" type="button">&gt;&gt;</button>
+            }
+        </li>
+    }
 </ul>
 
 @if (Model.WithCounts)
