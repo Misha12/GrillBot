@@ -23,22 +23,32 @@
     <div class="card bg-dark">
         <div class="card-header">
             <h5 class="card-title mb-0 pb-0 font-weight-normal">
-                @Model.User.User.GetFullName()
-                <small>
-                    <span class="badge badge-@getStatusBadge(Model.User.User.Status)">@Model.User.User.Status</span>
+                @(Model.User.User?.GetFullName() ?? "Neexistující uživatel")
+                @if (Model.User.User != null)
+                {
+                    <small>
+                        <span class="badge badge-@getStatusBadge(Model.User.User.Status)">@Model.User.User.Status</span>
 
-                    @if (!Model.User.User.IsUser())
-                    {
-                        <span class="badge badge-secondary">Bot</span>
-                    }
-                </small>
+                        @if (!Model.User.User.IsUser())
+                        {
+                            <span class="badge badge-secondary">Bot</span>
+                        }
+                    </small>
+                }
             </h5>
         </div>
 
         <div class="card-body">
             <div class="row">
                 <div class="col-3" style="max-width: 200px">
-                    <img height="150" width="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" alt="@Model.User.User.GetFullName()" class="rounded-circle border" style="border-width: 5px !important" />
+                    @if (Model.User.User == null)
+                    {
+                        <img height="150" width="150" src="@Discord.CDN.GetDefaultUserAvatarUrl(0)" alt="Unknown user" class="rounded-circle border" style="border-width: 5px !important" />
+                    }
+                    else
+                    {
+                        <img height="150" width="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" alt="@Model.User.User.GetFullName()" class="rounded-circle border" style="border-width: 5px !important" />
+                    }
                 </div>
 
                 <div class="col">
@@ -56,35 +66,38 @@
                 </div>
             </div>
 
-            <div class="row mt-3">
-                <div class="col-12">
-                    <h4>Role</h4>
+            @if (Model.User.User != null)
+            {
+                <div class="row mt-3">
+                    <div class="col-12">
+                        <h4>Role</h4>
 
-                    <div>
-                        @foreach (var role in Model.User.User.Roles)
-                        {
-                            <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
-                                @role.Name
-                            </span>
-                        }
-                    </div>
-
-                    <h4 class="mt-2">Práva</h4>
-                    <div>
-                        @if (Model.User.User.GuildPermissions.Administrator)
-                        {
-                            <span class="badge" style="background-color: black">Administrator</span>
-                        }
-                        else
-                        {
-                            @foreach (var permission in Model.User.User.GuildPermissions.ToList())
+                        <div>
+                            @foreach (var role in Model.User.User.Roles)
                             {
-                                <span class="badge" style="background-color: black">@permission.ToString()</span>
+                                <span class="badge @(ColorHelper.IsDark(role.Color) ? "text-white" : "")" style="background-color: @role.Color.ToString()">
+                                    @role.Name
+                                </span>
                             }
-                        }
+                        </div>
+
+                        <h4 class="mt-2">Práva</h4>
+                        <div>
+                            @if (Model.User.User.GuildPermissions.Administrator)
+                            {
+                                <span class="badge" style="background-color: black">Administrator</span>
+                            }
+                            else
+                            {
+                                @foreach (var permission in Model.User.User.GuildPermissions.ToList())
+                                {
+                                    <span class="badge" style="background-color: black">@permission.ToString()</span>
+                                }
+                            }
+                        </div>
                     </div>
                 </div>
-            </div>
+            }
 
             <div class="row mt-4">
                 <div class="col-3">
@@ -108,40 +121,43 @@
                 </div>
             </div>
 
-            <div class="row mt-2">
-                <div class="col-3">
-                    Registrován<br />
-                    <b>@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</b>
-                </div>
-
-                <div class="col-3">
-                    Připojen<br />
-                    <b>@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</b>
-                </div>
-
-                <div class="col-3">
-                    Boost od<br />
-
-                    <b>
-                        @if (Model.User.User.PremiumSince != null)
-                        {
-                            @Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()
-                        }
-                        else
-                        {
-                            <text>Boost nenalezen</text>
-                        }
-                    </b>
-                </div>
-
-                @if (Model.User.User.Status != UserStatus.Offline)
-                {
+            @if (Model.User.User != null)
+            {
+                <div class="row mt-2">
                     <div class="col-3">
-                        Aktivní klienti<br />
-                        <b>@string.Join(", ", Model.User.User.ActiveClients)</b>
+                        Registrován<br />
+                        <b>@Model.User.User.CreatedAt.LocalDateTime.ToLocaleDatetime()</b>
                     </div>
-                }
-            </div>
+
+                    <div class="col-3">
+                        Připojen<br />
+                        <b>@Model.User.User.JoinedAt.Value.LocalDateTime.ToLocaleDatetime()</b>
+                    </div>
+
+                    <div class="col-3">
+                        Boost od<br />
+
+                        <b>
+                            @if (Model.User.User.PremiumSince != null)
+                            {
+                                @Model.User.User.PremiumSince.Value.LocalDateTime.ToLocaleDatetime()
+                            }
+                            else
+                            {
+                                <text>Boost nenalezen</text>
+                            }
+                        </b>
+                    </div>
+
+                    @if (Model.User.User.Status != UserStatus.Offline)
+                    {
+                        <div class="col-3">
+                            Aktivní klienti<br />
+                            <b>@string.Join(", ", Model.User.User.ActiveClients)</b>
+                        </div>
+                    }
+                </div>
+            }
 
             @if (Model.User.WebAdminLoginCount != null || Model.User.ApiAccessCount != null || Model.User.UnverifyEndsAt != null)
             {
@@ -177,20 +193,8 @@
             {
                 <div class="row mt-2">
                     <div class="col-12">
-                        Použitá pozvánka<br />
-                        @if (Model.User.UsedInvite.Code == Model.User.Guild.VanityURLCode)
-                        {
-                            <b>Vanity (@Model.User.UsedInvite.Code)</b>
-                        }
-                        else
-                        {
-                            <b>
-                                <a href="/Admin/Users?Filter.GuildID=@Model.User.Guild.Id&Filter.UsedInviteCode=@Model.User.UsedInvite.Code" class="text-white">
-                                    <u>@Model.User.UsedInvite.Code</u>
-                                </a>
-                                <br />@Model.User.UsedInvite.Creator.GetFullName() (@Model.User.UsedInvite.CreatedAt.Value.LocalDateTime.ToLocaleDatetime())
-                            </b>
-                        }
+                        Použitá pozvánka
+                        <partial name="InvitePartialView" model="Model.User.UsedInvite" />
                     </div>
                 </div>
             }
@@ -253,7 +257,7 @@
                             <tr>
                                 <td>@unverify.Operation</td>
                                 <td>@unverify.DateTime.ToLocaleDatetime()</td>
-                                <td>@unverify.FromUser.GetFullName()</td>
+                                <td>@(unverify.FromUser?.GetFullName() ?? "Neznámý uživatel")</td>
                                 <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
                                 <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
                                 <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
@@ -294,7 +298,7 @@
                             <tr>
                                 <td>@unverify.Operation</td>
                                 <td>@unverify.DateTime.ToLocaleDatetime()</td>
-                                <td>@unverify.ToUser.GetFullName()</td>
+                                <td>@(unverify.ToUser?.GetFullName() ?? "Neznámý uživatel")</td>
                                 <td>@((unverify.Profile.EndDateTime - unverify.Profile.StartDateTime).ToFullCzechTimeString())</td>
                                 <td>@unverify.Profile.RolesToRemove.Count.FormatWithSpaces()</td>
                                 <td>@unverify.Profile.ChannelsToRemove.Count.FormatWithSpaces()</td>
