@@ -3,6 +3,12 @@
 
 @{
     ViewData["Title"] = "Pozvánky";
+
+    if (Model.PaginationInfo != null)
+    {
+        Model.PaginationInfo.PaginationKey = "Filter";
+        Model.PaginationInfo.WithCounts = true;
+    }
 }
 
 <div class="container">
@@ -68,7 +74,7 @@
                     </tr>
                 </thead>
                 <tbody>
-                    @foreach(var invite in Model.Invites)
+                    @foreach (var invite in Model.Invites)
                     {
                         <tr>
                             <td>
@@ -83,6 +89,10 @@
                     }
                 </tbody>
             </table>
+
+            <div class="d-flex justify-content-center">
+                <partial name="PaginationPartialView" model="Model.PaginationInfo" />
+            </div>
         </div>
     </div>
 </div>

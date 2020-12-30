@@ -5,6 +5,7 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models;
 using Grillbot.Models.Invites;
 using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
@@ -230,12 +231,11 @@ namespace Grillbot.Services.InviteTracker
 
         public async Task<List<InviteModel>> GetStoredInvitesAsync(InvitesListFilter filter)
         {
+            var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize;
+            var query = (await GetInvitesQueryAsync(filter)).Skip(skip).Take(PaginationInfo.DefaultPageSize);
             var guild = Discord.GetGuild(filter.GuildID);
-            var usersFromQuery = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = usersFromQuery != null ? (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery)).Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList() : null;
 
-            var invites = await GrillBotRepository.InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc).ToListAsync();
-
+            var invites = await query.ToListAsync();
             var result = new List<InviteModel>();
             foreach (var invite in invites)
             {
@@ -252,6 +252,24 @@ namespace Grillbot.Services.InviteTracker
             }
 
             return result;
+        }
+
+        public async Task<PaginationInfo> GetPaginationInfoAsync(InvitesListFilter filter)
+        {
+            var query = await GetInvitesQueryAsync(filter);
+            var count = await query.CountAsync();
+
+            var skip = (filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize;
+            return new PaginationInfo(skip, filter.Page, count);
+        }
+
+        private async Task<IQueryable<Invite>> GetInvitesQueryAsync(InvitesListFilter filter)
+        {
+            var guild = Discord.GetGuild(filter.GuildID);
+            var usersFromQuery = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
+            var userIds = usersFromQuery != null ? (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery)).Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList() : null;
+
+            return GrillBotRepository.InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc);
         }
 
         private void AppendInvites(SocketGuild guild, List<InviteModel> invites)

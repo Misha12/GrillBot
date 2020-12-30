@@ -11,6 +11,7 @@ namespace Grillbot.Models.Invites
         public DateTime? CreatedTo { get; set; }
         public string UserQuery { get; set; }
         public bool Desc { get; set; } = true;
+        public int Page { get; set; } = 1;
 
         public static InvitesListFilter CreateDefault(DiscordSocketClient client)
         {

@@ -29,7 +29,9 @@ namespace Grillbot.Controllers
                 filter = InvitesListFilter.CreateDefault(DiscordClient);
 
             var invitesFromGuild = await InviteTrackerService.GetStoredInvitesAsync(filter);
-            return View(new InvitesListViewModel(DiscordClient.Guilds.ToList(), invitesFromGuild, filter));
+            var pagination = await InviteTrackerService.GetPaginationInfoAsync(filter);
+
+            return View(new InvitesListViewModel(DiscordClient.Guilds.ToList(), invitesFromGuild, filter, pagination));
         }
     }
 }
