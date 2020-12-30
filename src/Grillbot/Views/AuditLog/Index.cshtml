@@ -138,21 +138,15 @@
                                 </div>
                             </div>
 
-                            <div class="col-md-7">
-                                <div class="row">
-                                    <div class="col-4 font-weight-bold">Provedl:</div>
-                                    <div class="col">
-                                        @if (item.User == null)
-                                        {
-                                            <text>Neznámý uživatel, nebo bot</text>
-                                        }
-                                        else
-                                        {
-                                            @item.User.User.GetFullName().Replace("Unknown user", "Neznámý uživatel");
-                                        }
+                            @if (item.User != null)
+                            {
+                                <div class="col-md-7">
+                                    <div class="row">
+                                        <div class="col-4 font-weight-bold">Provedl:</div>
+                                        <div class="col">@item.User.User.GetFullName().Replace("Unknown user", "Neznámý uživatel")</div>
                                     </div>
                                 </div>
-                            </div>
+                            }
                         </div>
 
                         @switch (item.Type)
