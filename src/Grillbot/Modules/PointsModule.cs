@@ -108,7 +108,7 @@ namespace Grillbot.Modules
                 var user = await Context.Guild.GetUserFromGuildAsync(item.Item1);
 
                 var position = item.Item3.FormatWithSpaces();
-                var username = user == null ? "Neexistující uživatel" : user.GetDisplayName();
+                var username = user == null ? "Neexistující uživatel" : user.GetDisplayName(true);
 
                 builder.Append("> ").Append(position).Append(": ").Append(username).Append(": ").AppendLine(FormatPointsValue(item.Item2));
             }
