@@ -101,7 +101,8 @@ namespace Grillbot.Services
                 .AddSingleton<ReactionRemovedHandler>()
                 .AddSingleton<UserJoinedHandler>()
                 .AddSingleton<UserLeftHandler>()
-                .AddSingleton<CommandExecutedHandler>();
+                .AddSingleton<CommandExecutedHandler>()
+                .AddSingleton<UnbanHandler>();
 
             return services;
         }

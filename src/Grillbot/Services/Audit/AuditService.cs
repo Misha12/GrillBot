@@ -319,6 +319,12 @@ namespace Grillbot.Services.Audit
             await GrillBotRepository.CommitAsync();
         }
 
+        public Task RunTaskAsync(ActionType type, SocketGuild guild)
+        {
+            var data = new DownloadAuditLogBackgroundTask(guild, type);
+            return TriggerBackgroundTaskAsync(data);
+        }
+
         public async Task TriggerBackgroundTaskAsync(object data)
         {
             if (data is not DownloadAuditLogBackgroundTask task)
@@ -391,7 +397,6 @@ namespace Grillbot.Services.Audit
                 ActionType.OverwriteDeleted,
                 ActionType.OverwriteUpdated,
                 ActionType.Prune,
-                ActionType.Unban,
                 ActionType.MemberUpdated,
                 ActionType.MemberRoleUpdated,
                 ActionType.BotAdded,
