@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Commands;
-using System.Text;
 using System.Threading.Tasks;
 using Grillbot.Extensions.Discord;
 using Grillbot.Services.Channelboard;
@@ -8,6 +7,7 @@ using Grillbot.Models.Embed;
 using Grillbot.Extensions;
 using Grillbot.Attributes;
 using System;
+using System.Linq;
 
 namespace Grillbot.Modules
 {
@@ -27,25 +27,18 @@ namespace Grillbot.Modules
         {
             using var service = GetService<ChannelStats>();
 
-            var data = await service.Service.GetChannelboardDataAsync(Context.Guild, Context.User, ChannelStats.ChannelboardTakeTop);
+            var user = await Context.User.ConvertToGuildUserAsync(Context.Guild);
+            var data = await service.Service.GetChannelboardDataAsync(Context.Guild, user, ChannelStats.ChannelboardTakeTop);
 
             if (data.Count == 0)
                 await Context.Message.Author.SendPrivateMessageAsync("Ještě nejsou zaznamenány žádné kanály pro tento server.");
 
-            var embed = new BotEmbed(Context.User, null, "Channel leaderboard");
+            var items = data.ToDictionary(o => o.Channel.Name, o => o.Count.FormatWithSpaces());
+            
+            var leaderboard = new LeaderboardBuilder("Channel leaderboard", Context.User, null, null);
+            leaderboard.SetData(items);
 
-            var messageBuilder = new StringBuilder();
-            for (int i = 0; i < data.Count; i++)
-            {
-                var channelBoardItem = data[i];
-
-                messageBuilder
-                    .Append(i + 1).Append(": ").Append(channelBoardItem.Channel.Name)
-                    .Append(" - ").AppendLine(channelBoardItem.Count.FormatWithSpaces());
-            }
-
-            embed.AddField("=======================", messageBuilder.ToString(), false);
-            await Context.Message.Author.SendPrivateMessageAsync(embedBuilder: embed.GetBuilder());
+            await Context.Message.Author.SendPrivateMessageAsync(embed: leaderboard.Build());
         }
 
         [Command("web")]
@@ -65,7 +58,8 @@ namespace Grillbot.Modules
         {
             using var service = GetService<ChannelStats>();
 
-            var value = await service.Service.GetValueAsync(Context.Guild, channel.Id, Context.User);
+            var user = await Context.User.ConvertToGuildUserAsync(Context.Guild);
+            var value = await service.Service.GetValueAsync(Context.Guild, channel.Id, user);
 
             if (value == null)
             {

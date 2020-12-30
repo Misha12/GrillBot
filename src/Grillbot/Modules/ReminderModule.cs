@@ -2,7 +2,6 @@ using System;
 using System.Collections.Generic;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
-using System.Text;
 using System.Threading.Tasks;
 using Discord;
 using Discord.Commands;
@@ -69,7 +68,7 @@ namespace Grillbot.Modules
             {
                 var mentionedUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
 
-                if(mentionedUser == null)
+                if (mentionedUser == null)
                 {
                     await ReplyAsync($"Hledaný uživatel `{user}` nebyl nalezen.");
                     return;
@@ -162,19 +161,14 @@ namespace Grillbot.Modules
         public async Task RemindPostponeLeaderboardAsync()
         {
             using var service = GetService<ReminderService>();
+
             var leaderboard = await service.Service.GetLeaderboard();
+            var items = leaderboard.ToDictionary(o => $"*{o.Item1.GetDisplayName(true)}*", o => $"**{o.Item2.FormatWithSpaces()}x**");
 
-            var builder = new StringBuilder();
-            for (int i = 0; i < leaderboard.Count; i++)
-            {
-                var user = leaderboard[i];
-                builder.Append("> ").Append(i + 1).Append(": *").Append(user.Item1.GetDisplayName()).Append("*: **").Append(user.Item2.FormatWithSpaces()).AppendLine("x**");
-            }
+            var board = new LeaderboardBuilder("Leaderboard nejvíc odkládajících osob", Context.User, null, null);
+            board.SetData(items);
 
-            var embed = new BotEmbed(Context.User, title: "Leaderboard nejvíce odkládajících osob.")
-                .WithDescription(builder.ToString());
-
-            await ReplyAsync(embed: embed.Build());
+            await ReplyAsync(embed: board.Build());
         }
 
         private async Task<PaginatedEmbed> CreatePaginatedEmbedAsync(List<Reminder> reminders, bool full = false)

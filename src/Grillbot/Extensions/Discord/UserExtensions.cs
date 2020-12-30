@@ -42,23 +42,14 @@ namespace Grillbot.Extensions.Discord
             return !user.IsBot && !user.IsWebhook;
         }
 
-        public static async Task SendPrivateMessageAsync(this IUser user, string message = null, EmbedBuilder embedBuilder = null)
+        public static async Task SendPrivateMessageAsync(this IUser user, string message = null, Embed embed = null)
         {
             if (!user.IsUser()) return;
 
             try
             {
                 var dmChannel = await user.GetOrCreateDMChannelAsync().ConfigureAwait(false);
-
-                if (message != null)
-                {
-                    await dmChannel.SendMessageAsync(message.PreventMassTags()).ConfigureAwait(false);
-                }
-
-                if (embedBuilder != null)
-                {
-                    await dmChannel.SendMessageAsync(embed: embedBuilder.Build()).ConfigureAwait(false);
-                }
+                await dmChannel.SendMessageAsync(message?.PreventMassTags(), embed: embed).ConfigureAwait(false);
             }
             catch (HttpException ex)
             {
@@ -67,6 +58,16 @@ namespace Grillbot.Extensions.Discord
 
                 throw;
             }
+        }
+
+        public static Task SendPrivateMessageAsync(this IUser user, string message = null, EmbedBuilder embedBuilder = null)
+        {
+            return SendPrivateMessageAsync(user, message, embedBuilder.Build());
+        }
+
+        public static Task SendPrivateMessageAsync(this IUser user, string message)
+        {
+            return SendPrivateMessageAsync(user, message, (Embed)null);
         }
 
         public static string GetDisplayName(this IUser user, bool noDiscriminator = false)

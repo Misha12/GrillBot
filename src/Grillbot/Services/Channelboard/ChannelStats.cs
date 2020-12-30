@@ -22,13 +22,13 @@ namespace Grillbot.Services.Channelboard
             GrillBotRepository = grillBotRepository;
         }
 
-        public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketUser socketUser)
+        public async Task<Tuple<int, long, DateTime>> GetValueAsync(SocketGuild guild, ulong channelID, SocketGuildUser user)
         {
-            if (!(await CanUserToChannelAsync(guild, channelID, socketUser)))
+            if (!CanUserToChannel(guild, channelID, user))
                 return null;
 
             var channels = GetAllChannels(guild);
-            var channel = channels.FirstOrDefault(o => o.ChannelIDSnowflake == channelID);
+            var channel = channels.Find(o => o.ChannelIDSnowflake == channelID);
 
             if (channel == null)
                 return new Tuple<int, long, DateTime>(default, default, default);
@@ -37,14 +37,14 @@ namespace Grillbot.Services.Channelboard
             return new Tuple<int, long, DateTime>(position, channel.Count, channel.LastMessageAt);
         }
 
-        public async Task<List<ChannelStatItem>> GetChannelboardDataAsync(SocketGuild guild, SocketUser user, int? limit = null, bool full = false)
+        public async Task<List<ChannelStatItem>> GetChannelboardDataAsync(SocketGuild guild, SocketGuildUser user, int? limit = null, bool full = false)
         {
             var result = new List<ChannelStatItem>();
 
             await guild.SyncGuildAsync();
             foreach (var channel in GetAllChannels(guild))
             {
-                if (!full && !(await CanUserToChannelAsync(guild, channel.ChannelIDSnowflake, user)))
+                if (!full && !CanUserToChannel(guild, channel.ChannelIDSnowflake, user))
                     continue;
 
                 var textChannel = guild.GetTextChannel(channel.ChannelIDSnowflake);
@@ -62,13 +62,13 @@ namespace Grillbot.Services.Channelboard
             return resultData.ToList();
         }
 
-        private async Task<bool> CanUserToChannelAsync(SocketGuild guild, ulong channelID, IUser user)
+        private bool CanUserToChannel(SocketGuild guild, ulong channelID, SocketGuildUser user)
         {
             var channel = guild.GetChannel(channelID);
             if (channel == null)
                 return false;
 
-            return channel.Users.Any(o => o.Id == user.Id);
+            return channel.HaveAccess(user);
         }
 
         public async Task<List<string>> CleanOldChannels(SocketGuild guild)

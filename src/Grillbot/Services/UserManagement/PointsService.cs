@@ -8,7 +8,6 @@ using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Drawing;
-using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.UserManagement
@@ -73,13 +72,13 @@ namespace Grillbot.Services.UserManagement
             return transferedPoints;
         }
 
-        public async Task<List<Tuple<ulong, long, int>>> GetPointsLeaderboardAsync(IGuild guild, bool asc = false, int page = 1)
+        public async Task<Tuple<List<Tuple<ulong, long>>, int>> GetPointsLeaderboardAsync(IGuild guild, bool asc = false, int page = 1)
         {
             const int limit = 10;
 
             var skip = (page <= 1 ? 0 : page - 1) * limit;
             var users = await GrillBotRepository.UsersRepository.GetUsersWithPointsOrder(guild.Id, skip, limit, asc).ToListAsync();
-            return users.Select((o, i) => new Tuple<ulong, long, int>(o.UserIDSnowflake, o.Points, skip + i + 1)).ToList();
+            return Tuple.Create(users.ConvertAll(o => new Tuple<ulong, long>(o.UserIDSnowflake, o.Points)), skip);
         }
 
         public async Task IncrementPointsAsync(SocketGuild guild, SocketReaction reaction)

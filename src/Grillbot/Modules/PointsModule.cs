@@ -75,8 +75,8 @@ namespace Grillbot.Modules
             using var service = GetService<PointsService>();
             var leaderboard = await service.Service.GetPointsLeaderboardAsync(Context.Guild, false, page);
 
-            var embed = await CreateLeaderboardResultAsync(leaderboard);
-            await ReplyAsync(embed: embed.Build());
+            var embed = await CreateLeaderboardResultAsync(leaderboard.Item1, leaderboard.Item2);
+            await ReplyAsync(embed: embed);
         }
 
         [Command("noleaderboard")]
@@ -86,35 +86,27 @@ namespace Grillbot.Modules
         {
             using var service = GetService<PointsService>();
             var leaderboard = await service.Service.GetPointsLeaderboardAsync(Context.Guild, true, page);
-            var embed = await CreateLeaderboardResultAsync(leaderboard);
+            var embed = await CreateLeaderboardResultAsync(leaderboard.Item1, leaderboard.Item2);
 
-            await ReplyAsync(embed: embed.Build());
+            await ReplyAsync(embed: embed);
         }
 
-        private async Task<BotEmbed> CreateLeaderboardResultAsync(List<Tuple<ulong, long, int>> leaderboard)
+        private async Task<Embed> CreateLeaderboardResultAsync(List<Tuple<ulong, long>> leaderboardData, int skip)
         {
-            var embed = new BotEmbed(Context.User, null, "Body leaderboard");
-
-            if (leaderboard.Count == 0)
+            var leaderboard = new LeaderboardBuilder("Body leaderboard", Context.User, null, null)
             {
-                embed.WithDescription("Na této stránce není moc k vidění.");
-                return embed;
-            }
+                Skip = skip
+            };
 
-            var builder = new StringBuilder();
-
-            foreach (var item in leaderboard)
+            foreach (var item in leaderboardData)
             {
                 var user = await Context.Guild.GetUserFromGuildAsync(item.Item1);
-
-                var position = item.Item3.FormatWithSpaces();
                 var username = user == null ? "Neexistující uživatel" : user.GetDisplayName(true);
 
-                builder.Append("> ").Append(position).Append(": ").Append(username).Append(": ").AppendLine(FormatPointsValue(item.Item2));
+                leaderboard.AddItem(username, FormatPointsValue(item.Item2));
             }
 
-            embed.WithDescription(builder.ToString());
-            return embed;
+            return leaderboard.Build();
         }
 
         private string FormatTransferedValue(long transferedPoints)
