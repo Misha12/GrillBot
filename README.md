@@ -113,3 +113,8 @@ GrillBot.exe APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
 ## Docker
 
 Latest tag is published on [DockerHub](https://hub.docker.com/r/misha12/grillbot). SQL script with latest DB schema is included in release.
+
+### Docker compose
+
+1. Copy file `runtime.example.env` with name `runtime.env` and fill it with your values.
+2. Run `docker-compose up` in repository root directory.
