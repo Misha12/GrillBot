@@ -1,7 +1,6 @@
 using Discord;
 using Discord.Net;
 using Discord.WebSocket;
-using Grillbot.Enums;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Concurrent;

@@ -3,10 +3,12 @@ using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
 using Grillbot.Models.Audit.DiscordAuditLog;
 using Grillbot.Models.Users;
+using Grillbot.Services.MessageCache;
 using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace Grillbot.Models.Audit
 {
@@ -15,56 +17,121 @@ namespace Grillbot.Models.Audit
         public long Id { get; set; }
         public DiscordUser User { get; set; }
         public DateTime CreatedAt { get; set; }
-        public SocketGuild Guild { get; set; }
         public AuditLogType Type { get; set; }
-
-        private string JsonData { get; }
-
         public List<string> AttachmentNames { get; set; }
-
-        public AuditItem() { }
-        public AuditItem(string jsonData)
-        {
-            JsonData = jsonData;
-        }
 
         #region Typed properties
 
-        public CommandAuditData CommandAuditData => Type == AuditLogType.Command ? JsonConvert.DeserializeObject<CommandAuditData>(JsonData).GetFilledModel(Guild) : null;
-        public UserLeftAuditData UserLeftAuditData => Type == AuditLogType.UserLeft ? JsonConvert.DeserializeObject<UserLeftAuditData>(JsonData) : null;
-        public UserJoinedAuditData UserJoinedAuditData => Type == AuditLogType.UserJoined ? JsonConvert.DeserializeObject<UserJoinedAuditData>(JsonData).GetFilledModel(User) : null;
-        public MessageEditedAuditData MessageEditedAuditData => Type == AuditLogType.MessageEdited ? JsonConvert.DeserializeObject<MessageEditedAuditData>(JsonData).GetFilledModel(Guild) : null;
-        public MessageDeletedAuditData MessageDeletedAuditData => Type == AuditLogType.MessageDeleted ? JsonConvert.DeserializeObject<MessageDeletedAuditData>(JsonData).GetFilledModel(Guild) : null;
-        public AuditBotAdded BotAdded => AuditBotAdded.FromJsonIfValid(Type, JsonData);
-        public AuditChannelInfo ChannelInfo => AuditChannelInfo.FromJsonIfValid(Type, JsonData);
-        public GuildUpdated GuildUpdated => GuildUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
-        public AuditChannelUpdated ChannelUpdated => AuditChannelUpdated.FromJsonIfValid(Type, JsonData);
-        public AuditEmoteInfo EmoteInfo => AuditEmoteInfo.FromJsonIfValid(Type, JsonData);
-        public AuditEmoteUpdated EmoteUpdated => AuditEmoteUpdated.FromJsonIfValid(Type, JsonData);
-        public AuditOverwriteInfo OverwriteInfo => AuditOverwriteInfo.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
-        public AuditOverwriteUpdated OverwriteUpdated => AuditOverwriteUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
-        public AuditPruneMembers PruneMembers => AuditPruneMembers.FromJsonIfValid(Type, JsonData);
-        public AuditUnban Unban => AuditUnban.FromJsonIfValid(Type, JsonData);
-        public AuditMemberUpdated MemberUpdated => AuditMemberUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
-        public Role Role => Role.FromJsonIfValid(Type, JsonData);
-        public RoleUpdated RoleUpdated => RoleUpdated.FromJsonIfValid(Type, JsonData);
-        public Webhook Webhook => Webhook.FromJsonIfValid(Type, JsonData);
-        public WebhookUpdated WebhookUpdated => WebhookUpdated.FromJsonIfValid(Type, JsonData)?.GetFilledModel(Guild);
-        public AuditMessagePinInfo PinInfo => AuditMessagePinInfo.FromJsonIfValid(Type, JsonData).GetFilledModel(Guild);
+        public CommandAuditData CommandAuditData { get; set; }
+        public UserLeftAuditData UserLeftAuditData { get; set; }
+        public UserJoinedAuditData UserJoinedAuditData { get; set; }
+        public MessageEditedAuditData MessageEditedAuditData { get; set; }
+        public MessageDeletedAuditData MessageDeletedAuditData { get; set; }
+        public AuditBotAdded BotAdded { get; set; }
+        public AuditChannelInfo ChannelInfo { get; set; }
+        public GuildUpdated GuildUpdated { get; set; }
+        public AuditChannelUpdated ChannelUpdated { get; set; }
+        public AuditEmoteInfo EmoteInfo { get; set; }
+        public AuditEmoteUpdated EmoteUpdated { get; set; }
+        public AuditOverwriteInfo OverwriteInfo { get; set; }
+        public AuditOverwriteUpdated OverwriteUpdated { get; set; }
+        public AuditPruneMembers PruneMembers { get; set; }
+        public AuditUnban Unban { get; set; }
+        public AuditMemberUpdated MemberUpdated { get; set; }
+        public Role Role { get; set; }
+        public RoleUpdated RoleUpdated { get; set; }
+        public Webhook Webhook { get; set; }
+        public WebhookUpdated WebhookUpdated { get; set; }
+        public AuditMessagePinInfo PinInfo { get; set; }
 
         #endregion
 
-        public static AuditItem Create(SocketGuild guild, AuditLogItem dbItem, DiscordUser user)
+        public static async Task<AuditItem> CreateAsync(SocketGuild guild, AuditLogItem dbItem, DiscordUser user, IMessageCache cache)
         {
-            return new AuditItem(dbItem.JsonData)
+            var item = new AuditItem()
             {
                 CreatedAt = dbItem.CreatedAt,
-                Guild = guild,
                 Id = dbItem.Id,
                 Type = dbItem.Type,
                 User = user,
                 AttachmentNames = dbItem.Files.Select(o => o.Filename).ToList()
             };
+
+            switch(dbItem.Type)
+            {
+                case AuditLogType.BotAdded:
+                    item.BotAdded = JsonConvert.DeserializeObject<AuditBotAdded>(dbItem.JsonData);
+                    break;
+                case AuditLogType.ChannelCreated:
+                case AuditLogType.ChannelDeleted:
+                    item.ChannelInfo = JsonConvert.DeserializeObject<AuditChannelInfo>(dbItem.JsonData);
+                    break;
+                case AuditLogType.ChannelUpdated:
+                    item.ChannelUpdated = JsonConvert.DeserializeObject<AuditChannelUpdated>(dbItem.JsonData);
+                    break;
+                case AuditLogType.Command:
+                    item.CommandAuditData = JsonConvert.DeserializeObject<CommandAuditData>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.EmojiCreated:
+                case AuditLogType.EmojiDeleted:
+                    item.EmoteInfo = JsonConvert.DeserializeObject<AuditEmoteInfo>(dbItem.JsonData);
+                    break;
+                case AuditLogType.EmojiUpdated:
+                    item.EmoteUpdated = JsonConvert.DeserializeObject<AuditEmoteUpdated>(dbItem.JsonData);
+                    break;
+                case AuditLogType.GuildUpdated:
+                    item.GuildUpdated = JsonConvert.DeserializeObject<GuildUpdated>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.MemberRoleUpdated:
+                case AuditLogType.MemberUpdated:
+                    item.MemberUpdated = await JsonConvert.DeserializeObject<AuditMemberUpdated>(dbItem.JsonData).GetFilledModelAsync(guild);
+                    break;
+                case AuditLogType.MessageDeleted:
+                    item.MessageDeletedAuditData = JsonConvert.DeserializeObject<MessageDeletedAuditData>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.MessageEdited:
+                    item.MessageEditedAuditData = JsonConvert.DeserializeObject<MessageEditedAuditData>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.MessagePinned:
+                case AuditLogType.MessageUnpinned:
+                    item.PinInfo = await JsonConvert.DeserializeObject<AuditMessagePinInfo>(dbItem.JsonData).GetFilledModelAsync(guild, cache);
+                    break;
+                case AuditLogType.OverwriteCreated:
+                case AuditLogType.OverwriteDeleted:
+                    item.OverwriteInfo = JsonConvert.DeserializeObject<AuditOverwriteInfo>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.OverwriteUpdated:
+                    item.OverwriteUpdated = JsonConvert.DeserializeObject<AuditOverwriteUpdated>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+                case AuditLogType.Prune:
+                    item.PruneMembers = JsonConvert.DeserializeObject<AuditPruneMembers>(dbItem.JsonData);
+                    break;
+                case AuditLogType.RoleCreated:
+                case AuditLogType.RoleDeleted:
+                    item.Role = JsonConvert.DeserializeObject<Role>(dbItem.JsonData);
+                    break;
+                case AuditLogType.RoleUpdated:
+                    item.RoleUpdated = JsonConvert.DeserializeObject<RoleUpdated>(dbItem.JsonData);
+                    break;
+                case AuditLogType.Unban:
+                    item.Unban = JsonConvert.DeserializeObject<AuditUnban>(dbItem.JsonData);
+                    break;
+                case AuditLogType.UserJoined:
+                    item.UserJoinedAuditData = JsonConvert.DeserializeObject<UserJoinedAuditData>(dbItem.JsonData).GetFilledModel(user);
+                    break;
+                case AuditLogType.UserLeft:
+                    item.UserLeftAuditData = JsonConvert.DeserializeObject<UserLeftAuditData>(dbItem.JsonData);
+                    break;
+                case AuditLogType.WebhookCreated:
+                case AuditLogType.WebhookDeleted:
+                    item.Webhook = JsonConvert.DeserializeObject<Webhook>(dbItem.JsonData);
+                    break;
+                case AuditLogType.WebhookUpdated:
+                    item.WebhookUpdated = JsonConvert.DeserializeObject<WebhookUpdated>(dbItem.JsonData).GetFilledModel(guild);
+                    break;
+            }
+
+            return item;
         }
     }
 }

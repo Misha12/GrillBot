@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -23,11 +22,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 MembersRemoved = data.MembersRemoved,
                 PruneDays = data.PruneDays
             };
-        }
-
-        public static AuditPruneMembers FromJsonIfValid(AuditLogType type, string json)
-        {
-            return type == AuditLogType.Prune ? JsonConvert.DeserializeObject<AuditPruneMembers>(json) : null;
         }
     }
 }

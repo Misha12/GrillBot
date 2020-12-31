@@ -1,8 +1,9 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using Grillbot.Enums;
+using Grillbot.Services.MessageCache;
 using Newtonsoft.Json;
+using System.Threading.Tasks;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
 {
@@ -41,22 +42,11 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 return null;
         }
 
-        public AuditMessagePinInfo GetFilledModel(SocketGuild guild)
+        public async Task<AuditMessagePinInfo> GetFilledModelAsync(SocketGuild guild, IMessageCache cache)
         {
+            Message = await cache.GetAsync(ChannelId, MessageId);
             Channel = guild.GetChannel(ChannelId);
-
-            if (Channel is ISocketMessageChannel messageChannel)
-                Message = messageChannel.GetMessageAsync(MessageId).Result;
-
             return this;
-        }
-
-        public static AuditMessagePinInfo FromJsonIfValid(AuditLogType type, string json)
-        {
-            if (type != AuditLogType.MessagePinned && type != AuditLogType.MessageUnpinned)
-                return null;
-
-            return JsonConvert.DeserializeObject<AuditMessagePinInfo>(json);
         }
     }
 }

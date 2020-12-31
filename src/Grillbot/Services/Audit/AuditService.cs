@@ -10,7 +10,6 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
-using Grillbot.Models.Audit.DiscordAuditLog;
 using Grillbot.Models.Embed;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Config;
@@ -20,7 +19,6 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
-using System.Text.RegularExpressions;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Audit
@@ -254,7 +252,9 @@ namespace Grillbot.Services.Audit
             foreach (var item in data)
             {
                 var user = item.User == null ? null : await UserHelper.MapUserAsync(Client, BotState, item.User);
-                items.Add(AuditItem.Create(guild, item, user));
+                var auditItem = await AuditItem.CreateAsync(guild, item, user, MessageCache);
+
+                items.Add(auditItem);
             }
 
             return items;
@@ -406,79 +406,6 @@ namespace Grillbot.Services.Audit
             };
 
             return Client.Guilds.SelectMany(g => types.Select(type => (BackgroundTask)new DownloadAuditLogBackgroundTask(g, type))).ToList();
-        }
-
-        public async Task<Tuple<int, int>> ImportLogsAsync(List<IMessage> messages, SocketGuild guild, Func<int, Task> onChange)
-        {
-            int importedMessages = 0;
-
-            foreach (var message in messages)
-            {
-                var entity = new AuditLogItem()
-                {
-                    CreatedAt = message.CreatedAt.LocalDateTime,
-                    GuildIdSnowflake = guild.Id
-                };
-
-                var embed = message.Embeds.First();
-
-                if (string.IsNullOrEmpty(embed.Title))
-                    continue;
-
-                switch (embed.Title)
-                {
-                    case var val when Regex.IsMatch(val, @".*Připojil\s*se\s*uživatel.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.UserJoined;
-                            entity.SetData(UserJoinedAuditData.Create(Convert.ToInt32(embed.Fields[2].Value)));
-
-                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
-                            if (user == null) continue;
-
-                            entity.UserId = await GetOrCreateUserId(guild, user);
-                        }
-                        break;
-                    case var val when Regex.IsMatch(val, @".*Zpráva\s*byla\s*upravena.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.MessageEdited;
-
-                            var auditData = MessageEditedAuditData.Create(embed.Fields);
-                            if (auditData == null) continue;
-                            entity.SetData(auditData);
-
-                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
-                            if (user == null) continue;
-
-                            entity.UserId = await GetOrCreateUserId(guild, user);
-                        }
-                        break;
-                    case var val when Regex.IsMatch(val, @".*Uživatel\s*na\s*serveru\s*byl\s*aktualizován.*", RegexOptions.IgnoreCase):
-                        {
-                            entity.Type = AuditLogType.MemberUpdated;
-
-                            var user = await guild.GetUserFromGuildAsync(embed.Fields[0].Value);
-                            if (user == null) continue;
-
-                            var auditData = AuditMemberUpdated.Create(embed.Fields, user);
-                            if (auditData == null) continue;
-                            entity.SetData(auditData);
-
-                            entity.UserId = await GetOrCreateUserId(guild, Client.CurrentUser);
-                        }
-                        break;
-                    default:
-                        continue;
-                }
-
-                await GrillBotRepository.AddAsync(entity);
-
-                importedMessages++;
-                if (importedMessages % 5 == 0)
-                    await onChange(importedMessages);
-            }
-
-            await GrillBotRepository.CommitAsync();
-            return Tuple.Create(importedMessages, messages.Count);
         }
 
         public async Task<int> ClearOldDataAsync(DateTime before, SocketGuild guild)

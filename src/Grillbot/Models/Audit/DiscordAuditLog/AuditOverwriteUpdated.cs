@@ -1,7 +1,6 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 
@@ -63,11 +62,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 TargetUser = guild.GetUserFromGuildAsync(TargetId).Result;
 
             return this;
-        }
-
-        public static AuditOverwriteUpdated FromJsonIfValid(AuditLogType type, string json)
-        {
-            return type == AuditLogType.OverwriteUpdated ? JsonConvert.DeserializeObject<AuditOverwriteUpdated>(json) : null;
         }
     }
 }

@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -54,11 +53,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
 
             return item;
-        }
-
-        public static RoleUpdated FromJsonIfValid(AuditLogType type, string json)
-        {
-            return type == AuditLogType.RoleUpdated ? JsonConvert.DeserializeObject<RoleUpdated>(json) : null;
         }
     }
 }

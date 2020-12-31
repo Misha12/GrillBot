@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -32,14 +31,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 return new AuditEmoteInfo(deleteData);
             else
                 return null;
-        }
-
-        public static AuditEmoteInfo FromJsonIfValid(AuditLogType type, string json)
-        {
-            if (type != AuditLogType.EmojiCreated && type != AuditLogType.EmojiDeleted)
-                return null;
-
-            return JsonConvert.DeserializeObject<AuditEmoteInfo>(json);
         }
     }
 }

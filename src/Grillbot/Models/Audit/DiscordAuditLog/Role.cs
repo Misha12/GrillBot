@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -51,14 +50,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 return new Role(deleteData);
             else
                 return null;
-        }
-
-        public static Role FromJsonIfValid(AuditLogType type, string json)
-        {
-            if (type != AuditLogType.RoleCreated && type != AuditLogType.RoleDeleted)
-                return null;
-
-            return JsonConvert.DeserializeObject<Role>(json);
         }
     }
 }

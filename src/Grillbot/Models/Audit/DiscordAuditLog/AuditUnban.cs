@@ -20,10 +20,5 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 User = AuditUserInfo.Create(data.Target)
             };
         }
-
-        public static AuditUnban FromJsonIfValid(AuditLogType type, string json)
-        {
-            return type == AuditLogType.Unban ? JsonConvert.DeserializeObject<AuditUnban>(json) : null;
-        }
     }
 }

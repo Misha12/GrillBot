@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
@@ -35,11 +34,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 SlowModeInterval = data.Before.SlowModeInterval != data.After.SlowModeInterval ? new DiffData<int?>(data.Before.SlowModeInterval, data.After.SlowModeInterval) : null,
                 Topic = data.Before.Topic != data.After.Topic ? new DiffData<string>(data.Before.Topic, data.After.Topic) : null
             };
-        }
-
-        public static AuditChannelUpdated FromJsonIfValid(AuditLogType type, string json)
-        {
-            return type == AuditLogType.ChannelUpdated ? JsonConvert.DeserializeObject<AuditChannelUpdated>(json) : null;
         }
     }
 }

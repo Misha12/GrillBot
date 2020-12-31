@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit
@@ -48,14 +47,6 @@ namespace Grillbot.Models.Audit
                 return new AuditChannelInfo(deleteData);
             else
                 return null;
-        }
-
-        public static AuditChannelInfo FromJsonIfValid(AuditLogType type, string json)
-        {
-            if (type != AuditLogType.ChannelCreated && type != AuditLogType.ChannelDeleted)
-                return null;
-
-            return JsonConvert.DeserializeObject<AuditChannelInfo>(json);
         }
     }
 }

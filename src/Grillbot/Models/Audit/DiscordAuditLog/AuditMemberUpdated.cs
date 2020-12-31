@@ -1,13 +1,11 @@
 using Discord;
 using Discord.Rest;
 using Discord.WebSocket;
-using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
 using System.Collections.Generic;
-using System.Collections.Immutable;
 using System.Linq;
-using System.Text.RegularExpressions;
+using System.Threading.Tasks;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog
 {
@@ -57,24 +55,9 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
         }
 
-        public static AuditMemberUpdated Create(ImmutableArray<EmbedField> fields, IUser user)
+        public async Task<AuditMemberUpdated> GetFilledModelAsync(SocketGuild guild)
         {
-            var aliasRegex = new Regex(@"(.*)\s*->\s*(.*)", RegexOptions.IgnoreCase);
-            var aliasMatch = aliasRegex.Match(fields[2].Value);
-
-            if (!aliasMatch.Success)
-                return null;
-
-            return new AuditMemberUpdated()
-            {
-                UserId = user.Id,
-                Nickname = new DiffData<string>(aliasMatch.Groups[1].Value, aliasMatch.Groups[2].Value)
-            };
-        }
-
-        public AuditMemberUpdated GetFilledModel(SocketGuild guild)
-        {
-            User = guild.GetUserFromGuildAsync(UserId).Result;
+            User = await guild.GetUserFromGuildAsync(UserId);
 
             if(Roles != null)
             {
@@ -85,14 +68,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
 
             return this;
-        }
-
-        public static AuditMemberUpdated FromJsonIfValid(AuditLogType type, string json)
-        {
-            if (type != AuditLogType.MemberRoleUpdated && type != AuditLogType.MemberUpdated)
-                return null;
-
-            return JsonConvert.DeserializeObject<AuditMemberUpdated>(json);
         }
     }
 }
