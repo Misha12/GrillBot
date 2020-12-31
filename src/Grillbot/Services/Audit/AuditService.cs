@@ -300,11 +300,6 @@ namespace Grillbot.Services.Audit
             };
         }
 
-        public async Task<Database.Entity.File> GetFileAsync(string filename)
-        {
-            return await GrillBotRepository.AuditLogs.FindFileByFilenameAsync(filename);
-        }
-
         public async Task DeleteItemAsync(long id)
         {
             var item = await GrillBotRepository.AuditLogs.FindItemByIdAsync(id);

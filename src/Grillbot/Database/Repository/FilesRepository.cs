@@ -1,5 +1,6 @@
 using Grillbot.Database.Entity;
 using Microsoft.EntityFrameworkCore;
+using System;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -15,6 +16,16 @@ namespace Grillbot.Database.Repository
         {
             return Context.Files.AsQueryable()
                 .SingleOrDefaultAsync(o => o.Filename == filename);
+        }
+
+        public IQueryable<Tuple<string, int>> GetFilesList(bool ignoreAuditLogs = false)
+        {
+            var query = Context.Files.AsQueryable();
+
+            if (ignoreAuditLogs)
+                query = query.Where(o => o.AuditLogItemId == null);
+
+            return query.Select(o => Tuple.Create(o.Filename, EF.Functions.DataLength(o.Content) ?? 0));
         }
 
         public IQueryable<string> GetFilenames()

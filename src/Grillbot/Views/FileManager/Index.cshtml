@@ -1,0 +1,62 @@
+﻿@model Grillbot.Models.FileManager.FileManagerViewModel;
+
+@{
+    ViewData["Title"] = "Správa souborů";
+}
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h4 class="card-title font-weight-light mb-0 pb-0">Správa souborů</h4>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th>Název souboru</th>
+                        <th>Velikost</th>
+                        <th>Operace</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach (var file in Model.Files)
+                    {
+                        <tr>
+                            <td>
+                                <a asp-action="Download" asp-route-filename="@file.Key" title="Stáhnout soubor" target="_blank">
+                                    @file.Key
+                                </a>
+                            </td>
+                            <td>@(((long)file.Value).FormatAsSize())</td>
+                            <td>
+                                <a class="badge badge-danger" asp-action="Delete" asp-route-filename="@file.Key">Smazat</a>
+                            </td>
+                        </tr>
+                    }
+                </tbody>
+                <tfoot>
+                    <tr>
+                        <th style="border-top-width: 3px">
+                            Celkem:
+                            @if (Model.Files.Count == 0 || Model.Files.Count > 4)
+                            {
+                                <text>@Model.Files.Count.FormatWithSpaces() souborů</text>
+                            }
+                            else if (Model.Files.Count == 1)
+                            {
+                                <text>1 soubor</text>
+                            }
+                            else
+                            {
+                                <text>@Model.Files.Count.FormatWithSpaces() soubory</text>
+                            }
+                        </th>
+                        <th style="border-top-width: 3px">@Model.Files.Sum(o => (long)o.Value).FormatAsSize()</th>
+                        <th style="border-top-width: 3px"></th>
+                    </tr>
+                </tfoot>
+            </table>
+        </div>
+    </div>
+</div>
