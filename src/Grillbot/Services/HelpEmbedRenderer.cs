@@ -24,7 +24,7 @@ namespace Grillbot.Services
         {
             CommandService = commandService;
             ServiceProvider = serviceProvider;
-            
+
             CommandPrefix = configurationService.GetValue(Enums.GlobalConfigItems.CommandPrefix);
             if (string.IsNullOrEmpty(CommandPrefix))
                 CommandPrefix = "$";
@@ -100,21 +100,19 @@ namespace Grillbot.Services
 
         public async Task<BotEmbed> RenderCommandHelpAsync(string command, SocketCommandContext context)
         {
-            var result = CommandService.Search(command);
+            var module = CommandService.Modules.FirstOrDefault(o => o.Group == command || o.Aliases.Contains(command));
 
-            if (!result.IsSuccess)
+            if (module == null)
             {
-                if (result.Error == CommandError.UnknownCommand && CommandService.Modules.Any(o => o.Group == command || o.Aliases.Contains(command)))
-                    return await RenderGroupHelp(command, context);
+                var searchResult = CommandService.Search(command);
 
-                ProcessSearchError(result, command);
+                if (!searchResult.IsSuccess)
+                    ProcessSearchError(searchResult, command);
+
+                return await RenderEmbedAsync(command, searchResult.Commands.Select(o => o.Command), context, searchResult.Commands[0].Command.Module.Remarks);
             }
 
-            // Strict match to one command.
-            if (result.Commands.Any(o => o.Alias == command))
-                return await RenderEmbedAsync(command, result.Commands.Where(o => o.Alias == command).Select(o => o.Command), context, result.Commands[0].Command.Module.Remarks);
-
-            return await RenderEmbedAsync(command, result.Commands.Select(o => o.Command), context, result.Commands[0].Command.Module.Remarks);
+            return await RenderEmbedAsync(command, module, context);
         }
 
         private async Task<BotEmbed> RenderEmbedAsync(string prefix, ModuleInfo module, ICommandContext context)
@@ -178,36 +176,24 @@ namespace Grillbot.Services
             switch (result.Error)
             {
                 case CommandError.UnknownCommand:
-                    throw new NotFoundException($"Je mi to líto, ale příkaz **{command.PreventMassTags()}** neznám.");
+                    throw new NotFoundException($"Je mi to líto, ale příkaz `{command}` neznám.");
                 case CommandError.UnmetPrecondition:
                     throw new UnauthorizedAccessException(result.ErrorReason.PreventMassTags());
             }
         }
 
-        private async Task<BotEmbed> RenderGroupHelp(string group, ICommandContext context)
-        {
-            var module = CommandService.Modules.FirstOrDefault(o => o.Group == group || o.Aliases.Contains(group));
-            return await RenderEmbedAsync(group, module, context);
-        }
-
         private string FormatAliases(IReadOnlyCollection<string> aliases)
         {
-            var aliasFields = aliases.Select(o => o.Split(' ')).ToList();
-
+            var aliasFields = aliases.Select(o => o.Split(' '));
             var builder = new List<string>();
 
             foreach (var group in aliasFields.GroupBy(o => o[0]))
             {
-                var commands = group
-                    .Where(o => o.Length >= 2)
-                    .Select(o => o[1])
-                    .ToArray();
-
+                var commands = group.Where(o => o.Length >= 2).Select(o => o[1]);
                 builder.Add($"{group.Key} {string.Join(", ", commands)}");
             }
 
-            var result = string.Join("\n", builder);
-            return result;
+            return string.Join("\n", builder);
         }
     }
 }
