@@ -3,6 +3,7 @@ using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Models.BotStatus;
 using Grillbot.Services;
+using Grillbot.Services.Audit;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Statistics.ApiStats;
@@ -23,9 +24,11 @@ namespace Grillbot.Controllers
         private DiscordSocketClient DiscordClient { get; }
         private IHostApplicationLifetime ApplicationLifetime { get; }
         private BackgroundTaskQueue BackgroundTaskQueue { get; }
+        private AuditService AuditService { get; }
 
         public ReportsController(BotStatusService statusService, InternalStatistics internalStatistics, ApiStatistics apiStatistics,
-            DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime, BackgroundTaskQueue backgroundTaskQueue)
+            DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime, BackgroundTaskQueue backgroundTaskQueue,
+            AuditService auditService)
         {
             StatusService = statusService;
             InternalStatistics = internalStatistics;
@@ -33,6 +36,7 @@ namespace Grillbot.Controllers
             DiscordClient = discordClient;
             ApplicationLifetime = applicationLifetime;
             BackgroundTaskQueue = backgroundTaskQueue;
+            AuditService = auditService;
         }
 
         public async Task<IActionResult> IndexAsync()
@@ -66,6 +70,18 @@ namespace Grillbot.Controllers
             });
 
             return Redirect("https://google.com");
+        }
+
+        [HttpGet("AuditLog")]
+        public async Task<IActionResult> AuditLogAsync()
+        {
+            var perTypeStats = await AuditService.GetStatisticsPerType();
+
+            var viewModel = new AuditLogReportsViewModel();
+            foreach (var stat in perTypeStats)
+                viewModel.PerTypeStats[stat.Key] = stat.Value;
+
+            return View(viewModel);
         }
     }
 }

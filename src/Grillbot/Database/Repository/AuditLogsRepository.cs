@@ -86,5 +86,12 @@ namespace Grillbot.Database.Repository
                 .OrderByDescending(o => o.Id)
                 .FirstOrDefaultAsync();
         }
+
+        public IQueryable<Tuple<AuditLogType, int>> GetStatsPerTypeQuery()
+        {
+            return GetBaseQuery(false)
+                .GroupBy(o => o.Type)
+                .Select(o => Tuple.Create(o.Key, o.Count()));
+        }
     }
 }

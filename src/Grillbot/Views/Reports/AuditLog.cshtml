@@ -1,0 +1,29 @@
+﻿@model Grillbot.Models.BotStatus.AuditLogReportsViewModel;
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h4 class="card-title mb-0 pb-0 font-weight-normal">Reporty - Audit log</h4>
+        </div>
+
+        <div class="card-body">
+            <table class="table table-sm">
+                <thead>
+                    <tr>
+                        <th style="width: 40%">Typ</th>
+                        <th>Počet událostí</th>
+                    </tr>
+                </thead>
+                <tbody>
+                    @foreach(var item in Model.PerTypeStats)
+                    {
+                        <tr>
+                            <td>@item.Key.GetDisplayName()</td>
+                            <td>@item.Value.FormatWithSpaces()</td>
+                        </tr>
+                    }
+                </tbody>
+            </table>
+        </div>
+    </div>
+</div>

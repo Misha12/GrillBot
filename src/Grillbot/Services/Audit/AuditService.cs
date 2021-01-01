@@ -433,5 +433,11 @@ namespace Grillbot.Services.Audit
             var entity = await GrillBotRepository.UsersRepository.CreateAndGetUserAsync(guild.Id, user.Id);
             return entity.ID;
         }
+
+        public async Task<Dictionary<AuditLogType, int>> GetStatisticsPerType()
+        {
+            var stats = await GrillBotRepository.AuditLogs.GetStatsPerTypeQuery().ToListAsync();
+            return stats.ToDictionary(o => o.Item1, o => o.Item2);
+        }
     }
 }
