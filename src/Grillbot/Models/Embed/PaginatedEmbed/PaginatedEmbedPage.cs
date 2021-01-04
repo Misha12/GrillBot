@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -21,7 +21,7 @@ namespace Grillbot.Models.Embed.PaginatedEmbed
         public void AddField(EmbedFieldBuilder builder)
         {
             if (Fields.Count == EmbedBuilder.MaxFieldCount)
-                throw new ArgumentOutOfRangeException($"Maximium is 25 fields per page.");
+                throw new ArgumentOutOfRangeException("Maximium is 25 fields per page.");
 
             Fields.Add(builder);
         }
@@ -38,8 +38,8 @@ namespace Grillbot.Models.Embed.PaginatedEmbed
 
         public void AddFields(IEnumerable<EmbedFieldBuilder> fields)
         {
-            if(Fields.Count + fields.Count() >= EmbedBuilder.MaxFieldCount)
-                throw new ArgumentOutOfRangeException($"Maximium is 25 fields per page.");
+            if (Fields.Count + fields.Count() >= EmbedBuilder.MaxFieldCount)
+                throw new ArgumentOutOfRangeException("Maximium is 25 fields per page.");
 
             Fields.AddRange(fields);
         }

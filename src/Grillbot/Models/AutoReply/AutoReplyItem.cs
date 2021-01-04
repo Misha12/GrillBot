@@ -1,4 +1,4 @@
-﻿using Grillbot.Database.Entity;
+using Grillbot.Database.Entity;
 
 namespace Grillbot.Models.AutoReply
 {

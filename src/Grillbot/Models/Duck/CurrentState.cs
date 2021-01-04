@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using Grillbot.Enums;
 using Newtonsoft.Json;
 using Newtonsoft.Json.Converters;
@@ -23,7 +23,7 @@ namespace Grillbot.Models.Duck
 
         public DateTime? NextStateDateTime { get; set; }
         public DateTime? NextOpeningDateTime { get; set; }
-        
+
         public string Note { get; set; }
     }
 }

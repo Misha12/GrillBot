@@ -52,7 +52,7 @@ namespace Grillbot.Handlers
                 await Commands.ExecuteAsync(context, userMessage.Content[argPos..], Services).ConfigureAwait(false);
 
                 if (context.Guild != null)
-                    EmoteChain.CleanupAsync((SocketGuildChannel)context.Channel);
+                    EmoteChain.Cleanup((SocketGuildChannel)context.Channel);
             }
             else
             {

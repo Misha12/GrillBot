@@ -3,7 +3,6 @@ using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
 using System;
 using System.Collections.Generic;
-using System.Data;
 using System.Linq;
 using System.Reflection;
 using System.Threading;
@@ -17,7 +16,7 @@ namespace Grillbot.Services.BackgroundTasks
         private IServiceProvider Provider { get; }
         private BotLoggingService BotLoggingService { get; }
 
-        private Dictionary<Type, DateTime> LastSchedulesAt { get; set; }
+        private Dictionary<Type, DateTime> LastSchedulesAt { get; }
 
         public BackgroundTaskScheduler(BackgroundTaskQueue queue, IServiceProvider provider, BotLoggingService botLoggingService)
         {
@@ -57,7 +56,7 @@ namespace Grillbot.Services.BackgroundTasks
                             {
                                 Queue.Add(task);
                             }
-                            
+
                             LastSchedulesAt[type] = DateTime.Now;
                         }
                     }

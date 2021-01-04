@@ -16,15 +16,5 @@ namespace Grillbot.Database
         {
             Context?.Dispose();
         }
-
-        public int SaveChanges()
-        {
-            return Context.SaveChanges();
-        }
-
-        public Task<int> SaveChangesAsync()
-        {
-            return Context.SaveChangesAsync();
-        }
     }
 }

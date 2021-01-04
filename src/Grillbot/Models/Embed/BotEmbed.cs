@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Grillbot.Extensions.Discord;
 using System;
 using System.Collections.Generic;
@@ -88,8 +88,7 @@ namespace Grillbot.Models.Embed
                 {
                     // Cut CodeBlocks.
 
-                    var tmp = value
-                        .Substring(3)
+                    var tmp = value[3..]
                         .Substring(0, value.Length - 3)
                         .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 9);
 
@@ -99,8 +98,7 @@ namespace Grillbot.Models.Embed
                 {
                     // CUT `...` blocks
 
-                    var tmp = value
-                        .Substring(1)
+                    var tmp = value[1..]
                         .Substring(0, value.Length - 1)
                         .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 5);
 

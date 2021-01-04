@@ -1,4 +1,4 @@
-﻿using Discord.WebSocket;
+using Discord.WebSocket;
 using System.Collections.Generic;
 
 namespace Grillbot.Models.Auth

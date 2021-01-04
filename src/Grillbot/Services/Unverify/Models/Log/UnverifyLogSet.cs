@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 
 namespace Grillbot.Services.Unverify.Models.Log
 {
@@ -22,8 +21,8 @@ namespace Grillbot.Services.Unverify.Models.Log
                 ChannelsToRemove = profile.ChannelsToRemove,
                 EndDateTime = profile.EndDateTime,
                 Reason = profile.Reason,
-                RolesToKeep = profile.RolesToKeep.Select(o => o.Id).ToList(),
-                RolesToRemove = profile.RolesToRemove.Select(o => o.Id).ToList(),
+                RolesToKeep = profile.RolesToKeep.ConvertAll(o => o.Id),
+                RolesToRemove = profile.RolesToRemove.ConvertAll(o => o.Id),
                 StartDateTime = profile.StartDateTime
             };
         }

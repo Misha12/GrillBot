@@ -1,4 +1,4 @@
-﻿namespace Grillbot.Models.Config.Dynamic
+namespace Grillbot.Models.Config.Dynamic
 {
     public class ChannelboardConfig
     {

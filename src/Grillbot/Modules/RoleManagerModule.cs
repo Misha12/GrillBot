@@ -1,4 +1,4 @@
-﻿using Discord;
+using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
@@ -35,7 +35,7 @@ namespace Grillbot.Modules
             var paginatedEmbed = new PaginatedEmbed()
             {
                 Color = highestRoleWithColor?.Color ?? Color.Blue,
-                Pages = chunks.Select(ch => new PaginatedEmbedPage(null, ch.ToList())).ToList(),
+                Pages = chunks.ConvertAll(ch => new PaginatedEmbedPage(null, ch.ToList())),
                 Thumbnail = Context.Guild.IconUrl,
                 Title = "Informace o rolích",
                 ResponseFor = Context.User

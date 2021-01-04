@@ -20,7 +20,7 @@ namespace Grillbot.Services.Math
         public ExpressionParser(string data)
         {
             Errors = new List<string>();
-            
+
             try
             {
                 var expressionFields = data.Split(';').Select(o => o.Trim());
@@ -38,7 +38,7 @@ namespace Grillbot.Services.Math
                 Expression.addFunctions(FunctionsList.GetCustomFunctions().Select(func => new Function(func.FunctionName, func)).ToArray());
                 Errors.AddRange(ValidateAndGetErrors(Expression));
             }
-            catch(Exception ex)
+            catch (Exception ex)
             {
                 Errors.Add(Exception);
                 Errors.Add(ex.ToString());

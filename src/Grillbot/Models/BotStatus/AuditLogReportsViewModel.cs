@@ -1,4 +1,3 @@
-using Discord;
 using Grillbot.Enums;
 using System;
 using System.Collections.Generic;

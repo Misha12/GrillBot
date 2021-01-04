@@ -34,7 +34,7 @@ namespace Grillbot.Modules
                 await Context.Message.Author.SendPrivateMessageAsync("Ještě nejsou zaznamenány žádné kanály pro tento server.");
 
             var items = data.ToDictionary(o => o.Channel.Name, o => o.Count.FormatWithSpaces());
-            
+
             var leaderboard = new LeaderboardBuilder("Channel leaderboard", Context.User, null, null);
             leaderboard.SetData(items);
 

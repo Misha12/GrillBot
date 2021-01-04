@@ -8,7 +8,7 @@ namespace Grillbot.Services.Statistics.ApiStats
         public Regex ParseRegex { get; set; }
         public string MethodName { get; set; }
         public ulong Count { get; set; }
-        
+
         public TimeSpan MinTime { get; set; }
         public TimeSpan MaxTime { get; set; }
         public TimeSpan AvgTime { get; set; }

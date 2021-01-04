@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Grillbot.Enums;
 using Newtonsoft.Json;
 
 namespace Grillbot.Models.Audit.DiscordAuditLog

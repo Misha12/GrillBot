@@ -34,7 +34,7 @@ namespace Grillbot.Services.MemeImages
 
             var filenames = await filenamesQuery
                 .AsAsyncEnumerable()
-                .Where(o => configData.AllowedImageTypes.Any(type => type == Path.GetExtension(type)))
+                .Where(_ => configData.AllowedImageTypes.Any(type => type == Path.GetExtension(type)))
                 .ToListAsync();
 
             if (filenames.Count == 0)

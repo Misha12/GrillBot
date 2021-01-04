@@ -25,15 +25,15 @@ namespace Grillbot.Services
             LastMessages = new Dictionary<string, List<Tuple<ulong, string>>>();
         }
 
-        public void CleanupAsync(SocketGuildChannel channel)
+        public void Cleanup(SocketGuildChannel channel)
         {
             lock (Locker)
             {
-                CleanupNoLockAsync(channel);
+                CleanupNoLock(channel);
             }
         }
 
-        public void CleanupNoLockAsync(SocketGuildChannel channel)
+        public void CleanupNoLock(SocketGuildChannel channel)
         {
             var key = GetKey(channel);
 
@@ -56,7 +56,7 @@ namespace Grillbot.Services
 
             if (!IsValidMessage(context.Message, context.Guild, channel))
             {
-                CleanupNoLockAsync(channel);
+                CleanupNoLock(channel);
                 return;
             }
 
@@ -68,7 +68,7 @@ namespace Grillbot.Services
             if (group.Count == ReactLimit)
             {
                 await channel.SendMessageAsync(group[0].Item2);
-                CleanupNoLockAsync(channel);
+                CleanupNoLock(channel);
             }
         }
 
