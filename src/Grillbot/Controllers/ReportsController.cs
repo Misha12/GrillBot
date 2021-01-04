@@ -7,6 +7,7 @@ using Grillbot.Services.Audit;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Statistics.ApiStats;
+using Grillbot.Services.UserManagement;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Hosting;
@@ -25,10 +26,11 @@ namespace Grillbot.Controllers
         private IHostApplicationLifetime ApplicationLifetime { get; }
         private BackgroundTaskQueue BackgroundTaskQueue { get; }
         private AuditService AuditService { get; }
+        private UserService UserService { get; }
 
         public ReportsController(BotStatusService statusService, InternalStatistics internalStatistics, ApiStatistics apiStatistics,
             DiscordSocketClient discordClient, IHostApplicationLifetime applicationLifetime, BackgroundTaskQueue backgroundTaskQueue,
-            AuditService auditService)
+            AuditService auditService, UserService userService)
         {
             StatusService = statusService;
             InternalStatistics = internalStatistics;
@@ -37,6 +39,7 @@ namespace Grillbot.Controllers
             ApplicationLifetime = applicationLifetime;
             BackgroundTaskQueue = backgroundTaskQueue;
             AuditService = auditService;
+            UserService = userService;
         }
 
         public async Task<IActionResult> IndexAsync()
@@ -80,6 +83,15 @@ namespace Grillbot.Controllers
             var viewModel = new AuditLogReportsViewModel();
             foreach (var stat in perTypeStats)
                 viewModel.PerTypeStats[stat.Key] = stat.Value;
+
+            return View(viewModel);
+        }
+
+        [HttpGet("WebStats")]
+        public async Task<IActionResult> WebStatsAsync()
+        {
+            var statistics = await UserService.GetWebStatsAsync();
+            var viewModel = new WebStatisticsViewModel(statistics);
 
             return View(viewModel);
         }

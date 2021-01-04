@@ -4,7 +4,14 @@
 @model WebAdminUserInfoViewModel;
 
 @{
-    ViewData["Title"] = "Informace o uživateli " + Model.User.User.GetFullName();
+    if (Model.User.User == null)
+    {
+        ViewData["Title"] = "Informace o neznámém uživateli";
+    }
+    else
+    {
+        ViewData["Title"] = "Informace o uživateli " + Model.User.User.GetFullName();
+    }
 
     string getStatusBadge(UserStatus status)
     {

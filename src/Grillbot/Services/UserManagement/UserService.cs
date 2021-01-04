@@ -2,8 +2,10 @@ using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
+using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models;
+using Grillbot.Models.BotStatus;
 using Grillbot.Models.Users;
 using Microsoft.EntityFrameworkCore;
 using System.Collections.Generic;
@@ -133,6 +135,26 @@ namespace Grillbot.Services.UserManagement
                 var mappedUser = await UserHelper.MapUserAsync(DiscordClient, BotState, user);
                 if (mappedUser != null)
                     result.Add(mappedUser);
+            }
+
+            return result;
+        }
+
+        public async Task<List<WebStatItem>> GetWebStatsAsync()
+        {
+            var query = GrillBotRepository.UsersRepository.GetWebStatisticsQuery();
+            var statistics = await query.ToListAsync();
+
+            var result = new List<WebStatItem>();
+            foreach(var entity in statistics)
+            {
+                var guild = DiscordClient.GetGuild(entity.GuildIdSnowflake);
+                var user = await guild?.GetUserFromGuildAsync(entity.UserIdSnowflake);
+
+                if (user == null)
+                    continue;
+
+                result.Add(new WebStatItem(guild, user, entity));
             }
 
             return result;

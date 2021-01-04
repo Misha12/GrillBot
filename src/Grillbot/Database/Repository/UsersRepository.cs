@@ -7,6 +7,7 @@ using UserEntity = Grillbot.Database.Entity.Users.DiscordUser;
 using Grillbot.Database.Enums;
 using Microsoft.Data.SqlClient;
 using Grillbot.Models.Users;
+using Grillbot.Database.Entity.Users.Reporting;
 
 namespace Grillbot.Database.Repository
 {
@@ -214,6 +215,22 @@ namespace Grillbot.Database.Repository
             );
 
             return await GetUserAsync(guildId, userId, UsersIncludes.None);
+        }
+
+        public IQueryable<WebStatItem> GetWebStatisticsQuery()
+        {
+            return GetBaseQuery(UsersIncludes.None)
+                .Where(o => o.WebAdminPassword != null || o.ApiToken != null)
+                .Select(o => new WebStatItem()
+                {
+                    ApiCallCount = o.ApiAccessCount,
+                    GuildId = o.GuildID,
+                    UserId = o.UserID,
+                    WebAdminLoginCount = o.WebAdminLoginCount,
+                    HaveApiAccess = o.ApiToken != null,
+                    HaveWebAdminAccess = o.WebAdminPassword != null,
+                    Id = o.ID
+                });
         }
     }
 }
