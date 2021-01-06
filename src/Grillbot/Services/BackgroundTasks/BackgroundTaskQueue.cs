@@ -57,6 +57,11 @@ namespace Grillbot.Services.BackgroundTasks
                 .FirstOrDefault(o => o.Value is TBackgroundTask task && selector(task)).Value;
         }
 
+        public bool Exists<TBackgroundTask>(Func<TBackgroundTask, bool> selector) where TBackgroundTask : BackgroundTask
+        {
+            return Tasks.Any(o => o.Value is TBackgroundTask task && selector(task));
+        }
+
         public List<BackgroundTaskQueueGroup> GetStatus()
         {
             var groups = Tasks

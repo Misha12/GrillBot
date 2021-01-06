@@ -1,5 +1,8 @@
+using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Infrastructure;
 using Grillbot.Services.Audit;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -33,7 +36,9 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("GuildMemberUpdated");
 
             using var scope = Provider.CreateScope();
+
             await scope.ServiceProvider.GetService<AuditService>().ProcessBoostChangeAsync(guildUserBefore, guildUserAfter);
+            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLogIfNotExists(ActionType.MemberUpdated, guildUserAfter.Guild, 60);
 
             LastEventAt = DateTime.UtcNow;
         }

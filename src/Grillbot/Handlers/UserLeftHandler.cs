@@ -1,5 +1,8 @@
+using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Infrastructure;
 using Grillbot.Services.Audit;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Grillbot.Services.Unverify;
@@ -27,8 +30,10 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("UserLeft");
 
             using var scope = Provider.CreateScope();
+
             await scope.ServiceProvider.GetService<UnverifyService>().OnUserLeftGuildAsync(user);
             await scope.ServiceProvider.GetService<AuditService>().LogUserLeftAsync(user);
+            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLogIfNotExists(ActionType.Prune, user.Guild, 60);
         }
 
         public void Dispose()

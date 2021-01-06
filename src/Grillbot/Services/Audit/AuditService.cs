@@ -368,26 +368,20 @@ namespace Grillbot.Services.Audit
 
         public bool CanScheduleTask(DateTime lastScheduleAt)
         {
-            return (DateTime.Now - lastScheduleAt).TotalMinutes >= 10.0D; // Every 10 minutes
+            return (DateTime.Now - lastScheduleAt).TotalMinutes >= 30.0D; // Every 30 minutes
         }
 
         public List<BackgroundTask> GetBackgroundTasks()
         {
             var types = new[]
             {
-                ActionType.GuildUpdated,
                 ActionType.EmojiCreated,
                 ActionType.EmojiDeleted,
                 ActionType.EmojiUpdated,
                 ActionType.OverwriteCreated,
                 ActionType.OverwriteDeleted,
                 ActionType.OverwriteUpdated,
-                ActionType.Prune,
-                ActionType.MemberUpdated,
                 ActionType.MemberRoleUpdated,
-                ActionType.RoleCreated,
-                ActionType.RoleDeleted,
-                ActionType.RoleUpdated,
                 ActionType.WebhookCreated,
                 ActionType.WebhookDeleted,
                 ActionType.WebhookUpdated,
