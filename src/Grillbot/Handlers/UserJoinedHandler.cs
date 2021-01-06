@@ -1,7 +1,11 @@
 using System;
 using System.Threading.Tasks;
+using Discord;
 using Discord.WebSocket;
+using Grillbot.Extensions.Discord;
+using Grillbot.Extensions.Infrastructure;
 using Grillbot.Services.Audit;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.InviteTracker;
 using Grillbot.Services.Statistics;
@@ -31,6 +35,9 @@ namespace Grillbot.Handlers
 
             await scope.ServiceProvider.GetService<AuditService>().LogUserJoinAsync(user);
             await scope.ServiceProvider.GetService<InviteTrackerService>().OnUserJoinedAsync(user);
+
+            if (!user.IsUser())
+                scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLog(ActionType.BotAdded, user.Guild);
         }
 
         #region IDisposable Support

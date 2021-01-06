@@ -388,7 +388,6 @@ namespace Grillbot.Services.Audit
                 ActionType.Prune,
                 ActionType.MemberUpdated,
                 ActionType.MemberRoleUpdated,
-                ActionType.BotAdded,
                 ActionType.RoleCreated,
                 ActionType.RoleDeleted,
                 ActionType.RoleUpdated,
