@@ -1,6 +1,7 @@
 using Discord;
 using Discord.WebSocket;
-using Grillbot.Services.Audit;
+using Grillbot.Extensions.Infrastructure;
+using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
@@ -34,9 +35,8 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("UserUnbanned");
 
             using var scope = ServiceProvider.CreateScope();
-            var auditService = scope.ServiceProvider.GetService<AuditService>();
 
-            await auditService.RunTaskAsync(ActionType.Unban, guild);
+            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLog(ActionType.Unban, guild);
         }
 
         public void Dispose()
