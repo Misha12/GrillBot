@@ -65,7 +65,7 @@ namespace Grillbot.Services.Audit
 
         public async Task LogUserLeftAsync(SocketGuildUser user)
         {
-            if (user == null)
+            if (user == null || user.Id == Client.CurrentUser.Id) // User is unknown or self.
                 return;
 
             var ban = await user.Guild.FindBanAsync(user);
@@ -376,9 +376,6 @@ namespace Grillbot.Services.Audit
             var types = new[]
             {
                 ActionType.GuildUpdated,
-                ActionType.ChannelCreated,
-                ActionType.ChannelDeleted,
-                ActionType.ChannelUpdated,
                 ActionType.EmojiCreated,
                 ActionType.EmojiDeleted,
                 ActionType.EmojiUpdated,
