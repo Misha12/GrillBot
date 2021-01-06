@@ -14,7 +14,7 @@ using Grillbot.Services.UserManagement;
 
 namespace Grillbot.Handlers
 {
-    public class MessageReceivedHandler : IInitiable, IDisposable
+    public class MessageReceivedHandler : IInitiable, IDisposable, IHandler
     {
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }

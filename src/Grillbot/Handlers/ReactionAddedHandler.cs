@@ -12,7 +12,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class ReactionAddedHandler : IDisposable, IInitiable
+    public class ReactionAddedHandler : IDisposable, IInitiable, IHandler
     {
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }

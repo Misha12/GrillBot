@@ -15,7 +15,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class CommandExecutedHandler : IInitiable, IDisposable
+    public class CommandExecutedHandler : IInitiable, IDisposable, IHandler
     {
         private CommandService CommandService { get; }
         private IServiceProvider Services { get; }

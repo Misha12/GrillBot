@@ -8,7 +8,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class GuildMemberUpdatedHandler : IInitiable, IDisposable
+    public class GuildMemberUpdatedHandler : IInitiable, IDisposable, IHandler
     {
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }

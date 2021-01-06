@@ -10,7 +10,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class UnbanHandler : IInitiable, IDisposable
+    public class UnbanHandler : IInitiable, IDisposable, IHandler
     {
         private DiscordSocketClient DiscordClient { get; }
         private InternalStatistics InternalStatistics { get; }

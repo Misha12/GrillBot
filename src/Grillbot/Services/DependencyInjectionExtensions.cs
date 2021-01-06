@@ -23,6 +23,8 @@ using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
+using System.Linq;
+using System.Reflection;
 
 namespace Grillbot.Services
 {
@@ -93,17 +95,14 @@ namespace Grillbot.Services
 
         public static IServiceCollection AddHandlers(this IServiceCollection services)
         {
-            services
-                .AddSingleton<GuildMemberUpdatedHandler>()
-                .AddSingleton<MessageDeletedHandler>()
-                .AddSingleton<MessageEditedHandler>()
-                .AddSingleton<MessageReceivedHandler>()
-                .AddSingleton<ReactionAddedHandler>()
-                .AddSingleton<ReactionRemovedHandler>()
-                .AddSingleton<UserJoinedHandler>()
-                .AddSingleton<UserLeftHandler>()
-                .AddSingleton<CommandExecutedHandler>()
-                .AddSingleton<UnbanHandler>();
+            var handlers = Assembly.GetExecutingAssembly().GetTypes()
+                .Where(o => o.GetInterface(typeof(IHandler).FullName) != null)
+                .ToList();
+
+            foreach(var handler in handlers)
+            {
+                services.AddSingleton(handler);
+            }
 
             return services;
         }

@@ -13,7 +13,7 @@ using Microsoft.Extensions.DependencyInjection;
 
 namespace Grillbot.Handlers
 {
-    public class MessageDeletedHandler : IDisposable, IInitiable
+    public class MessageDeletedHandler : IDisposable, IInitiable, IHandler
     {
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }

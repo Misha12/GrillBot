@@ -9,7 +9,7 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Handlers
 {
-    public class UserLeftHandler : IInitiable, IDisposable
+    public class UserLeftHandler : IInitiable, IDisposable, IHandler
     {
         private DiscordSocketClient Client { get; }
         private InternalStatistics InternalStatistics { get; }
