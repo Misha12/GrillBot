@@ -25,7 +25,7 @@ namespace Grillbot.Handlers
             if (after is not SocketGuildChannel ch) return;
 
             using var scope = Provider.CreateScope();
-            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLog(ActionType.ChannelUpdated, ch.Guild);
+            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLogIfNotExists(ActionType.ChannelUpdated, ch.Guild, 120);
         }
 
         public void Init()
