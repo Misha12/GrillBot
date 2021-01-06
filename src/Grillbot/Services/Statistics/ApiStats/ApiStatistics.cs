@@ -52,6 +52,7 @@ namespace Grillbot.Services.Statistics.ApiStats
 
                 isMatch = true;
                 ProcessMatch(item, time);
+                break;
             }
 
             if (!isMatch)
