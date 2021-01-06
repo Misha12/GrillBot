@@ -84,30 +84,18 @@ namespace Grillbot.Modules
 
             foreach (var guildChannel in channels)
             {
-                uint userPerms = 0;
-                uint modPerms = 0;
-
                 foreach (var user in Context.Guild.Users)
                 {
                     var perm = guildChannel.GetPermissionOverwrite(user);
 
                     if (perm != null)
                     {
-                        userPerms++;
+                        totalUserPermsCount++;
 
                         if (user.GuildPermissions.Administrator)
-                            modPerms++;
+                            totalModPermsCount++;
                     }
                 }
-
-                if (userPerms + modPerms > 0)
-                {
-                    var type = guildChannel.GetType().Name.Replace("Socket", "").Replace("Channel", "");
-                    await ReplyAsync($"> `{guildChannel.Name} ({type})`: **{userPerms.FormatWithSpaces()}** z toho zbytečných (moderátorů): **{modPerms.FormatWithSpaces()}**.");
-                }
-
-                totalUserPermsCount += userPerms;
-                totalModPermsCount += modPerms;
             }
 
             await ReplyAsync($"Výpočet práv dokončen.\nCelkem oprávnění: **{totalUserPermsCount.FormatWithSpaces()}** z toho moderátorských: **{totalModPermsCount.FormatWithSpaces()}**");
@@ -115,11 +103,11 @@ namespace Grillbot.Modules
 
         [Command("clear_perms")]
         [Summary("Smaže všechny uživatelské oprávnění v kanálu.")]
-        public async Task ClearPermsAsync(bool onlyMod)
+        public async Task ClearPermsAsync(bool onlyMod, IGuildChannel guildChannel = null)
         {
             await Context.Guild.SyncGuildAsync();
 
-            foreach(var channel in Context.Guild.Channels)
+            foreach (var channel in Context.Guild.Channels.Where(o => guildChannel == null || o.Id == guildChannel.Id))
             {
                 foreach (var user in Context.Guild.Users.Where(o => !onlyMod || o.GuildPermissions.Administrator))
                 {
