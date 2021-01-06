@@ -4,6 +4,7 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -65,6 +66,74 @@ namespace Grillbot.Modules
         {
             await Context.Guild.SyncGuildAsync();
             await ReplyAsync("Synchronizace úspěšně dokončena.");
+        }
+
+        [Command("calc_perms")]
+        [Summary("Spočítá počet oprávnění v kanálu/na serveru.")]
+        public async Task CalcPermsAsync(IGuildChannel channel = null)
+        {
+            await ReplyAsync("Probíhá výpočet oprávnění. Tato operace může několik minut trvat.");
+
+            await Context.Guild.SyncGuildAsync();
+            var channels = new List<IGuildChannel>();
+            if (channel == null) channels.AddRange(Context.Guild.Channels);
+            else channels.Add(channel);
+
+            uint totalUserPermsCount = 0;
+            uint totalModPermsCount = 0;
+
+            foreach (var guildChannel in channels)
+            {
+                uint userPerms = 0;
+                uint modPerms = 0;
+
+                foreach (var user in Context.Guild.Users)
+                {
+                    var perm = guildChannel.GetPermissionOverwrite(user);
+
+                    if (perm != null)
+                    {
+                        userPerms++;
+
+                        if (user.GuildPermissions.Administrator)
+                            modPerms++;
+                    }
+                }
+
+                if (userPerms + modPerms > 0)
+                {
+                    var type = guildChannel.GetType().Name.Replace("Socket", "").Replace("Channel", "");
+                    await ReplyAsync($"> `{guildChannel.Name} ({type})`: **{userPerms.FormatWithSpaces()}** z toho zbytečných (moderátorů): **{modPerms.FormatWithSpaces()}**.");
+                }
+
+                totalUserPermsCount += userPerms;
+                totalModPermsCount += modPerms;
+            }
+
+            await ReplyAsync($"Výpočet práv dokončen.\nCelkem oprávnění: **{totalUserPermsCount.FormatWithSpaces()}** z toho moderátorských: **{totalModPermsCount.FormatWithSpaces()}**");
+        }
+
+        [Command("clear_perms")]
+        [Summary("Smaže všechny uživatelské oprávnění v kanálu.")]
+        public async Task ClearPermsAsync(bool onlyMod)
+        {
+            await Context.Guild.SyncGuildAsync();
+
+            foreach(var channel in Context.Guild.Channels)
+            {
+                foreach (var user in Context.Guild.Users.Where(o => !onlyMod || o.GuildPermissions.Administrator))
+                {
+                    var perm = channel.GetPermissionOverwrite(user);
+
+                    if (perm != null)
+                    {
+                        await channel.RemovePermissionOverwriteAsync(user);
+                        await ReplyAsync($"Smazáno oprávnění z kanálu `{channel}` pro uživatele {user.GetFullName()}");
+                    }
+                }
+            }
+
+            await ReplyAsync("Úklid oprávnění v kanálu dokončeno.");
         }
     }
 }
