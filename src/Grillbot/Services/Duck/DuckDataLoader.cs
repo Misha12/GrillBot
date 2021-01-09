@@ -23,7 +23,7 @@ namespace Grillbot.Services.Duck
             JsonSerializer = new JsonSerializer();
         }
 
-        public async Task<CurrentState> GetDuckCurrentState(DuckConfig duckConfig)
+        public async Task<CurrentState> GetDuckCurrentStateAsync(DuckConfig duckConfig)
         {
             try
             {

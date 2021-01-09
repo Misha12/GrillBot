@@ -6,9 +6,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed;
-using System;
 using System.Collections.Generic;
-using System.Drawing.Imaging;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -113,7 +111,7 @@ namespace Grillbot.Modules
             await ReplyAsync($"Výpočet práv dokončen.\nCelkem oprávnění: **{totalPermsCount.FormatWithSpaces()}**.");
         }
 
-        [Command("ClearPerms")]
+        [Command("clearPerms")]
         [Summary("Smaže všechny uživatelské oprávnění v kanálu.")]
         public async Task ClearPermsAsync(bool onlyMod, IGuildChannel guildChannel = null)
         {
@@ -141,7 +139,7 @@ namespace Grillbot.Modules
             await ReplyAsync("Úklid oprávnění v kanálu dokončeno.");
         }
 
-        [Command("ClearReact")]
+        [Command("clearReact")]
         [Summary("Smaže všechny reakce pro emote.")]
         public async Task ClearReactAsync(SocketTextChannel channel, ulong messageId, string react)
         {

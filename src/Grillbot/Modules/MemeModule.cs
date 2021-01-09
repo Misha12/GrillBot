@@ -7,6 +7,9 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Enums;
 using System;
 using System.Linq;
+using Grillbot.Services.Duck;
+using Microsoft.Extensions.DependencyInjection;
+using System.Net;
 
 namespace Grillbot.Modules
 {
@@ -128,6 +131,28 @@ namespace Grillbot.Modules
         private string ConvertToBinOrHexa(string message, int @base)
         {
             return string.Join(" ", message.Select(o => Convert.ToString(o, @base)));
+        }
+
+        [Command("kachna", true)]
+        [Alias("duck")]
+        [Summary("Zjištění aktuálního stavu kachny.")]
+        public async Task GetDuckInfoAsync()
+        {
+            try
+            {
+                using var duckLoader = GetService<DuckDataLoader>();
+                var duckRenderer = duckLoader.Scope.ServiceProvider.GetService<DuckEmbedRenderer>();
+
+                var config = await GetMethodConfigAsync<DuckConfig>("kachna", null);
+                var duckData = await duckLoader.Service.GetDuckCurrentStateAsync(config);
+
+                var embed = duckRenderer.RenderEmbed(duckData, Context.User, config);
+                await ReplyAsync(embed: embed.Build());
+            }
+            catch(WebException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }
