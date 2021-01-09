@@ -10,7 +10,6 @@ ENV DOTNET_PRINT_TELEMETRY_MESSAGE=false
 FROM mcr.microsoft.com/dotnet/sdk:5.0-buster-slim AS build
 COPY . .
 RUN dotnet nuget add source -n "MyGet_DiscordNET_Prerelease" https://www.myget.org/F/discord-net/api/v3/index.json
-RUN dotnet build "/src/Grillbot/Grillbot.csproj" -c Release -o /app/build
 
 FROM build AS publish
 RUN dotnet publish "/src/Grillbot/Grillbot.csproj" -c Release -o /app/publish
