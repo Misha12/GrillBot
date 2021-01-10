@@ -73,7 +73,7 @@ namespace Grillbot.Models.Audit
                     item.ChannelUpdated = JsonConvert.DeserializeObject<AuditChannelUpdated>(dbItem.JsonData);
                     break;
                 case AuditLogType.Command:
-                    item.CommandAuditData = JsonConvert.DeserializeObject<CommandAuditData>(dbItem.JsonData).GetFilledModel(guild);
+                    item.CommandAuditData = JsonConvert.DeserializeObject<CommandAuditData>(dbItem.JsonData);
                     break;
                 case AuditLogType.EmojiCreated:
                 case AuditLogType.EmojiDeleted:

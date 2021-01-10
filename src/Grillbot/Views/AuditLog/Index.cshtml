@@ -135,6 +135,14 @@
                                     <div class="col-4 font-weight-bold">Zapsáno:</div>
                                     <div class="col">@item.CreatedAt.ToLocaleDatetime()</div>
                                 </div>
+
+                                @if(item.Channel != null)
+                                {
+                                    <div class="row">
+                                        <div class="col-4 font-weight-bold">Kanál:</div>
+                                        <div class="col">#@item.Channel.Name</div>
+                                    </div>
+                                }
                             </div>
 
                             @if (item.User != null)

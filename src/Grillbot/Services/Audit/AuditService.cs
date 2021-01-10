@@ -55,7 +55,8 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.Command,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = context.Guild.Id,
-                UserId = userId
+                UserId = userId,
+                ChannelIdSnowflake = context.Channel.Id
             };
 
             entity.SetData(CommandAuditData.CreateDbItem(context, command.Value));
