@@ -19,15 +19,15 @@ namespace Grillbot.Services.UserManagement
         private IGrillBotRepository GrillBotRepository { get; }
         private DiscordSocketClient DiscordClient { get; }
         private BotState BotState { get; }
-        private UserSearchService UserSearchService { get; }
+        private SearchService SearchService { get; }
 
         public UserService(IGrillBotRepository grillBotRepository, DiscordSocketClient client, BotState botState,
-            UserSearchService userSearchService)
+            SearchService searchService)
         {
             GrillBotRepository = grillBotRepository;
             DiscordClient = client;
             BotState = botState;
-            UserSearchService = userSearchService;
+            SearchService = searchService;
         }
 
         /// <summary>
@@ -48,7 +48,7 @@ namespace Grillbot.Services.UserManagement
         /// </summary>
         public async Task<DiscordUser> GetUserAsync(SocketGuild guild, SocketUser user)
         {
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
             if (userId == null)
                 return null;
@@ -105,7 +105,7 @@ namespace Grillbot.Services.UserManagement
             if (guild == null)
                 return new PaginationInfo();
 
-            var users = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
+            var users = await SearchService.FindUsersAsync(guild, filter.UserQuery);
             var queryFilter = filter.CreateQueryFilter(guild, users);
             var totalCount = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, UsersIncludes.None).CountAsync();
 
@@ -123,7 +123,7 @@ namespace Grillbot.Services.UserManagement
             if (guild == null)
                 return new List<DiscordUser>();
 
-            var users = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
+            var users = await SearchService.FindUsersAsync(guild, filter.UserQuery);
             var queryFilter = filter.CreateQueryFilter(guild, users);
             var dbUsers = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, UsersIncludes.None)
                 .Skip((filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize).Take(PaginationInfo.DefaultPageSize)

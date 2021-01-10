@@ -11,12 +11,12 @@ namespace Grillbot.Services.Unverify
 {
     public class UnverifyChecker
     {
-        private UserSearchService UserSearchService { get; }
+        private SearchService SearchService { get; }
         private IGrillBotRepository GrillBotRepository { get; }
 
-        public UnverifyChecker(UserSearchService searchService, IGrillBotRepository grillBotRepository)
+        public UnverifyChecker(SearchService searchService, IGrillBotRepository grillBotRepository)
         {
-            UserSearchService = searchService;
+            SearchService = searchService;
             GrillBotRepository = grillBotRepository;
         }
 
@@ -65,7 +65,7 @@ namespace Grillbot.Services.Unverify
 
         private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
-            var userID = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
+            var userID = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
             var haveUnverify = await GrillBotRepository.UnverifyRepository.HaveUnverifyAsync(userID.Value);
 
             if (haveUnverify)

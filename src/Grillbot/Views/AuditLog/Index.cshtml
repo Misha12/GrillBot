@@ -29,7 +29,7 @@
                 </div>
 
                 <div class="col-md-4 mb-0">
-                    <label for="Filter.FromUserQuery">Uživatelské jméno</label>
+                    <label for="Filter.UserQuery">Uživatelské jméno</label>
                     <input class="form-control" asp-for="Filter.UserQuery" />
                 </div>
 
@@ -79,10 +79,8 @@
                 </div>
 
                 <div class="col-md-4">
-                    <div class="custom-control custom-checkbox mt-4">
-                        <input type="checkbox" class="custom-control-input" id="ignorebots" asp-for="Filter.IgnoreBots">
-                        <label class="custom-control-label" for="ignorebots">Vynechat operace provedené boty</label>
-                    </div>
+                    <label for="Filter.ChannelsQuery">Kanál</label>
+                    <input type="text" class="form-control" asp-for="Filter.ChannelsQuery" />
                 </div>
 
                 <div class="col-md-4 mb-3">
@@ -93,6 +91,11 @@
 
             <div class="form-row">
                 <div class="col-md-12">
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="ignorebots" asp-for="Filter.IgnoreBots">
+                        <label class="custom-control-label" for="ignorebots">Vynechat operace provedené boty</label>
+                    </div>
+
                     <div class="custom-control custom-checkbox">
                         <input type="checkbox" class="custom-control-input" id="sortdesc" asp-for="Filter.SortDesc">
                         <label class="custom-control-label" for="sortdesc">Sestupně</label>

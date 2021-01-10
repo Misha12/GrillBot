@@ -72,6 +72,16 @@ namespace Grillbot.Database.Entity.AuditLog
         public AuditLogType Type { get; set; }
         public ISet<File> Files { get; set; }
 
+        [StringLength(30)]
+        public string ChannelId { get; set; }
+
+        [NotMapped]
+        public ulong? ChannelIdSnowflake
+        {
+            get => string.IsNullOrEmpty(ChannelId) ? null : Convert.ToUInt64(ChannelId);
+            set => ChannelId = value?.ToString();
+        }
+
         public AuditLogItem()
         {
             Files = new HashSet<File>();

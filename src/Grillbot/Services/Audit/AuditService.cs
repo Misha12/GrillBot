@@ -26,17 +26,17 @@ namespace Grillbot.Services.Audit
     public class AuditService : IBackgroundTaskObserver, IBackgroundTaskScheduleable
     {
         private IGrillBotRepository GrillBotRepository { get; }
-        private UserSearchService UserSearchService { get; }
+        private SearchService SearchService { get; }
         private DiscordSocketClient Client { get; }
         private BotState BotState { get; }
         private IMessageCache MessageCache { get; }
         private ConfigurationService ConfigurationService { get; }
 
-        public AuditService(IGrillBotRepository grillBotRepository, UserSearchService userSearchService, DiscordSocketClient client, BotState botState,
+        public AuditService(IGrillBotRepository grillBotRepository, SearchService searchService, DiscordSocketClient client, BotState botState,
             IMessageCache messageCache, ConfigurationService configurationService)
         {
             GrillBotRepository = grillBotRepository;
-            UserSearchService = userSearchService;
+            SearchService = searchService;
             Client = client;
             BotState = botState;
             MessageCache = messageCache;
@@ -48,7 +48,7 @@ namespace Grillbot.Services.Audit
             if (context.Guild == null || !command.IsSpecified)
                 return;
 
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(context.Guild, context.User);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(context.Guild, context.User);
 
             var entity = new AuditLogItem()
             {
@@ -84,7 +84,7 @@ namespace Grillbot.Services.Audit
 
             long? executor = null;
             if (dcAuditLogItem != null)
-                executor = await UserSearchService.GetUserIDFromDiscordUserAsync(user.Guild, dcAuditLogItem.User);
+                executor = await SearchService.GetUserIDFromDiscordUserAsync(user.Guild, dcAuditLogItem.User);
 
             var entity = new AuditLogItem()
             {
@@ -125,7 +125,7 @@ namespace Grillbot.Services.Audit
             var oldMessage = before.HasValue ? before.Value : MessageCache.Get(before.Id);
             if (!IsMessageEdited(oldMessage, after)) return;
 
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, after.Author);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, after.Author);
 
             var entity = new AuditLogItem()
             {
@@ -181,7 +181,7 @@ namespace Grillbot.Services.Audit
                 return data.Target.Id == message.Author.Id && data.ChannelId == channel.Id;
             });
 
-            entity.UserId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, auditLog?.User ?? message.Author);
+            entity.UserId = await SearchService.GetUserIDFromDiscordUserAsync(guild, auditLog?.User ?? message.Author);
 
             if (message.Attachments.Count > 0)
             {
@@ -275,11 +275,13 @@ namespace Grillbot.Services.Audit
 
         private async Task<AuditLogQueryFilter> CreateQueryFilterAsync(LogsFilter filter, SocketGuild guild)
         {
-            var users = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = users != null ? (await UserSearchService.ConvertUsersToIDsAsync(users)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o) : null;
+            var users = await SearchService.FindUsersAsync(guild, filter.UserQuery);
+            var userIds = users != null ? (await SearchService.ConvertUsersToIDsAsync(users)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o) : null;
 
             var botAccounts = filter.IgnoreBots ? await guild.GetBotsAsync() : new List<SocketGuildUser>();
-            var botAccountIds = (await UserSearchService.ConvertUsersToIDsAsync(botAccounts)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
+            var botAccountIds = (await SearchService.ConvertUsersToIDsAsync(botAccounts)).Select(o => o.Value).Where(o => o != null).Select(o => (long)o);
+
+            var channelIds = (await SearchService.FindChannelsAsync(guild, filter.ChannelsQuery))?.Select(o => o.Id);
 
             if (filter.Page < 0)
                 filter.Page = 0;
@@ -296,7 +298,8 @@ namespace Grillbot.Services.Audit
                 To = filter.To,
                 Types = types.ToArray(),
                 UserIds = userIds?.ToList(),
-                IgnoredIds = botAccountIds.ToList()
+                IgnoredIds = botAccountIds.ToList(),
+                ChannelIds = channelIds?.ToList()
             };
         }
 
@@ -409,7 +412,7 @@ namespace Grillbot.Services.Audit
 
         private async Task<long> GetOrCreateUserId(SocketGuild guild, IUser user)
         {
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
             if (userId != null)
                 return userId.Value;

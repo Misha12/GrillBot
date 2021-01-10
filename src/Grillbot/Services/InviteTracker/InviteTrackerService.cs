@@ -27,17 +27,17 @@ namespace Grillbot.Services.InviteTracker
         private BotState BotState { get; }
         private ILogger<InviteTrackerService> Logger { get; }
         private ConfigurationService ConfigurationService { get; }
-        private UserSearchService UserSearchService { get; }
+        private SearchService SearchService { get; }
         private IGrillBotRepository GrillBotRepository { get; }
 
         public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger,
-            ConfigurationService configurationService, UserSearchService userSearchService, IGrillBotRepository grillBotRepository)
+            ConfigurationService configurationService, SearchService searchService, IGrillBotRepository grillBotRepository)
         {
             Discord = discord;
             BotState = botState;
             Logger = logger;
             ConfigurationService = configurationService;
-            UserSearchService = userSearchService;
+            SearchService = searchService;
             GrillBotRepository = grillBotRepository;
         }
 
@@ -266,8 +266,8 @@ namespace Grillbot.Services.InviteTracker
         private async Task<IQueryable<Invite>> GetInvitesQueryAsync(InvitesListFilter filter)
         {
             var guild = Discord.GetGuild(filter.GuildID);
-            var usersFromQuery = await UserSearchService.FindUsersAsync(guild, filter.UserQuery);
-            var userIds = usersFromQuery != null ? (await UserSearchService.ConvertUsersToIDsAsync(usersFromQuery)).Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList() : null;
+            var usersFromQuery = await SearchService.FindUsersAsync(guild, filter.UserQuery);
+            var userIds = usersFromQuery != null ? (await SearchService.ConvertUsersToIDsAsync(usersFromQuery)).Select(o => o.Value).Where(o => o != null).Select(o => o.Value).ToList() : null;
 
             return GrillBotRepository.InviteRepository.GetInvitesQuery(filter.GuildID, filter.CreatedFrom, filter.CreatedTo, userIds, filter.Desc);
         }

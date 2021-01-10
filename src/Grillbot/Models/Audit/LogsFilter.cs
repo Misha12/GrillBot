@@ -15,6 +15,7 @@ namespace Grillbot.Models.Audit
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
         public bool IgnoreBots { get; set; }
+        public string ChannelsQuery { get; set; }
 
         public IEnumerable<AuditLogType> GetSelectedTypes()
         {

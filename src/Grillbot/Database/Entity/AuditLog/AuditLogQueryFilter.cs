@@ -16,6 +16,7 @@ namespace Grillbot.Database.Entity.AuditLog
         public DateTime? From { get; set; }
         public DateTime? To { get; set; }
         public List<long> IgnoredIds { get; set; }
+        public List<ulong> ChannelIds { get; set; }
 
         public IQueryable<AuditLogItem> GetDbQuery(IQueryable<AuditLogItem> query)
         {
@@ -35,6 +36,12 @@ namespace Grillbot.Database.Entity.AuditLog
 
             if (IgnoredIds?.Count > 0)
                 query = query.Where(o => !IgnoredIds.Contains(o.UserId.Value));
+
+            if(ChannelIds != null)
+            {
+                var channels = ChannelIds.Select(o => o.ToString()).ToArray();
+                query = query.Where(o => channels.Contains(o.ChannelId));
+            }
 
             if (SortDesc)
                 return query.OrderByDescending(o => o.CreatedAt).ThenByDescending(o => o.Id);

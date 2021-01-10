@@ -1,3 +1,4 @@
+using Discord;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Enums;
@@ -19,6 +20,7 @@ namespace Grillbot.Models.Audit
         public DateTime CreatedAt { get; set; }
         public AuditLogType Type { get; set; }
         public List<string> AttachmentNames { get; set; }
+        public IGuildChannel Channel { get; set; }
 
         #region Typed properties
 
@@ -54,10 +56,11 @@ namespace Grillbot.Models.Audit
                 Id = dbItem.Id,
                 Type = dbItem.Type,
                 User = user,
-                AttachmentNames = dbItem.Files.Select(o => o.Filename).ToList()
+                AttachmentNames = dbItem.Files.Select(o => o.Filename).ToList(),
+                Channel = dbItem.ChannelIdSnowflake != null ? guild.GetChannel(dbItem.ChannelIdSnowflake.Value) : null
             };
 
-            switch(dbItem.Type)
+            switch (dbItem.Type)
             {
                 case AuditLogType.BotAdded:
                     item.BotAdded = JsonConvert.DeserializeObject<AuditBotAdded>(dbItem.JsonData);

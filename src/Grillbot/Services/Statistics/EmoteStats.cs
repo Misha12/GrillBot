@@ -22,12 +22,12 @@ namespace Grillbot.Services.Statistics
     public class EmoteStats
     {
         private IGrillBotRepository GrillBotRepository { get; }
-        private UserSearchService UserSearchService { get; }
+        private SearchService SearchService { get; }
 
-        public EmoteStats(IGrillBotRepository grillBotRepository, UserSearchService userSearchService)
+        public EmoteStats(IGrillBotRepository grillBotRepository, SearchService searchService)
         {
             GrillBotRepository = grillBotRepository;
-            UserSearchService = userSearchService;
+            SearchService = searchService;
         }
 
         public async Task AnylyzeMessageAndIncrementValuesAsync(SocketCommandContext context)
@@ -213,7 +213,7 @@ namespace Grillbot.Services.Statistics
 
         public async Task<List<EmoteStatItem>> GetEmoteStatsForUserAsync(SocketGuild guild, Discord.IUser user, bool desc)
         {
-            var userId = await UserSearchService.GetUserIDFromDiscordUserAsync(guild, user);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
             if (userId == null)
                 return new List<EmoteStatItem>();

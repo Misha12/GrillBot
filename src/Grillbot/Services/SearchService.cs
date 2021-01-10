@@ -9,12 +9,12 @@ using System.Threading.Tasks;
 
 namespace Grillbot.Services
 {
-    public class UserSearchService
+    public class SearchService
     {
         private BotState BotState { get; }
         private IGrillBotRepository GrillBotRepository { get; }
 
-        public UserSearchService(BotState botState, IGrillBotRepository grillBotRepository)
+        public SearchService(BotState botState, IGrillBotRepository grillBotRepository)
         {
             BotState = botState;
             GrillBotRepository = grillBotRepository;
@@ -27,7 +27,7 @@ namespace Grillbot.Services
 
             await guild.SyncGuildAsync();
 
-            if (query.Equals("*", StringComparison.InvariantCultureIgnoreCase))
+            if (IsAllWildcard(query))
                 return guild.Users.ToList();
 
             return guild.Users.Where(o => IsValidUserWithQuery(o, query)).ToList();
@@ -57,7 +57,7 @@ namespace Grillbot.Services
             return id;
         }
 
-        public async Task<Dictionary<SocketGuildUser, long?>> ConvertUsersToIDsAsync(List<SocketGuildUser> users)
+        public async Task<Dictionary<SocketGuildUser, long?>> ConvertUsersToIDsAsync(IEnumerable<SocketGuildUser> users)
         {
             if (users == null)
                 return null;
@@ -71,6 +71,25 @@ namespace Grillbot.Services
             }
 
             return result;
+        }
+
+        public async Task<IEnumerable<SocketGuildChannel>> FindChannelsAsync(SocketGuild guild, string query)
+        {
+            if (string.IsNullOrEmpty(query))
+                return null;
+
+            await guild.SyncGuildAsync();
+            var channelsQuery = guild.Channels.Where(o => o is SocketTextChannel || o is SocketVoiceChannel);
+
+            if (IsAllWildcard(query))
+                return channelsQuery;
+
+            return channelsQuery.Where(o => o.Name.Contains(query));
+        }
+
+        private bool IsAllWildcard(string query)
+        {
+            return query.Equals("*", StringComparison.InvariantCultureIgnoreCase);
         }
     }
 }

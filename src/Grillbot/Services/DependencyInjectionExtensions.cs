@@ -60,7 +60,7 @@ namespace Grillbot.Services
                 .AddScoped<UserMessagesService>()
                 .AddScoped<PointsService>()
                 .AddScoped<PointsRenderService>()
-                .AddScoped<UserSearchService>()
+                .AddScoped<SearchService>()
                 .AddScoped<BirthdayService>()
                 .AddScoped<AuditService>()
                 .AddScoped<FileManagerService>();

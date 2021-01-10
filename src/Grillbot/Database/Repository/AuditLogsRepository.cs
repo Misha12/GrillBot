@@ -42,7 +42,9 @@ namespace Grillbot.Database.Repository
                 JsonData = o.JsonData,
                 Type = o.Type,
                 UserId = o.UserId,
-                GuildIdSnowflake = o.GuildIdSnowflake
+                GuildIdSnowflake = o.GuildIdSnowflake,
+                ChannelIdSnowflake = o.ChannelIdSnowflake,
+                ChannelId = o.ChannelId
             });
         }
 

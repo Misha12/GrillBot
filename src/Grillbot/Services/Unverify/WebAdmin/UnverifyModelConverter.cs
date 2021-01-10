@@ -7,14 +7,14 @@ namespace Grillbot.Services.Unverify.WebAdmin
     public class UnverifyModelConverter
     {
         private DiscordSocketClient DiscordClient { get; }
-        private UserSearchService UserSearch { get; }
+        private SearchService UserSearch { get; }
 
         private const int PageSize = 10;
 
-        public UnverifyModelConverter(DiscordSocketClient discord, UserSearchService userSearchService)
+        public UnverifyModelConverter(DiscordSocketClient discord, SearchService searchService)
         {
             DiscordClient = discord;
-            UserSearch = userSearchService;
+            UserSearch = searchService;
         }
 
         public async Task<UnverifyAuditFilter> ConvertAuditFilter(UnverifyAuditFilterFormData formData)
