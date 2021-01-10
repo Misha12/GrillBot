@@ -133,10 +133,11 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.MessageEdited,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = guild.Id,
-                UserId = userId
+                UserId = userId,
+                ChannelIdSnowflake = channel.Id
             };
 
-            entity.SetData(MessageEditedAuditData.Create(channel, oldMessage, after));
+            entity.SetData(MessageEditedAuditData.Create(oldMessage, after));
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
 
