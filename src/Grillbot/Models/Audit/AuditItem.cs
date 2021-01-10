@@ -90,7 +90,7 @@ namespace Grillbot.Models.Audit
                     item.MemberUpdated = await JsonConvert.DeserializeObject<AuditMemberUpdated>(dbItem.JsonData).GetFilledModelAsync(guild);
                     break;
                 case AuditLogType.MessageDeleted:
-                    item.MessageDeletedAuditData = JsonConvert.DeserializeObject<MessageDeletedAuditData>(dbItem.JsonData).GetFilledModel(guild);
+                    item.MessageDeletedAuditData = JsonConvert.DeserializeObject<MessageDeletedAuditData>(dbItem.JsonData);
                     break;
                 case AuditLogType.MessageEdited:
                     item.MessageEditedAuditData = JsonConvert.DeserializeObject<MessageEditedAuditData>(dbItem.JsonData);

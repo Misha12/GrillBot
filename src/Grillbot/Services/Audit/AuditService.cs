@@ -158,10 +158,11 @@ namespace Grillbot.Services.Audit
                 Type = AuditLogType.MessageDeleted,
                 CreatedAt = DateTime.Now,
                 GuildIdSnowflake = guild.Id,
+                ChannelIdSnowflake = channel.Id
             };
 
             if (deletedMessage == null)
-                entity.SetData(MessageDeletedAuditData.Create(channel));
+                entity.SetData(MessageDeletedAuditData.Create());
             else
                 await ProcessMessageDeletedWithCacheAsync(entity, channel, deletedMessage, guild);
 
@@ -175,7 +176,7 @@ namespace Grillbot.Services.Audit
 
         private async Task ProcessMessageDeletedWithCacheAsync(AuditLogItem entity, ISocketMessageChannel channel, IMessage message, SocketGuild guild)
         {
-            entity.SetData(MessageDeletedAuditData.Create(channel, message));
+            entity.SetData(MessageDeletedAuditData.Create(message));
 
             var auditLog = (await guild.GetAuditLogDataAsync(actionType: ActionType.MessageDeleted)).Find(o =>
             {
@@ -213,14 +214,15 @@ namespace Grillbot.Services.Audit
             var boosterRoleIdValue = Convert.ToUInt64(boosterRoleId);
             var hasBefore = before.Roles.Any(o => o.Id == boosterRoleIdValue);
             var hasAfter = after.Roles.Any(o => o.Id == boosterRoleIdValue);
+            var boosterRole = after.Guild.GetRole(boosterRoleIdValue);
 
             if (!hasBefore && hasAfter)
-                await NotifyBoostChangeAsync(after, "Uživatel na serveru je nyní Server Booster.");
+                await NotifyBoostChangeAsync(after, "Uživatel na serveru je nyní Server Booster.", boosterRole);
             else if (hasBefore && !hasAfter)
-                await NotifyBoostChangeAsync(after, "Uživatel na serveru již není Server Booster.");
+                await NotifyBoostChangeAsync(after, "Uživatel na serveru již není Server Booster.", boosterRole);
         }
 
-        private async Task NotifyBoostChangeAsync(SocketGuildUser user, string message)
+        private async Task NotifyBoostChangeAsync(SocketGuildUser user, string message, SocketRole boosterRole)
         {
             var adminChannelId = ConfigurationService.GetValue(GlobalConfigItems.AdminChannel);
             if (string.IsNullOrEmpty(adminChannelId))
@@ -231,7 +233,7 @@ namespace Grillbot.Services.Audit
             if (channel == null)
                 return;
 
-            var embed = new BotEmbed(title: message, color: new Color(255, 0, 207))
+            var embed = new BotEmbed(title: message, color: boosterRole.Color)
                 .AddField("Uživatel", user?.ToString() ?? "Neznámý", false)
                 .WithThumbnail(user?.GetUserAvatarUrl())
                 .WithFooter($"UserId: {user?.Id ?? 0}", null);
