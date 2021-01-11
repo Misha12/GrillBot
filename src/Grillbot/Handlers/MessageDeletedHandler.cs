@@ -33,8 +33,8 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageDeletedAsync(Cacheable<IMessage, ulong> message, ISocketMessageChannel channel)
         {
-            InternalStatistics.IncrementEvent("MessageDeleted");
             if (channel is IPrivateChannel || (message.HasValue && !message.Value.Author.IsUser())) return;
+            InternalStatistics.IncrementEvent("MessageDeleted");
 
             SocketGuildUser user = null;
             if (message.HasValue && message.Value.Author is SocketGuildUser guildUser)
@@ -53,9 +53,7 @@ namespace Grillbot.Handlers
                 await scope.ServiceProvider.GetService<UserMessagesService>().DecrementMessageStats(user.Guild, user, channel);
 
             if (channel is SocketGuildChannel socketGuildChannel)
-            {
                 await scope.ServiceProvider.GetService<AuditService>().LogMessageDeletedAsync(message, channel, socketGuildChannel.Guild);
-            }
 
             PaginationService.DeleteEmbed(message.Id);
         }

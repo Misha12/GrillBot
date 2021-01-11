@@ -6,7 +6,7 @@ namespace Grillbot.Models.Audit
 {
     public class AuditChannelInfo : IAuditLogData
     {
-        [JsonProperty("id")]
+        [JsonIgnore]
         public ulong ChannelId { get; set; }
 
         [JsonProperty("name")]
@@ -26,9 +26,8 @@ namespace Grillbot.Models.Audit
 
         public AuditChannelInfo() { }
 
-        public AuditChannelInfo(ulong id, string name, ChannelType type, bool? isNsfw, int? slowmode, int? bitrate)
+        public AuditChannelInfo(string name, ChannelType type, bool? isNsfw, int? slowmode, int? bitrate)
         {
-            ChannelId = id;
             ChannelName = name;
             ChannelType = type;
             IsNsfw = isNsfw;
@@ -36,17 +35,23 @@ namespace Grillbot.Models.Audit
             Bitrate = bitrate;
         }
 
-        public AuditChannelInfo(ChannelCreateAuditLogData data) : this(data.ChannelId, data.ChannelName, data.ChannelType, data.IsNsfw, data.SlowModeInterval, data.Bitrate) { }
-        public AuditChannelInfo(ChannelDeleteAuditLogData data) : this(data.ChannelId, data.ChannelName, data.ChannelType, data.IsNsfw, data.SlowModeInterval, data.Bitrate) { }
+        public AuditChannelInfo(ChannelCreateAuditLogData data) : this(data.ChannelName, data.ChannelType, data.IsNsfw, data.SlowModeInterval, data.Bitrate) { }
+        public AuditChannelInfo(ChannelDeleteAuditLogData data) : this(data.ChannelName, data.ChannelType, data.IsNsfw, data.SlowModeInterval, data.Bitrate) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is ChannelCreateAuditLogData data)
-                return new AuditChannelInfo(data);
+                return new MappedAuditLogItem(data.ChannelId, new AuditChannelInfo(data));
             else if (entryData is ChannelDeleteAuditLogData deleteData)
-                return new AuditChannelInfo(deleteData);
+                return new MappedAuditLogItem(deleteData.ChannelId, new AuditChannelInfo(deleteData));
             else
                 return null;
+        }
+
+        public AuditChannelInfo GetFilledModel(ulong channelId)
+        {
+            ChannelId = channelId;
+            return this;
         }
     }
 }

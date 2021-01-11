@@ -9,15 +9,17 @@ namespace Grillbot.Models.Audit
         [JsonProperty("bot")]
         public AuditUserInfo Bot { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not BotAddAuditLogData data)
                 return null;
 
-            return new AuditBotAdded()
+            var botAddData = new AuditBotAdded()
             {
                 Bot = AuditUserInfo.Create(data.Target)
             };
+
+            return new MappedAuditLogItem(null, botAddData);
         }
     }
 }

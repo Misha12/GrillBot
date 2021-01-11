@@ -39,8 +39,8 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageReceivedAsync(SocketMessage message)
         {
-            InternalStatistics.IncrementEvent("MessageReceived");
             if (!TryParseMessage(message, out SocketUserMessage userMessage)) return;
+            InternalStatistics.IncrementEvent("MessageReceived");
 
             var context = new SocketCommandContext(Client, userMessage);
             if (context.IsPrivate) return;
@@ -74,10 +74,7 @@ namespace Grillbot.Handlers
         {
             socketUserMessage = null;
 
-            if (message is not SocketUserMessage userMessage)
-                return false;
-
-            if (!message.Author.IsUser())
+            if (message is not SocketUserMessage userMessage || !message.Author.IsUser())
                 return false;
 
             socketUserMessage = userMessage;

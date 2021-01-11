@@ -59,7 +59,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("embedable")]
         public DiffData<bool> IsEmbedable { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not GuildUpdateAuditLogData data)
                 return null;
@@ -79,13 +79,13 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 VerificationLevel = data.Before.VerificationLevel != data.After.VerificationLevel ? new DiffData<VerificationLevel?>(data.Before.VerificationLevel, data.After.VerificationLevel) : null
             };
 
-            if(data.Before.DefaultMessageNotifications != data.After.DefaultMessageNotifications)
+            if (data.Before.DefaultMessageNotifications != data.After.DefaultMessageNotifications)
                 item.DefaultMessageNotifications = new DiffData<DefaultMessageNotifications?>(data.Before.DefaultMessageNotifications, data.After.DefaultMessageNotifications);
 
             if (data.Before.ExplicitContentFilter != data.After.ExplicitContentFilter)
                 item.ExplicitContentFilter = new DiffData<ExplicitContentFilterLevel?>(data.Before.ExplicitContentFilter, data.After.ExplicitContentFilter);
 
-            return item;
+            return new MappedAuditLogItem(null, item);
         }
 
         public GuildUpdated GetFilledModel(SocketGuild guild)
@@ -114,7 +114,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 SystemChannel = new DiffData<IChannel>(oldSystemChannel, newSystemChannel);
             }
 
-            if(EmbedChannelId != null)
+            if (EmbedChannelId != null)
             {
                 var oldEmbedChannel = guild.GetChannel(EmbedChannelId.Before ?? 0);
                 var newEmbedChannel = guild.GetChannel(EmbedChannelId.After ?? 0);

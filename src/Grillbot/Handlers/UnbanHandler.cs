@@ -35,7 +35,6 @@ namespace Grillbot.Handlers
             InternalStatistics.IncrementEvent("UserUnbanned");
 
             using var scope = ServiceProvider.CreateScope();
-
             scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLog(ActionType.Unban, guild);
         }
 

@@ -16,16 +16,18 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("name")]
         public DiffData<string> Name { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not WebhookUpdateAuditLogData data)
                 return null;
 
-            return new WebhookUpdated()
+            var item = new WebhookUpdated()
             {
                 ChannelId = data.Before.ChannelId != data.After.ChannelId ? new DiffData<ulong>(data.Before.ChannelId ?? 0, data.After.ChannelId ?? 0) : null,
                 Name = data.Before.Name != data.After.Name ? new DiffData<string>(data.Before.Name, data.After.Name) : null
             };
+
+            return new MappedAuditLogItem(data.After.ChannelId, item);
         }
 
         public WebhookUpdated GetFilledModel(SocketGuild guild)

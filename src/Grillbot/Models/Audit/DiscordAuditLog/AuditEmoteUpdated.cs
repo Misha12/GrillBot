@@ -12,16 +12,18 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("name")]
         public DiffData<string> Name { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not EmoteUpdateAuditLogData data)
                 return null;
 
-            return new AuditEmoteUpdated()
+            var updateData = new AuditEmoteUpdated()
             {
                 Id = data.EmoteId,
                 Name = data.NewName != data.OldName ? new DiffData<string>(data.OldName, data.NewName) : null
             };
+
+            return new MappedAuditLogItem(null, updateData);
         }
     }
 }

@@ -12,16 +12,18 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("count")]
         public int MembersRemoved { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not PruneAuditLogData data)
                 return null;
 
-            return new AuditPruneMembers()
+            var pruneData = new AuditPruneMembers()
             {
                 MembersRemoved = data.MembersRemoved,
                 PruneDays = data.PruneDays
             };
+
+            return new MappedAuditLogItem(null, pruneData);
         }
     }
 }

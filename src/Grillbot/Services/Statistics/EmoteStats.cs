@@ -62,7 +62,6 @@ namespace Grillbot.Services.Statistics
         public async Task IncrementFromReactionAsync(SocketReaction reaction)
         {
             if (reaction.Channel is not SocketGuildChannel channel) return;
-            if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
 
             var userEntity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(channel.Guild.Id, reaction.UserId, UsersIncludes.Emotes);
 

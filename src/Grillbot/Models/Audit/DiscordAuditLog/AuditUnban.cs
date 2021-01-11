@@ -9,15 +9,17 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("user")]
         public AuditUserInfo User { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not UnbanAuditLogData data)
                 return null;
 
-            return new AuditUnban()
+            var unbanData = new AuditUnban()
             {
                 User = AuditUserInfo.Create(data.Target)
             };
+
+            return new MappedAuditLogItem(null, unbanData);
         }
     }
 }

@@ -25,13 +25,13 @@ namespace Grillbot.Handlers
 
         private async Task OnMessageUpdatedAsync(Cacheable<IMessage, ulong> messageBefore, SocketMessage messageAfter, ISocketMessageChannel channel)
         {
+            if (!messageAfter.Author.IsUser() || channel is IPrivateChannel) return;
+
             InternalStatistics.IncrementEvent("MessageUpdated");
 
-            if (!messageAfter.Author.IsUser() || channel is IPrivateChannel) return;
             if (channel is SocketGuildChannel guildChannel)
             {
                 using var scope = Provider.CreateScope();
-
                 await scope.ServiceProvider.GetService<AuditService>().LogMessageEditedAsync(messageBefore, messageAfter, channel, guildChannel.Guild);
             }
         }

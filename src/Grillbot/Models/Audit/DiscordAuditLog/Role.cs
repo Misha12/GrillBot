@@ -42,12 +42,12 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         public Role(RoleCreateAuditLogData data) : this(data.RoleId, data.Properties) { }
         public Role(RoleDeleteAuditLogData data) : this(data.RoleId, data.Properties) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is RoleCreateAuditLogData createData)
-                return new Role(createData);
+                return new MappedAuditLogItem(null, new Role(createData));
             else if (entryData is RoleDeleteAuditLogData deleteData)
-                return new Role(deleteData);
+                return new MappedAuditLogItem(null, new Role(deleteData));
             else
                 return null;
         }

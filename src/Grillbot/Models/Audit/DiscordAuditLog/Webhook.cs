@@ -9,29 +9,22 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("name")]
         public string Name { get; set; }
 
-        [JsonProperty("ch_id")]
-        public ulong ChannelId { get; set; }
-
-        [JsonIgnore]
-        public IChannel Channel { get; set; }
-
         public Webhook() { }
 
-        public Webhook(string name, ulong channelId)
+        public Webhook(string name)
         {
             Name = name;
-            ChannelId = channelId;
         }
 
-        public Webhook(WebhookCreateAuditLogData data) : this(data.Name, data.ChannelId) { }
-        public Webhook(WebhookDeleteAuditLogData data) : this(data.Name, data.ChannelId) { }
+        public Webhook(WebhookCreateAuditLogData data) : this(data.Name) { }
+        public Webhook(WebhookDeleteAuditLogData data) : this(data.Name) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is WebhookCreateAuditLogData createData)
-                return new Webhook(createData);
+                return new MappedAuditLogItem(createData.ChannelId, new Webhook(createData));
             else if (entryData is WebhookDeleteAuditLogData deleteData)
-                return new Webhook(deleteData);
+                return new MappedAuditLogItem(deleteData.ChannelId, new Webhook(deleteData));
             else
                 return null;
         }

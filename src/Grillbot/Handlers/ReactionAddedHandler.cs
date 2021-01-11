@@ -30,23 +30,21 @@ namespace Grillbot.Handlers
 
         private async Task OnReactionAddedAsync(Cacheable<IUserMessage, ulong> message, ISocketMessageChannel channel, SocketReaction reaction)
         {
+            if (!reaction.User.IsSpecified || !reaction.User.Value.IsUser()) return;
+
             InternalStatistics.IncrementEvent("ReactionAdded");
 
             using var scope = Provider.CreateScope();
             await scope.ServiceProvider.GetService<EmoteStats>().IncrementFromReactionAsync(reaction);
+            await PaginationService.HandleReactionAsync(reaction);
+            await scope.ServiceProvider.GetService<UserReactionsService>().IncrementReactionStatsAsync(reaction);
+            await scope.ServiceProvider.GetService<ReminderService>().HandleRemindCopyAsync(reaction);
 
-            if (reaction.User.IsSpecified && reaction.User.Value.IsUser())
-            {
-                await PaginationService.HandleReactionAsync(reaction);
-                await scope.ServiceProvider.GetService<UserReactionsService>().IncrementReactionStatsAsync(reaction);
-                await scope.ServiceProvider.GetService<ReminderService>().HandleRemindCopyAsync(reaction);
+            if (channel is SocketTextChannel textChannel)
+                await scope.ServiceProvider.GetService<PointsService>().IncrementPointsAsync(textChannel.Guild, reaction);
 
-                if (channel is SocketTextChannel textChannel)
-                    await scope.ServiceProvider.GetService<PointsService>().IncrementPointsAsync(textChannel.Guild, reaction);
-
-                if (message.HasValue)
-                    await scope.ServiceProvider.GetService<ReminderService>().PostponeReminderAsync(message.Value, reaction);
-            }
+            if (message.HasValue)
+                await scope.ServiceProvider.GetService<ReminderService>().PostponeReminderAsync(message.Value, reaction);
         }
 
         public void Dispose()

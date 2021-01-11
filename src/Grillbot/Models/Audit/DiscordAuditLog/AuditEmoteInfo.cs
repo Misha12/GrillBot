@@ -23,12 +23,12 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         public AuditEmoteInfo(EmoteCreateAuditLogData data) : this(data.EmoteId, data.Name) { }
         public AuditEmoteInfo(EmoteDeleteAuditLogData data) : this(data.EmoteId, data.Name) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is EmoteCreateAuditLogData data)
-                return new AuditEmoteInfo(data);
+                return new MappedAuditLogItem(null, new AuditEmoteInfo(data));
             else if (entryData is EmoteDeleteAuditLogData deleteData)
-                return new AuditEmoteInfo(deleteData);
+                return new MappedAuditLogItem(null, new AuditEmoteInfo(deleteData));
             else
                 return null;
         }

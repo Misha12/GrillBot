@@ -36,7 +36,7 @@ namespace Grillbot.Services.Audit
             { ActionType.GuildUpdated, AuditLogType.GuildUpdated }
         };
 
-        public static Dictionary<ActionType, Func<IAuditLogData, IAuditLogData>> AuditLogDataMap { get; } = new Dictionary<ActionType, Func<IAuditLogData, IAuditLogData>>()
+        public static Dictionary<ActionType, Func<IAuditLogData, MappedAuditLogItem>> AuditLogDataMap { get; } = new Dictionary<ActionType, Func<IAuditLogData, MappedAuditLogItem>>()
         {
             { ActionType.ChannelCreated, AuditChannelInfo.Create },
             { ActionType.ChannelDeleted, AuditChannelInfo.Create },

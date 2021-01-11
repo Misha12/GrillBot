@@ -38,7 +38,7 @@ namespace Grillbot.Handlers
             using var scope = Provider.CreateScope();
 
             await scope.ServiceProvider.GetService<AuditService>().ProcessBoostChangeAsync(guildUserBefore, guildUserAfter);
-            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLogIfNotExists(ActionType.MemberUpdated, guildUserAfter.Guild, 60);
+            scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLogIfNotExists(ActionType.MemberUpdated, guildUserAfter.Guild, 120);
 
             LastEventAt = DateTime.UtcNow;
         }

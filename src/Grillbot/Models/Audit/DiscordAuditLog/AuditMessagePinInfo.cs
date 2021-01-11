@@ -1,6 +1,5 @@
 using Discord;
 using Discord.Rest;
-using Discord.WebSocket;
 using Grillbot.Services.MessageCache;
 using Newtonsoft.Json;
 using System.Threading.Tasks;
@@ -12,40 +11,32 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("m_id")]
         public ulong MessageId { get; set; }
 
-        [JsonProperty("ch_id")]
-        public ulong ChannelId { get; set; }
-
         [JsonIgnore]
         public IMessage Message { get; set; }
 
-        [JsonIgnore]
-        public IChannel Channel { get; set; }
-
         public AuditMessagePinInfo() { }
 
-        public AuditMessagePinInfo(ulong messageId, ulong channelId)
+        public AuditMessagePinInfo(ulong messageId)
         {
             MessageId = messageId;
-            ChannelId = channelId;
         }
 
-        public AuditMessagePinInfo(MessagePinAuditLogData data) : this(data.MessageId, data.ChannelId) { }
-        public AuditMessagePinInfo(MessageUnpinAuditLogData data) : this(data.MessageId, data.ChannelId) { }
+        public AuditMessagePinInfo(MessagePinAuditLogData data) : this(data.MessageId) { }
+        public AuditMessagePinInfo(MessageUnpinAuditLogData data) : this(data.MessageId) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is MessageUnpinAuditLogData unpin)
-                return new AuditMessagePinInfo(unpin);
+                return new MappedAuditLogItem(unpin.ChannelId, new AuditMessagePinInfo(unpin));
             else if (entryData is MessagePinAuditLogData pin)
-                return new AuditMessagePinInfo(pin);
+                return new MappedAuditLogItem(pin.ChannelId, new AuditMessagePinInfo(pin));
             else
                 return null;
         }
 
-        public async Task<AuditMessagePinInfo> GetFilledModelAsync(SocketGuild guild, IMessageCache cache)
+        public async Task<AuditMessagePinInfo> GetFilledModelAsync(IMessageCache cache, ulong channelId)
         {
-            Message = await cache.GetAsync(ChannelId, MessageId);
-            Channel = guild.GetChannel(ChannelId);
+            Message = await cache.GetAsync(channelId, MessageId);
             return this;
         }
     }

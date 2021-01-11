@@ -8,12 +8,6 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 {
     public class AuditOverwriteInfo : IAuditLogData
     {
-        [JsonProperty("ch_id")]
-        public ulong ChannelId { get; set; }
-
-        [JsonIgnore]
-        public IChannel Channel { get; set; }
-
         [JsonProperty("type")]
         public PermissionTarget PermissionTarget { get; set; }
 
@@ -31,31 +25,28 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
 
         public AuditOverwriteInfo() { }
 
-        public AuditOverwriteInfo(ulong channelId, Overwrite overwrite)
+        public AuditOverwriteInfo(Overwrite overwrite)
         {
-            ChannelId = channelId;
             TargetId = overwrite.TargetId;
             PermissionTarget = overwrite.TargetType;
             Permissions = new OverwritePermissionsValue(overwrite.Permissions);
         }
 
-        public AuditOverwriteInfo(OverwriteCreateAuditLogData data) : this(data.ChannelId, data.Overwrite) { }
-        public AuditOverwriteInfo(OverwriteDeleteAuditLogData data) : this(data.ChannelId, data.Overwrite) { }
+        public AuditOverwriteInfo(OverwriteCreateAuditLogData data) : this(data.Overwrite) { }
+        public AuditOverwriteInfo(OverwriteDeleteAuditLogData data) : this(data.Overwrite) { }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is OverwriteCreateAuditLogData createData)
-                return new AuditOverwriteInfo(createData);
+                return new MappedAuditLogItem(createData.ChannelId, new AuditOverwriteInfo(createData));
             else if (entryData is OverwriteDeleteAuditLogData deleteData)
-                return new AuditOverwriteInfo(deleteData);
+                return new MappedAuditLogItem(deleteData.ChannelId, new AuditOverwriteInfo(deleteData));
             else
                 return null;
         }
 
         public AuditOverwriteInfo GetFilledModel(SocketGuild guild)
         {
-            Channel = guild.GetChannel(ChannelId);
-
             switch(PermissionTarget)
             {
                 case PermissionTarget.Role:

@@ -21,12 +21,12 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("bitrate")]
         public DiffData<int?> Bitrate { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not ChannelUpdateAuditLogData data)
                 return null;
 
-            return new AuditChannelUpdated()
+            var channelData = new AuditChannelUpdated()
             {
                 Bitrate = data.Before.Bitrate != data.After.Bitrate ? new DiffData<int?>(data.Before.Bitrate, data.After.Bitrate) : null,
                 IsNsfw = data.Before.IsNsfw != data.After.IsNsfw ? new DiffData<bool?>(data.Before.IsNsfw, data.After.IsNsfw) : null,
@@ -34,6 +34,8 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 SlowModeInterval = data.Before.SlowModeInterval != data.After.SlowModeInterval ? new DiffData<int?>(data.Before.SlowModeInterval, data.After.SlowModeInterval) : null,
                 Topic = data.Before.Topic != data.After.Topic ? new DiffData<string>(data.Before.Topic, data.After.Topic) : null
             };
+
+            return new MappedAuditLogItem(data.ChannelId, channelData);
         }
     }
 }

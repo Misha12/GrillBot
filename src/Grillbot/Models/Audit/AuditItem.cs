@@ -67,7 +67,7 @@ namespace Grillbot.Models.Audit
                     break;
                 case AuditLogType.ChannelCreated:
                 case AuditLogType.ChannelDeleted:
-                    item.ChannelInfo = JsonConvert.DeserializeObject<AuditChannelInfo>(dbItem.JsonData);
+                    item.ChannelInfo = JsonConvert.DeserializeObject<AuditChannelInfo>(dbItem.JsonData).GetFilledModel(dbItem.ChannelIdSnowflake.Value);
                     break;
                 case AuditLogType.ChannelUpdated:
                     item.ChannelUpdated = JsonConvert.DeserializeObject<AuditChannelUpdated>(dbItem.JsonData);
@@ -97,7 +97,7 @@ namespace Grillbot.Models.Audit
                     break;
                 case AuditLogType.MessagePinned:
                 case AuditLogType.MessageUnpinned:
-                    item.PinInfo = await JsonConvert.DeserializeObject<AuditMessagePinInfo>(dbItem.JsonData).GetFilledModelAsync(guild, cache);
+                    item.PinInfo = await JsonConvert.DeserializeObject<AuditMessagePinInfo>(dbItem.JsonData).GetFilledModelAsync(cache, dbItem.ChannelIdSnowflake.Value);
                     break;
                 case AuditLogType.OverwriteCreated:
                 case AuditLogType.OverwriteDeleted:

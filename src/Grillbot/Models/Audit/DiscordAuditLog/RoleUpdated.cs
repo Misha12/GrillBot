@@ -30,7 +30,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             get => PermsValue != null ? new DiffData<GuildPermissions>(new GuildPermissions(PermsValue.Before), new GuildPermissions(PermsValue.After)) : null;
         }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             if (entryData is not RoleUpdateAuditLogData data)
                 return null;
@@ -52,7 +52,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 item.PermsValue = new DiffData<ulong>(oldPerms, newPerms);
             }
 
-            return item;
+            return new MappedAuditLogItem(null, item);
         }
     }
 }

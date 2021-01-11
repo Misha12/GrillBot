@@ -29,7 +29,7 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         [JsonProperty("roles")]
         public List<RoleEditInfo> Roles { get; set; }
 
-        public static IAuditLogData Create(IAuditLogData entryData)
+        public static MappedAuditLogItem Create(IAuditLogData entryData)
         {
             var item = new AuditMemberUpdated();
 
@@ -40,14 +40,14 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
                 item.Nickname = data.Before.Nickname != data.After.Nickname ? new DiffData<string>(data.Before.Nickname, data.After.Nickname) : null;
                 item.UserId = data.Target.Id;
 
-                return item;
+                return new MappedAuditLogItem(null, item);
             }
             else if (entryData is MemberRoleAuditLogData roleData && roleData.Roles.Count > 0)
             {
                 item.UserId = roleData.Target.Id;
                 item.Roles = roleData.Roles.Select(o => new RoleEditInfo(o)).ToList();
 
-                return item;
+                return new MappedAuditLogItem(null, item);
             }
             else
             {
@@ -59,9 +59,9 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
         {
             User = await guild.GetUserFromGuildAsync(UserId);
 
-            if(Roles != null)
+            if (Roles != null)
             {
-                foreach(var role in Roles)
+                foreach (var role in Roles)
                 {
                     role.Role = guild.GetRole(role.RoleId);
                 }

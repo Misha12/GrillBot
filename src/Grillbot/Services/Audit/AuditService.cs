@@ -364,7 +364,13 @@ namespace Grillbot.Services.Audit
                     var mappedItem = logMappingMethod(log.Data);
 
                     if (mappedItem != null)
-                        item.SetData(mappedItem);
+                    {
+                        if (mappedItem.Data != null)
+                            item.SetData(mappedItem.Data);
+
+                        if (mappedItem.ChannelId != null)
+                            item.ChannelIdSnowflake = mappedItem.ChannelId;
+                    }
                 }
 
                 await GrillBotRepository.AddAsync(item);

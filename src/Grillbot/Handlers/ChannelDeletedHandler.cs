@@ -3,6 +3,7 @@ using Discord.WebSocket;
 using Grillbot.Extensions.Infrastructure;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
+using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using System;
 using System.Threading.Tasks;
@@ -13,16 +14,20 @@ namespace Grillbot.Handlers
     {
         private DiscordSocketClient DiscordClient { get; }
         private IServiceProvider Provider { get; }
+        private InternalStatistics InternalStatistics { get; }
 
-        public ChannelDeletedHandler(DiscordSocketClient client, IServiceProvider serviceProvider)
+        public ChannelDeletedHandler(DiscordSocketClient client, IServiceProvider serviceProvider, InternalStatistics internalStatistics)
         {
             DiscordClient = client;
             Provider = serviceProvider;
+            InternalStatistics = internalStatistics;
         }
 
         private async Task OnChannelDeletedAsync(SocketChannel channel)
         {
             if (channel is not SocketGuildChannel ch) return;
+
+            InternalStatistics.IncrementEvent("ChannelDestroyed");
 
             using var scope = Provider.CreateScope();
             scope.ServiceProvider.GetService<BackgroundTaskQueue>().ScheduleDownloadAuditLog(ActionType.ChannelDeleted, ch.Guild);
