@@ -59,11 +59,13 @@ namespace Grillbot.Database
         public void Commit()
         {
             Context.SaveChanges();
+            Context.ChangeTracker.Clear();
         }
 
-        public Task CommitAsync()
+        public async Task CommitAsync()
         {
-            return Context.SaveChangesAsync();
+            await Context.SaveChangesAsync();
+            Context.ChangeTracker.Clear();
         }
 
         public void Remove<TEntity>(TEntity entity) where TEntity : class

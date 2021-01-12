@@ -112,9 +112,14 @@ namespace Grillbot.Database.Repository
             };
         }
 
-        public Task<UserEntity> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes)
+        public Task<UserEntity> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes, bool onlyRead = false)
         {
-            return GetBaseQuery(includes)
+            var query = GetBaseQuery(includes);
+
+            if (onlyRead)
+                query = query.AsNoTracking();
+
+            return query
                 .SingleOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString());
         }
 

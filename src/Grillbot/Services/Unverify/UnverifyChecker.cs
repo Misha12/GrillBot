@@ -38,7 +38,7 @@ namespace Grillbot.Services.Unverify
         {
             if (selfUnverify) return;
 
-            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None, true);
 
             if (dbUser != null && (dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je nejvyšší administrátor bota.");
