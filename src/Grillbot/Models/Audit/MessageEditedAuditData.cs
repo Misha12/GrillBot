@@ -33,7 +33,7 @@ namespace Grillbot.Models.Audit
 
         public string CreateDiff()
         {
-            var diffResult = InlineDiffBuilder.Diff(Before, After, false);
+            var diffResult = InlineDiffBuilder.Diff(Before ?? "", After ?? "", false);
             var diff = diffResult.Lines.Select(o =>
             {
                 return o.Type switch

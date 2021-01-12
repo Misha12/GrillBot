@@ -126,7 +126,7 @@ namespace Grillbot.Services.Audit
             var oldMessage = before.HasValue ? before.Value : MessageCache.Get(before.Id);
             if (!IsMessageEdited(oldMessage, after)) return;
 
-            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, after.Author);
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, oldMessage.Author);
 
             var entity = new AuditLogItem()
             {
