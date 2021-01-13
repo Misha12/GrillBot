@@ -131,7 +131,12 @@
 
                                         <div class="row">
                                             <div class="col-4 font-weight-bold">Konec:</div>
-                                            <div class="col">@item.UpdateData.StartDateTime.ToLocaleDatetime()</div>
+                                            <div class="col">@item.UpdateData.EndDateTime.ToLocaleDatetime()</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Doba:</div>
+                                            <div class="col">@((item.UpdateData.EndDateTime - item.UpdateData.StartDateTime).ToFullCzechTimeString())</div>
                                         </div>
                                     }
                                     else
@@ -144,6 +149,11 @@
                                         <div class="row">
                                             <div class="col-4 font-weight-bold">Konec:</div>
                                             <div class="col">@item.Profile.EndDateTime.ToLocaleDatetime()</div>
+                                        </div>
+
+                                        <div class="row">
+                                            <div class="col-4 font-weight-bold">Doba:</div>
+                                            <div class="col">@((item.Profile.EndDateTime - item.Profile.StartDateTime).ToFullCzechTimeString())</div>
                                         </div>
                                     }
                                 }
