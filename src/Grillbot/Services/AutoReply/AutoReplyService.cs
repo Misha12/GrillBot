@@ -10,6 +10,8 @@ using Grillbot.Services.Initiable;
 using Microsoft.Extensions.Logging;
 using ReplyModel = Grillbot.Models.AutoReply.AutoReplyItem;
 using Grillbot.Database;
+using Grillbot.Models.AutoReply;
+using Grillbot.Enums;
 
 namespace Grillbot.Modules.AutoReply
 {
@@ -30,64 +32,51 @@ namespace Grillbot.Modules.AutoReply
 
         public void Init()
         {
-            BotState.AutoReplyItems.Clear();
-            BotState.AutoReplyItems.AddRange(GrillBotRepository.AutoReplyRepository.GetItems().ToList());
+            BotState.AutoReplyItems = GrillBotRepository.AutoReplyRepository.GetItems().ToList();
             Logger.LogInformation($"AutoReply module loaded (loaded {BotState.AutoReplyItems.Count} templates)");
         }
 
         public async Task TryReplyAsync(SocketGuild guild, SocketUserMessage message)
         {
-            if (message.Channel is IPrivateChannel) return;
-
             bool replied = false;
 
-            foreach (var item in BotState.AutoReplyItems)
+            foreach (var item in BotState.AutoReplyItems.Where(o => o.CanReply(guild, message.Channel)))
             {
                 if (item.CompareType == AutoReplyCompareTypes.Absolute)
-                    replied = await TryReplyWithAbsolute(guild, message, item);
+                    replied = await TryReplyWithAbsolute(message, item);
                 else if (item.CompareType == AutoReplyCompareTypes.Contains)
-                    replied = await TryReplyWithContains(guild, message, item);
+                    replied = await TryReplyWithContains(message, item);
 
                 if (replied)
                     break;
             }
         }
 
-        private async Task<bool> TryReplyWithContains(SocketGuild guild, SocketUserMessage message, AutoReplyItem item)
+        private async Task<bool> TryReplyWithContains(SocketUserMessage message, Database.Entity.AutoReplyItem item)
         {
-            if (!message.Content.Contains(item.MustContains, GetStringComparison(item)))
+            if (!message.Content.Contains(item.MustContains, item.StringComparison))
                 return false;
 
-            if (item.CanReply(guild, message.Channel))
-            {
-                item.CallsCount++;
-                await message.Channel.SendMessageAsync(FormatMessage(item.ReplyMessage, message), allowedMentions: AllowedMentions);
-                return true;
-            }
-
-            return false;
+            item.CallsCount++;
+            await message.Channel.SendMessageAsync(FormatMessage(item, message), allowedMentions: AllowedMentions);
+            return true;
         }
 
-        private async Task<bool> TryReplyWithAbsolute(SocketGuild guild, SocketUserMessage message, AutoReplyItem item)
+        private async Task<bool> TryReplyWithAbsolute(SocketUserMessage message, Database.Entity.AutoReplyItem item)
         {
-            if (!message.Content.Equals(item.MustContains, GetStringComparison(item)))
+            if (!message.Content.Equals(item.MustContains, item.StringComparison))
                 return false;
 
-            if (item.CanReply(guild, message.Channel))
-            {
-                item.CallsCount++;
-                await message.Channel.SendMessageAsync(FormatMessage(item.ReplyMessage, message), allowedMentions: AllowedMentions);
-                return true;
-            }
-
-            return false;
+            item.CallsCount++;
+            await message.Channel.SendMessageAsync(FormatMessage(item, message), allowedMentions: AllowedMentions);
+            return true;
         }
 
         public List<ReplyModel> GetList(SocketGuild guild)
         {
             return BotState.AutoReplyItems
                 .Where(o => o.GuildIDSnowflake == guild.Id)
-                .OrderByDescending(o => o.CallsCount)
+                .OrderBy(o => o.ID)
                 .Select(item =>
                 {
                     var channel = item.ChannelIDSnowflake == null ? null : guild.GetChannel(item.ChannelIDSnowflake.Value)?.Name ?? $"Neznámý ({item.ChannelIDSnowflake})";
@@ -95,13 +84,12 @@ namespace Grillbot.Modules.AutoReply
                     return new ReplyModel()
                     {
                         CallsCount = item.CallsCount,
-                        CaseSensitive = item.CaseSensitive,
                         CompareType = item.CompareType,
                         ID = item.ID,
-                        IsActive = !item.IsDisabled,
                         MustContains = item.MustContains,
                         Reply = item.ReplyMessage,
-                        Channel = item.ChannelIDSnowflake == null ? "Kdekoliv" : channel
+                        Channel = item.ChannelIDSnowflake == null ? "Kdekoliv" : channel,
+                        Flags = item.Flags
                     };
                 }).ToList();
         }
@@ -117,35 +105,28 @@ namespace Grillbot.Modules.AutoReply
                 throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
 
             var dbItem = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
-            dbItem.IsDisabled = disabled;
+
+            if (disabled)
+                dbItem.Flags |= (int)AutoReplyParams.Disabled;
+            else
+                dbItem.Flags &= ~(int)AutoReplyParams.Disabled;
 
             await GrillBotRepository.CommitAsync();
-            item.IsDisabled = disabled;
+            item.Flags = dbItem.Flags;
         }
 
-        public async Task AddReplyAsync(SocketGuild guild, string mustContains, string reply, string compareType, bool disabled, bool caseSensitive, string channel)
+        public async Task AddReplyAsync(SocketGuild guild, AutoreplyData data)
         {
-            if (BotState.AutoReplyItems.Any(o => o.MustContains == mustContains))
-                throw new ArgumentException($"Automatická odpověď **{mustContains}** již existuje.");
+            if (BotState.AutoReplyItems.Any(o => o.MustContains == data.MustContains))
+                throw new ArgumentException("Automatická odpověď s tímto řetězcem již existuje.");
 
-            var item = new AutoReplyItem()
-            {
-                MustContains = mustContains,
-                IsDisabled = disabled,
-                ReplyMessage = reply,
-                CaseSensitive = caseSensitive,
-                GuildIDSnowflake = guild.Id,
-                ChannelIDSnowflake = channel == "*" ? (ulong?)null : Convert.ToUInt64(channel)
-            };
-
-            item.SetCompareType(compareType);
-
+            var item = data.ToEntity(guild);
             await GrillBotRepository.AddAsync(item);
             await GrillBotRepository.CommitAsync();
             BotState.AutoReplyItems.Add(item);
         }
 
-        public async Task EditReplyAsync(SocketGuild guild, int id, string mustContains, string reply, string compareType, bool caseSensitive, string channel)
+        public async Task EditReplyAsync(SocketGuild guild, int id, AutoreplyData data)
         {
             var item = BotState.AutoReplyItems.Find(o => o.GuildIDSnowflake == guild.Id && o.ID == id);
 
@@ -154,19 +135,10 @@ namespace Grillbot.Modules.AutoReply
 
             var dbItem = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
 
-            dbItem.MustContains = mustContains;
-            dbItem.ReplyMessage = reply;
-            dbItem.CaseSensitive = caseSensitive;
-            dbItem.SetCompareType(compareType);
-            dbItem.ChannelIDSnowflake = channel == "*" ? (ulong?)null : Convert.ToUInt64(channel);
-
+            data.UpdateEntity(dbItem);
             await GrillBotRepository.CommitAsync();
 
-            item.MustContains = dbItem.MustContains;
-            item.ReplyMessage = dbItem.ReplyMessage;
-            item.CaseSensitive = dbItem.CaseSensitive;
-            item.CompareType = dbItem.CompareType;
-            item.ChannelIDSnowflake = dbItem.ChannelIDSnowflake;
+            data.UpdateEntity(item);
         }
 
         public async Task RemoveReplyAsync(SocketGuild guild, int id)
@@ -180,17 +152,17 @@ namespace Grillbot.Modules.AutoReply
             BotState.AutoReplyItems.RemoveAll(o => o.ID == id);
         }
 
-        private StringComparison GetStringComparison(AutoReplyItem item)
+        private string FormatMessage(Database.Entity.AutoReplyItem item, IMessage originalMessage)
         {
-            return !item.CaseSensitive ? StringComparison.InvariantCultureIgnoreCase : StringComparison.InvariantCulture;
-        }
-
-        private string FormatMessage(string message, IMessage originalMessage)
-        {
-            return message
+            var msg = item.ReplyMessage
                 .PreventMassTags()
                 .Replace("{author}", originalMessage.Author.Mention)
                 .Trim();
+
+            if ((item.Flags & (int)AutoReplyParams.AsCodeBlock) != 0)
+                msg = $"```{msg}```";
+
+            return msg;
         }
 
         public async Task InitAsync() { }

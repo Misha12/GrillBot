@@ -1,5 +1,6 @@
 using Discord;
 using Discord.WebSocket;
+using Grillbot.Enums;
 using System;
 using System.ComponentModel.DataAnnotations;
 using System.ComponentModel.DataAnnotations.Schema;
@@ -23,27 +24,11 @@ namespace Grillbot.Database.Entity
         [Required]
         public string ReplyMessage { get; set; }
 
-        [Column]
-        [Required]
-        public bool IsDisabled { get; set; }
-
         [NotMapped]
         public int CallsCount { get; set; }
 
-        public bool CanReply(SocketGuild guild, IChannel channel)
-        {
-            bool validGuild = guild.Id == GuildIDSnowflake;
-            bool haveReply = !string.IsNullOrEmpty(ReplyMessage);
-            bool haveChannel = ChannelIDSnowflake == null || channel.Id == ChannelIDSnowflake;
-
-            return validGuild && !IsDisabled && haveReply && haveChannel;
-        }
-
         [Column]
         public AutoReplyCompareTypes CompareType { get; set; }
-
-        [Column]
-        public bool CaseSensitive { get; set; }
 
         [Column]
         [Required]
@@ -66,18 +51,18 @@ namespace Grillbot.Database.Entity
             set => ChannelID = value?.ToString();
         }
 
-        public void SetCompareType(string type)
+        public int Flags { get; set; }
+
+        [NotMapped]
+        public StringComparison StringComparison => (Flags & (int)AutoReplyParams.CaseSensitive) != 0 ? StringComparison.InvariantCulture : StringComparison.InvariantCultureIgnoreCase;
+        public bool IsDisabled => (Flags & (int)AutoReplyParams.Disabled) != 0;
+
+        public bool CanReply(SocketGuild guild, IChannel channel)
         {
-            switch (type.ToLower())
-            {
-                case "absolute":
-                case "==":
-                    CompareType = AutoReplyCompareTypes.Absolute;
-                    break;
-                case "contains":
-                    CompareType = AutoReplyCompareTypes.Contains;
-                    break;
-            }
+            if (IsDisabled || guild.Id != GuildIDSnowflake)
+                return false;
+
+            return ChannelIDSnowflake == null || channel.Id == ChannelIDSnowflake;
         }
     }
 }
