@@ -1,4 +1,5 @@
 using Discord;
+using Grillbot.Extensions.Discord;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -30,7 +31,7 @@ namespace Grillbot.Models.Embed.PaginatedEmbed
         {
             var builder = new EmbedFieldBuilder()
                 .WithName(name)
-                .WithValue(value)
+                .SetValue(value)
                 .WithIsInline(inline);
 
             AddField(builder);

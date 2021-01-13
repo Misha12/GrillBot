@@ -79,38 +79,7 @@ namespace Grillbot.Models.Embed
             if (name.Length >= EmbedFieldBuilder.MaxFieldNameLength)
                 name = name.Substring(0, EmbedFieldBuilder.MaxFieldNameLength - 3) + "...";
 
-            if (value == null)
-                throw new ArgumentException($"Neplatná hodnota NULL v objektu s klíčem {name}.");
-
-            if (value.Length >= EmbedFieldBuilder.MaxFieldValueLength)
-            {
-                if (value.StartsWith("```") && value.EndsWith("```"))
-                {
-                    // Cut CodeBlocks.
-
-                    var tmp = value[3..]
-                        .Substring(0, value.Length - 3)
-                        .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 9);
-
-                    value = "```" + tmp + "```";
-                }
-                else if (value.StartsWith("`") && value.EndsWith("`"))
-                {
-                    // CUT `...` blocks
-
-                    var tmp = value[1..]
-                        .Substring(0, value.Length - 1)
-                        .Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 5);
-
-                    value = "`" + tmp + "...`";
-                }
-                else
-                {
-                    value = value.Substring(0, EmbedFieldBuilder.MaxFieldValueLength - 3) + "...";
-                }
-            }
-
-            Builder.AddField(o => o.WithName(name).WithValue(value).WithIsInline(inline));
+            Builder.AddField(o => o.WithName(name).SetValue(value).WithIsInline(inline));
             return this;
         }
 
