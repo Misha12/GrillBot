@@ -2,7 +2,11 @@ using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
+using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Config.Dynamic;
+using Grillbot.Services.Unverify.Models.Log;
+using System;
 using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,12 +24,13 @@ namespace Grillbot.Services.Unverify
             GrillBotRepository = grillBotRepository;
         }
 
-        public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify)
+        public async Task ValidateAsync(SocketGuildUser user, SocketGuild guild, bool selfUnverify, UnverifyConfig config)
         {
             ValidateServerOwner(guild, user);
             await ValidateUserAsync(user, guild, selfUnverify);
             ValidateRoles(guild, user, selfUnverify);
             await ValidateIfNotUnverifiedAsync(guild, user);
+            await ValidateUnverifyCooldownAsync(guild, user, selfUnverify, config);
         }
 
         private void ValidateServerOwner(SocketGuild guild, SocketGuildUser user)
@@ -70,6 +75,23 @@ namespace Grillbot.Services.Unverify
 
             if (haveUnverify)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
+        }
+
+        private async Task ValidateUnverifyCooldownAsync(SocketGuild guild, SocketGuildUser user, bool selfunverify, UnverifyConfig unverifyConfig)
+        {
+            if (!selfunverify) return;
+
+            var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
+            var logItem = await GrillBotRepository.UnverifyRepository.GetLastUnverifyLogItemAsync(userId.Value);
+
+            if (logItem == null)
+                return;
+
+            var endDate = logItem.Operation == UnverifyLogOperation.Update ? logItem.Json.ToObject<UnverifyLogUpdate>().EndDateTime : logItem.Json.ToObject<UnverifyLogSet>().EndDateTime;
+            var cooldown = TimeSpan.FromHours(unverifyConfig.CooldownHours) - (DateTime.Now - endDate);
+
+            if (cooldown.TotalSeconds > 0)
+                throw new ValidationException($"Další unverify si můžeš dát až za {cooldown.ToFullCzechTimeString()}");
         }
     }
 }

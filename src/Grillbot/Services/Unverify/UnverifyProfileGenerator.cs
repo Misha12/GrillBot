@@ -29,11 +29,14 @@ namespace Grillbot.Services.Unverify
         public async Task<UnverifyUserProfile> CreateProfileAsync(SocketGuildUser user, SocketGuild guild, string time, string data, bool isSelfunverify, List<string> toKeep,
             SocketRole mutedRole)
         {
+            // Selfunverify have 2 hours minimal time, unverify stays on 30 minutes.
+            // Some servers have problems with frequend unverifies.
+
             var result = new UnverifyUserProfile()
             {
                 StartDateTime = DateTime.Now,
                 Reason = ReasonParser.Parse(data),
-                EndDateTime = TimeParser.Parse(time),
+                EndDateTime = TimeParser.Parse(time, isSelfunverify ? 2 * 60 : 30),
                 DestinationUser = user,
                 IsSelfUnverify = isSelfunverify
             };
