@@ -26,7 +26,8 @@ namespace Grillbot.Modules
         [Summary("Odebrání práv sám sobě.")]
         [Remarks("Parametr time je ve formátu {cas}{m/h/d/M/y}, případně v ISO 8601. Např.: 30m, nebo `2020-08-17T23:59:59`.\nPopis: **m**: minuty, **h**: hodiny, " +
             "**d**: dny, **M**: měsíce, **y**: roky.\n\nJe možné si ponechat určité množství přístupů. Možnosti jsou k dispozici pomocí `{prefix}selfunverify defs`" +
-            ", které bude možné si během doby odebraného přístupu ponechat.\nMinimální doba pro selfunverify je půl hodiny.\nNa self unverify se nevztahuje imunita." +
+            ", které bude možné si během doby odebraného přístupu ponechat.\nMinimální doba pro selfunverify jsou 2 hodiny.\nNa self unverify se nevztahuje imunita." +
+            "\n\n**POZOR:** Jakmile se vrátíš na server, tak musíš nějakou dobu na něm zůstat." +
             "\n\nCelý příkaz je pak vypadá např.:\n`{prefix}selfunverify 30m`, nebo `{prefix}selfunverify 30m IPT ...`")]
         public async Task SetSelfUnverify(string time, params string[] subjects)
         {
