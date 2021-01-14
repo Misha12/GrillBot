@@ -32,14 +32,18 @@ namespace Grillbot.Services
                 {
                     var item = Queue.PopAvailable();
 
-                    if (item?.TaskType == null || item.TaskType.GetInterface(observerType.FullName) == null)
-                        continue;
+                    while(item != null)
+                    {
+                        if (item?.TaskType == null || item.TaskType.GetInterface(observerType.FullName) == null)
+                            continue;
 
-                    await ProcessTaskItemAsync(item);
+                        await ProcessTaskItemAsync(item);
+                        item = Queue.PopAvailable();
+                    }
                 }
                 finally
                 {
-                    await Task.Delay(TimeSpan.FromSeconds(5), stoppingToken);
+                    await Task.Delay(TimeSpan.FromSeconds(30), stoppingToken);
                 }
             }
         }
