@@ -5,7 +5,12 @@ using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Helpers;
+using Grillbot.Models.Audit.DiscordAuditLog;
 using Grillbot.Models.Embed;
+using Grillbot.Models.Users;
+using Grillbot.Services.BackgroundTasks;
+using Grillbot.Services.Unverify;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -17,6 +22,13 @@ namespace Grillbot.Modules
     [ModuleID("GuildModule")]
     public class GuildModule : BotModuleBase
     {
+        private BackgroundTaskQueue Queue { get; }
+
+        public GuildModule(BackgroundTaskQueue queue)
+        {
+            Queue = queue;
+        }
+
         [Command("info")]
         [Summary("Informace o serveru")]
         public async Task InfoAsync()
@@ -161,6 +173,112 @@ namespace Grillbot.Modules
             }
 
             await message.RemoveAllReactionsForEmoteAsync(reaction.Key);
+            await Context.Message.AddReactionAsync(EmojiHelper.OKEmoji);
+        }
+
+        [Command("clearUselessPerms")]
+        [Summary("Smaže zbytečná uživatelská oprávnění z kanálů.")]
+        public async Task ClearUselessPerms(bool hard = false, IUser mentionedUser = null)
+        {
+            await ReplyAsync("Probíhá příprava...");
+            await Context.Guild.SyncGuildAsync();
+
+            // List of channels and users to clear.
+            var toClear = new Dictionary<ulong, List<UselessPermData>>();
+
+            var toDetectUsers = new List<SocketGuildUser>();
+            if (mentionedUser != null) toDetectUsers.Add(await mentionedUser.ConvertToGuildUserAsync(Context.Guild));
+            else toDetectUsers.AddRange(Context.Guild.Users);
+
+            await ReplyAsync("Probíhá výpočet zbytečných oprávnění...");
+            foreach (var channel in Context.Guild.Channels.Where(o => o is SocketTextChannel || o is SocketVoiceChannel).OrderBy(o => o.Position))
+            {
+                foreach (var user in toDetectUsers)
+                {
+                    if (Queue.Exists<UnverifyBackgroundTask>(o => o.GuildId == Context.Guild.Id && o.UserId == user.Id))
+                        continue; // Ignore unverify/selfunverify.
+
+                    var overwrite = channel.GetPermissionOverwrite(user);
+
+                    // User not have overwrite.
+                    if (overwrite == null)
+                        continue;
+
+                    // User have overwrite without extra perms. It's useless.
+                    if (overwrite.Value.AllowValue == 0 && overwrite.Value.DenyValue == 0)
+                    {
+                        if (toClear.ContainsKey(channel.Id))
+                            toClear[channel.Id].Add(new UselessPermData(user, true, false));
+                        else
+                            toClear.Add(channel.Id, new List<UselessPermData>() { new UselessPermData(user, true, false) });
+
+                        continue;
+                    }
+
+                    // Iterate only over user roles.
+                    foreach (var role in user.Roles.OrderByDescending(o => o.Position))
+                    {
+                        // Find highest role that is defined in overwrites and user it have.
+                        var roleOverwrite = channel.GetPermissionOverwrite(role);
+
+                        if (roleOverwrite == null)
+                            continue;
+
+                        // User have something extra.
+                        if (roleOverwrite.Value.AllowValue != overwrite.Value.AllowValue || roleOverwrite.Value.DenyValue != overwrite.Value.DenyValue)
+                            break;
+
+                        if (toClear.ContainsKey(channel.Id))
+                            toClear[channel.Id].Add(new UselessPermData(user, false, true));
+                        else
+                            toClear.Add(channel.Id, new List<UselessPermData>() { new UselessPermData(user, false, true) });
+                        break;
+                    }
+                }
+            }
+
+            var clearable = mentionedUser != null ? toClear : toClear.Where(o => o.Value.Count > 10).ToDictionary(o => o.Key, o => o.Value);
+
+            if (hard)
+            {
+                foreach (var channelPair in clearable)
+                {
+                    var channel = Context.Guild.GetChannel(channelPair.Key);
+
+                    if (channel == null)
+                        continue;
+
+                    var perms = channelPair.Value.Where(o => mentionedUser == null || o.User.Id == mentionedUser.Id);
+                    await ReplyAsync($"V kanálu `{channel.Name}` bude smazáno oprávnění: {perms.Count().FormatWithSpaces()}");
+
+                    foreach (var user in perms)
+                    {
+                        await ReplyAsync($"> Mažu oprávnění z kanálu `{channel.Name}` pro uživatele {user.User.GetFullName()}");
+                        await channel.RemovePermissionOverwriteAsync(user.User);
+                    }
+                }
+            }
+            else
+            {
+                await ReplyAsync($"Nalezeno k pročištění kanálů: **{clearable.Count.FormatWithSpaces()}**");
+
+                var totalNeutral = clearable.Sum(o => o.Value.Count(o => o.NeutralUseless));
+                var totalAllowDeny = clearable.Sum(o => o.Value.Count(o => o.AllowDenyUseless));
+
+                await ReplyAsync($"V těchto kanálech je: Neutrálních: **{totalNeutral.FormatWithSpaces()}**, Povolení/Zakázání: **{totalAllowDeny.FormatWithSpaces()}**");
+
+                foreach (var channelPair in clearable)
+                {
+                    var channel = Context.Guild.GetChannel(channelPair.Key);
+                    var neutralCount = channelPair.Value.Count(o => o.NeutralUseless);
+                    var allowDenyCount = channelPair.Value.Count(o => o.AllowDenyUseless);
+
+                    await ReplyAsync($"> Kanál: `{channel.Name}`: Neutrálních: **{neutralCount.FormatWithSpaces()}**, " +
+                        $"Povolení/Zakázání: **{allowDenyCount.FormatWithSpaces()}**");
+                }
+            }
+
+            await ReplyAsync("Dokončeno");
             await Context.Message.AddReactionAsync(EmojiHelper.OKEmoji);
         }
     }
