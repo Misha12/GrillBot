@@ -101,9 +101,7 @@ namespace Grillbot.Modules
 
         [Command("add")]
         [Summary("Přidá novou automatickou odpověď.")]
-        [Remarks("Parametry jsou odděleny novým řádkem, očekávaný jsou parametry {MustContains}\\n{ReplyMessage}\\nTyp porovnání (==, Contains)\\n{Příznaky}\n{ID Kanalu}\n" +
-            "Příznaky: 1. bit: CaseSensitive, 2. bit: Deaktivovat.\nPokud se má odpovídat všude, tak se očekává \\*." +
-            "\n\nŠablona:\n{MustContains}\n{ReplyMessage}\n{==/Contains}\n0\n{ChannelID/\\*}")]
+        [Remarks("Parametry je možné získat příkazem `{prefix}autoreply example`")]
         public async Task AddAsync([Remainder] string data)
         {
             try
