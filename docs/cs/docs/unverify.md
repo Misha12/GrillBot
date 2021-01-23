@@ -1,0 +1,1 @@
+# Dočasné odebrání přístupu

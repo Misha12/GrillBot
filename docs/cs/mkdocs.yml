@@ -1,0 +1,24 @@
+site_name: GrillBot
+nav:
+  - Domů: index.md
+  - Požadavky a závislosti: requirements.md
+  - Spuštění: run.md
+  - Docker: docker.md
+  - Databáze: db.md
+  - Konfigurace: config.md
+  - Logování: logger.md
+  - Automatické odpovědi: autoreply.md
+  - Narozeniny: birthday.md
+  - Metriky: metrics.md
+  - Správa souborů: files.md
+  - Správa discord serverů: guild.md
+  - Sledování pozvánek: invite.md
+  - Matematické výpočty: math.md
+  - Meme: meme.md
+  - Správa uživatelů: users.md
+  - Body: points.md
+  - Připomínání: reminder.md
+  - Dočasné odebrání přístupu: unverify.md
+  - Řízení bota: internal.md
+  - Hledání: search.md
+theme: readthedocs

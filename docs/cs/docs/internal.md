@@ -1,0 +1,1 @@
+# Interní řízení bota
