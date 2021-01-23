@@ -24,7 +24,6 @@ Provede uložení data narození. Uložení se vždy váže k uživateli, který
 | :---: | :--------: | ------------------------------------------------------------------------------------------------------------------------------------------------------------------------------- |
 | date  |   string   | Datum narození uživatele, který zavolal příkaz pro přidání. Lze zadat ve formátu `dd/MM/yyyy`, nebo `dd/MM`. Pokud bude zadán i rok, tak se v daný den narozenin zobrazí i věk. |
 
-
 #### Příklad volání
 
 ```sh
