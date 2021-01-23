@@ -118,3 +118,10 @@ Latest tag is published on [DockerHub](https://hub.docker.com/r/misha12/grillbot
 
 1. Copy file `runtime.example.env` with name `runtime.env` and fill it with your values.
 2. Run `docker-compose up` in repository root directory.
+
+## Documentation
+
+Documentation is available in multiple languages.
+
+- [Czech](https://grillbot.cloud/docs/cs/)
+- [English](https://grillbot.cloud/docs/en/)
