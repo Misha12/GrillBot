@@ -44,7 +44,7 @@ $globalConfig keys
 
 #### $globalConfig get `{key}`
 
-Získá hodnotu uloženou pod zadaným konfiguračním klíčem. 
+Získá hodnotu uloženou pod zadaným konfiguračním klíčem.
 
 ##### Parametry
 
@@ -292,6 +292,7 @@ Import konfigurace z JSON souboru. Metoda neočekává běžný vstup, ale pří
 ```sh
 $config import
 ```
+
 a příloha
 
 #### $config rename `{id}` `{group}` `{command}`
