@@ -8,7 +8,7 @@ Data narození jsou uložena v tabulce `DiscordUsers`, která je popsána v sekc
 
 ## Příkazy
 
-Všechny níže uvedené příkazy počítají s výchozím prefixem `$`. Prefix se může lišit v závislosti na vaší konfiguraci.
+*Všechny níže uvedené příkazy počítají s výchozím prefixem `$`. Prefix se může lišit v závislosti na vaší konfiguraci.*
 
 ### $birthday
 
