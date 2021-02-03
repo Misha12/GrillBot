@@ -21,8 +21,6 @@ namespace Grillbot
 {
     public class GrillBotService : IHostedService
     {
-        public static TimeSpan DatabaseSyncPeriod { get; } = TimeSpan.FromSeconds(60);
-
         private IServiceProvider Services { get; }
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }

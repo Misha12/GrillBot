@@ -13,7 +13,7 @@ namespace Grillbot.Services.Config
         private IConfiguration Configuration { get; }
         private IServiceProvider ServiceProvider { get; }
 
-        public string Token => Configuration["APP_TOKEN"];
+        public string Token => Configuration["Token"];
 
         public ConfigurationService(IConfiguration configuration, IServiceProvider serviceProvider)
         {

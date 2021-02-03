@@ -1,6 +1,7 @@
 using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Configuration;
+using System;
 using System.Linq;
 
 namespace Grillbot.Services.Config
@@ -16,10 +17,17 @@ namespace Grillbot.Services.Config
 
         public override void Load()
         {
-            using var repository = CreateRepository();
+            try
+            {
+                using var repository = CreateRepository();
 
-            var configs = repository.GlobalConfigRepository.GetAllItems().ToList();
-            Data = configs.ToDictionary(o => o.Item1, o => o.Item2);
+                var configs = repository.GlobalConfigRepository.GetAllItems().ToList();
+                Data = configs.ToDictionary(o => o.Item1, o => o.Item2);
+            }
+            catch(Exception ex)
+            {
+                Console.WriteLine(ex.ToString());
+            }
         }
 
         private IGrillBotRepository CreateRepository()

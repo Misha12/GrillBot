@@ -26,7 +26,7 @@ namespace Grillbot
 
         public void ConfigureServices(IServiceCollection services)
         {
-            var connectionString = Configuration.GetValue<string>("DB_CONN");
+            var connectionString = Configuration.GetConnectionString("Default");
 
             services
                 .AddDatabase(connectionString)
