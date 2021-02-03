@@ -1,18 +1,19 @@
 using Discord.Commands;
-using Grillbot.Enums;
 using System;
 using System.Threading.Tasks;
 
 namespace Grillbot.TypeReaders
 {
-    public class GlobalConfigItemTypeReader : TypeReader
+    public class EnumTypeReader<TEnum> : TypeReader where TEnum : struct
     {
+        private Type EnumType { get; } = typeof(TEnum);
+
         public override Task<TypeReaderResult> ReadAsync(ICommandContext context, string input, IServiceProvider services)
         {
-            if (Enum.TryParse(input, out GlobalConfigItems result))
+            if (Enum.TryParse(input, out TEnum result))
                 return Task.FromResult(TypeReaderResult.FromSuccess(result));
 
-            return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, "Invalid key from GlobalConfigItems. Get available keys from `globalConfig keys` command."));
+            return Task.FromResult(TypeReaderResult.FromError(CommandError.ParseFailed, $"Invalid value from enum {EnumType.Name}."));
         }
     }
 }
