@@ -94,8 +94,8 @@ Statická konfigurace obsahuje citlivé konfigurační hodnoty, které se nesmí
 
 | Název                  | Popis                                                        |
 | ---------------------- | ------------------------------------------------------------ |
-| APP_TOKEN              | Přístupový token reprezentující uživatele bota.              |
-| DB_CONN                | Připojovací řetězec k databázi.                              |
+| Token              | Přístupový token reprezentující uživatele bota.              |
+| ConnectionStrings:Default                | Připojovací řetězec k databázi.                              |
 | ASPNETCORE_ENVIRONMENT | Typ proměnného prostředí (Development, Staging, Production). |
 | ASPNETCORE_URLS        | Adresa, na které má naslouchat webový server Kestrel.        |
 

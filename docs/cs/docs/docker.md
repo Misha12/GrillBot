@@ -20,15 +20,15 @@ Pro vytvoření spustitelného kontejneru z image již není třeba být v koře
 ### Příklad vytvoření kontejneru
 
 ```sh
-docker run --name GrillBot -e 'APP_TOKEN=<your_token>' -e 'DB_CONN=<YOUR_MSSQL_CONNECTION_STRING>' -e 'ASPNETCORE_ENVIRONMENT=Production' -e 'ASPNETCORE_URLS=http://+:5000' misha12/grillbot
+docker run --name GrillBot -e 'Token=<your_token>' -e 'ConnectionStrings:Default=<YOUR_MSSQL_CONNECTION_STRING>' -e 'ASPNETCORE_ENVIRONMENT=Production' -e 'ASPNETCORE_URLS=http://+:5000' misha12/grillbot
 ```
 
 kde (kromě názvu obrazu) je definováno:
 
 - `--name` značí pojmenování kontejneru. Není povinný. Pokud není uveden, tak docker engine přiřadí náhodný řetězec.
 - Konfigurační hodnoty proměnného prostředí:
-    - `-e 'APP_TOKEN=<your_token>'`: Nastavení tokenu, pod kterým se aplikace (bot) ověřuje oproti Discord rozhraní. Povinné. Bez ní aplikace zahlásí chybu a nespustí se.
-    - `-e 'DB_CONN=<YOUR_MSSQL_CONNECTION_STRING>'`: Nastavení připojovacího řetězce, pomocí kterého se bude aplikace připojovat k databázi. Povinné. Bez ní aplikace zahlásí chybu a nespustí se.
+    - `-e 'Token=<your_token>'`: Nastavení tokenu, pod kterým se aplikace (bot) ověřuje oproti Discord rozhraní. Povinné. Bez ní aplikace zahlásí chybu a nespustí se.
+    - `-e 'ConnectionStrings:Default=<YOUR_MSSQL_CONNECTION_STRING>'`: Nastavení připojovacího řetězce, pomocí kterého se bude aplikace připojovat k databázi. Povinné. Bez ní aplikace zahlásí chybu a nespustí se.
     - `-e 'ASPNETCORE_ENVIRONMENT=Production'`: Nastavení pracovního prostředí aplikace. Na výběr je `Development`, `Staging` a `Production`. Nepovinné. Pokud není zadáno, tak se implicitně bere jako `Production`.
 
 ## DockerHub

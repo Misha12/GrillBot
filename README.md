@@ -61,8 +61,8 @@ Choice between command line parameters or environment variables is your. GrillBo
 
 ### Configuration variables
 
-- `APP_TOKEN`: **REQUIRED** to run bot. This token you can create in discord developer portal.
-- `DB_CONN`: **REQUIRED** to run bot. Connection string to your existing database.
+- `Token`: **REQUIRED** to run bot. This token you can create in discord developer portal.
+- `ConnectionStrings:Default`: **REQUIRED** to run bot. Connection string to your existing database.
 
 #### GlobalConfig
 
@@ -84,7 +84,7 @@ Choice between command line parameters or environment variables is your. GrillBo
 #### Run with command line parameters
 
 ```sh
-dotnet run GrillBot.dll -- APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+dotnet run GrillBot.dll -- Token="{YOUR_TOKEN}" ConnectionStrings:Default="{YOUR_CONNECTION_STRING}"
 ```
 
 or
@@ -92,13 +92,13 @@ or
 - Linux:
 
 ```sh
-./GrillBot APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+./GrillBot Token="{YOUR_TOKEN}" ConnectionStrings:Default="{YOUR_CONNECTION_STRING}"
 ```
 
 - Windows:
 
 ```sh
-GrillBot.exe APP_TOKEN="{YOUR_TOKEN}" DB_CONN="{YOUR_CONNECTION_STRING}"
+GrillBot.exe Token="{YOUR_TOKEN}" ConnectionStrings:Default="{YOUR_CONNECTION_STRING}"
 ```
 
 ## Features
