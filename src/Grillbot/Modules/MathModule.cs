@@ -114,8 +114,16 @@ namespace Grillbot.Modules
 
         [Command("session")]
         [Summary("Detail výpočetní jednotky.")]
-        public async Task SessionDetailAsync(MathSession session)
+        public async Task SessionDetailAsync(int sessionId)
         {
+            var session = Calculator.Sessions.Find(o => o.ID == sessionId);
+
+            if (session == null)
+            {
+                await ReplyAsync($"Session s ID {sessionId} nebyla nalezena.");
+                return;
+            }
+
             var color = session.IsUsed ? Color.Green : Color.LightGrey;
             var title = $"#{session.ID} {(session.IsUsed ? "(Používá se)" : "")}";
 
