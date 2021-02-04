@@ -7,6 +7,7 @@ using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
+using Grillbot.Exceptions;
 using Grillbot.Helpers;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.TeamSearch;
@@ -62,6 +63,7 @@ namespace Grillbot.Modules
                     await TeamSearchInfoFullAsync();
                     return true;
                 case "remove":
+                    if (fields.Length < 2) throw new ThrowHelpException();
                     await RemoveTeamSearchAsync(Convert.ToInt32(fields[1]));
                     return true;
                 case "massremove":
