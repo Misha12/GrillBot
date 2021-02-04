@@ -39,12 +39,11 @@ namespace Grillbot.Database.Repository
                 .FirstOrDefault();
         }
 
-        public List<EmoteStatItem> GetEmotesForClear(ulong guildID, int daysLimit)
+        public async Task<List<EmoteStatItem>> GetEmotesForClearAsync(ulong guildID, int daysLimit)
         {
             var daysBack = DateTime.Now.AddDays(-daysLimit);
 
             var guildBaseQuery = FilterUserFromQuery(GetEmoteStatsBaseQuery(guildID));
-
             var nonUnicodeEmotes = guildBaseQuery.Where(o => !o.IsUnicode);
 
             var unicodeEmotes = guildBaseQuery
@@ -61,8 +60,8 @@ namespace Grillbot.Database.Repository
                     IsUnicode = o.Min(x => x.IsUnicode ? 1 : 0) == 1
                 });
 
-            var data = nonUnicodeEmotes.ToList();
-            data.AddRange(unicodeEmotes.ToList());
+            var data = await nonUnicodeEmotes.ToListAsync();
+            data.AddRange(await unicodeEmotes.ToListAsync());
 
             return data;
         }

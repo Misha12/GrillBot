@@ -180,20 +180,17 @@ namespace Grillbot.Services.Statistics
         {
             await guild.SyncGuildAsync();
 
-            var emoteClearCandidates = GrillBotRepository.EmoteStatsRepository.GetEmotesForClear(guild.Id, 14);
+            var emoteClearCandidates = await GrillBotRepository.EmoteStatsRepository.GetEmotesForClearAsync(guild.Id, 14);
 
             if (emoteClearCandidates.Count == 0)
                 return new List<string>();
 
-            var removed = new List<string>();
+            var removed = new List<EmoteStatItem>();
             foreach (var candidate in emoteClearCandidates)
             {
                 if (candidate.IsUnicode)
                 {
-                    var formatedFirstOccured = candidate.FirstOccuredAt.ToLocaleDatetime();
-                    var formatedLastOccured = candidate.LastOccuredAt.ToLocaleDatetime();
-
-                    removed.Add($"> Smazán unicode emote **{candidate.RealID}**. Použití: 0, Poprvé použit: {formatedFirstOccured}, Naposledy použit: {formatedLastOccured}");
+                    removed.Add(candidate);
                     await GrillBotRepository.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.EmoteID);
                     continue;
                 }
@@ -201,13 +198,29 @@ namespace Grillbot.Services.Statistics
                 var parsedEmote = Emote.Parse(candidate.RealID);
                 if (!guild.Emotes.Any(o => o.Id == parsedEmote.Id))
                 {
-                    removed.Add($"> Smazán starý emote **{parsedEmote.Name}** ({parsedEmote.Id}). Použito {candidate.UseCount.FormatWithSpaces()}x.");
+                    removed.Add(candidate);
                     await GrillBotRepository.EmoteStatsRepository.RemoveEmojiNoCommitAsync(guild, candidate.RealID);
                 }
             }
 
             await GrillBotRepository.CommitAsync();
-            return removed;
+
+            var typeGroup = removed
+                .GroupBy(o => o.IsUnicode)
+                .ToDictionary(o => o.Key, o => o.GroupBy(x => x.RealID));
+
+            var messages = (typeGroup.TryGetValue(false, out var nonUnicode) ? nonUnicode : new List<IGrouping<string, EmoteStatItem>>()) // Non-unicode
+                .Select(o =>
+                {
+                    var emote = Emote.Parse(o.Key);
+                    return $"> Smazán starý emote **{emote.Name}** ({emote.Id}). Použito: {o.Sum(x => x.UseCount).FormatWithSpaces()}x.";
+                })
+                .ToList();
+
+            messages.AddRange((typeGroup.TryGetValue(true, out var unicode) ? unicode : new List<IGrouping<string, EmoteStatItem>>()) // Unicode
+                .Select(o => $"> Smazán unicode emote **{o.Key}**. Použití: 0. Poprvé použit: {o.Min(x => x.FirstOccuredAt).ToLocaleDatetime()}. Naposledy použit: {o.Max(x => x.LastOccuredAt).ToLocaleDatetime()}"));
+
+            return messages;
         }
 
         public async Task<List<EmoteStatItem>> GetEmoteStatsForUserAsync(SocketGuild guild, Discord.IUser user, bool desc)
