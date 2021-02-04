@@ -142,24 +142,22 @@ namespace Grillbot.Modules
             await Context.Guild.SyncGuildAsync();
 
             if (string.Equals(targetID, "everyone", StringComparison.InvariantCultureIgnoreCase))
-            {
                 permType = (int)PermType.Everyone;
-            }
 
-            var id = Convert.ToUInt64(targetID);
+            var id = (PermType)permType == PermType.Everyone ? 0 : Convert.ToUInt64(targetID);
             switch ((PermType)permType)
             {
                 case PermType.Role:
                     if (Context.Guild.GetRole(id) == null)
                     {
-                        await ReplyAsync("Taková role neexistuje");
+                        await ReplyAsync($"Role `{id}` neexistuje.");
                         return;
                     }
                     break;
                 case PermType.User:
                     if (await Context.Guild.GetUserFromGuildAsync(id) == null)
                     {
-                        await ReplyAsync("Takový uživatel neexistuje.");
+                        await ReplyAsync($"Uživatel s ID `{id}` nebyl nalezen.");
                         return;
                     }
                     break;
