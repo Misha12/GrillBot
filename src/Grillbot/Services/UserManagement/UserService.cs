@@ -120,7 +120,8 @@ namespace Grillbot.Services.UserManagement
             if (filter.IgnoreMissing && users == null)
                 users = guild.Users.ToList();
 
-            var userIds = (await SearchService.ConvertUsersToIDsAsync(users)).Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
+            var userIdsData = await SearchService.ConvertUsersToIDsAsync(users);
+            var userIds = userIdsData?.Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
             var queryFilter = filter.CreateQueryFilter(guild);
 
             var totalCount = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, userIds, UsersIncludes.None)
@@ -144,7 +145,8 @@ namespace Grillbot.Services.UserManagement
             if (filter.IgnoreMissing && users == null)
                 users = guild.Users.ToList();
 
-            var userIds = (await SearchService.ConvertUsersToIDsAsync(users)).Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
+            var userIdsData = await SearchService.ConvertUsersToIDsAsync(users);
+            var userIds = userIdsData?.Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
             var queryFilter = filter.CreateQueryFilter(guild);
 
             var dbUsers = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, userIds, UsersIncludes.None)
