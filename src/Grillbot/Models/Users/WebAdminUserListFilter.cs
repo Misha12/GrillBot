@@ -16,8 +16,9 @@ namespace Grillbot.Models.Users
         public bool WebAdmin { get; set; }
         public bool ApiAccess { get; set; }
         public bool BotAdmin { get; set; }
+        public bool IgnoreMissing { get; set; }
 
-        public UserListFilter CreateQueryFilter(SocketGuild guild, List<SocketGuildUser> users)
+        public UserListFilter CreateQueryFilter(SocketGuild guild)
         {
             return new UserListFilter()
             {
@@ -27,8 +28,7 @@ namespace Grillbot.Models.Users
                 OnlyApiAccess = ApiAccess,
                 OnlyBotAdmin = BotAdmin,
                 OnlyWebAdmin = WebAdmin,
-                Order = Order,
-                Users = users
+                Order = Order
             };
         }
     }

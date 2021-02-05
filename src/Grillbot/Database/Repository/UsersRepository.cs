@@ -8,6 +8,7 @@ using Grillbot.Database.Enums;
 using Microsoft.Data.SqlClient;
 using Grillbot.Models.Users;
 using Grillbot.Database.Entity.Users.Reporting;
+using System.Collections.Generic;
 
 namespace Grillbot.Database.Repository
 {
@@ -71,16 +72,13 @@ namespace Grillbot.Database.Repository
             return noTracking ? query.AsNoTracking() : query;
         }
 
-        public IQueryable<UserEntity> GetUsersQuery(UserListFilter filter, UsersIncludes includes)
+        public IQueryable<UserEntity> GetUsersQuery(UserListFilter filter, List<long> userIds, UsersIncludes includes)
         {
             var query = GetBaseQuery(includes, false)
                 .Where(o => o.GuildID == filter.Guild.Id.ToString());
 
-            if (filter.Users != null)
-            {
-                var ids = filter.Users.ConvertAll(o => o.Id.ToString());
-                query = query.Where(o => ids.Contains(o.UserID));
-            }
+            if (userIds != null)
+                query = query.Where(o => userIds.Contains(o.ID));
 
             if (!string.IsNullOrEmpty(filter.InviteCode))
                 query = query.Where(o => o.UsedInviteCode.Contains(filter.InviteCode));
@@ -129,13 +127,11 @@ namespace Grillbot.Database.Repository
 
         public async Task<long?> FindUserIDFromDiscordIDAsync(ulong guildID, ulong userID)
         {
-            var guild = guildID.ToString();
-            var user = userID.ToString();
-
             var entity = await GetBaseQuery(UsersIncludes.None, false)
+                .Where(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString())
                 .AsNoTracking()
-                .Select(o => new { o.GuildID, o.UserID, o.ID })
-                .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
+                .Select(o => new { o.ID })
+                .FirstOrDefaultAsync();
 
             return entity?.ID;
         }
@@ -176,10 +172,10 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.GuildID == guildID.ToString() && o.Points > 0)
                 .OrderByDescending(o => o.Points)
                 .ThenBy(o => o.ID)
-                .Select(o => new { o.ID, o.Points })
+                .Select(o => o.ID)
                 .ToListAsync();
 
-            return pointsList.FindIndex(o => o.ID == userID);
+            return pointsList.FindIndex(o => o == userID);
         }
 
         public IQueryable<UserEntity> GetUsersWithPointsOrder(ulong guildID, int skip, int take, bool asc)

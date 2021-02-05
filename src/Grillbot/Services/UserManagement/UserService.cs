@@ -117,8 +117,14 @@ namespace Grillbot.Services.UserManagement
                 return new PaginationInfo();
 
             var users = await SearchService.FindUsersAsync(guild, filter.UserQuery);
-            var queryFilter = filter.CreateQueryFilter(guild, users);
-            var totalCount = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, UsersIncludes.None).CountAsync();
+            if (filter.IgnoreMissing && users == null)
+                users = guild.Users.ToList();
+
+            var userIds = (await SearchService.ConvertUsersToIDsAsync(users)).Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
+            var queryFilter = filter.CreateQueryFilter(guild);
+
+            var totalCount = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, userIds, UsersIncludes.None)
+                .CountAsync();
 
             if (filter.Page < 0)
                 filter.Page = 0;
@@ -135,13 +141,18 @@ namespace Grillbot.Services.UserManagement
                 return new List<DiscordUser>();
 
             var users = await SearchService.FindUsersAsync(guild, filter.UserQuery);
-            var queryFilter = filter.CreateQueryFilter(guild, users);
-            var dbUsers = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, UsersIncludes.None)
+            if (filter.IgnoreMissing && users == null)
+                users = guild.Users.ToList();
+
+            var userIds = (await SearchService.ConvertUsersToIDsAsync(users)).Where(o => o.Value != null).Select(o => o.Value.Value).ToList();
+            var queryFilter = filter.CreateQueryFilter(guild);
+
+            var dbUsers = await GrillBotRepository.UsersRepository.GetUsersQuery(queryFilter, userIds, UsersIncludes.None)
                 .Skip((filter.Page == 0 ? 0 : filter.Page - 1) * PaginationInfo.DefaultPageSize).Take(PaginationInfo.DefaultPageSize)
                 .ToListAsync();
 
             var result = new List<DiscordUser>();
-            foreach(var user in dbUsers)
+            foreach (var user in dbUsers)
             {
                 var mappedUser = await UserHelper.MapUserAsync(DiscordClient, BotState, user);
                 if (mappedUser != null)
@@ -157,7 +168,7 @@ namespace Grillbot.Services.UserManagement
             var statistics = await query.ToListAsync();
 
             var result = new List<WebStatItem>();
-            foreach(var entity in statistics)
+            foreach (var entity in statistics)
             {
                 var guild = DiscordClient.GetGuild(entity.GuildIdSnowflake);
                 var user = await guild?.GetUserFromGuildAsync(entity.UserIdSnowflake);

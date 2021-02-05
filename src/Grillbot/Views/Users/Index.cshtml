@@ -58,6 +58,11 @@
                         <input type="checkbox" class="custom-control-input" id="botadmin" asp-for="Filter.BotAdmin">
                         <label class="custom-control-label" for="botadmin">Bot Admin</label>
                     </div>
+
+                    <div class="custom-control custom-checkbox">
+                        <input type="checkbox" class="custom-control-input" id="noleft" asp-for="Filter.IgnoreMissing" />
+                        <label class="custom-control-label" for="noleft" title="Nezobrazovat uživatele, kteří opustili server.">Ignorovat odpojené</label>
+                    </div>
                 </div>
 
                 <div class="col-md-8">
