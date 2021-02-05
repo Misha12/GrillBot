@@ -334,7 +334,16 @@ namespace Grillbot.Services.Audit
             if (!AuditServiceHelper.IsTypeDefined(task.ActionType))
                 return;
 
-            var logs = await guild.GetAuditLogDataAsync(100, task.ActionType);
+            var logs = new List<RestAuditLogEntry>();
+            try
+            {
+                logs.AddRange(await guild.GetAuditLogDataAsync(100, task.ActionType));
+            }
+            catch (NullReferenceException)
+            {
+                // TODO: Temporary fix, bug in Discord.NET.
+            }
+
             if (logs.Count == 0)
                 return;
 
