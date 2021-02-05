@@ -63,29 +63,40 @@ namespace Grillbot.Services.UserManagement
         {
             const UsersIncludes includes = UsersIncludes.Unverify | UsersIncludes.UsedInvite;
 
-            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(userId, includes);
+            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(userId, includes, true);
 
             if (entity == null)
                 return null;
 
-            entity.Channels = (await GrillBotRepository.ChannelStatsRepository.GetChannelsOfUser(entity.ID).ToListAsync()).ToHashSet();
+            var channelsQuery = GrillBotRepository.ChannelStatsRepository.GetChannelsOfUser(entity.ID)
+                .OrderByDescending(o => o.Count)
+                .ThenByDescending(o => o.LastMessageAt)
+                .AsNoTracking();
+            entity.Channels = channelsQuery.ToHashSet();
 
             var incomingUnverifiesQuery = GrillBotRepository.UnverifyRepository.GetIncomingUnverifies(entity.ID)
                 .Where(o => o.Operation == UnverifyLogOperation.Selfunverify || o.Operation == UnverifyLogOperation.Unverify)
-                .OrderByDescending(o => o.ID);
-            entity.IncomingUnverifyOperations = (await incomingUnverifiesQuery.ToListAsync()).ToHashSet();
+                .OrderByDescending(o => o.ID)
+                .AsNoTracking();
+            entity.IncomingUnverifyOperations = incomingUnverifiesQuery.ToHashSet();
 
             var outgoingUnverifiesQuery = GrillBotRepository.UnverifyRepository.GetOutgoingUnverifies(entity.ID)
-                .Where(o => o.Operation == UnverifyLogOperation.Unverify);
-            entity.OutgoingUnverifyOperations = (await outgoingUnverifiesQuery.ToListAsync()).ToHashSet();
+                .Where(o => o.Operation == UnverifyLogOperation.Unverify)
+                .OrderByDescending(o => o.ID)
+                .AsNoTracking();
+            entity.OutgoingUnverifyOperations = outgoingUnverifiesQuery.ToHashSet();
 
             var createdInvitesQuery = GrillBotRepository.InviteRepository.GetInvitesOfUser(entity.ID)
-                .OrderByDescending(o => o.UsedUsers.Count).ThenByDescending(o => o.Code);
-            entity.CreatedInvites = (await createdInvitesQuery.ToListAsync()).ToHashSet();
+                .OrderByDescending(o => o.UsedUsers.Count)
+                .ThenByDescending(o => o.Code)
+                .AsNoTracking();
+            entity.CreatedInvites = createdInvitesQuery.ToHashSet();
 
             var remindersQuery = GrillBotRepository.ReminderRepository.GetRemindersOfUser(entity.ID)
-                .OrderByDescending(o => o.At).ThenByDescending(o => o.RemindID);
-            entity.Reminders = (await remindersQuery.ToListAsync()).ToHashSet();
+                .OrderByDescending(o => o.At)
+                .ThenByDescending(o => o.RemindID)
+                .AsNoTracking();
+            entity.Reminders = remindersQuery.ToHashSet();
 
             return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }

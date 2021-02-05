@@ -17,7 +17,7 @@ namespace Grillbot.Database.Repository
         {
         }
 
-        private IQueryable<UserEntity> GetBaseQuery(UsersIncludes includes)
+        private IQueryable<UserEntity> GetBaseQuery(UsersIncludes includes, bool noTracking)
         {
             var query = Context.Users.AsQueryable();
 
@@ -68,12 +68,12 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.ToUser);
             }
 
-            return query;
+            return noTracking ? query.AsNoTracking() : query;
         }
 
         public IQueryable<UserEntity> GetUsersQuery(UserListFilter filter, UsersIncludes includes)
         {
-            var query = GetBaseQuery(includes)
+            var query = GetBaseQuery(includes, false)
                 .Where(o => o.GuildID == filter.Guild.Id.ToString());
 
             if (filter.Users != null)
@@ -114,18 +114,16 @@ namespace Grillbot.Database.Repository
 
         public Task<UserEntity> GetUserAsync(ulong guildID, ulong userID, UsersIncludes includes, bool onlyRead = false)
         {
-            var query = GetBaseQuery(includes);
-
-            if (onlyRead)
-                query = query.AsNoTracking();
-
-            return query
+            return GetBaseQuery(includes, onlyRead)
                 .SingleOrDefaultAsync(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString());
         }
 
-        public Task<UserEntity> GetUserAsync(long userID, UsersIncludes includes)
+        public Task<UserEntity> GetUserAsync(long userID, UsersIncludes includes, bool asNoTracking = false)
         {
-            return GetBaseQuery(includes)
+            var query = GetBaseQuery(includes, asNoTracking)
+                .AsSplitQuery();
+
+            return query
                 .FirstOrDefaultAsync(o => o.ID == userID);
         }
 
@@ -134,7 +132,7 @@ namespace Grillbot.Database.Repository
             var guild = guildID.ToString();
             var user = userID.ToString();
 
-            var entity = await GetBaseQuery(UsersIncludes.None)
+            var entity = await GetBaseQuery(UsersIncludes.None, false)
                 .AsNoTracking()
                 .Select(o => new { o.GuildID, o.UserID, o.ID })
                 .SingleOrDefaultAsync(o => o.GuildID == guild && o.UserID == user);
@@ -160,21 +158,21 @@ namespace Grillbot.Database.Repository
             return entity;
         }
 
-        public Task<UserEntity> FindUserByApiTokenAsync(string apiToken)
+        public Task<UserEntity> FindUserByApiTokenAsync(string apiToken, bool noTracking = false)
         {
-            return GetBaseQuery(UsersIncludes.None)
+            return GetBaseQuery(UsersIncludes.None, noTracking)
                 .SingleOrDefaultAsync(o => o.ApiToken == apiToken);
         }
 
         public IQueryable<UserEntity> GetUsersWithBirthday(ulong guildID)
         {
-            return GetBaseQuery(UsersIncludes.None)
+            return GetBaseQuery(UsersIncludes.None, false)
                 .Where(o => o.GuildID == guildID.ToString() && o.Birthday != null);
         }
 
         public async Task<int> CalculatePointsPositionAsync(ulong guildID, long userID)
         {
-            var pointsList = await GetBaseQuery(UsersIncludes.None)
+            var pointsList = await GetBaseQuery(UsersIncludes.None, true)
                 .Where(o => o.GuildID == guildID.ToString() && o.Points > 0)
                 .OrderByDescending(o => o.Points)
                 .ThenBy(o => o.ID)
@@ -186,7 +184,7 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<UserEntity> GetUsersWithPointsOrder(ulong guildID, int skip, int take, bool asc)
         {
-            var query = GetBaseQuery(UsersIncludes.None)
+            var query = GetBaseQuery(UsersIncludes.None, false)
                 .Where(o => o.GuildID == guildID.ToString() && o.Points > 0);
 
             if (asc)
@@ -201,13 +199,13 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<UserEntity> GetUsersWithUnverify(ulong guildID)
         {
-            return GetBaseQuery(UsersIncludes.Unverify)
+            return GetBaseQuery(UsersIncludes.Unverify, false)
                 .Where(o => o.GuildID == guildID.ToString() && o.Unverify != null);
         }
 
         public IQueryable<UserEntity> GetUsersWithUnverifyImunity(ulong guildID)
         {
-            return GetBaseQuery(UsersIncludes.None)
+            return GetBaseQuery(UsersIncludes.None, false)
                 .Where(o => o.GuildID == guildID.ToString() && o.UnverifyImunityGroup != null);
         }
 
@@ -224,7 +222,7 @@ namespace Grillbot.Database.Repository
 
         public IQueryable<WebStatItem> GetWebStatisticsQuery()
         {
-            return GetBaseQuery(UsersIncludes.None)
+            return GetBaseQuery(UsersIncludes.None, false)
                 .Where(o => o.WebAdminPassword != null || o.ApiToken != null)
                 .Select(o => new WebStatItem()
                 {
