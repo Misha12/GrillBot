@@ -66,9 +66,23 @@ namespace Grillbot.Modules
         {
             try
             {
-                var mentionedUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
+                // Check "me" and tags.
+                var targetUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
+                if (targetUser == null)
+                {
+                    await Context.Guild.SyncGuildAsync();
 
-                if (mentionedUser == null)
+                    // Target user parameter is name???
+                    targetUser = Context.Guild.Users.FirstOrDefault(o =>
+                    {
+                        if (!string.IsNullOrEmpty(o.Nickname) && o.Nickname.Equals(user, StringComparison.InvariantCultureIgnoreCase))
+                            return true;
+
+                        return o.Username.Equals(user, StringComparison.InvariantCultureIgnoreCase);
+                    });
+                }
+
+                if (targetUser == null)
                 {
                     await ReplyAsync($"Hledaný uživatel `{user}` nebyl nalezen.");
                     return;
@@ -77,7 +91,7 @@ namespace Grillbot.Modules
                 var dateTimeAt = StringHelper.ParseDateTime(at);
 
                 using var service = GetService<ReminderService>();
-                await service.Service.CreateReminderAsync(Context.Guild, Context.User, mentionedUser, dateTimeAt, message, Context.Message);
+                await service.Service.CreateReminderAsync(Context.Guild, Context.User, targetUser, dateTimeAt, message, Context.Message);
 
                 await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {ReminderDefinitions.CopyRemindEmoji.Name}");
                 await Context.Message.AddReactionAsync(ReminderDefinitions.CopyRemindEmoji);
