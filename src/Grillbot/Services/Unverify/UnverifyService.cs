@@ -68,7 +68,7 @@ namespace Grillbot.Services.Unverify
 
             foreach (var user in users)
             {
-                var message = await SetUnverifyAsync(user, time, data, guild, fromUser, false, null, mutedRole, unverifyConfig);
+                var message = await SetUnverifyAsync(user, time, data, guild, fromUser, false, null, mutedRole);
                 messages.Add(message);
             }
 
@@ -83,14 +83,14 @@ namespace Grillbot.Services.Unverify
             await guild.SyncGuildAsync();
 
             var mutedRole = guild.GetRole(unverifyConfig.MutedRoleID);
-            return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole, unverifyConfig);
+            return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole);
         }
 
         private async Task<string> SetUnverifyAsync(SocketUser socketUser, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
-            List<string> toKeep, SocketRole mutedRole, UnverifyConfig unverifyConfig)
+            List<string> toKeep, SocketRole mutedRole)
         {
             var user = await guild.GetUserFromGuildAsync(socketUser.Id);
-            await Checker.ValidateAsync(user, guild, selfUnverify, unverifyConfig);
+            await Checker.ValidateAsync(user, guild, selfUnverify);
 
             var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
 

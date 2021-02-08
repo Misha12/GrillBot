@@ -4,6 +4,7 @@ using Discord.WebSocket;
 using Grillbot.Database.Entity;
 using Grillbot.Services.InviteTracker;
 using System;
+using System.Collections.Concurrent;
 using System.Collections.Generic;
 
 namespace Grillbot
@@ -24,7 +25,7 @@ namespace Grillbot
 
         // Key: $"{guild.Id}|{user.Id}"
         // Value: DB ID
-        public Dictionary<string, long> UserToID { get; set; }
+        public ConcurrentDictionary<string, long> UserToID { get; set; }
 
         public List<AutoReplyItem> AutoReplyItems { get; set; }
 
@@ -35,7 +36,7 @@ namespace Grillbot
             LastPointsCalculation = new Dictionary<string, DateTime>();
             InviteCache = new Dictionary<ulong, List<InviteModel>>();
             CurrentReturningUnverifyFor = new List<IUser>();
-            UserToID = new Dictionary<string, long>();
+            UserToID = new ConcurrentDictionary<string, long>();
             AutoReplyItems = new List<AutoReplyItem>();
             RunningCommands = new List<SocketMessage>();
         }

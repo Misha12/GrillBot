@@ -97,12 +97,5 @@ namespace Grillbot.Database.Repository
                 .Include(o => o.ToUser)
                 .Where(o => o.FromUserID == userId);
         }
-
-        public Task<UnverifyLog> GetLastUnverifyLogItemAsync(long userId)
-        {
-            return Context.UnverifyLogs.AsQueryable()
-                .OrderByDescending(o => o.ID)
-                .FirstOrDefaultAsync(o => o.ToUserID == userId && (o.Operation == Enums.UnverifyLogOperation.Selfunverify || o.Operation == Enums.UnverifyLogOperation.Unverify || o.Operation == Enums.UnverifyLogOperation.Update));
-        }
     }
 }

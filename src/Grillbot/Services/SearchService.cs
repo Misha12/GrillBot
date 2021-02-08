@@ -53,7 +53,7 @@ namespace Grillbot.Services
             if (id == null)
                 return null;
 
-            BotState.UserToID.Add(key, id.Value);
+            BotState.UserToID.TryAdd(key, id.Value);
             return id;
         }
 
