@@ -23,7 +23,7 @@
         <table class="table table-sm">
             <thead>
                 <tr>
-                    <th>Typ oprávnění</th>
+                    <th style="width: 30%">Typ oprávnění</th>
                     <th>Práva</th>
                 </tr>
             </thead>
@@ -31,26 +31,16 @@
             <tbody>
                 <tr>
                     <th>Povoleno</th>
-                    @if (Model.Permissions.AllowValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.Permissions.ToAllowList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.AllowValue == 0 ? "-" : string.Join(", ", Model.Permissions.Permissions.ToAllowList().Select(o => o.ToString())))
+                    </td>
                 </tr>
 
                 <tr>
                     <th>Zakázáno</th>
-                    @if (Model.Permissions.DenyValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.Permissions.ToDenyList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.DenyValue == 0 ? "-" : string.Join(", ", Model.Permissions.Permissions.ToDenyList().Select(o => o.ToString())))
+                    </td>
                 </tr>
             </tbody>
         </table>

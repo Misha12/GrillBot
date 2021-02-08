@@ -1,7 +1,7 @@
 @model Grillbot.Models.Audit.DiscordAuditLog.AuditOverwriteUpdated;
 
 <div class="row">
-    <div class="col-md-7">
+    <div class="col-md-5">
         <div class="row">
             <div class="col-4 font-weight-bold">Cíl výjimky</div>
             <div class="col">
@@ -23,7 +23,7 @@
         <table class="table table-sm">
             <thead>
                 <tr>
-                    <th>Typ oprávnění</th>
+                    <th style="width: 30%">Typ oprávnění</th>
                     <th>Práva před</th>
                     <th>Práva po</th>
                 </tr>
@@ -32,45 +32,25 @@
             <tbody>
                 <tr>
                     <th>Povoleno</th>
-                    @if (Model.Permissions.Before.AllowValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.Before.Permissions.ToAllowList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.Before.AllowValue == 0 ? "-" : string.Join(", ", Model.Permissions.Before.Permissions.ToAllowList().Select(o => o.ToString())))
+                    </td>
 
-                    @if (Model.Permissions.After.AllowValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.After.Permissions.ToAllowList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.After.AllowValue == 0 ? "-" : string.Join(", ", Model.Permissions.After.Permissions.ToAllowList().Select(o => o.ToString())))
+                    </td>
                 </tr>
 
                 <tr>
                     <th>Zakázáno</th>
 
-                    @if (Model.Permissions.Before.DenyValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.Before.Permissions.ToDenyList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.Before.DenyValue == 0 ? "-" : string.Join(", ", Model.Permissions.Before.Permissions.ToDenyList().Select(o => o.ToString())))
+                    </td>
 
-                    @if (Model.Permissions.After.DenyValue == 0)
-                    {
-                        <td>-</td>
-                    }
-                    else
-                    {
-                        <td>@(string.Join(", ", Model.Permissions.After.Permissions.ToDenyList().Select(o => o.ToString())))</td>
-                    }
+                    <td>
+                        @(Model.Permissions.After.DenyValue == 0 ? "-" : string.Join(", ", Model.Permissions.After.Permissions.ToDenyList().Select(o => o.ToString())))
+                    </td>
                 </tr>
             </tbody>
         </table>
