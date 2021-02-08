@@ -15,6 +15,7 @@ using Grillbot.Models.Embed;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.MessageCache;
+using Grillbot.Services.UserManagement;
 using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.Logging;
 using ReminderEntity = Grillbot.Database.Entity.Users.Reminder;
@@ -29,9 +30,10 @@ namespace Grillbot.Services.Reminder
         private ILogger<ReminderService> Logger { get; }
         private SearchService SearchService { get; }
         private BackgroundTaskQueue Queue { get; }
+        private UserService UserService { get; }
 
         public ReminderService(DiscordSocketClient discord, IMessageCache messageCache, ILogger<ReminderService> logger,
-            SearchService searchService, IGrillBotRepository grillBotRepository, BackgroundTaskQueue queue)
+            SearchService searchService, IGrillBotRepository grillBotRepository, BackgroundTaskQueue queue, UserService userService)
         {
             Discord = discord;
             MessageCache = messageCache;
@@ -39,6 +41,7 @@ namespace Grillbot.Services.Reminder
             SearchService = searchService;
             GrillBotRepository = grillBotRepository;
             Queue = queue;
+            UserService = userService;
         }
 
         public async Task CreateReminderAsync(IGuild guild, IUser fromUser, IUser toUser, DateTime at, string message, IMessage originalMessage)
@@ -95,10 +98,10 @@ namespace Grillbot.Services.Reminder
             if (remind == null)
                 throw new InvalidOperationException("Toto upozornění neexistuje.");
 
-            var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
-            if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
-                throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
+            await CheckCancellationPermsAsync(remind, user);
 
+            remind.RemindMessageIDSnowflake = ulong.MinValue;
+            await GrillBotRepository.CommitAsync();
             Queue.TryRemove<ReminderBackgroundTask>(o => o.Id == id);
         }
 
@@ -109,12 +112,21 @@ namespace Grillbot.Services.Reminder
             if (remind == null)
                 throw new InvalidOperationException("Toto upozornění neexistuje.");
 
-            var hasPerms = user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages;
-            if (remind.User.UserIDSnowflake != user.Id && !hasPerms)
-                throw new UnauthorizedAccessException("Na tuto operaci nemáš práva.");
+            await CheckCancellationPermsAsync(remind, user);
 
             await TriggerReminder(id, true);
             Queue.TryRemove<ReminderBackgroundTask>(o => o.Id == id);
+        }
+
+        private async Task CheckCancellationPermsAsync(ReminderEntity entity, SocketGuildUser user)
+        {
+            if (user.GuildPermissions.Administrator || user.GuildPermissions.ManageMessages)
+                return;
+
+            if (user.Id == entity.User.UserIDSnowflake || await UserService.IsBotAdminAsync(user.Guild, user))
+                return;
+
+            throw new UnauthorizedAccessException("Pro předčasné zrušení připomenutí nemáš dostatečná práva.");
         }
 
         public async Task PostponeReminderAsync(IUserMessage message, SocketReaction reaction)

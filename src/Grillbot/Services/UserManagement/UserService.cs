@@ -109,6 +109,14 @@ namespace Grillbot.Services.UserManagement
             await GrillBotRepository.CommitAsync();
         }
 
+        public async Task<bool> IsBotAdminAsync(SocketGuild guild, SocketUser user)
+        {
+            if (user.Id == BotState.AppInfo.Owner.Id) return true;
+
+            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None, true);
+            return entity != null && entity.IsBotAdmin;
+        }
+
         public async Task<PaginationInfo> GetPaginationInfo(WebAdminUserListFilter filter)
         {
             var guild = DiscordClient.GetGuild(filter.GuildID);
