@@ -22,21 +22,25 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.User.GuildID == guildID.ToString());
         }
 
-        public GroupedEmoteItem GetStatsOfEmote(ulong guildID, string emoteId)
+        public async Task<GroupedEmoteItem> GetStatsOfEmoteAsync(ulong guildID, string emoteId)
         {
-            return FilterUserFromQuery(GetEmoteStatsBaseQuery(guildID).Where(o => o.EmoteID == emoteId))
-                .AsEnumerable()
+            var dataQuery = GetEmoteStatsBaseQuery(guildID).Where(o => o.EmoteID == emoteId);
+
+            var groupedData = await dataQuery
                 .GroupBy(o => o.EmoteID)
                 .Select(o => new GroupedEmoteItem()
                 {
                     EmoteID = o.Key,
                     FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
-                    IsUnicode = o.First().IsUnicode,
+                    IsUnicode = o.Min(x => x.IsUnicode ? 1 : 0) == 1,
                     LastOccuredAt = o.Max(x => x.LastOccuredAt),
                     UseCount = o.Sum(x => x.UseCount),
                     UsersCount = o.Count()
-                })
-                .FirstOrDefault();
+                }).FirstOrDefaultAsync();
+
+            groupedData.TopUsage = await dataQuery.OrderByDescending(x => x.UseCount).Take(10).ToDictionaryAsync(x => x.User.UserID, x => x.UseCount);
+
+            return groupedData;
         }
 
         public async Task<List<EmoteStatItem>> GetEmotesForClearAsync(ulong guildID, int daysLimit)

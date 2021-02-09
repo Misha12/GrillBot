@@ -1,6 +1,8 @@
 using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Extensions;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.EmoteStats;
@@ -84,12 +86,12 @@ namespace Grillbot.Modules
             using var service = GetService<EmoteStats>();
 
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
-            var emoteInfo = service.Service.GetValue(Context.Guild, emote);
+            var emoteInfo = await service.Service.GetValueAsync(Context.Guild, emote);
 
             if (emoteInfo == null)
             {
                 var bytes = Encoding.Unicode.GetBytes(emote);
-                emoteInfo = service.Service.GetValue(Context.Guild, Convert.ToBase64String(bytes));
+                emoteInfo = await service.Service.GetValueAsync(Context.Guild, Convert.ToBase64String(bytes));
             }
 
             if (emoteInfo == null)
@@ -108,6 +110,21 @@ namespace Grillbot.Modules
                 .AddField(o => o.WithName(emoteInfo.RealID).WithValue(emoteInfo.GetFormatedInfo()));
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
+
+            if(emoteInfo.TopUsage.Count > 0)
+            {
+                var leaderboard = new LeaderboardBuilder("Nejpoužívajší uživatelé", Context.User);
+
+                foreach(var usage in emoteInfo.TopUsage)
+                {
+                    var user = await Context.Guild.GetUserFromGuildAsync(usage.Key);
+                    if (user == null) continue;
+
+                    leaderboard.AddItem(user?.GetFullName(), usage.Value.FormatWithSpaces());
+                }
+
+                await ReplyAsync(embed: leaderboard.Build());
+            }
         }
 
         private async Task<bool> GetEmoteInfoAsyncRouting(string route)

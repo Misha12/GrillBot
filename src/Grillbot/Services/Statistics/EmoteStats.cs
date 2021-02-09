@@ -161,9 +161,9 @@ namespace Grillbot.Services.Statistics
             userEmote.UseCount--;
         }
 
-        public GroupedEmoteItem GetValue(SocketGuild guild, string emoteId)
+        public Task<GroupedEmoteItem> GetValueAsync(SocketGuild guild, string emoteId)
         {
-            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmote(guild.Id, emoteId);
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmoteAsync(guild.Id, emoteId);
         }
 
         public List<GroupedEmoteItem> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)

@@ -1,5 +1,6 @@
 using Grillbot.Extensions;
 using System;
+using System.Collections.Generic;
 using System.Text;
 
 namespace Grillbot.Models.EmoteStats
@@ -12,6 +13,12 @@ namespace Grillbot.Models.EmoteStats
         public DateTime FirstOccuredAt { get; set; } = DateTime.Now;
         public bool IsUnicode { get; set; }
         public int UsersCount { get; set; }
+        public Dictionary<string, long> TopUsage { get; set; }
+
+        public GroupedEmoteItem()
+        {
+            TopUsage = new Dictionary<string, long>();
+        }
 
         public string RealID
         {
