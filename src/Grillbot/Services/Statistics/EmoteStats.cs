@@ -16,6 +16,7 @@ using System.Threading.Tasks;
 using Grillbot.Database.Enums.Includes;
 using Microsoft.EntityFrameworkCore;
 using Grillbot.Database;
+using Grillbot.Enums;
 
 namespace Grillbot.Services.Statistics
 {
@@ -166,14 +167,14 @@ namespace Grillbot.Services.Statistics
             return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmoteAsync(guild.Id, emoteId);
         }
 
-        public List<GroupedEmoteItem> GetAllValues(bool descOrder, ulong guildID, bool excludeUnicode, int? limit = null)
+        public List<GroupedEmoteItem> GetAllValues(SortType sortType, ulong guildID, bool excludeUnicode, EmoteInfoOrderType orderType, int? limit = null)
         {
-            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, excludeUnicode, descOrder).ToList();
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, excludeUnicode, sortType, orderType).ToList();
         }
 
-        public List<GroupedEmoteItem> GetAllUnicodeValues(bool descOrder, ulong guildID, int? limit = null)
+        public List<GroupedEmoteItem> GetAllUnicodeValues(SortType sortType, ulong guildID, int? limit = null)
         {
-            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, false, descOrder, true).ToList();
+            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmotes(guildID, limit, false, sortType, EmoteInfoOrderType.Count, true).ToList();
         }
 
         public async Task<List<string>> CleanOldEmotesAsync(SocketGuild guild)
@@ -223,7 +224,7 @@ namespace Grillbot.Services.Statistics
             return messages;
         }
 
-        public async Task<List<EmoteStatItem>> GetEmoteStatsForUserAsync(SocketGuild guild, Discord.IUser user, bool desc)
+        public async Task<List<EmoteStatItem>> GetEmoteStatsForUserAsync(SocketGuild guild, Discord.IUser user, SortType sortType)
         {
             var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
 
@@ -232,9 +233,9 @@ namespace Grillbot.Services.Statistics
 
             var query = GrillBotRepository.EmoteStatsRepository.GetEmotesOfUser(userId.Value);
 
-            if (desc)
+            if (sortType == SortType.Desc)
                 query = query.OrderByDescending(o => o.UseCount).ThenByDescending(o => o.LastOccuredAt);
-            else
+            else if(sortType == SortType.Asc)
                 query = query.OrderBy(o => o.UseCount).ThenBy(o => o.LastOccuredAt);
 
             return await query.ToListAsync();

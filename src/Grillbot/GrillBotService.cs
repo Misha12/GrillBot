@@ -63,7 +63,9 @@ namespace Grillbot
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
             Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());
-            Commands.AddTypeReader<GlobalConfigItems>(new EnumTypeReader<GlobalConfigItems>());
+            Commands.AddTypeReader<GlobalConfigItems>(new EnumTypeReader<GlobalConfigItems>(true));
+            Commands.AddTypeReader<EmoteInfoOrderType>(new EnumTypeReader<EmoteInfoOrderType>(false));
+            Commands.AddTypeReader<SortType>(new EnumTypeReader<SortType>(false));
 
             using var scope = Services.CreateScope();
             await Commands.AddModulesAsync(Assembly.GetEntryAssembly(), scope.ServiceProvider);

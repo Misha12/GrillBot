@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Discord.WebSocket;
 using Grillbot.Database.Entity.Users;
+using Grillbot.Enums;
 using Grillbot.Models.EmoteStats;
 using Microsoft.EntityFrameworkCore;
 
@@ -38,8 +39,10 @@ namespace Grillbot.Database.Repository
                     UsersCount = o.Count()
                 }).FirstOrDefaultAsync();
 
-            groupedData.TopUsage = await dataQuery.OrderByDescending(x => x.UseCount).Take(10).ToDictionaryAsync(x => x.User.UserID, x => x.UseCount);
+            if (groupedData == null)
+                return null;
 
+            groupedData.TopUsage = await dataQuery.OrderByDescending(x => x.UseCount).Take(10).ToDictionaryAsync(x => x.User.UserID, x => x.UseCount);
             return groupedData;
         }
 
@@ -70,7 +73,8 @@ namespace Grillbot.Database.Repository
             return data;
         }
 
-        public IEnumerable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, bool? desc, bool onlyUnicode = false)
+        public IQueryable<GroupedEmoteItem> GetStatsOfEmotes(ulong guildID, int? limit, bool excludeUnicode, SortType sortType, EmoteInfoOrderType orderType,
+            bool onlyUnicode = false)
         {
             var query = GetEmoteStatsBaseQuery(guildID);
 
@@ -79,32 +83,32 @@ namespace Grillbot.Database.Repository
             else if (excludeUnicode)
                 query = query.Where(o => !o.IsUnicode);
 
-            var resultQuery = FilterUserFromQuery(query).AsEnumerable()
+            var resultQuery = FilterUserFromQuery(query)
                 .GroupBy(o => o.EmoteID)
                 .Select(o => new GroupedEmoteItem()
                 {
                     EmoteID = o.Key,
                     FirstOccuredAt = o.Min(x => x.FirstOccuredAt),
-                    IsUnicode = o.First().IsUnicode,
+                    IsUnicode = o.Min(x => x.IsUnicode ? 1 : 0) == 1,
                     LastOccuredAt = o.Max(x => x.LastOccuredAt),
                     UseCount = o.Sum(x => x.UseCount),
                     UsersCount = o.Count()
                 });
 
-            if (desc != null)
+            switch (orderType)
             {
-                if (desc == true)
-                {
-                    resultQuery = resultQuery
-                        .OrderByDescending(o => o.UseCount)
-                        .ThenByDescending(o => o.UsersCount);
-                }
-                else
-                {
-                    resultQuery = resultQuery
-                        .OrderBy(o => o.UseCount)
-                        .ThenBy(o => o.UsersCount);
-                }
+                case EmoteInfoOrderType.Count when sortType == SortType.Desc:
+                    resultQuery = resultQuery.OrderByDescending(o => o.UseCount).ThenByDescending(o => o.UsersCount);
+                    break;
+                case EmoteInfoOrderType.Count when sortType == SortType.Asc:
+                    resultQuery = resultQuery.OrderBy(o => o.UseCount).ThenBy(o => o.UsersCount);
+                    break;
+                case EmoteInfoOrderType.LastUse when sortType == SortType.Desc:
+                    resultQuery = resultQuery.OrderByDescending(o => o.LastOccuredAt).ThenByDescending(o => o.UsersCount);
+                    break;
+                case EmoteInfoOrderType.LastUse when sortType == SortType.Asc:
+                    resultQuery = resultQuery.OrderBy(o => o.LastOccuredAt).ThenBy(o => o.UsersCount);
+                    break;
             }
 
             if (limit != null)

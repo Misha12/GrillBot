@@ -1,6 +1,7 @@
 using Discord;
 using Discord.Commands;
 using Grillbot.Attributes;
+using Grillbot.Enums;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
@@ -26,12 +27,12 @@ namespace Grillbot.Modules
         }
 
         [Command("all")]
-        [Summary("Vypíše kompletní statistiku emotů. Seřazeno vzestupně.")]
-        public async Task GetCompleteEmoteInfoListAsync()
+        [Summary("Vypíše kompletní statistiku emotů. Řazení se nastavuje pomocí `desc` (Sestupně) a `asc` (Vzestupně). Výchozí je sestupné řazení.")]
+        public async Task GetCompleteEmoteInfoListAsync(SortType sortType = SortType.Desc)
         {
             using var service = GetService<EmoteStats>();
 
-            var fields = service.Service.GetAllValues(true, Context.Guild.Id, true)
+            var fields = service.Service.GetAllValues(sortType, Context.Guild.Id, true, EmoteInfoOrderType.Count)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID))
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()))
                 .ToList();
@@ -46,25 +47,14 @@ namespace Grillbot.Modules
             await SendPaginatedEmbedAsync(embed);
         }
 
-        [Command("desc")]
-        [Summary("TOP 25 statistika emotů. Seřazeno sestupně.")]
-        public async Task GetTopUsedEmotes()
-        {
-            await GetTopEmoteUsage(true).ConfigureAwait(false);
-        }
-
-        [Command("asc")]
-        [Summary("TOP 25 statistika emotů. Seřazeno vzestupně.")]
-        public async Task GetTopUsedEmotesAscending()
-        {
-            await GetTopEmoteUsage(false).ConfigureAwait(false);
-        }
-
-        private async Task GetTopEmoteUsage(bool descOrder)
+        [Command("list")]
+        [Summary("Vypíše TOP 25 statistiku emotů. Lze zadat následující možnosti řazení:\n- Desc Count (Sestupně, podle počtu použití) (Výchozí)\n" +
+            "- Asc Count (Vzestupně, podle počtu použití)\n- Desc LastUse (Sestupně, podle data posledního použití)\n- Asc LastUse (Vzestupně, podle data posledního použití).")]
+        public async Task GetTopEmoteUsage(SortType sortType = SortType.Desc, EmoteInfoOrderType orderType = EmoteInfoOrderType.Count)
         {
             using var service = GetService<EmoteStats>();
 
-            var fields = service.Service.GetAllValues(descOrder, Context.Guild.Id, true)
+            var fields = service.Service.GetAllValues(sortType, Context.Guild.Id, true, orderType)
                 .Where(o => Context.Guild.Emotes.Any(x => x.ToString() == o.EmoteID && !x.Animated))
                 .Take(EmbedBuilder.MaxFieldCount)
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
@@ -75,14 +65,23 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
         }
 
-        [Command("")]
-        [Summary("Statistika emotů")]
-        [Remarks("Parametr 'all' vypíše všechno. Parametr 'asc' vypíše TOP25 vzestupně. Parametr 'desc' vypšíše TOP25 sestupně.")]
-        public async Task GetEmoteInfoAsync([Remainder] string emote)
+        [Command("get")]
+        [Summary("Statistika emote, nebo uživatele. Pro statistiku uživatele jej musíte označit (tagnout).")]
+        public async Task GetEmoteInfoAsync(string emoteOrTag, SortType sortType = SortType.Desc)
         {
-            if (await GetEmoteInfoAsyncRouting(emote))
-                return;
+            if (Context.Message.MentionedUsers.Any(x => x.Mention == emoteOrTag))
+            {
+                var user = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == emoteOrTag);
+                await GetInfoOfUserAsync(user, sortType);
+            }
+            else
+            {
+                await GetInfoOfEmoteAsync(emoteOrTag);
+            }
+        }
 
+        private async Task GetInfoOfEmoteAsync(string emote)
+        {
             using var service = GetService<EmoteStats>();
 
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
@@ -111,11 +110,11 @@ namespace Grillbot.Modules
 
             await ReplyAsync(embed: embed.Build()).ConfigureAwait(false);
 
-            if(emoteInfo.TopUsage.Count > 0)
+            if (emoteInfo.TopUsage.Count > 0)
             {
                 var leaderboard = new LeaderboardBuilder("Nejpoužívajší uživatelé", Context.User);
 
-                foreach(var usage in emoteInfo.TopUsage)
+                foreach (var usage in emoteInfo.TopUsage)
                 {
                     var user = await Context.Guild.GetUserFromGuildAsync(usage.Key);
                     if (user == null) continue;
@@ -127,37 +126,39 @@ namespace Grillbot.Modules
             }
         }
 
-        private async Task<bool> GetEmoteInfoAsyncRouting(string route)
-        {
-            switch (route)
-            {
-                case "all":
-                    await GetCompleteEmoteInfoListAsync();
-                    return true;
-                case "asc":
-                    await GetTopUsedEmotesAscending();
-                    return true;
-                case "desc":
-                    await GetTopUsedEmotes();
-                    return true;
-                case "unicode":
-                    await GetEmoteInfoOnlyUnicode();
-                    return true;
-                case "clear":
-                    await ClearOldEmotesAsync();
-                    return true;
-            }
-
-            return false;
-        }
-
-        [Command("unicode")]
-        [Summary("Vypíše TOP25 statistika unicode emojis.")]
-        private async Task GetEmoteInfoOnlyUnicode()
+        private async Task GetInfoOfUserAsync(IUser user, SortType sortType)
         {
             using var service = GetService<EmoteStats>();
 
-            var fields = service.Service.GetAllUnicodeValues(true, Context.Guild.Id)
+            var emotes = (await service.Service.GetEmoteStatsForUserAsync(Context.Guild, user, sortType))
+                .Select(o => new GroupedEmoteItem()
+                {
+                    EmoteID = o.EmoteID,
+                    FirstOccuredAt = o.FirstOccuredAt,
+                    IsUnicode = o.IsUnicode,
+                    LastOccuredAt = o.LastOccuredAt,
+                    UseCount = o.UseCount
+                })
+                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo(true)))
+                .ToList();
+
+            if (emotes.Count == 0)
+            {
+                await ReplyAsync("Tento uživatel ještě nepoužil žádný emote.");
+                return;
+            }
+
+            var embed = GetPaginatedResult(emotes, "Kompletní statistika emotů za uživatele");
+            await SendPaginatedEmbedAsync(embed);
+        }
+
+        [Command("unicode")]
+        [Summary("Vypíše TOP25 statistika unicode emojis. Řazení se nastavuje pomocí `desc` (Sestupně) a `asc` (Vzestupně). Výchozí je sestupné řazení.")]
+        public async Task GetEmoteInfoOnlyUnicode(SortType sortType = SortType.Desc)
+        {
+            using var service = GetService<EmoteStats>();
+
+            var fields = service.Service.GetAllUnicodeValues(sortType, Context.Guild.Id)
                 .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo()));
 
             if (!fields.Any())
@@ -180,37 +181,6 @@ namespace Grillbot.Modules
 
             await ReplyChunkedAsync(clearedEmotes, 10);
             await ReplyAsync("> Čištění dokončeno.");
-        }
-
-        [Command("user")]
-        [Summary("Statistika používaných emotů daného uživatele.")]
-        [Remarks("Je možno zadat řazení pomocí `asc` a `desc`. Pokud se nepodaří správně rozeznat formát, tak bude použito výchozí řazení (Desc).")]
-        public async Task GetEmoteInfoOfUser(IUser user, string ascDesc = "desc")
-        {
-            bool desc = !string.Equals(ascDesc, "asc", StringComparison.InvariantCultureIgnoreCase);
-
-            using var service = GetService<EmoteStats>();
-
-            var emotes = (await service.Service.GetEmoteStatsForUserAsync(Context.Guild, user, desc))
-                .Select(o => new GroupedEmoteItem()
-                {
-                    EmoteID = o.EmoteID,
-                    FirstOccuredAt = o.FirstOccuredAt,
-                    IsUnicode = o.IsUnicode,
-                    LastOccuredAt = o.LastOccuredAt,
-                    UseCount = o.UseCount
-                })
-                .Select(o => new EmbedFieldBuilder().WithName(o.RealID).WithValue(o.GetFormatedInfo(true)))
-                .ToList();
-
-            if (emotes.Count == 0)
-            {
-                await ReplyAsync("Tento uživatel ještě nepoužil žádný emote.");
-                return;
-            }
-
-            var embed = GetPaginatedResult(emotes, "Kompletní statistika emotů za uživatele");
-            await SendPaginatedEmbedAsync(embed);
         }
 
         private PaginatedEmbed GetPaginatedResult(List<EmbedFieldBuilder> fields, string title)
