@@ -79,6 +79,9 @@ namespace Grillbot.Modules
                 case "printGroupUsers":
                     await PrintGroupUsersAsync(otherParams);
                     return true;
+                case "board":
+                    await GetLeaderboardUrlAsync();
+                    return true;
                 case "removeImunity":
                 case "setImunity":
                 case "update":
@@ -272,6 +275,27 @@ namespace Grillbot.Modules
             await ReplyAsync($"`{groupName}` ({FormatHelper.FormatUsersCountCz(usernames.Count)})");
             if (usernames.Count > 0)
                 await ReplyChunkedAsync(usernames.SplitInParts(10));
+        }
+
+        #endregion
+
+        #region Leaderboard and stats
+
+        [Command("board")]
+        [Summary("Statistiky unverify.")]
+        public async Task GetLeaderboardUrlAsync()
+        {
+            using var service = GetService<UnverifyService>();
+            var config = await service.Service.GetUnverifyConfigAsync(Context.Guild);
+            
+            if(config == null)
+            {
+                await ReplyAsync("Chybí konfigurace `unverify`, nebo nastavení adresy pro leaderboard.");
+                return;
+            }
+
+            var url = string.Format(config.LeaderboardUrl, Context.Guild.Id);
+            await ReplyAsync($"Leaderboard unverify: <{url}>");
         }
 
         #endregion

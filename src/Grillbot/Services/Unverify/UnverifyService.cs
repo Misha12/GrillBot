@@ -155,7 +155,7 @@ namespace Grillbot.Services.Unverify
             }
         }
 
-        private async Task<UnverifyConfig> GetUnverifyConfigAsync(SocketGuild guild)
+        public async Task<UnverifyConfig> GetUnverifyConfigAsync(SocketGuild guild)
         {
             var config = await GrillBotRepository.ConfigRepository.FindConfigAsync(guild.Id, "unverify", null);
             return config.GetData<UnverifyConfig>();
