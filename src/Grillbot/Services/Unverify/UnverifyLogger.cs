@@ -4,6 +4,7 @@ using Grillbot.Database;
 using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Enums;
 using Grillbot.Database.Enums.Includes;
+using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Unverify;
 using Grillbot.Services.Unverify.Models;
@@ -13,6 +14,7 @@ using Microsoft.EntityFrameworkCore;
 using Newtonsoft.Json.Linq;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Unverify
@@ -158,6 +160,22 @@ namespace Grillbot.Services.Unverify
             await GrillBotRepository.CommitAsync();
 
             return entity;
+        }
+
+        public async Task<Dictionary<IUser, Tuple<int, int>>> GetUnverifyStatisticsAsync(SocketGuild guild)
+        {
+            var stats = await GrillBotRepository.UnverifyRepository.GetUnverifyStatisticsAsync(guild.Id);
+            var result = new Dictionary<IUser, Tuple<int, int>>();
+
+            foreach(var item in stats.OrderByDescending(o => o.Value.Item1 + o.Value.Item2))
+            {
+                var user = await guild.GetUserFromGuildAsync(item.Key);
+
+                if (user != null)
+                    result.Add(user, item.Value);
+            }
+
+            return result;
         }
     }
 }

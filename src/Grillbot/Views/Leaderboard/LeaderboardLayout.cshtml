@@ -1,0 +1,127 @@
+﻿@{
+    var leaderboardState = (Model as object).HasProperty("Error") ? (LeaderboardErrors)Model.Error : LeaderboardErrors.Unknown;
+    var guild = (Model as object).HasProperty("Guild") ? Model.Guild as Discord.WebSocket.SocketGuild : null;
+    var user = (Model as object).HasProperty("User") ? Model.User as Grillbot.Models.Users.SimpleUserInfo : null;
+}
+
+<!DOCTYPE html>
+
+<html>
+<head>
+    <meta name="viewport" content="width=device-width" />
+    <title>@ViewBag.Title</title>
+    <link rel="stylesheet" href="~/css/site.css" asp-append-version="true" />
+    <link rel="icon" type="image/x-icon" href="~/favicon.ico" />
+    <link rel="stylesheet" href="~/css/leaderboard.css" asp-append-version="true" />
+</head>
+<body>
+    <div class="body-block">
+        @if (leaderboardState == LeaderboardErrors.Success)
+        {
+            <div class="block">
+                <header>
+                    <div class="header-container">
+                        <div class="server-info">
+                            <img class="profile-picture" src="@guild.IconUrl" alt="@guild.Name" />
+                            <div>
+                                <h2>@guild.Name</h2>
+
+                                @if (guild.MemberCount == 1)
+                                {
+                                    <p>1 uživatel</p>
+                                }
+                                else if (guild.MemberCount > 1 && guild.MemberCount < 5)
+                                {
+                                    <p>@guild.MemberCount uživatelé</p>
+                                }
+                                else
+                                {
+                                    <p>@guild.MemberCount.FormatWithSpaces() uživatelů</p>
+                                }
+                            </div>
+                        </div>
+
+                        @if (user != null)
+                        {
+                            <div class="user-info">
+                                @switch (user.Status)
+                                {
+                                    case GuildUserStatus.DoNotDisturb:
+                                        <img class="profile-picture status-donotdisturb" src="@user.AvatarUrl" alt="@user.Name">
+                                        break;
+                                    case GuildUserStatus.Idle:
+                                        <img class="profile-picture status-idle" src="@user.AvatarUrl" alt="@user.Name">
+                                        break;
+                                    case GuildUserStatus.Online:
+                                        <img class="profile-picture status-online" src="@user.AvatarUrl" alt="@user.Name">
+                                        break;
+                                    case GuildUserStatus.Spotify:
+                                        <img class="profile-picture status-spotify" src="@user.AvatarUrl" alt="@user.Name">
+                                        break;
+                                    default:
+                                        <img class="profile-picture" src="@user.AvatarUrl" alt="@user.Name">
+                                        break;
+                                }
+
+                                <div>
+                                    @if (string.IsNullOrEmpty(user.Nickname))
+                                    {
+                                        <h2>@user.Name</h2>
+                                    }
+                                    else
+                                    {
+                                        <h2>@user.Nickname (@user.Name)</h2>
+                                    }
+
+                                    <p>#@user.Discriminator</p>
+                                </div>
+                            </div>
+                        }
+                    </div>
+                </header>
+
+                <section class="body-content">
+                    <div class="body-content-content">
+                        @RenderBody()
+                    </div>
+                </section>
+            </div>
+        }
+        else
+        {
+            IgnoreBody();
+
+            <section class="block" id="errorMessage">
+                <div class="body-content">
+                    <div class="body-content-content">
+                        <div class="items-container">
+                            <div class="container-item flex-on-columns">
+                                <span class="container-item-headericon far fa-frown"></span>
+                                <h1 class="container-item-header">Při načítání dat došlo k chybě</h1>
+                                <div class="container-item-text">
+                                    @if (leaderboardState == LeaderboardErrors.InvalidGuild)
+                                    {
+                                        <text>Požadovaný server nebyl nalezen.</text>
+                                    }
+                                    else if (leaderboardState == LeaderboardErrors.UserAtGuildNotFound)
+                                    {
+                                        <text>Uživatel nebyl na serveru nalezen.</text>
+                                    }
+                                    else if (leaderboardState == LeaderboardErrors.InvalidKey)
+                                    {
+                                        <text>Nebyl zadán platný přístupový klíč.</text>
+                                    }
+                                    else if (leaderboardState == LeaderboardErrors.Unknown)
+                                    {
+                                        <text>Došlo k nespecifikované chybě. Kontaktuj administrátora.</text>
+                                    }
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+            </section>
+        }
+    </div>
+</body>
+</html>

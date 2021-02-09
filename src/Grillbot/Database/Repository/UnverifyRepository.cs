@@ -1,7 +1,9 @@
 using Grillbot.Database.Entity.Unverify;
+using Grillbot.Database.Enums;
 using Grillbot.Models.Unverify;
 using Microsoft.EntityFrameworkCore;
 using System;
+using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -96,6 +98,21 @@ namespace Grillbot.Database.Repository
                 .Include(o => o.FromUser)
                 .Include(o => o.ToUser)
                 .Where(o => o.FromUserID == userId);
+        }
+
+        public Task<Dictionary<string, Tuple<int, int>>> GetUnverifyStatisticsAsync(ulong guildId)
+        {
+            var usersFromGuild = Context.Users.AsQueryable().Where(o => o.GuildID == guildId.ToString());
+
+            var stats = Context.UnverifyLogs.AsQueryable()
+                .Where(o => usersFromGuild.Any(x => x.ID == o.ToUserID))
+                .GroupBy(o => o.ToUserID)
+                .Select(o => new KeyValuePair<string, Tuple<int, int>>(
+                    usersFromGuild.Where(x => x.ID == o.Key).Select(x => x.UserID).FirstOrDefault(),
+                    Tuple.Create(o.Count(x => x.Operation == UnverifyLogOperation.Unverify), o.Count(x => x.Operation == UnverifyLogOperation.Selfunverify)))
+                );
+
+            return stats.ToDictionaryAsync(o => o.Key, o => o.Value);
         }
     }
 }

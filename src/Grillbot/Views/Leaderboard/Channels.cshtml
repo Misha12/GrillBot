@@ -1,0 +1,34 @@
+﻿@model Grillbot.Models.Channelboard.ChannelboardViewModel;
+
+@{
+    Layout = "LeaderboardLayout.cshtml";
+
+    ViewBag.Title = "Leaderboard | Channelboard | " + (Model.Guild == null ? "Missing guild" : Model.Guild.Name);
+}
+
+<div class="items-container">
+    @for (int i = 0; i < Model.Items.Count; i++)
+    {
+        <div class="container-item">
+            <div class="container-item-order">@(i + 1)</div>
+            <div class="container-item-columns">
+                <div class="container-item-name">@Model.Items[i].Channel.Name</div>
+                <div class="container-item-count">
+                    @if (Model.Items[i].Count == 1)
+                    {
+                        <text>1 zpráva</text>
+                    }
+                    else if (Model.Items[i].Count > 1 && Model.Items[i].Count < 5)
+                    {
+                        <text>@Model.Items[i].Count zprávy</text>
+                    }
+                    else
+                    {
+                        <text>@Model.Items[i].Count.FormatWithSpaces() zpráv</text>
+                    }
+                </div>
+                <div class="container-item-lastMessageAt">@Model.Items[i].LastMessageAt.ToLocaleDatetime()</div>
+            </div>
+        </div>
+    }
+</div>

@@ -1,0 +1,30 @@
+﻿@model Grillbot.Models.Unverify.UnverifyLeaderboardViewModel;
+
+@{
+    Layout = "LeaderboardLayout.cshtml";
+
+    ViewBag.Title = "Leaderboard | Unverify | " + (Model.Guild == null ? "Missing guild" : Model.Guild.Name);
+}
+
+@if (Model.Stats != null)
+{
+    <div class="items-container">
+        @for (int i = 0; i < Model.Stats.Count; i++)
+        {
+            var item = Model.Stats.ElementAt(i);
+
+            <div class="container-item">
+                <div class="container-item-order">@(i + 1)</div>
+                <div class="container-item-columns">
+                    <div class="container-item-name">@item.Key.GetFullName()</div>
+                    <div>
+                        Unverify: @item.Value.Item1.FormatWithSpaces()
+                    </div>
+                    <div>
+                        Selfunverify: @item.Value.Item2.FormatWithSpaces()
+                    </div>
+                </div>
+            </div>
+        }
+    </div>
+}
