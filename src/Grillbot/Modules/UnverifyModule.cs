@@ -287,8 +287,8 @@ namespace Grillbot.Modules
         {
             using var service = GetService<UnverifyService>();
             var config = await service.Service.GetUnverifyConfigAsync(Context.Guild);
-            
-            if(config == null)
+
+            if (config == null)
             {
                 await ReplyAsync("Chybí konfigurace `unverify`, nebo nastavení adresy pro leaderboard.");
                 return;
