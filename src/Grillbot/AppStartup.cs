@@ -12,6 +12,9 @@ using System;
 using System.Collections.Generic;
 using Grillbot.Services.BackgroundTasks;
 using Microsoft.AspNetCore.StaticFiles;
+using Grillbot.Database;
+using Microsoft.EntityFrameworkCore;
+using System.Linq;
 
 namespace Grillbot
 {
@@ -125,8 +128,11 @@ namespace Grillbot
                 .AddHostedService<GrillBotService>();
         }
 
-        public void Configure(IApplicationBuilder app)
+        public void Configure(IApplicationBuilder app, GrillBotContext context)
         {
+            if (context.Database.GetPendingMigrations().Any())
+                context.Database.Migrate();
+
             var serviceProvider = app.ApplicationServices;
 
             app
