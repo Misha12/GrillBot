@@ -237,11 +237,9 @@ namespace Grillbot.Modules
                 }
             }
 
-            var clearable = mentionedUser != null ? toClear : toClear.Where(o => o.Value.Count > 10).ToDictionary(o => o.Key, o => o.Value);
-
             if (hard)
             {
-                foreach (var channelPair in clearable)
+                foreach (var channelPair in toClear)
                 {
                     var channel = Context.Guild.GetChannel(channelPair.Key);
 
@@ -260,14 +258,14 @@ namespace Grillbot.Modules
             }
             else
             {
-                await ReplyAsync($"Nalezeno k pročištění kanálů: **{clearable.Count.FormatWithSpaces()}**");
+                await ReplyAsync($"Nalezeno k pročištění kanálů: **{toClear.Count.FormatWithSpaces()}**");
 
-                var totalNeutral = clearable.Sum(o => o.Value.Count(o => o.NeutralUseless));
-                var totalAllowDeny = clearable.Sum(o => o.Value.Count(o => o.AllowDenyUseless));
+                var totalNeutral = toClear.Sum(o => o.Value.Count(o => o.NeutralUseless));
+                var totalAllowDeny = toClear.Sum(o => o.Value.Count(o => o.AllowDenyUseless));
 
                 await ReplyAsync($"V těchto kanálech je: Neutrálních: **{totalNeutral.FormatWithSpaces()}**, Povolení/Zakázání: **{totalAllowDeny.FormatWithSpaces()}**");
 
-                foreach (var channelPair in clearable)
+                foreach (var channelPair in toClear)
                 {
                     var channel = Context.Guild.GetChannel(channelPair.Key);
                     var neutralCount = channelPair.Value.Count(o => o.NeutralUseless);
