@@ -29,9 +29,7 @@ namespace Grillbot.Controllers
         [Route("Login")]
         public IActionResult Index()
         {
-            var viewModel = new AuthViewModel(DiscordClient.Guilds.ToList());
-
-            return View(viewModel);
+            return View(new AuthViewModel(DiscordClient.Guilds.ToList()));
         }
 
         [HttpPost]
@@ -39,10 +37,10 @@ namespace Grillbot.Controllers
         [AllowAnonymous]
         public async Task<IActionResult> Index([FromQuery(Name = "ReturnUrl")] string returnUrl, string username, string password, ulong guild)
         {
-            var identity = await WebAuth.Authorize(username, password, guild);
+            var identity = await WebAuth.AuthorizeAsync(username, password, guild);
 
             if (identity == null)
-                return View(new AuthViewModel(DiscordClient.Guilds.ToList(), true));
+                return View(new AuthViewModel(DiscordClient.Guilds.ToList(), WebAuth.LastLoginResult));
 
             await HttpContext.SignInAsync(CookieAuthenticationDefaults.AuthenticationScheme,
                 new ClaimsPrincipal(identity), new AuthenticationProperties()

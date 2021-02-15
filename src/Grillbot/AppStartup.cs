@@ -15,6 +15,7 @@ using Microsoft.AspNetCore.StaticFiles;
 using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
+using Grillbot.Models.Config.AppSettings;
 
 namespace Grillbot
 {
@@ -112,9 +113,7 @@ namespace Grillbot
                 .AddSingleton(new CommandService(commandsConfig))
                 .AddSingleton(new DiscordSocketClient(config))
                 .AddSingleton<InitService>()
-                .AddSingleton(new BotState());
-
-            services
+                .AddSingleton(new BotState())
                 .AddBotFeatures()
                 .AddMath()
                 .AddEmoteChain()
@@ -122,10 +121,11 @@ namespace Grillbot
                 .AddPaginationServices()
                 .AddDuckServices()
                 .AddHelpServices()
-                .AddBackgroundTasks();
+                .AddBackgroundTasks()
+                .AddHostedService<GrillBotService>();
 
             services
-                .AddHostedService<GrillBotService>();
+                .Configure<WebAdminConfiguration>(Configuration.GetSection("WebAdmin"));
         }
 
         public void Configure(IApplicationBuilder app, GrillBotContext context)

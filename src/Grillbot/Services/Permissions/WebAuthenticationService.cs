@@ -1,9 +1,12 @@
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Database.Enums.Includes;
+using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
+using Grillbot.Models.Config.AppSettings;
 using Microsoft.AspNetCore.Authentication.Cookies;
 using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Options;
 using System;
 using System.Security.Claims;
 using System.Threading.Tasks;
@@ -15,15 +18,20 @@ namespace Grillbot.Services.Permissions
         private ILogger<WebAuthenticationService> Logger { get; }
         private DiscordSocketClient DiscordClient { get; }
         private IGrillBotRepository GrillBotRepository { get; }
+        private WebAdminConfiguration Config { get; }
 
-        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client, IGrillBotRepository grillBotRepository)
+        public WebAdminLoginResult LastLoginResult { get; private set; }
+
+        public WebAuthenticationService(ILogger<WebAuthenticationService> logger, DiscordSocketClient client, IGrillBotRepository grillBotRepository,
+            IOptionsSnapshot<WebAdminConfiguration> configuration)
         {
             Logger = logger;
             DiscordClient = client;
             GrillBotRepository = grillBotRepository;
+            Config = configuration.Value;
         }
 
-        public async Task<ClaimsIdentity> Authorize(string username, string password, ulong guildID)
+        public async Task<ClaimsIdentity> AuthorizeAsync(string username, string password, ulong guildID)
         {
             if (string.IsNullOrEmpty(username) || string.IsNullOrEmpty(password) || guildID == default)
                 return null;
@@ -44,12 +52,11 @@ namespace Grillbot.Services.Permissions
                 if (user == null)
                     return null; // User not found in guild.
 
-                var userId = await VerifyPasswordAndGetUserIdAsync(guild, user, password);
-                if (userId == null)
-                    return null; // Invalid password, or unallowed access.
-
-                await IncrementWebAdminStatsAsync(userId.Value);
-
+                var loginResult = await CheckLoginAsync(guild, user, password);
+                LastLoginResult = loginResult.Item1;
+                if (loginResult.Item1 != WebAdminLoginResult.Success)
+                    return null; // Invalid password, banned account, ... see details in LastLoginResult property.
+                    
                 var claims = new[]
                 {
                     new Claim(ClaimTypes.NameIdentifier, user.Id.ToString()),
@@ -67,29 +74,47 @@ namespace Grillbot.Services.Permissions
             }
         }
 
-        private async Task IncrementWebAdminStatsAsync(long userId)
+        public async Task<Tuple<WebAdminLoginResult, long?>> CheckLoginAsync(SocketGuild guild, SocketGuildUser user, string password)
         {
-            var user = await GrillBotRepository.UsersRepository.GetUserAsync(userId, UsersIncludes.None);
+            try
+            {
+                var entity = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
 
-            if (user == null)
-                return;
+                if (string.IsNullOrEmpty(entity?.WebAdminPassword))
+                    return new Tuple<WebAdminLoginResult, long?>(WebAdminLoginResult.InvalidLogin, null);
 
-            if (user.WebAdminLoginCount == null)
-                user.WebAdminLoginCount = 1;
-            else
-                user.WebAdminLoginCount++;
+                if (entity.WebAdminBannedTo != null)
+                {
+                    // Banned because too many invalid logins.
+                    if(entity.WebAdminBannedTo >= DateTime.Now)
+                        return new Tuple<WebAdminLoginResult, long?>(WebAdminLoginResult.BannedAccount, null);
 
-            await GrillBotRepository.CommitAsync();
-        }
+                    entity.WebAdminBannedTo = null;
+                    entity.FailedLoginCount = 0;
+                }
 
-        public async Task<long?> VerifyPasswordAndGetUserIdAsync(SocketGuild guild, SocketGuildUser user, string password)
-        {
-            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
+                if (!BCrypt.Net.BCrypt.Verify(password, entity.WebAdminPassword))
+                {
+                    entity.FailedLoginCount++;
 
-            if (string.IsNullOrEmpty(entity?.WebAdminPassword) || !BCrypt.Net.BCrypt.Verify(password, entity.WebAdminPassword))
-                return null;
+                    if (entity.FailedLoginCount >= Config.MaxFailedCount)
+                    {
+                        entity.WebAdminBannedTo = DateTime.Now.AddHours(Config.BanHours);
+                        return new Tuple<WebAdminLoginResult, long?>(WebAdminLoginResult.BannedAccount, null);
+                    }
 
-            return entity.ID;
+                    return new Tuple<WebAdminLoginResult, long?>(WebAdminLoginResult.InvalidLogin, null);
+                }
+
+                entity.FailedLoginCount = 0;
+                entity.WebAdminLoginCount = (entity.WebAdminLoginCount ?? 0) + 1;
+
+                return new Tuple<WebAdminLoginResult, long?>(WebAdminLoginResult.Success, entity.ID);
+            }
+            finally
+            {
+                await GrillBotRepository.CommitAsync();
+            }
         }
     }
 }

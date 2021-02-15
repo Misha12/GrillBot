@@ -24,6 +24,8 @@
             _ => "secondary"
         };
     }
+
+    var anyButtonVisible = Model.User.IsWebAdminBanned;
 }
 
 <div class="container">
@@ -45,6 +47,16 @@
             </h5>
         </div>
 
+        @if (anyButtonVisible)
+        {
+            <div class="card-header action-buttons">
+                @if (Model.User.IsWebAdminBanned)
+                {
+                    <a class="btn btn-secondary btn-sm" asp-route-id="@Model.User.ID" asp-action="Unblock">Odblokovat</a>
+                }
+            </div>
+        }
+
         <div class="card-body">
             <div class="row">
                 <div class="col-3" style="max-width: 200px">
@@ -54,7 +66,7 @@
                     }
                     else
                     {
-                        <img height="150" width="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" alt="@Model.User.User.GetFullName()" class="rounded-circle border" style="border-width: 5px !important" />
+                        <img height="150" width="150" src="@Model.User.User.GetUserAvatarUrl(size: 512)" alt="@Model.User.User.GetFullName()" class="rounded-circle border border-@getStatusBadge(Model.User.User.Status)" style="border-width: 5px !important" />
                     }
                 </div>
 
@@ -65,7 +77,7 @@
                     </div>
 
                     <div class="mt-4">
-                        <span class="badge badge-@(Model.User.WebAdminAccess ? "success" : "danger")" title="Přístup do webové administrace">WebAdmin</span>
+                        <span class="badge badge-@(Model.User.WebAdminAccess ? (Model.User.WebAdminBannedTo == null ? "success" : "warning") : "danger")" title="Přístup do webové administrace @(Model.User.WebAdminBannedTo != null ? "(Přístup dočasně pozastaven)" : "")">WebAdmin</span>
                         <span class="badge badge-@(Model.User.ApiAccess ? "success" : "danger")" title="Přístup k REST API">API</span>
                         <span class="badge badge-@(Model.User.Birthday != null ? "success" : "danger")" title="Uživatel má uloženy narozeniny.">Birthday</span>
                         <span class="badge badge-@(Model.User.IsBotAdmin ? "success" : "danger")" title="Nejvyšší administrátor bota">BotAdmin</span>
@@ -166,7 +178,8 @@
                 </div>
             }
 
-            @if (Model.User.WebAdminLoginCount != null || Model.User.ApiAccessCount != null || Model.User.UnverifyEndsAt != null)
+            @if (Model.User.WebAdminLoginCount != null || Model.User.ApiAccessCount != null || Model.User.UnverifyEndsAt != null
+             || Model.User.WebAdminBannedTo != null)
             {
                 <div class="row mt-2">
                     @if (Model.User.ApiAccessCount != null)
@@ -191,6 +204,14 @@
                         <div class="col-3">
                             Konec unverify<br />
                             <b>@Model.User.UnverifyEndsAt.Value.ToLocaleDatetime()</b>
+                        </div>
+                    }
+
+                    @if (Model.User.WebAdminBannedTo != null)
+                    {
+                        <div class="col-3">
+                            Konec blokace webu<br />
+                            <b>@Model.User.WebAdminBannedTo.Value.ToLocaleDatetime()</b>
                         </div>
                     }
                 </div>

@@ -63,3 +63,7 @@ pre.text-wrap {
 .two-px-border {
     border-width: 6px;
 }
+
+.login-error.text-danger {
+    color: #e4606d !important;
+}

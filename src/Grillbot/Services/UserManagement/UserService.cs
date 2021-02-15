@@ -191,5 +191,18 @@ namespace Grillbot.Services.UserManagement
 
             return result;
         }
+
+        public async Task UnblockUserAsync(long id)
+        {
+            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(id, UsersIncludes.None);
+
+            if (entity == null || entity.WebAdminBannedTo == null)
+                return;
+
+            entity.WebAdminBannedTo = null;
+            entity.FailedLoginCount = 0;
+
+            await GrillBotRepository.CommitAsync();
+        }
     }
 }

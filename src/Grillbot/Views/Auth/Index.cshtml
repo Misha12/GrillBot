@@ -67,12 +67,23 @@
                                     </div>
                                 </div>
                             }
-                            else if (Model.InvalidLogin)
+                            else if (Model.LoginResult != null)
                             {
                                 <div class="card-footer text-center">
-                                    <div class="small text-danger">
-                                        Nelze provést přihlášení.<br />
-                                        Neplatné přihlašovací údaje nebo nedostatečná práva.
+                                    <div class="small text-danger login-error">
+                                        Nelze provést přihlášení<br />
+                                        @if (Model.LoginResult == WebAdminLoginResult.InvalidLogin)
+                                        {
+                                            <text>
+                                                Neplatné přihlašovací údaje nebo nedostatečná práva.
+                                            </text>
+                                        }
+                                        else if (Model.LoginResult == WebAdminLoginResult.BannedAccount)
+                                        {
+                                            <text>
+                                                Účet byl dočasně zablokován z důvodu vysššího množství neúspěšných přihlášení.
+                                            </text>
+                                        }
                                     </div>
                                 </div>
                             }

@@ -44,6 +44,8 @@ namespace Grillbot.Database.Entity.Users
         public int? WebAdminLoginCount { get; set; }
         public int? ApiAccessCount { get; set; }
         public DateTime? Birthday { get; set; }
+        public int FailedLoginCount { get; set; }
+        public DateTime? WebAdminBannedTo { get; set; }
 
         [StringLength(64)]
         public string UnverifyImunityGroup { get; set; }

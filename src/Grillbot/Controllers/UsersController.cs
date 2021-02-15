@@ -38,10 +38,17 @@ namespace Grillbot.Controllers
         }
 
         [HttpGet("UserInfo")]
-        public async Task<IActionResult> UserInfoAsync([FromQuery] int id)
+        public async Task<IActionResult> UserInfoAsync([FromQuery] long id)
         {
             var user = await UserService.GetUserAsync(id);
             return View(new WebAdminUserInfoViewModel(user));
+        }
+
+        [HttpGet("Unblock")]
+        public async Task<ActionResult> UnblockAsync([FromQuery] long id)
+        {
+            await UserService.UnblockUserAsync(id);
+            return RedirectToAction("UserInfo", new { id });
         }
     }
 }

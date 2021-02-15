@@ -1,17 +1,18 @@
 using Discord.WebSocket;
+using Grillbot.Enums;
 using System.Collections.Generic;
 
 namespace Grillbot.Models.Auth
 {
     public class AuthViewModel
     {
-        public bool InvalidLogin { get; set; }
+        public WebAdminLoginResult? LoginResult { get; set; }
         public List<SocketGuild> Guilds { get; }
 
-        public AuthViewModel(List<SocketGuild> guilds, bool invalidLogin = false)
+        public AuthViewModel(List<SocketGuild> guilds, WebAdminLoginResult? loginResult = null)
         {
+            LoginResult = loginResult;
             Guilds = guilds;
-            InvalidLogin = invalidLogin;
         }
     }
 }

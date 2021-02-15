@@ -39,10 +39,12 @@ namespace Grillbot.Models.Users
         public List<RemindItem> Reminders { get; set; }
         public List<InviteModel> CreatedInvites { get; set; }
         public string UnverifyImunityGroup { get; set; }
+        public DateTime? WebAdminBannedTo { get; set; }
 
-        #region ReadOnlyFields
+        #region ReadOnlyProperties
 
         public bool IsBotAdmin => (Flags & (long)UserFlags.BotAdmin) != 0;
+        public bool IsWebAdminBanned => WebAdminBannedTo != null && WebAdminBannedTo.Value >= DateTime.Now;
 
         #endregion
 
@@ -65,7 +67,8 @@ namespace Grillbot.Models.Users
                 Flags = dbUser.Flags,
                 UnverifyEndsAt = dbUser.Unverify?.EndDateTime,
                 UnverifyImunityGroup = dbUser.UnverifyImunityGroup,
-                DiscordId = dbUser.UserIDSnowflake
+                DiscordId = dbUser.UserIDSnowflake,
+                WebAdminBannedTo = dbUser.WebAdminBannedTo
             };
 
             if (user != null && botAppInfo.Owner.Id == user.Id)
