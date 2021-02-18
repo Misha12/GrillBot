@@ -10,6 +10,10 @@ using System.Linq;
 using Grillbot.Services.Duck;
 using Microsoft.Extensions.DependencyInjection;
 using System.Net;
+using Grillbot.Helpers;
+using Grillbot.Services.MessageCache;
+using Discord;
+using Discord.WebSocket;
 
 namespace Grillbot.Modules
 {
@@ -149,7 +153,43 @@ namespace Grillbot.Modules
                 var embed = duckRenderer.RenderEmbed(duckData, Context.User, config);
                 await ReplyAsync(embed: embed.Build());
             }
-            catch(WebException ex)
+            catch (WebException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
+        }
+
+        [Command("emojize")]
+        [Summary("Vypíše slovo pomocí emotikonů.")]
+        [Remarks("Pokud bude zadán parametr ID zprávy, tak slovo bude vyjmenováno do reakcí. Pokud se bude vypisovat pomocí reakcí, tak slovo nesmí obsahovat duplicitní znaky (až na výjimky). Duplicitní znaky mohou být pouze `A`, `B` a `O`. A to maximálně 1x navíc.\n" +
+            "Pokud nebude zadán kanál, ale bude zadána zpráva, tak se bude zpráva vyhledávat v kanálu, kde byl zavolán příkaz.")]
+        public async Task EmojizeWord(string word, IChannel channel = null, ulong messageId = 0)
+        {
+            try
+            {
+                if (channel == null) channel = Context.Channel;
+                var emojized = EmojiHelper.ConvertStringToEmoji(word, messageId == 0);
+
+                if (messageId != 0)
+                {
+                    using var messageCache = GetService<IMessageCache>();
+                    var msg = await messageCache.Service.GetAsync(channel.Id, messageId);
+
+                    if (msg == null)
+                        return;
+
+                    foreach (var emoji in emojized)
+                    {
+                        await msg.AddReactionAsync(emoji);
+                    }
+                }
+                else
+                {
+                    if (channel is ISocketMessageChannel chnl)
+                        await chnl.SendMessageAsync(string.Join(" ", emojized.Select(o => o.ToString())));
+                }
+            }
+            catch (ArgumentException ex)
             {
                 await ReplyAsync(ex.Message);
             }

@@ -93,8 +93,8 @@ namespace Grillbot.Modules
                 using var service = GetService<ReminderService>();
                 await service.Service.CreateReminderAsync(Context.Guild, Context.User, targetUser, dateTimeAt, message, Context.Message);
 
-                await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {ReminderDefinitions.CopyRemindEmoji.Name}");
-                await Context.Message.AddReactionAsync(ReminderDefinitions.CopyRemindEmoji);
+                await ReplyAsync($"Upozornění vytvořeno. Pokud si někdo přeje dostat toto upozornění také, tak ať dá na zprávu s příkazem reakci {EmojiHelper.PersonRisingHand}");
+                await Context.Message.AddReactionAsync(EmojiHelper.PersonRisingHand);
             }
             catch (Exception ex)
             {

@@ -11,6 +11,7 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Enums;
 using Grillbot.Exceptions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Helpers;
 using Grillbot.Models.Embed;
 using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Initiable;
@@ -147,7 +148,7 @@ namespace Grillbot.Services.Reminder
             if (remind == null)
                 return;
 
-            var hours = ReminderDefinitions.EmojiToHourNumberMapping[reaction.Emote as Emoji];
+            var hours = EmojiHelper.EmojiToIntMap[reaction.Emote as Emoji];
 
             remind.RemindMessageIDSnowflake = null;
             remind.At = DateTime.Now.AddHours(hours);
@@ -188,7 +189,7 @@ namespace Grillbot.Services.Reminder
                 if (
                     message.Embeds.Count != 1 ||
                     reaction.Emote is not Emoji emoji ||
-                    !ReminderDefinitions.AllHourEmojis.Contains(emoji) ||
+                    EmojiHelper.EmojiToIntMap.ContainsKey(emoji) ||
                     !reaction.User.IsSpecified ||
                     (DateTime.UtcNow - message.CreatedAt).TotalHours >= 24.0d
                 )
@@ -211,7 +212,7 @@ namespace Grillbot.Services.Reminder
 
         public async Task HandleRemindCopyAsync(SocketReaction reaction)
         {
-            if (reaction.Emote is not Emoji emoji || emoji.Name != ReminderDefinitions.CopyRemindEmoji.Name || !reaction.User.IsSpecified) return;
+            if (reaction.Emote is not Emoji emoji || emoji.Name != EmojiHelper.PersonRisingHand.Name || !reaction.User.IsSpecified) return;
 
             var originalRemind = await GrillBotRepository.ReminderRepository.FindReminderByOriginalMessageAsync(reaction.MessageId);
             if (originalRemind == null) return;
@@ -294,7 +295,7 @@ namespace Grillbot.Services.Reminder
             {
                 var embed = CreateRemindEmbed(fromUser, entity, force);
                 var message = await toUser.SendMessageAsync(embed: embed.Build());
-                await message.AddReactionsAsync(ReminderDefinitions.AllHourEmojis);
+                await message.AddReactionsAsync(EmojiHelper.EmojiToIntMap.Keys.ToArray());
 
                 return message;
             }
