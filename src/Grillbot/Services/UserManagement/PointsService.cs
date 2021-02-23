@@ -95,7 +95,7 @@ namespace Grillbot.Services.UserManagement
 
         public async Task IncrementPointsAsync(SocketGuild guild, SocketMessage message)
         {
-            if (!CanIncrementPoints(guild, message.Author, 1.0d) || string.IsNullOrEmpty(message.Content) || message.Content.Length < 5)
+            if (!CanIncrementPoints(guild, message.Author, 1.0d) || string.IsNullOrEmpty(message.Content) || message.Content.Length < 5 || !char.IsLetterOrDigit(message.Content[0]))
                 return;
 
             var user = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, message.Author.Id, UsersIncludes.None);
@@ -113,14 +113,14 @@ namespace Grillbot.Services.UserManagement
                 return true;
 
             var lastMessageAt = BotState.LastPointsCalculation[key];
-            return (DateTime.Now - lastMessageAt).TotalMinutes >= limit;
+            return (DateTime.UtcNow - lastMessageAt).TotalMinutes >= limit;
         }
 
         private void UpdateLastCalculation(IGuild guild, IUser user, double limit)
         {
             var key = $"{guild.Id}|{user.Id}|{limit}";
 
-            BotState.LastPointsCalculation[key] = DateTime.Now;
+            BotState.LastPointsCalculation[key] = DateTime.UtcNow;
         }
     }
 }

@@ -127,9 +127,8 @@ namespace Grillbot.Database.Repository
 
         public async Task<long?> FindUserIDFromDiscordIDAsync(ulong guildID, ulong userID)
         {
-            var entity = await GetBaseQuery(UsersIncludes.None, false)
+            var entity = await GetBaseQuery(UsersIncludes.None, true)
                 .Where(o => o.GuildID == guildID.ToString() && o.UserID == userID.ToString())
-                .AsNoTracking()
                 .Select(o => new { o.ID })
                 .FirstOrDefaultAsync();
 
