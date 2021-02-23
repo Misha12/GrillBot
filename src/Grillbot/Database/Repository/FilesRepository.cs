@@ -25,7 +25,9 @@ namespace Grillbot.Database.Repository
             if (ignoreAuditLogs)
                 query = query.Where(o => o.AuditLogItemId == null);
 
-            return query.Select(o => Tuple.Create(o.Filename, EF.Functions.DataLength(o.Content) ?? 0));
+            return query
+                .OrderBy(o => o.AuditLogItemId ?? 0)
+                .Select(o => Tuple.Create(o.Filename, EF.Functions.DataLength(o.Content) ?? 0));
         }
 
         public IQueryable<string> GetFilenames()
