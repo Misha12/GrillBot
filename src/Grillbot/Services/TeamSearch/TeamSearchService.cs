@@ -45,11 +45,6 @@ namespace Grillbot.Services.TeamSearch
             return data;
         }
 
-        public async Task<List<TeamSearchItem>> GetAllItemsAsync()
-        {
-            return await GetItemsAsync(null);
-        }
-
         private async Task<TeamSearchItem> TransformItemAsync(Database.Entity.TeamSearch dbItem)
         {
             var guild = DiscordClient.GetGuild(dbItem.GuildIDSnowflake);

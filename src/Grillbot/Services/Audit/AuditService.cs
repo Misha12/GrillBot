@@ -414,21 +414,6 @@ namespace Grillbot.Services.Audit
             return Client.Guilds.SelectMany(g => types.Select(type => (BackgroundTask)new DownloadAuditLogBackgroundTask(g, type))).ToList();
         }
 
-        public async Task<int> ClearOldDataAsync(DateTime before, SocketGuild guild)
-        {
-            var oldData = await GrillBotRepository.AuditLogs.GetAuditLogsBeforeDate(before, guild.Id).ToListAsync();
-
-            foreach (var item in oldData.Where(o => o.Files.Count > 0))
-            {
-                GrillBotRepository.RemoveCollection(item.Files);
-            }
-
-            GrillBotRepository.RemoveCollection(oldData);
-            await GrillBotRepository.CommitAsync();
-
-            return oldData.Count;
-        }
-
         private async Task<long> GetOrCreateUserId(SocketGuild guild, IUser user)
         {
             var userId = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);

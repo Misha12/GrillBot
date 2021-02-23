@@ -75,12 +75,6 @@ namespace Grillbot.Database.Repository
                 .Select(o => o.DcAuditLogId);
         }
 
-        public IQueryable<AuditLogItem> GetAuditLogsBeforeDate(DateTime dateTime, ulong guildId)
-        {
-            return GetBaseQuery(false)
-                .Where(o => o.GuildId == guildId.ToString() && o.CreatedAt <= dateTime);
-        }
-
         public Task<AuditLogItem> FindLastItemAsync(long userId, AuditLogType type)
         {
             return GetBaseQuery(true)
