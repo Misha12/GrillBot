@@ -30,7 +30,7 @@ namespace Grillbot.Services.Math
             {
                 Sessions.Clear();
 
-                const int sessionCount = 5; // 10 computing units (processes) for every group.
+                const int sessionCount = 5; // 5 computing units (processes) for every group.
                 const int calcTime = 10000; // 10 seconds. Booster have double time.
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, false))); // Basic
                 Sessions.AddRange(Enumerable.Range(0, sessionCount).Select(i => new MathSession(i, calcTime, true))); // Server booster.

@@ -125,15 +125,9 @@ namespace Grillbot.Modules
             var mostActiveChannel = userDetail.GetMostActiveChannel();
             var lastActiveChannel = userDetail.GetLastActiveChannel();
 
-            var detailFlags = userDetail.GetDetailFlags();
-            var clients = userDetail.User.ActiveClients.Select(o => o.ToString());
-
             var embed = await UserInfoHelper.CreateSimpleEmbedAsync(userDetail, Context);
             embed
                 .AddField("Práva", string.Join(", ", userDetail.User.GuildPermissions.GetPermissionsNames()), false);
-
-            if (clients.Any())
-                embed.AddField("Aktivní klienti", string.Join(", ", clients), false);
 
             if (mostActiveChannel != null)
                 embed.AddField("Nejaktivnější kanál", $"<#{mostActiveChannel.Channel.Id}> ({mostActiveChannel.Count.FormatWithSpaces()})", false);
@@ -141,8 +135,9 @@ namespace Grillbot.Modules
             if (lastActiveChannel != null)
                 embed.AddField("Poslední zpráva v", $"<#{lastActiveChannel.Channel.Id}> ({lastActiveChannel.LastMessageAt.ToLocaleDatetime()})", false);
 
-            embed
-                .AddField("Detaily", detailFlags.Count == 0 ? "-" : string.Join(", ", detailFlags), false);
+            var detailFlags = userDetail.GetDetailFlags();
+            if(detailFlags.Count > 0)
+                embed.AddField("Detaily", string.Join(", ", detailFlags), false);
 
             if (userDetail.ApiAccessCount != null)
                 embed.AddField("Počet volání API", userDetail.ApiAccessCount.Value.FormatWithSpaces(), true);

@@ -59,6 +59,10 @@ namespace Grillbot.Helpers
                 }
             }
 
+            var clients = user.User.ActiveClients.Select(o => o.ToString());
+            if (clients.Any())
+                embed.AddField("Aktivní klienti", string.Join(", ", clients), false);
+
             return embed;
         }
     }
