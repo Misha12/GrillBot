@@ -105,7 +105,7 @@ namespace Grillbot.Modules
         [Summary("Informace o konkrétním uživateli.")]
         public async Task InfoAsync(IUser userMention)
         {
-            var user = userMention is SocketGuildUser usr ? usr : await Context.Guild.GetUserFromGuildAsync(userMention.Id);
+            var user = (userMention as SocketGuildUser) ?? await Context.Guild.GetUserFromGuildAsync(userMention.Id);
 
             if (user == null)
             {
@@ -156,14 +156,14 @@ namespace Grillbot.Modules
             await Context.Guild.SyncGuildAsync();
 
             var textChannels = Context.Guild.TextChannels
-                .OrderBy(o => o.Position)
                 .Where(o => o.HaveAccess(guildUser))
+                .OrderBy(o => o.Position)
                 .GroupBy(o => o.Category?.Name ?? "Neznámá kategorie")
                 .Select(o => new { Category = o.Key, Channels = o.SplitInParts(30).Select(x => x.Select(t => $"<#{t.Id}>")) });
 
             var voiceChannels = Context.Guild.VoiceChannels
-                .OrderBy(o => o.Position)
                 .Where(o => o.HaveAccess(guildUser))
+                .OrderBy(o => o.Position)
                 .GroupBy(o => o.Category?.Name ?? "Neznámá kategorie")
                 .Select(o => new { Category = o.Key, Channels = o.SplitInParts(30).Select(x => x.Select(t => $"<#{t.Id}>")) });
 
