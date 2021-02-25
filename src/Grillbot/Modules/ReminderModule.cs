@@ -67,8 +67,9 @@ namespace Grillbot.Modules
             try
             {
                 // Check "me" and tags.
-                var targetUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user);
-                if (targetUser == null)
+                // Double check in mention condition, because clients and library see another mentions.
+                var targetUser = (user == "me" ? Context.User : null) ?? Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == user || $"<@{o.Id}>" == user);
+                 if (targetUser == null)
                 {
                     await Context.Guild.SyncGuildAsync();
 
