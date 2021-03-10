@@ -60,7 +60,7 @@ namespace Grillbot.Services.UserManagement
             {
                 var mappedUser = await UserHelper.MapUserAsync(Discord, BotState, user);
 
-                if (mappedUser != null)
+                if (mappedUser?.User != null)
                     result.Add(mappedUser);
             }
 
