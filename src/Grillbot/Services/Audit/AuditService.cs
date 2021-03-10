@@ -1,5 +1,6 @@
 using Discord;
 using Discord.Commands;
+using Discord.Net;
 using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Database;
@@ -7,6 +8,7 @@ using Grillbot.Database.Entity.AuditLog;
 using Grillbot.Database.Enums.Includes;
 using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
+using Grillbot.Extensions.Infrastructure;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
@@ -19,6 +21,7 @@ using System;
 using System.Collections.Generic;
 using System.IO;
 using System.Linq;
+using System.Net;
 using System.Threading.Tasks;
 
 namespace Grillbot.Services.Audit
@@ -31,9 +34,10 @@ namespace Grillbot.Services.Audit
         private BotState BotState { get; }
         private IMessageCache MessageCache { get; }
         private ConfigurationService ConfigurationService { get; }
+        private BackgroundTaskQueue BackgroundTaskQueue { get; }
 
         public AuditService(IGrillBotRepository grillBotRepository, SearchService searchService, DiscordSocketClient client, BotState botState,
-            IMessageCache messageCache, ConfigurationService configurationService)
+            IMessageCache messageCache, ConfigurationService configurationService, BackgroundTaskQueue backgroundTaskQueue)
         {
             GrillBotRepository = grillBotRepository;
             SearchService = searchService;
@@ -41,6 +45,7 @@ namespace Grillbot.Services.Audit
             BotState = botState;
             MessageCache = messageCache;
             ConfigurationService = configurationService;
+            BackgroundTaskQueue = backgroundTaskQueue;
         }
 
         public async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
@@ -328,20 +333,19 @@ namespace Grillbot.Services.Audit
 
             var guild = Client.GetGuild(task.GuildId);
 
-            if (guild == null)
-                return;
-
-            if (!AuditServiceHelper.IsTypeDefined(task.ActionType))
+            if (guild == null || !AuditServiceHelper.IsTypeDefined(task.ActionType))
                 return;
 
             var logs = new List<RestAuditLogEntry>();
             try
             {
-                logs.AddRange(await guild.GetAuditLogDataAsync(100, task.ActionType));
+                logs.AddRange(await guild.GetAuditLogDataAsync(DiscordConfig.MaxAuditLogEntriesPerBatch, task.ActionType));
             }
-            catch (NullReferenceException)
+            catch (HttpException httpEx) when (httpEx.HttpCode == HttpStatusCode.InternalServerError)
             {
-                // TODO: Temporary fix, bug in Discord.NET.
+                // If discord returns internal server error, reshedule event with 10 minutes delay.
+                BackgroundTaskQueue.ScheduleDownloadAuditLog(task.ActionType, guild, 10 * 60);
+                return;
             }
 
             if (logs.Count == 0)
