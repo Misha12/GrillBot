@@ -1,5 +1,6 @@
 using Grillbot.Models;
 using Grillbot.Models.BotStatus;
+using Newtonsoft.Json;
 using System;
 using System.Collections.Concurrent;
 using System.Collections.Generic;
@@ -45,7 +46,7 @@ namespace Grillbot.Services.BackgroundTasks
             if (tasks.Count == 0)
                 return;
 
-            foreach(var task in tasks)
+            foreach (var task in tasks)
             {
                 Tasks.TryRemove(task);
             }
@@ -74,6 +75,21 @@ namespace Grillbot.Services.BackgroundTasks
                 });
 
             return groups.ToList();
+        }
+
+        public Dictionary<string, List<string>> GetGroupedSerializedList()
+        {
+            var jsonSerializerSettings = new JsonSerializerSettings()
+            {
+                DefaultValueHandling = DefaultValueHandling.Ignore,
+                NullValueHandling = NullValueHandling.Ignore,
+                Formatting = Formatting.None
+            };
+
+            return Tasks
+                .Select(o => o.Value)
+                .GroupBy(o => $"{o.GetType().Name}/{o.TaskType.Name}")
+                .ToDictionary(o => o.Key, o => o.Select(o => JsonConvert.SerializeObject(o, jsonSerializerSettings)).ToList());
         }
     }
 }

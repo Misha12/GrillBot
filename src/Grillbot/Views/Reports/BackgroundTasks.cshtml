@@ -1,0 +1,32 @@
+﻿@model Grillbot.Models.BotStatus.BackgroundTasksReportViewModel;
+
+<div class="container">
+    <div class="card bg-dark">
+        <div class="card-header">
+            <h4 class="card-title mb-0 pb-0 font-weight-normal">Úlohy na pozadí</h4>
+        </div>
+
+        <div class="card-body">
+            @foreach (var group in Model.Groups)
+            {
+                <div class="card bg-dark mb-3">
+                    <div class="card-header">
+                        @{
+                            var keyData = group.Key.Split('/');
+                        }
+
+                        @keyData[0] (@keyData[1])
+                    </div>
+
+                    <div class="card-body">
+                        <pre class="alert alert-dark mb-0">@group.Value[0]</pre>
+                        @foreach (var item in group.Value.Skip(1))
+                        {
+                            <pre class="alert alert-dark mb-0 mt-3">@item</pre>
+                        }
+                    </div>
+                </div>
+            }
+        </div>
+    </div>
+</div>

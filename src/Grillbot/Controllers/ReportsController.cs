@@ -97,5 +97,14 @@ namespace Grillbot.Controllers
 
             return View(viewModel);
         }
+
+        [HttpGet("BackgroundTasks")]
+        public async Task<IActionResult> BackgroundTasksAsync()
+        {
+            var data = BackgroundTaskQueue.GetGroupedSerializedList();
+            var viewModel = new BackgroundTasksReportViewModel(data);
+
+            return View(viewModel);
+        }
     }
 }

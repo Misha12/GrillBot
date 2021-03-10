@@ -3,6 +3,7 @@ using Discord.Rest;
 using Discord.WebSocket;
 using Grillbot.Extensions.Discord;
 using Newtonsoft.Json;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -68,6 +69,18 @@ namespace Grillbot.Models.Audit.DiscordAuditLog
             }
 
             return this;
+        }
+
+        public static bool IsSchedulable(SocketGuildUser before, SocketGuildUser after)
+        {
+            var compares = new Func<bool>[]
+            {
+                () => before.Nickname != after.Nickname,
+                () => before.IsDeafened != after.IsDeafened,
+                () => before.IsMuted != after.IsMuted
+            };
+
+            return compares.Any(o => o());
         }
     }
 }

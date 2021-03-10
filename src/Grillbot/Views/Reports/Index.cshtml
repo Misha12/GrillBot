@@ -215,7 +215,13 @@
                 </div>
             }
 
-            <h4>Úlohy na pozadí</h4>
+            <div class="d-flex align-items-baseline">
+                <h4>Úlohy na pozadí</h4>
+                @if (Model.BackgroundTasks.Count > 0)
+                {
+                    <a asp-action="BackgroundTasks" class="badge badge-secondary badge-sm ml-2">Detaily</a>
+                }
+            </div>
             @if (Model.BackgroundTasks.Count == 0)
             {
                 <div class="row text-center">
@@ -236,7 +242,7 @@
                                 </tr>
                             </thead>
                             <tbody>
-                                @foreach(var item in Model.BackgroundTasks)
+                                @foreach (var item in Model.BackgroundTasks)
                                 {
                                     <tr>
                                         <td>@item.TaskName</td>

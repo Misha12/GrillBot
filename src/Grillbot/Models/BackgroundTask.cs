@@ -1,3 +1,4 @@
+using Newtonsoft.Json;
 using System;
 
 namespace Grillbot.Models
@@ -10,6 +11,7 @@ namespace Grillbot.Models
 
     public abstract class BackgroundTask<TService> : BackgroundTask
     {
+        [JsonIgnore]
         public override Type TaskType { get; } = typeof(TService);
     }
 }
