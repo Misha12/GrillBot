@@ -347,6 +347,10 @@ namespace Grillbot.Services.Audit
                 BackgroundTaskQueue.ScheduleDownloadAuditLog(task.ActionType, guild, 10 * 60);
                 return;
             }
+            catch (NullReferenceException)
+            {
+                // Can ignore. It's bug in library.
+            }
 
             if (logs.Count == 0)
                 return;
