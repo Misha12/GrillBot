@@ -118,18 +118,24 @@ namespace Grillbot.Modules
         [Summary("Odebrání definic přístupu, které si lze ponechat.")]
         public async Task RemoveDefinitionsAsync(string group, params string[] values)
         {
-            using var service = GetService<UnverifyService>();
-
-            var removedDefs = await service.Service.RemoveSelfunverifyDefinitions(Context.Guild, group, values);
-
-            var message = string.Join(Environment.NewLine, new[]
+            try
             {
-                $"Skupina: `{group}`",
-                removedDefs.Item1.Count == 0 ? null : $"Smazané: {string.Join(", ", removedDefs.Item1.Select(o => $"`{o}`"))}",
-                removedDefs.Item2.Count == 0 ? null : $"Již neexistovaly: {string.Join(", ", removedDefs.Item2.Select(o => $"`{o}`"))}"
-            }.Where(o => o != null));
+                using var service = GetService<UnverifyService>();
+                var removedDefs = await service.Service.RemoveSelfunverifyDefinitions(Context.Guild, group, values);
 
-            await ReplyAsync(message);
+                var message = string.Join(Environment.NewLine, new[]
+                {
+                    $"Skupina: `{group}`",
+                    removedDefs.Item1.Count == 0 ? null : $"Smazané: {string.Join(", ", removedDefs.Item1.Select(o => $"`{o}`"))}",
+                    removedDefs.Item2.Count == 0 ? null : $"Již neexistovaly: {string.Join(", ", removedDefs.Item2.Select(o => $"`{o}`"))}"
+                }.Where(o => o != null));
+
+                await ReplyAsync(message);
+            }
+            catch (ValidationException ex)
+            {
+                await ReplyAsync(ex.Message);
+            }
         }
     }
 }
