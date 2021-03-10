@@ -1,6 +1,7 @@
 using System;
 using System.Threading.Tasks;
 using Discord.WebSocket;
+using Grillbot.Database;
 using Grillbot.Models.BotStatus;
 using Grillbot.Services;
 using Grillbot.Services.Audit;
@@ -45,11 +46,11 @@ namespace Grillbot.Controllers
         public async Task<IActionResult> IndexAsync()
         {
             var getDbStatusTask = StatusService.GetDbReport();
+            var getCommandsReportTask = StatusService.GetCommandsReportAsync();
 
             var result = new ReportsViewModel()
             {
                 BotStatus = StatusService.GetSimpleStatus(),
-                Commands = InternalStatistics.GetCommands(),
                 Events = InternalStatistics.GetEvents(),
                 GCMemoryInfo = GC.GetGCMemoryInfo(),
                 Api = ApiStatistics.Data.FindAll(o => o.Count > 0),
@@ -60,6 +61,7 @@ namespace Grillbot.Controllers
             };
 
             result.Database = await getDbStatusTask;
+            result.Commands = await getCommandsReportTask;
             return View(result);
         }
 

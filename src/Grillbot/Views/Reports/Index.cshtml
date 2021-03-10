@@ -99,7 +99,8 @@
                             <thead>
                                 <tr>
                                     <th>Název</th>
-                                    <th>Počet</th>
+                                    <th style="width: 20%">Od startu</th>
+                                    <th style="width: 20%">Celkem</th>
                                 </tr>
                             </thead>
                             <tbody>
@@ -107,7 +108,8 @@
                                 {
                                     <tr>
                                         <td>@command.Key</td>
-                                        <td>@command.Value.FormatWithSpaces()</td>
+                                        <td>@command.Value.Item1.FormatWithSpaces()</td>
+                                        <td>@command.Value.Item2.FormatWithSpaces()</td>
                                     </tr>
                                 }
                             </tbody>

@@ -54,6 +54,12 @@ namespace Grillbot.Database.Repository
             return filter.GetDbQuery(query);
         }
 
+        public IQueryable<AuditLogItem> GetAuditLogsByType(AuditLogType type)
+        {
+            return GetBaseQuery(false)
+                .Where(o => o.Type == type);
+        }
+
         public Task<File> FindFileByFilenameAsync(string filename)
         {
             return Context.Files.AsQueryable()
