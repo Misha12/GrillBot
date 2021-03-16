@@ -4,6 +4,7 @@ using Grillbot.Database;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Services.Unverify;
 using System;
+using System.ComponentModel.DataAnnotations;
 using System.Linq;
 using System.Threading.Tasks;
 
@@ -24,23 +25,36 @@ namespace Grillbot.Modules
         {
             using (Context.Channel.EnterTypingState())
             {
-                var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
-                if (usersToUnverify.Count == 0)
-                    return;
+                try
+                {
+                    var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
+                    if (usersToUnverify.Count == 0)
+                        return;
 
-                using var repository = GetService<IGrillBotRepository>();
-                var config = await repository.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, "funverify", null, false);
+                    using var repository = GetService<IGrillBotRepository>();
+                    var config = await repository.Service.ConfigRepository.FindConfigAsync(Context.Guild.Id, "funverify", null, false);
 
-                if (config == null)
-                    return;
+                    if (config == null)
+                        return;
 
-                using var unverify = GetService<UnverifyService>();
-                var messages = await unverify.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndMentions, Context.Guild, Context.User, true);
-                await ReplyChunkedAsync(messages, 1);
+                    using var unverify = GetService<UnverifyService>();
+                    var messages = await unverify.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndMentions, Context.Guild, Context.User, true);
+                    await ReplyChunkedAsync(messages, 1);
 
-                var configData = config.GetData<FunverifyConfig>();
-                await Task.Delay(TimeSpan.FromSeconds(configData.SecsTimeout));
-                await ReplyAsync(configData.KappaLulEmote);
+                    var configData = config.GetData<FunverifyConfig>();
+                    await Task.Delay(TimeSpan.FromSeconds(configData.SecsTimeout));
+                    await ReplyAsync(configData.KappaLulEmote);
+                }
+                catch (Exception ex)
+                {
+                    if (ex is ValidationException || ex is FormatException || ex is ArgumentException)
+                    {
+                        await ReplyAsync(ex.Message);
+                        return;
+                    }
+
+                    throw;
+                }
             }
         }
     }
