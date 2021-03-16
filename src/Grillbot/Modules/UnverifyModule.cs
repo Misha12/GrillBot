@@ -46,7 +46,7 @@ namespace Grillbot.Modules
                         return;
 
                     using var service = GetService<UnverifyService>();
-                    var messages = await service.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User);
+                    var messages = await service.Service.SetUnverifyAsync(usersToUnverify, time, reasonAndUserMentions, Context.Guild, Context.User, false);
                     await ReplyChunkedAsync(messages, 1);
                 }
                 catch (Exception ex)

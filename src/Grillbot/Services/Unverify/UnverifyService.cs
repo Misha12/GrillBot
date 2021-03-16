@@ -57,7 +57,8 @@ namespace Grillbot.Services.Unverify
             Queue = queue;
         }
 
-        public async Task<List<string>> SetUnverifyAsync(List<SocketUser> users, string time, string data, SocketGuild guild, SocketUser fromUser)
+        public async Task<List<string>> SetUnverifyAsync(List<SocketUser> users, string time, string data, SocketGuild guild, SocketUser fromUser,
+            bool dryRun)
         {
             var unverifyConfig = await GetUnverifyConfigAsync(guild);
             var messages = new List<string>();
@@ -68,7 +69,7 @@ namespace Grillbot.Services.Unverify
 
             foreach (var user in users)
             {
-                var message = await SetUnverifyAsync(user, time, data, guild, fromUser, false, null, mutedRole);
+                var message = await SetUnverifyAsync(user, time, data, guild, fromUser, false, null, mutedRole, dryRun);
                 messages.Add(message);
             }
 
@@ -83,25 +84,31 @@ namespace Grillbot.Services.Unverify
             await guild.SyncGuildAsync();
 
             var mutedRole = guild.GetRole(unverifyConfig.MutedRoleID);
-            return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole);
+            return await SetUnverifyAsync(user, time, data, guild, fromUser, selfUnverify, toKeep, mutedRole, false);
         }
 
         private async Task<string> SetUnverifyAsync(SocketUser socketUser, string time, string data, SocketGuild guild, SocketUser fromUser, bool selfUnverify,
-            List<string> toKeep, SocketRole mutedRole)
+            List<string> toKeep, SocketRole mutedRole, bool dryRun)
         {
             var user = await guild.GetUserFromGuildAsync(socketUser.Id);
             await Checker.ValidateAsync(user, guild, selfUnverify);
 
             var profile = await UnverifyProfileGenerator.CreateProfileAsync(user, guild, time, data, selfUnverify, toKeep, mutedRole);
 
-            UnverifyLog unverifyLogEntity;
-            if (selfUnverify)
-                unverifyLogEntity = await UnverifyLogger.LogSelfUnverifyAsync(profile, guild);
-            else
-                unverifyLogEntity = await UnverifyLogger.LogUnverifyAsync(profile, guild, fromUser);
+            UnverifyLog unverifyLogEntity = null;
+            if (!dryRun)
+            {
+                if (selfUnverify)
+                    unverifyLogEntity = await UnverifyLogger.LogSelfUnverifyAsync(profile, guild);
+                else
+                    unverifyLogEntity = await UnverifyLogger.LogUnverifyAsync(profile, guild, fromUser);
+            }
 
             try
             {
+                if (dryRun)
+                    return MessageGenerator.CreateUnverifyMessageToChannel(profile);
+
                 if (mutedRole != null)
                     await user.SetRoleAsync(mutedRole);
 
