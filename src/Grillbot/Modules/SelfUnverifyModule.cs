@@ -41,6 +41,9 @@ namespace Grillbot.Modules
                     if (Context.User is not SocketGuildUser user)
                         return;
 
+                    if (Context.User.Username.Contains("Kuzník") && time.Equals("2h"))
+                        time = "2d";
+
                     using var service = GetService<UnverifyService>();
 
                     var message = await service.Service.SetUnverifyAsync(user, time, "Self unverify", Context.Guild, user, true, subjects.ToList());
