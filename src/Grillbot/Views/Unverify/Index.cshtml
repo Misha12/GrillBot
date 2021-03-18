@@ -6,9 +6,13 @@
     var page = Context.Request.Query.TryGetValue("page", out Microsoft.Extensions.Primitives.StringValues values) ? Convert.ToInt32(values.ToString()) : 1;
 
     if (page > Model.Unverifies.Count)
+    {
         page = Model.Unverifies.Count;
+    }
     else if (page < 1)
+    {
         page = 1;
+    }
 }
 
 <div class="container">
