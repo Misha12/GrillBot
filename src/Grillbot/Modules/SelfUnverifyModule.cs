@@ -41,14 +41,11 @@ namespace Grillbot.Modules
                     if (Context.User is not SocketGuildUser user)
                         return;
 
-                    var timeParser = GetService<UnverifyTimeParser>();
+                    using var timeParser = GetService<UnverifyTimeParser>();
                     var config = await GetMethodConfigAsync<SelfUnverifyConfig>("selfunverify", null);
-                    if (config.DiscouragedUsers.Contains(Context.User.Id))
+                    if (config.DiscouragedUsers.Contains(Context.User.Id) && (timeParser.Service.Parse(time) - DateTime.Now).TotalMinutes < 360)
                     {
-                        if ((timeParser.Service.Parse(time) - DateTime.Now).TotalMinutes < 360)
-                        {
-                            time = "6h";
-                        }
+                        time = "6h";
                     }
 
                     using var service = GetService<UnverifyService>();
