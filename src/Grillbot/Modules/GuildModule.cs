@@ -12,7 +12,11 @@ using Grillbot.Services.BackgroundTasks;
 using Grillbot.Services.Unverify;
 using System;
 using System.Collections.Generic;
+using System.IO;
+using System.IO.Compression;
 using System.Linq;
+using System.Net;
+using System.Text;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
@@ -278,6 +282,44 @@ namespace Grillbot.Modules
 
             await ReplyAsync("Dokončeno");
             await Context.Message.AddReactionAsync(EmojiHelper.OKEmoji);
+        }
+
+        [Command("createEmotesList")]
+        [Summary("Vytvoří seznam aktuálních emotů na serveru.")]
+        public async Task CreateEmotesListAsync()
+        {
+            await Context.Guild.SyncGuildAsync();
+
+            var emotes = Context.Guild.Emotes.Select(o => $"{o.Id},{o.Name},{o}");
+            var emotesCsv = string.Join(Environment.NewLine, emotes);
+            var fileBytes = Encoding.UTF8.GetBytes(emotesCsv);
+
+            await ReplyFileAsync(fileBytes, $"{Context.Guild.Name}.csv");
+        }
+
+        [Command("backupEmotes")]
+        [Summary("Stáhne všechny emoty a pošle je do kanálu jako ZIP archiv.")]
+        public async Task BackupEmotesAsync()
+        {
+            using (Context.Channel.EnterTypingState())
+            {
+                await Context.Guild.SyncGuildAsync();
+
+                using var webClient = new WebClient();
+                using var zipStream = new MemoryStream();
+                using var archive = new ZipArchive(zipStream, ZipArchiveMode.Create, true);
+
+                foreach (var emote in Context.Guild.Emotes)
+                {
+                    var emoteData = await webClient.DownloadDataTaskAsync(emote.Url);
+                    var emoteFile = archive.CreateEntry($"{emote.Name}.{(emote.Animated ? "gif" : "png")}");
+
+                    using var entryStream = emoteFile.Open();
+                    await entryStream.WriteAsync(emoteData.AsMemory(0, emoteData.Length));
+                }
+
+                await ReplyFileAsync(zipStream.ToArray(), $"{Context.Guild.Name}.zip");
+            }
         }
     }
 }
