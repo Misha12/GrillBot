@@ -67,8 +67,9 @@ namespace Grillbot.Services.Unverify
         private async Task ValidateIfNotUnverifiedAsync(SocketGuild guild, SocketGuildUser user)
         {
             var userID = await SearchService.GetUserIDFromDiscordUserAsync(guild, user);
-            var haveUnverify = await GrillBotRepository.UnverifyRepository.HaveUnverifyAsync(userID.Value);
+            if (userID == null) return;
 
+            var haveUnverify = await GrillBotRepository.UnverifyRepository.HaveUnverifyAsync(userID.Value);
             if (haveUnverify)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** již má odebraný přístup.");
         }

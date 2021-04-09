@@ -136,8 +136,12 @@ namespace Grillbot.Services.Unverify
 
         private void SetChannels(UnverifyUserProfile profile, SocketGuildUser user, List<string> toKeep, SelfUnverifyConfig selfUnverifyConfig)
         {
-            var channels = user.Guild.Channels
-                .Where(o => o != null)
+            var allChannels = new List<SocketGuildChannel>();
+            allChannels.AddRange(user.Guild.CategoryChannels);
+            allChannels.AddRange(user.Guild.TextChannels);
+            allChannels.AddRange(user.Guild.VoiceChannels);
+
+            var channels = allChannels
                 .Select(channel => new ChannelOverwrite(channel, channel.GetPermissionOverwrite(user)))
                 .Where(channel => channel.Permissions != null && (channel.AllowValue > 0 || channel.DenyValue > 0))
                 .ToList();

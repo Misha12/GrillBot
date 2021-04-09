@@ -418,7 +418,7 @@ namespace Grillbot.Services.Unverify
 
             var channelsToReturn = data.ChannelsToRemove
                 .Select(o => new ChannelOverwrite(guild.GetChannel(o.ChannelID), new OverwritePermissions(o.AllowValue, o.DenyValue)))
-                .Where(o => o.Channel is SocketGuildChannel)
+                .Where(o => o.Channel is SocketTextChannel || o.Channel is SocketVoiceChannel || o.Channel is SocketCategoryChannel)
                 .Where(o =>
                 {
                     var perms = ((SocketGuildChannel)o.Channel).GetPermissionOverwrite(user);

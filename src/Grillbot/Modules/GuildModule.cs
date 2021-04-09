@@ -93,8 +93,16 @@ namespace Grillbot.Modules
 
             await Context.Guild.SyncGuildAsync();
             var channels = new List<IGuildChannel>();
-            if (channel == null) channels.AddRange(Context.Guild.Channels);
-            else channels.Add(channel);
+            if (channel == null)
+            {
+                channels.AddRange(Context.Guild.VoiceChannels);
+                channels.AddRange(Context.Guild.TextChannels);
+                channels.AddRange(Context.Guild.CategoryChannels);
+            }
+            else
+            {
+                channels.Add(channel);
+            }
 
             var channelsInfo = new Dictionary<IGuildChannel, uint>();
             foreach (var guildChannel in channels)
@@ -134,8 +142,13 @@ namespace Grillbot.Modules
             var msg = await ReplyAsync("Příprava čištění oprávnění.");
             await Context.Guild.SyncGuildAsync();
 
+            var allChannels = new List<SocketGuildChannel>();
+            allChannels.AddRange(Context.Guild.CategoryChannels);
+            allChannels.AddRange(Context.Guild.TextChannels);
+            allChannels.AddRange(Context.Guild.VoiceChannels);
+
             uint clearedPerms = 0;
-            foreach (var channel in Context.Guild.Channels.Where(o => guildChannel == null || o.Id == guildChannel.Id))
+            foreach (var channel in allChannels.Where(o => guildChannel == null || o.Id == guildChannel.Id))
             {
                 foreach (var user in Context.Guild.Users.Where(o => !onlyMod || o.GuildPermissions.Administrator))
                 {
