@@ -18,6 +18,9 @@ namespace Grillbot.Models.Audit
         [JsonProperty("content")]
         public string Content { get; set; }
 
+        [JsonProperty("reply")]
+        public ReplyContent Reply { get; set; }
+
         public MessageDeletedAuditData() { }
 
         public MessageDeletedAuditData(bool isInCache)
@@ -25,19 +28,28 @@ namespace Grillbot.Models.Audit
             IsInCache = isInCache;
         }
 
-        public MessageDeletedAuditData(bool isInCache, AuditUserInfo author, DateTime createdAt, string content) : this(isInCache)
+        public MessageDeletedAuditData(bool isInCache, AuditUserInfo author, DateTime createdAt, string content, ReplyContent reply) : this(isInCache)
         {
             Author = author;
             CreatedAt = createdAt;
             Content = content;
+            Reply = reply;
         }
 
         public static MessageDeletedAuditData Create(IMessage message = null)
         {
             if (message == null)
+            {
                 return new MessageDeletedAuditData(false);
+            }
             else
-                return new MessageDeletedAuditData(true, AuditUserInfo.Create(message.Author), message.CreatedAt.LocalDateTime, message.Content);
+            {
+                ReplyContent reply = null;
+                if (message is IUserMessage userMsg)
+                    reply = ReplyContent.Create(userMsg.ReferencedMessage);
+
+                return new MessageDeletedAuditData(true, AuditUserInfo.Create(message.Author), message.CreatedAt.LocalDateTime, message.Content, reply);
+            }
         }
     }
 }
