@@ -23,7 +23,7 @@ namespace Grillbot.Services.ErrorHandling
                 return CreateCommandErrorEmbed(commandException, logItem);
             }
 
-            return CreateGenericErrorEmbed(message.Exception, logItem, message.Source);
+            return CreateGenericErrorEmbed(logItem, message.Source);
         }
 
         private BotEmbed CreateCommandErrorEmbed(CommandException exception, ErrorLogItem logItem)
@@ -33,15 +33,14 @@ namespace Grillbot.Services.ErrorHandling
                 .AddField("Kanál", $"<#{exception.Context.Channel.Id}>", true)
                 .AddField("Uživatel", exception.Context.User.Mention, true)
                 .AddField("Zpráva", $"```{exception.Context.Message.Content}```", false)
-                .AddField(exception.InnerException.GetType().Name, $"```{exception}```", false);
+                .AddField("Skok na zprávu", exception.Context.Message.GetJumpUrl(), false);
         }
 
-        private BotEmbed CreateGenericErrorEmbed(Exception exception, ErrorLogItem logItem, string source)
+        private BotEmbed CreateGenericErrorEmbed(ErrorLogItem logItem, string source)
         {
             return new BotEmbed(DiscordClient.CurrentUser, Color.Red, "Došlo k neočekávané chybě.")
                 .AddField("ID záznamu", logItem.ID.ToString(), true)
-                .AddField("Zdroj", source, true)
-                .AddField(exception.GetType().Name, $"```{exception}```", false);
+                .AddField("Zdroj", source, true);
         }
     }
 }

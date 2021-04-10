@@ -18,6 +18,7 @@ using Grillbot.Services.Statistics.ApiStats;
 using Grillbot.Services.Config;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
+using System.Text;
 
 namespace Grillbot.Services
 {
@@ -96,7 +97,13 @@ namespace Grillbot.Services
             try
             {
                 var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entity);
-                await (Client.GetChannel(LogRoomID.Value) as IMessageChannel)?.SendMessageAsync(embed: logEmbed.Build());
+                var channel = Client.GetChannel(LogRoomID.Value) as IMessageChannel;
+
+                var contentBytes = Encoding.UTF8.GetBytes(message.Exception.ToString());
+                using var ms = new MemoryStream(contentBytes);
+
+                await channel.SendMessageAsync(embed: logEmbed.Build());
+                await channel.SendFileAsync(ms, $"Exception_{DateTime.Now:O}.txt");
             }
             catch (Exception ex)
             {
