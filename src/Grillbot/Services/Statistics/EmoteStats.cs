@@ -162,9 +162,12 @@ namespace Grillbot.Services.Statistics
             userEmote.UseCount--;
         }
 
-        public Task<GroupedEmoteItem> GetValueAsync(SocketGuild guild, string emoteId)
+        public async Task<GroupedEmoteItem> GetValueAsync(SocketGuild guild, string emoteId)
         {
-            return GrillBotRepository.EmoteStatsRepository.GetStatsOfEmoteAsync(guild.Id, emoteId);
+            var ignoredAccounts = (await SearchService.ConvertUsersToIDsAsync(await guild.GetBotsAsync()))
+                .Where(o => o.Value != null).Select(o => o.Value.Value).ToArray();
+
+            return await GrillBotRepository.EmoteStatsRepository.GetStatsOfEmoteAsync(guild.Id, emoteId, ignoredAccounts);
         }
 
         public List<GroupedEmoteItem> GetAllValues(SortType sortType, ulong guildID, bool excludeUnicode, EmoteInfoOrderType orderType, int? limit = null)

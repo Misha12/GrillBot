@@ -85,6 +85,7 @@ namespace Grillbot.Modules
         {
             using var service = GetService<EmoteStats>();
 
+            await Context.Guild.SyncGuildAsync();
             var existsInGuild = Context.Guild.Emotes.Any(o => o.ToString() == emote);
             var emoteInfo = await service.Service.GetValueAsync(Context.Guild, emote);
 

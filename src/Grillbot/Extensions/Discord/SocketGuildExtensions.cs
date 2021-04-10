@@ -106,7 +106,7 @@ namespace Grillbot.Extensions.Discord
         public static async Task<IEnumerable<SocketGuildUser>> GetBotsAsync(this SocketGuild guild)
         {
             await guild.SyncGuildAsync();
-            return guild.Users.Where(o => o.IsBot);
+            return guild.Users.Where(o => !o.IsUser());
         }
     }
 }

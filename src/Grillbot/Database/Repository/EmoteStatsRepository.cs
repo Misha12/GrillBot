@@ -23,7 +23,7 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.User.GuildID == guildID.ToString());
         }
 
-        public async Task<GroupedEmoteItem> GetStatsOfEmoteAsync(ulong guildID, string emoteId)
+        public async Task<GroupedEmoteItem> GetStatsOfEmoteAsync(ulong guildID, string emoteId, long[] ignoredAccounts)
         {
             var dataQuery = GetEmoteStatsBaseQuery(guildID).Where(o => o.EmoteID == emoteId);
 
@@ -42,7 +42,12 @@ namespace Grillbot.Database.Repository
             if (groupedData == null)
                 return null;
 
-            groupedData.TopUsage = await dataQuery.OrderByDescending(x => x.UseCount).Take(10).ToDictionaryAsync(x => x.User.UserID, x => x.UseCount);
+            groupedData.TopUsage = await dataQuery
+                .Where(o => !ignoredAccounts.Contains(o.UserID))
+                .OrderByDescending(x => x.UseCount)
+                .Take(10)
+                .ToDictionaryAsync(x => x.User.UserID, x => x.UseCount);
+
             return groupedData;
         }
 
