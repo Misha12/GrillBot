@@ -195,7 +195,8 @@ namespace Grillbot.Database.Repository
         public IQueryable<UserEntity> GetUsersWithUnverify(ulong guildID)
         {
             return GetBaseQuery(UsersIncludes.Unverify, false)
-                .Where(o => o.GuildID == guildID.ToString() && o.Unverify != null);
+                .Where(o => o.GuildID == guildID.ToString() && o.Unverify != null)
+                .OrderBy(o => o.Unverify.EndDateTime);
         }
 
         public IQueryable<UserEntity> GetUsersWithUnverifyImunity(ulong guildID)
