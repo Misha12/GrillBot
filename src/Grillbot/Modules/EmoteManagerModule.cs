@@ -12,6 +12,7 @@ using Grillbot.Services.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Security.Cryptography.X509Certificates;
 using System.Text;
 using System.Threading.Tasks;
 
@@ -69,9 +70,9 @@ namespace Grillbot.Modules
         [Summary("Statistika emote, nebo uživatele. Pro statistiku uživatele jej musíte označit (tagnout).")]
         public async Task GetEmoteInfoAsync(string emoteOrTag, SortType sortType = SortType.Desc)
         {
-            if (Context.Message.MentionedUsers.Any(x => x.Mention == emoteOrTag))
+            if (Context.Message.MentionedUsers.Any(x => x.Mention == emoteOrTag || $"<@{x.Id}>" == emoteOrTag))
             {
-                var user = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == emoteOrTag);
+                var user = Context.Message.MentionedUsers.FirstOrDefault(o => o.Mention == emoteOrTag || $"<@{o.Id}>" == emoteOrTag);
                 await GetInfoOfUserAsync(user, sortType);
             }
             else
