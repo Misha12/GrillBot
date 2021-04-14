@@ -84,20 +84,20 @@ $globalConfig set CommandPrefix !
 | Název sloupce | Datový typ (.NET) | Datový typ (SQL) | Nullable | Popis                                                                                                        |
 | ------------- | :---------------: | :--------------: | :------: | ------------------------------------------------------------------------------------------------------------ |
 | Key           |      string       |  nvarchar(450)   |    Ne    | Unikátní klíč konfigurační položky. Klíč je odvozen z položek výčtu [GlobalConfigItems](#globalconfigitems). |
-| Value         |      string       |   VARCHAR(MAX)   |    Ne    | Konfigurační hodnota.                                                                                        |
+| Value         |      string       |   varchar(max)   |    Ne    | Konfigurační hodnota.                                                                                        |
 
 ## Statická konfigurace
 
-Statická konfigurace obsahuje citlivé konfigurační hodnoty, které se nesmí měnit za běhu a nemohou být sdíleny mezi ostatními. Tato položky lze načítat pomocí proměnného prostředí, souborů appsettings.{environment}.json, nebo třeba také pomocí parametrů příkazové řádky.
+Statická konfigurace obsahuje citlivé konfigurační hodnoty, které se nesmí měnit za běhu a nemohou být sdíleny mezi ostatními. Tato položky lze načítat pomocí proměnného prostředí, souborů `appsettings.{environment}.json`, nebo třeba také pomocí parametrů příkazové řádky.
 
 ### Položky statické konfigurace
 
-| Název                  | Popis                                                        |
-| ---------------------- | ------------------------------------------------------------ |
-| Token              | Přístupový token reprezentující uživatele bota.              |
-| ConnectionStrings:Default                | Připojovací řetězec k databázi.                              |
-| ASPNETCORE_ENVIRONMENT | Typ proměnného prostředí (Development, Staging, Production). |
-| ASPNETCORE_URLS        | Adresa, na které má naslouchat webový server Kestrel.        |
+| Název                     | Popis                                                        |
+| ------------------------- | ------------------------------------------------------------ |
+| Token                     | Přístupový token reprezentující uživatele bota.              |
+| ConnectionStrings:Default | Připojovací řetězec k databázi.                              |
+| ASPNETCORE_ENVIRONMENT    | Typ proměnného prostředí (Development, Staging, Production). |
+| ASPNETCORE_URLS           | Adresa, na které má naslouchat webový server Kestrel.        |
 
 ## Konfigurace příkazů a oprávnění
 
@@ -335,13 +335,13 @@ Pomocná třída sloužící jako vstupní parametr pro metodu.
 
 | Název sloupce | Datový typ (.NET) | Datový typ (SQL) | Nullable | Popis                                                                  |
 | ------------- | :---------------: | :--------------: | :------: | ---------------------------------------------------------------------- |
-| ID            |        int        |       INT        |    Ne    | Unikátní identifikátor metody.                                         |
-| GuildID       |      string       |   VARCHAR(30)    |    Ne    | Identifikátor serveru, na kterém je metoda nakonfigurována.            |
-| Group         |      string       |   VARCHAR(100)   |    Ne    | Skupina metod, ve které se konkrétní metoda nachází.                   |
-| Command       |      string       |   VARCHAR(100)   |    Ne    | Název konkrétní metody v rámci skupiny příkazů.                        |
-| ConfigData    |      string       |   VARCHAR(MAX)   |    Ne    | Konfigurační data pro danou metodu. Data jsou ve formátu JSON.         |
-| OnlyAdmins    |       bool        |       BIT        |    Ne    | Konfigurační příznak, že tato metoda je pouze pro administrátory bota. |
-| UsedCount     |       long        |      BIGINT      |    Ne    | Počet použití dané metody.                                             |
+| ID            |        int        |       int        |    Ne    | Unikátní identifikátor metody.                                         |
+| GuildID       |      string       |   varchar(30)    |    Ne    | Identifikátor serveru, na kterém je metoda nakonfigurována.            |
+| Group         |      string       |   varchar(100)   |    Ne    | Skupina metod, ve které se konkrétní metoda nachází.                   |
+| Command       |      string       |   varchar(100)   |    Ne    | Název konkrétní metody v rámci skupiny příkazů.                        |
+| ConfigData    |      string       |   varchar(MAX)   |    Ne    | Konfigurační data pro danou metodu. Data jsou ve formátu JSON.         |
+| OnlyAdmins    |       bool        |       bit        |    Ne    | Konfigurační příznak, že tato metoda je pouze pro administrátory bota. |
+| UsedCount     |       long        |      bigint      |    Ne    | Počet použití dané metody.                                             |
 
 #### Tabulka `MethodPerms`
 
@@ -349,11 +349,11 @@ Pomocná třída sloužící jako vstupní parametr pro metodu.
 
 | Název sloupce |    Datový typ (.NET)    | Datový typ (SQL) | Nullable | Popis                                                                            |
 | ------------- | :---------------------: | :--------------: | :------: | -------------------------------------------------------------------------------- |
-| PermID        |           int           |       INT        |    Ne    | Unikátní identifikátor oprávnění.                                                |
-| MethodID      |           int           |       INT        |    Ne    | ID metody, na kterou se váže toto oprávnění. Cizí klíč do tabulky `MethodConfig` |
-| DiscordID     |         string          |   VARCHAR(30)    |    Ne    | Discord identifikátor příslušné role, nebo uživatele.                            |
-| PermType      |  [PermType](#permtype)  |     TINYINT      |    Ne    | Druh cílové skupiny, pro kterou se vztahuje toto oprávnění.                      |
-| AllowType     | [AllowType](#allowtype) |     TINYINT      |    Ne    | Označení, zda je přístup povolen, či zakázán.                                    |
+| PermID        |           int           |       int        |    Ne    | Unikátní identifikátor oprávnění.                                                |
+| MethodID      |           int           |       int        |    Ne    | ID metody, na kterou se váže toto oprávnění. Cizí klíč do tabulky `MethodConfig` |
+| DiscordID     |         string          |   varchar(30)    |    Ne    | Discord identifikátor příslušné role, nebo uživatele.                            |
+| PermType      |  [PermType](#permtype)  |     tinyint      |    Ne    | Druh cílové skupiny, pro kterou se vztahuje toto oprávnění.                      |
+| AllowType     | [AllowType](#allowtype) |     tinyint      |    Ne    | Označení, zda je přístup povolen, či zakázán.                                    |
 
 ### Podpůrné výčty
 

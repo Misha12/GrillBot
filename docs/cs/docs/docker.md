@@ -1,6 +1,6 @@
 # Docker
 
-GrillBot je možné spustit jako docker kontejner. **Součástí image není databáze.** Databázový MSSQL server je možné také spustit jako kontejner, nicméně to, jak databázový server není podmínka.
+GrillBot je možné spustit jako docker kontejner. **Součástí image není databáze.** Databázový MSSQL server je možné také spustit jako kontejner, nicméně to, jak databázový server běží není podmínka.
 
 **Doporučení**:
 Sestavení docker image trvá přibližně 1 minutu, zatím, co překlad aplikace trvá pár vteřin. Doporučuje se tedy vytvářet až výsledný image a nepoužívat jej k vývojovým účelům.
