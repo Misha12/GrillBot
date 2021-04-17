@@ -144,6 +144,14 @@ namespace Grillbot.Services
                 return true;
             }
 
+            if(
+                // 11 is magic constant represents error "Resource temporarily unavailable".
+                exception is HttpRequestException && exception.InnerException is SocketException socket && socket.ErrorCode == 11
+            )
+            {
+                return true;
+            }
+
             return false;
         }
 

@@ -83,14 +83,5 @@ namespace Grillbot.Modules
             await message.ModifyAsync(o => o.Content = "Probíhá vypínání.");
             Lifetime.StopApplication();
         }
-
-        [Command("migrateLogs")]
-        public async Task MigrateAuditLogFiles()
-        {
-            using var service = GetService<AuditService>();
-
-            await service.Service.MigrateAuditLogFiles();
-            await ReplyAsync("Done");
-        }
     }
 }

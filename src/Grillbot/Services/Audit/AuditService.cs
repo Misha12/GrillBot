@@ -446,20 +446,5 @@ namespace Grillbot.Services.Audit
             var stats = await GrillBotRepository.AuditLogs.GetStatsPerTypeQuery().ToListAsync();
             return stats.ToDictionary(o => o.Item1, o => o.Item2);
         }
-
-        public async Task MigrateAuditLogFiles()
-        {
-            var files = await GrillBotRepository.FilesRepository.GetFilesQuery()
-                .Where(o => o.AuditLogItemId != null && o.Content != null).ToListAsync();
-
-            foreach(var file in files)
-            {
-                FileSystem.AuditLogs.Add(new AuditLogFile() { Content = file.Content, Filename = file.Filename });
-                file.Content = null;
-            }
-
-            await FileSystem.CommitAsync();
-            await GrillBotRepository.CommitAsync();
-        }
     }
 }
