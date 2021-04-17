@@ -15,36 +15,44 @@
                 <thead>
                     <tr>
                         <th>
-                            @if (Model.Files.Count == 0 || Model.Files.Count > 4)
+                            @if (Model.TotalCount == 0 || Model.TotalCount > 4)
                             {
-                                <text>@Model.Files.Count.FormatWithSpaces() souborů</text>
+                                <text>@Model.TotalCount.FormatWithSpaces() souborů</text>
                             }
-                            else if (Model.Files.Count == 1)
+                            else if (Model.TotalCount == 1)
                             {
                                 <text>1 soubor</text>
                             }
                             else
                             {
-                                <text>@Model.Files.Count.FormatWithSpaces() soubory</text>
+                                <text>@Model.TotalCount.FormatWithSpaces() soubory</text>
                             }
                         </th>
-                        <th class="text-right">@Model.Files.Sum(o => (long)o.Value).FormatAsSize()</th>
+                        <th class="text-right">@Model.TotalSize.FormatAsSize()</th>
                     </tr>
                 </thead>
             </table>
         </div>
 
         <div class="card-body">
-            <div class="d-flex flex-wrap justify-content-between">
-                @foreach (var file in Model.Files)
+            <ul>
+                @foreach (var directory in Model.Files)
                 {
-                    <a class="text-center mr-5 mb-3 text-white text-underline" style="width: 300px" asp-action="Download" asp-route-filename="@file.Key" title="Stáhnout" target="_blank">
-                        <img src="~/img/file.png" alt="@file.Key" style="width: 80px" /><br />
-                        <span>(@(((long)file.Value).FormatAsSize()))</span>
-                        <span class="d-inline-block text-truncate" style="max-width: 100%" title="@file.Key">@file.Key</span>
-                    </a>
+                    <li>
+                        @directory.Key (@directory.Value.Sum(x => x.FileInfo.Length).FormatAsSize())
+                        <ul>
+                            @foreach (var file in directory.Value)
+                            {
+                                <li>
+                                    @file.Filename (@file.FileInfo.Length.FormatAsSize())
+                                    (<a asp-action="Download" asp-route-filename="@file.Filename" asp-route-directory="@directory.Key" class="text-white text-underline" target="_blank">Stáhnout</a>,
+                                    <a asp-action="Delete" asp-route-filename="@file.Filename" asp-route-directory="@directory.Key" class="text-white text-underline">Smazat</a>)
+                                </li>
+                            }
+                        </ul>
+                    </li>
                 }
-            </div>
+            </ul>
         </div>
     </div>
 </div>

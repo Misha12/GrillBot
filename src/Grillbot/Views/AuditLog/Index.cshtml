@@ -239,7 +239,7 @@
                                         @foreach (var attachment in item.AttachmentNames)
                                         {
                                             <li>
-                                                <a class="text-white" asp-controller="FileManager" asp-action="Download" target="_blank" asp-route-filename="@attachment">
+                                                <a class="text-white" asp-controller="FileManager" asp-action="Download" target="_blank" asp-route-filename="@attachment" asp-route-directory="AuditLogs">
                                                     <u>@attachment</u>
                                                 </a>
                                             </li>

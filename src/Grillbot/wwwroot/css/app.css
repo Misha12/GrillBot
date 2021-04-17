@@ -67,3 +67,7 @@ pre.text-wrap {
 .login-error.text-danger {
     color: #e4606d !important;
 }
+
+.text-underline {
+    text-decoration: underline !important;
+}

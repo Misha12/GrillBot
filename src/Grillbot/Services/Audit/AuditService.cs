@@ -9,6 +9,8 @@ using Grillbot.Database.Enums.Includes;
 using Grillbot.Enums;
 using Grillbot.Extensions.Discord;
 using Grillbot.Extensions.Infrastructure;
+using Grillbot.FileSystem;
+using Grillbot.FileSystem.Entities;
 using Grillbot.Helpers;
 using Grillbot.Models;
 using Grillbot.Models.Audit;
@@ -35,9 +37,10 @@ namespace Grillbot.Services.Audit
         private IMessageCache MessageCache { get; }
         private ConfigurationService ConfigurationService { get; }
         private BackgroundTaskQueue BackgroundTaskQueue { get; }
+        private IFileSystemRepository FileSystem { get; }
 
         public AuditService(IGrillBotRepository grillBotRepository, SearchService searchService, DiscordSocketClient client, BotState botState,
-            IMessageCache messageCache, ConfigurationService configurationService, BackgroundTaskQueue backgroundTaskQueue)
+            IMessageCache messageCache, ConfigurationService configurationService, BackgroundTaskQueue backgroundTaskQueue, IFileSystemRepository fileSystem)
         {
             GrillBotRepository = grillBotRepository;
             SearchService = searchService;
@@ -46,6 +49,7 @@ namespace Grillbot.Services.Audit
             MessageCache = messageCache;
             ConfigurationService = configurationService;
             BackgroundTaskQueue = backgroundTaskQueue;
+            FileSystem = fileSystem;
         }
 
         public async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context)
@@ -177,6 +181,7 @@ namespace Grillbot.Services.Audit
             await MessageCache.AppendAroundAsync(channel, message.Id, 100);
             await GrillBotRepository.AddAsync(entity);
             await GrillBotRepository.CommitAsync();
+            await FileSystem.CommitAsync();
         }
 
         private async Task ProcessMessageDeletedWithCacheAsync(AuditLogItem entity, ISocketMessageChannel channel, IMessage message, SocketGuild guild)
@@ -200,11 +205,10 @@ namespace Grillbot.Services.Audit
                     if (fileContent == null)
                         continue;
 
-                    entity.Files.Add(new Database.Entity.File()
-                    {
-                        Content = fileContent,
-                        Filename = $"{Path.GetFileNameWithoutExtension(attachment.Filename)}_{attachment.Id}{Path.GetExtension(attachment.Filename)}"
-                    });
+                    var filename = $"{Path.GetFileNameWithoutExtension(attachment.Filename)}_{attachment.Id}{Path.GetExtension(attachment.Filename)}";
+
+                    FileSystem.AuditLogs.Add(new AuditLogFile() { Content = fileContent, Filename = filename });
+                    entity.Files.Add(new Database.Entity.File() { Filename = filename });
                 }
             }
         }
@@ -320,10 +324,14 @@ namespace Grillbot.Services.Audit
                 return;
 
             if (item.Files.Count > 0)
+            {
+                FileSystem.AuditLogs.RemoveFiles(item.Files.Select(o => o.Filename));
                 GrillBotRepository.RemoveCollection(item.Files);
+            }
 
             GrillBotRepository.Remove(item);
             await GrillBotRepository.CommitAsync();
+            await FileSystem.CommitAsync();
         }
 
         public async Task TriggerBackgroundTaskAsync(object data)
@@ -437,6 +445,21 @@ namespace Grillbot.Services.Audit
         {
             var stats = await GrillBotRepository.AuditLogs.GetStatsPerTypeQuery().ToListAsync();
             return stats.ToDictionary(o => o.Item1, o => o.Item2);
+        }
+
+        public async Task MigrateAuditLogFiles()
+        {
+            var files = await GrillBotRepository.FilesRepository.GetFilesQuery()
+                .Where(o => o.AuditLogItemId != null && o.Content != null).ToListAsync();
+
+            foreach(var file in files)
+            {
+                FileSystem.AuditLogs.Add(new AuditLogFile() { Content = file.Content, Filename = file.Filename });
+                file.Content = null;
+            }
+
+            await FileSystem.CommitAsync();
+            await GrillBotRepository.CommitAsync();
         }
     }
 }

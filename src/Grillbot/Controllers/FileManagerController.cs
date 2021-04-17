@@ -1,5 +1,6 @@
+using Grillbot.FileSystem;
+using Grillbot.FileSystem.Entities;
 using Grillbot.Models.FileManager;
-using Grillbot.Services;
 using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.StaticFiles;
@@ -12,37 +13,49 @@ namespace Grillbot.Controllers
     [ApiExplorerSettings(IgnoreApi = true)]
     public class FileManagerController : Controller
     {
-        private FileManagerService FileService { get; }
         private FileExtensionContentTypeProvider ContentTypeProvider { get; }
+        private IFileSystemRepository Repository { get; }
 
-        public FileManagerController(FileManagerService fileService, FileExtensionContentTypeProvider contentTypeProvider)
+        public FileManagerController(FileExtensionContentTypeProvider contentTypeProvider, IFileSystemRepository repository)
         {
-            FileService = fileService;
             ContentTypeProvider = contentTypeProvider;
+            Repository = repository;
         }
 
         public async Task<IActionResult> IndexAsync()
         {
-            var files = await FileService.GetFilesAsync();
+            var files = Repository.GetAllFiles();
             return View(new FileManagerViewModel(files));
         }
 
         [HttpGet("Download")]
-        public async Task<IActionResult> DownloadAsync(string filename)
+        public async Task<IActionResult> DownloadAsync(string directory, string filename)
         {
-            var file = await FileService.GetFileAsync(filename);
+            FileSystemEntity entity = null;
+            switch(directory)
+            {
+                case "AuditLogs":
+                    entity = Repository.AuditLogs.GetFileByFilename(filename);
+                    break;
+            }
 
-            if (file == null)
+            if (entity == null)
                 return NotFound();
 
-            var contentType = ContentTypeProvider.TryGetContentType(file.Filename, out string type) ? type : "application/octet-stream";
-            return File(file.Content, contentType);
+            var contentType = ContentTypeProvider.TryGetContentType(entity.Filename, out string type) ? type : "application/octet-stream";
+            return File(entity.Content, contentType);
         }
 
         [HttpGet("Delete")]
-        public async Task<IActionResult> DeleteAsync(string filename)
+        public async Task<IActionResult> DeleteAsync(string filename, string directory)
         {
-            await FileService.DeleteFileAsync(filename);
+            switch(directory)
+            {
+                case "AuditLogs":
+                    Repository.AuditLogs.RemoveFile(filename);
+                    break;
+            }
+
             return RedirectToAction("Index");
         }
     }

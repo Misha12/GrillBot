@@ -36,5 +36,7 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.AuditLogItemId == null)
                 .Select(o => o.Filename);
         }
+
+        public IQueryable<File> GetFilesQuery() => Context.Files.AsQueryable();
     }
 }

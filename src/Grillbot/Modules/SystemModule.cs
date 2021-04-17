@@ -3,8 +3,10 @@ using Discord.Commands;
 using Grillbot.Attributes;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
+using Grillbot.Services.Audit;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
@@ -20,7 +22,7 @@ namespace Grillbot.Modules
         private IHostApplicationLifetime Lifetime { get; }
         private BotState BotState { get; }
 
-        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotState botState)
+        public SystemModule(ILogger<SystemModule> logger, IHostApplicationLifetime lifetime, BotState botState, IServiceProvider provider) : base(provider: provider)
         {
             Logger = logger;
             Lifetime = lifetime;
@@ -80,6 +82,15 @@ namespace Grillbot.Modules
 
             await message.ModifyAsync(o => o.Content = "Probíhá vypínání.");
             Lifetime.StopApplication();
+        }
+
+        [Command("migrateLogs")]
+        public async Task MigrateAuditLogFiles()
+        {
+            using var service = GetService<AuditService>();
+
+            await service.Service.MigrateAuditLogFiles();
+            await ReplyAsync("Done");
         }
     }
 }

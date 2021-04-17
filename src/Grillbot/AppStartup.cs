@@ -16,6 +16,7 @@ using Grillbot.Database;
 using Microsoft.EntityFrameworkCore;
 using System.Linq;
 using Grillbot.Models.Config.AppSettings;
+using Grillbot.FileSystem;
 
 namespace Grillbot
 {
@@ -31,8 +32,10 @@ namespace Grillbot
         public void ConfigureServices(IServiceCollection services)
         {
             var connectionString = Configuration.GetConnectionString("Default");
+            var basePath = Configuration.GetValue<string>("FilesBasePath");
 
             services
+                .AddFileSystem(builder => builder.Use(basePath))
                 .AddDatabase(connectionString)
                 .AddWebAuthentication()
                 .AddHandlers()

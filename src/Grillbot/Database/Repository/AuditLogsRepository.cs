@@ -26,26 +26,7 @@ namespace Grillbot.Database.Repository
                     .ThenInclude(o => o.Creator);
             }
 
-            return query.Select(o => new AuditLogItem()
-            {
-                CreatedAt = o.CreatedAt,
-                User = o.User,
-                DcAuditLogId = o.DcAuditLogId,
-                Files = o.Files.Select(x => new File()
-                {
-                    AuditLogItemId = x.AuditLogItemId,
-                    Filename = x.Filename
-                }).ToHashSet(),
-                DcAuditLogIdSnowflake = o.DcAuditLogIdSnowflake,
-                GuildId = o.GuildId,
-                Id = o.Id,
-                JsonData = o.JsonData,
-                Type = o.Type,
-                UserId = o.UserId,
-                GuildIdSnowflake = o.GuildIdSnowflake,
-                ChannelIdSnowflake = o.ChannelIdSnowflake,
-                ChannelId = o.ChannelId
-            });
+            return query.Include(o => o.Files);
         }
 
         public IQueryable<AuditLogItem> GetAuditLogsQuery(AuditLogQueryFilter filter)
