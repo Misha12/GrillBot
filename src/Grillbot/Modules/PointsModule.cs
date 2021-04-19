@@ -48,11 +48,11 @@ namespace Grillbot.Modules
         {
             using var service = GetService<PointsService>();
 
-            var tasks = users
-                .Select(o => service.Service.GivePointsAsync(Context.User, o, Context.Guild, amount))
-                .ToArray();
+            foreach (var user in users)
+            {
+                await service.Service.GivePointsAsync(Context.User, user, Context.Guild, amount);
+            }
 
-            await Task.WhenAll(tasks);
             await ReplyAsync($"Body byly úspěšně {(amount > 0 ? "přidány" : "odebrány")}");
         }
 
