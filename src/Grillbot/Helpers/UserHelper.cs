@@ -31,7 +31,7 @@ namespace Grillbot.Helpers
             try
             {
                 if (rounded)
-                    return image.RoundCorners();
+                    return image.RoundImage();
 
                 return image;
             }

@@ -108,5 +108,15 @@ namespace Grillbot.Extensions.Discord
             await guild.SyncGuildAsync();
             return guild.Users.Where(o => !o.IsUser());
         }
+
+        static public int CalculateFileUploadLimit(this SocketGuild guild)
+        {
+            return (guild.PremiumTier switch
+            {
+                PremiumTier.Tier2 => 50,
+                PremiumTier.Tier3 => 100,
+                _ => 8
+            }) * 1024 * 1024;
+        }
     }
 }

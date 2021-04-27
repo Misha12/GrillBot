@@ -75,7 +75,7 @@ namespace Grillbot.Services.UserManagement
             using var profileImageStream = new MemoryStream(profileImageData);
             using var profileImage = Image.FromStream(profileImageStream);
 
-            return profileImage.RoundCorners();
+            return profileImage.RoundImage();
         }
 
         public void Dispose()
