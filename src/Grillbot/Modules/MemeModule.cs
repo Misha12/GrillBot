@@ -21,6 +21,7 @@ using Grillbot.Extensions;
 using Grillbot.Resources.Peepolove;
 using System.Drawing;
 using GrapeCity.Documents.Imaging;
+using Grillbot.Resources.Peepoangry;
 
 namespace Grillbot.Modules
 {
@@ -134,19 +135,77 @@ namespace Grillbot.Modules
 
         #endregion
 
-        [Command("peepoangry")]
-        [Alias("pcbts", "peepoCantBelieveThisShit")]
-        [Summary("PeepoAngry emote zírající na profilovku uživatele.")]
-        public async Task PeepoAngryAsync(Discord.IUser forUser = null)
-        {
-            if (forUser == null)
-                forUser = Context.User;
+        #region Peepoangry
 
-            var config = await GetMethodConfigAsync<PeepoAngryConfig>(null, "peepoangry");
-            using var service = GetService<MemeImagesService>();
-            using var bitmap = await service.Service.PeepoAngryAsync(forUser, config);
-            await ReplyImageAsync(bitmap, "peepoangry.png");
+        [Command("peepoangry")]
+        [Alias("peepoCantBelieveThisShit", "angry")]
+        [Summary("PeepoAngry emote zírající na profilovku uživatele.")]
+        public async Task PeepoAngryAsync(IUser member = null)
+        {
+            if (member == null) member = Context.User;
+            var imageName = CreateCachePath($"Peepoangry_{member.Id}_{member.AvatarId ?? member.Discriminator}.{(member.AvatarId?.StartsWith("a_") == true ? "gif" : "png")}");
+
+            if (!File.Exists(imageName))
+            {
+                var profilePictureData = await member.DownloadAvatarAsync(64);
+                using var memStream = new MemoryStream(profilePictureData);
+                using var rawProfilePicture = SysDrawImage.FromStream(memStream);
+
+                if (Path.GetExtension(imageName) == ".gif" && profilePictureData.Length >= 2 * (Context.Guild.CalculateFileUploadLimit() / 3))
+                    imageName = Path.ChangeExtension(imageName, ".png");
+
+                if (Path.GetExtension(imageName) == ".gif")
+                {
+                    var frames = rawProfilePicture.SplitGifIntoFrames();
+
+                    try
+                    {
+                        using var gifWriter = new GcGifWriter(imageName);
+                        using var gcBitmap = new GcBitmap();
+
+                        foreach (var userFrame in frames)
+                        {
+                            using var roundedUserFrame = userFrame.RoundImage();
+                            using var frame = RenderPeepoangryFrame(roundedUserFrame);
+
+                            using var ms = new MemoryStream();
+                            frame.Save(ms, SysImgFormat.Png);
+
+                            gcBitmap.Load(ms.ToArray());
+                            gifWriter.AppendFrame(gcBitmap, disposalMethod: GifDisposalMethod.RestoreToBackgroundColor, delayTime: rawProfilePicture.CalculateGifDelay());
+                        }
+                    }
+                    finally
+                    {
+                        frames.ForEach(o => o.Dispose());
+                        frames.Clear();
+                    }
+                }
+                else if (Path.GetExtension(imageName) == ".png")
+                {
+                    using var roundedProfileImage = rawProfilePicture.RoundImage();
+                    var profilePicture = roundedProfileImage.ResizeImage(64, 64);
+
+                    using var frame = RenderPeepoangryFrame(profilePicture);
+                    frame.Save(imageName, SysImgFormat.Png);
+                }
+            }
+
+            await ReplyFileAsync(imageName);
         }
+
+        static private SysDrawImage RenderPeepoangryFrame(SysDrawImage profilePicture)
+        {
+            var body = new Bitmap(250, 105);
+            using var graphics = Graphics.FromImage(body);
+
+            graphics.DrawImage(profilePicture, new Rectangle(new Point(20, 10), new Size(64, 64)));
+            graphics.DrawImage(PeepoangryResources.peepoangry, new Point(115, -5));
+
+            return body;
+        }
+
+        #endregion
 
         [Command("grillhi"), Alias("hi")]
         public async Task GreetAsync()

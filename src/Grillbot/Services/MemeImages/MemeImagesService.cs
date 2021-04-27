@@ -1,10 +1,8 @@
-using Discord;
 using Discord.WebSocket;
 using Grillbot.Database;
 using Grillbot.Models.Config.Dynamic;
 using Microsoft.EntityFrameworkCore;
 using System;
-using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
@@ -41,12 +39,6 @@ namespace Grillbot.Services.MemeImages
             var file = await GrillBotRepository.FilesRepository.GetFileAsync(filename);
 
             return file?.Content;
-        }
-
-        public Task<Bitmap> PeepoAngryAsync(IUser forUser, PeepoAngryConfig config)
-        {
-            var renderer = new PeepoAngryRenderer();
-            return renderer.RenderAsync(forUser, config);
         }
     }
 }
