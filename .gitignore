@@ -338,3 +338,4 @@ launchSettings.json
 .vscode
 
 runtime.env
+ImageCache/
