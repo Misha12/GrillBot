@@ -22,6 +22,8 @@ namespace Grillbot.Modules
     [RequirePermissions]
     public abstract class BotModuleBase : ModuleBase<SocketCommandContext>
     {
+        protected MessageReference ReplyReference => new MessageReference(Context.Message.Id, Context.Channel.Id, Context.Guild?.Id);
+
         private PaginationService PaginationService { get; }
         private IServiceProvider Provider { get; }
 
@@ -112,6 +114,19 @@ namespace Grillbot.Modules
             using var ms = new MemoryStream(content);
 
             return await Context.Channel.SendFileAsync(ms, filename);
+        }
+
+        public Task<RestUserMessage> ReplyFileAsync(string filePath, AllowedMentions allowedMentions = null)
+        {
+            var options = RequestOptions.Default;
+            allowedMentions = CheckAndFixAllowedMentions(allowedMentions);
+
+            return Context.Channel.SendFileAsync(filePath, options: options, allowedMentions: allowedMentions, messageReference: ReplyReference);
+        }
+
+        static protected AllowedMentions CheckAndFixAllowedMentions(AllowedMentions allowedMentions)
+        {
+            return allowedMentions ?? new AllowedMentions() { MentionRepliedUser = true };
         }
     }
 }

@@ -1,8 +1,6 @@
 using Discord;
 using Discord.WebSocket;
 using Grillbot.Database;
-using Grillbot.Extensions;
-using Grillbot.Helpers;
 using Grillbot.Models.Config.Dynamic;
 using Microsoft.EntityFrameworkCore;
 using System;
@@ -10,7 +8,6 @@ using System.Drawing;
 using System.IO;
 using System.Linq;
 using System.Threading.Tasks;
-using Img = System.Drawing.Image;
 
 namespace Grillbot.Services.MemeImages
 {
@@ -44,23 +41,6 @@ namespace Grillbot.Services.MemeImages
             var file = await GrillBotRepository.FilesRepository.GetFileAsync(filename);
 
             return file?.Content;
-        }
-
-        public async Task<Img> CreatePeepoloveAsync(IUser forUser, PeepoloveConfig config)
-        {
-            using var profileImage = await UserHelper.DownloadProfilePictureAsync(forUser, config.ProfilePicSize, true);
-
-            // Drawing canvas
-            using var body = new Bitmap(config.BodyPath);
-            using var graphics = Graphics.FromImage(body);
-
-            graphics.RotateTransform(-config.Rotate);
-            graphics.DrawImage(profileImage, config.ProfilePicRect);
-            graphics.RotateTransform(config.Rotate);
-            graphics.DrawImage(Img.FromFile(config.HandsPath), config.Screen);
-
-            graphics.DrawImage(body, new Point(0, 0));
-            return (body as Img).CropImage(config.CropRect);
         }
 
         public Task<Bitmap> PeepoAngryAsync(IUser forUser, PeepoAngryConfig config)

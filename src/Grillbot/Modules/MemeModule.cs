@@ -14,6 +14,13 @@ using Grillbot.Helpers;
 using Grillbot.Services.MessageCache;
 using Discord;
 using Discord.WebSocket;
+using System.IO;
+using SysDrawImage = System.Drawing.Image;
+using SysImgFormat = System.Drawing.Imaging.ImageFormat;
+using Grillbot.Extensions;
+using Grillbot.Resources.Peepolove;
+using System.Drawing;
+using GrapeCity.Documents.Imaging;
 
 namespace Grillbot.Modules
 {
@@ -23,6 +30,8 @@ namespace Grillbot.Modules
     {
         public MemeModule(IServiceProvider provider) : base(provider: provider)
         {
+            if (!Directory.Exists("ImageCache"))
+                Directory.CreateDirectory("ImageCache");
         }
 
         [Command("nudes")]
@@ -51,18 +60,79 @@ namespace Grillbot.Modules
             await ReplyFileAsync(content, $"{category}.png");
         }
 
+        #region Peepolove
+
         [Command("peepolove")]
-        public async Task PeepoloveAsync(Discord.IUser forUser = null)
+        [Alias("love")]
+        public async Task PeepoloveAsync(IUser member = null)
         {
-            if (forUser == null)
-                forUser = Context.User;
+            if (member == null) member = Context.User;
+            var imageName = CreateCachePath($"Peepolove_{member.Id}_{member.AvatarId ?? member.Discriminator}.{(member.AvatarId?.StartsWith("a_") == true ? "gif" : "png")}");
 
-            var config = await GetMethodConfigAsync<PeepoloveConfig>(null, "peepolove");
+            if (!File.Exists(imageName))
+            {
+                var profilePictureData = await member.DownloadAvatarAsync(256);
+                using var memStream = new MemoryStream(profilePictureData);
+                using var rawProfilePicture = SysDrawImage.FromStream(memStream);
 
-            using var service = GetService<MemeImagesService>();
-            using var bitmap = await service.Service.CreatePeepoloveAsync(forUser, config);
-            await ReplyImageAsync(bitmap, "peepolove.png");
+                if (Path.GetExtension(imageName) == ".gif" && profilePictureData.Length > 2 * (Context.Guild.CalculateFileUploadLimit() / 3))
+                    imageName = Path.ChangeExtension(imageName, ".png");
+
+                if (Path.GetExtension(imageName) == ".gif")
+                {
+                    var frames = rawProfilePicture.SplitGifIntoFrames();
+
+                    try
+                    {
+                        using var gifWriter = new GcGifWriter(imageName);
+                        using var gcBitmap = new GcBitmap();
+
+                        foreach (var userFrame in frames)
+                        {
+                            using var roundedUserFrame = userFrame.RoundImage();
+                            using var frame = RenderPeepoloveFrame(roundedUserFrame);
+
+                            using var ms = new MemoryStream();
+                            frame.Save(ms, SysImgFormat.Png);
+
+                            gcBitmap.Load(ms.ToArray());
+                            gifWriter.AppendFrame(gcBitmap, disposalMethod: GifDisposalMethod.RestoreToBackgroundColor, delayTime: rawProfilePicture.CalculateGifDelay());
+                        }
+                    }
+                    finally
+                    {
+                        frames.ForEach(o => o.Dispose());
+                        frames.Clear();
+                    }
+                }
+                else if (Path.GetExtension(imageName) == ".png")
+                {
+                    using var roundedProfileImage = rawProfilePicture.RoundImage();
+                    using var profilePicture = roundedProfileImage.ResizeImage(256, 256);
+
+                    using var frame = RenderPeepoloveFrame(profilePicture);
+                    frame.Save(imageName, SysImgFormat.Png);
+                }
+            }
+
+            await ReplyFileAsync(imageName);
         }
+
+        static private SysDrawImage RenderPeepoloveFrame(SysDrawImage profilePicture)
+        {
+            using var body = new Bitmap(PeepoloveResources.body);
+            using var graphics = Graphics.FromImage(body);
+
+            graphics.RotateTransform(-0.4F);
+            graphics.DrawImage(profilePicture, new Rectangle(5, 312, 180, 180));
+            graphics.RotateTransform(0.4F);
+            graphics.DrawImage(PeepoloveResources.hands, new Rectangle(0, 0, 512, 512));
+
+            graphics.DrawImage(body, new Point(0, 0));
+            return (body as SysDrawImage).CropImage(new Rectangle(0, 115, 512, 397));
+        }
+
+        #endregion
 
         [Command("peepoangry")]
         [Alias("pcbts", "peepoCantBelieveThisShit")]
@@ -194,5 +264,11 @@ namespace Grillbot.Modules
                 await ReplyAsync(ex.Message);
             }
         }
+
+        #region Common
+
+        private string CreateCachePath(string filename) => Path.Combine("ImageCache", filename);
+
+        #endregion
     }
 }
