@@ -79,8 +79,6 @@ namespace Grillbot.Services.Permissions.Api
                 return;
             }
 
-            await IncrementApiCallStatisticsAsync(scope.ServiceProvider, token);
-
             // Types, that requires additional checks.
             switch (accessType.AccessType)
             {
@@ -123,22 +121,6 @@ namespace Grillbot.Services.Permissions.Api
             response.StatusCode = (int)code;
             response.ContentType = "application/json";
             await response.WriteAsync(JsonConvert.SerializeObject(new { Message = text }));
-        }
-
-        private async Task IncrementApiCallStatisticsAsync(IServiceProvider scopedProvider, string token)
-        {
-            var repository = scopedProvider.GetService<IGrillBotRepository>();
-            var user = await repository.UsersRepository.FindUserByApiTokenAsync(token);
-
-            if (user == null)
-                return;
-
-            if (user.ApiAccessCount == null)
-                user.ApiAccessCount = 1;
-            else
-                user.ApiAccessCount++;
-
-            await repository.CommitAsync();
         }
     }
 }

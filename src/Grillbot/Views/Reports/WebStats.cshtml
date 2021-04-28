@@ -11,9 +11,8 @@
                 <thead>
                     <tr>
                         <th>Uživatel</th>
-                        <th>Server</th>
-                        <th>Počet přihlášení (Web)</th>
-                        <th>Počet přístupů (REST API)</th>
+                        <th style="width: 250px">Server</th>
+                        <th style="width: 200px">Počet přihlášení (Web)</th>
                     </tr>
                 </thead>
 
@@ -26,7 +25,6 @@
                             </td>
                             <td>@user.Guild.Name</td>
                             <td>@(user.HaveWebAdminAccess ? (user.WebAdminLoginCount ?? 0).FormatWithSpaces() : "-")</td>
-                            <td>@(user.HaveApiAccess ? (user.ApiCallCount ?? 0).FormatWithSpaces() : "-")</td>
                         </tr>
                     }
                 </tbody>

@@ -22,9 +22,6 @@ namespace Grillbot.Database.Entity.Users.Reporting
         }
 
         public int? WebAdminLoginCount { get; set; }
-        public int? ApiCallCount { get; set; }
-
-        public bool HaveApiAccess { get; set; }
         public bool HaveWebAdminAccess { get; set; }
     }
 }

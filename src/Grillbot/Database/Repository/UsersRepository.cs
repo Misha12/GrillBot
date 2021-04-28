@@ -222,11 +222,9 @@ namespace Grillbot.Database.Repository
                 .Where(o => o.WebAdminPassword != null || o.ApiToken != null)
                 .Select(o => new WebStatItem()
                 {
-                    ApiCallCount = o.ApiAccessCount,
                     GuildId = o.GuildID,
                     UserId = o.UserID,
                     WebAdminLoginCount = o.WebAdminLoginCount,
-                    HaveApiAccess = o.ApiToken != null,
                     HaveWebAdminAccess = o.WebAdminPassword != null,
                     Id = o.ID
                 });
