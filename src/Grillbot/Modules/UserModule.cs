@@ -139,9 +139,6 @@ namespace Grillbot.Modules
             if(detailFlags.Count > 0)
                 embed.AddField("Detaily", string.Join(", ", detailFlags), false);
 
-            if (userDetail.ApiAccessCount != null)
-                embed.AddField("Počet volání API", userDetail.ApiAccessCount.Value.FormatWithSpaces(), true);
-
             if (userDetail.WebAdminLoginCount != null)
                 embed.AddField("Počet přihlášení", userDetail.WebAdminLoginCount.Value.FormatWithSpaces(), true);
 

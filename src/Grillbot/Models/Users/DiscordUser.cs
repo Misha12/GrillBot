@@ -29,7 +29,6 @@ namespace Grillbot.Models.Users
         public List<ChannelStatItem> Channels { get; set; }
         public DateTime? Birthday { get; set; }
         public long TotalMessageCount => Channels.Sum(o => o.Count);
-        public int? ApiAccessCount { get; set; }
         public int? WebAdminLoginCount { get; set; }
         public InviteModel UsedInvite { get; set; }
         public List<UnverifyLogItem> UnverifyHistory { get; set; }
@@ -44,7 +43,7 @@ namespace Grillbot.Models.Users
         #region ReadOnlyProperties
 
         public bool IsBotAdmin => (Flags & (long)UserFlags.BotAdmin) != 0;
-        public bool IsWebAdminBanned => WebAdminBannedTo != null && WebAdminBannedTo.Value >= DateTime.Now;
+        public bool IsWebAdminBanned => WebAdminBannedTo >= DateTime.Now;
 
         #endregion
 
@@ -62,7 +61,6 @@ namespace Grillbot.Models.Users
                 ObtainedReactionsCount = dbUser.ObtainedReactionsCount,
                 WebAdminAccess = !string.IsNullOrEmpty(dbUser.WebAdminPassword),
                 Birthday = dbUser.Birthday,
-                ApiAccessCount = dbUser.ApiAccessCount,
                 WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,
                 UnverifyEndsAt = dbUser.Unverify?.EndDateTime,
@@ -111,8 +109,6 @@ namespace Grillbot.Models.Users
 
             return result;
         }
-
-        public DiscordUser() { }
 
         public string FormatReactions()
         {

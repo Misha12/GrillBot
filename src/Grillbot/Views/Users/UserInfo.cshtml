@@ -178,19 +178,9 @@
                 </div>
             }
 
-            @if (Model.User.WebAdminLoginCount != null || Model.User.ApiAccessCount != null || Model.User.UnverifyEndsAt != null
-             || Model.User.WebAdminBannedTo != null)
+            @if (Model.User.WebAdminLoginCount != null || Model.User.UnverifyEndsAt != null || Model.User.WebAdminBannedTo != null)
             {
                 <div class="row mt-2">
-                    @if (Model.User.ApiAccessCount != null)
-                    {
-                        <div class="col-3">
-                            Počet volání API<br />
-                            <b>@Model.User.ApiAccessCount.Value.FormatWithSpaces()</b>
-                        </div>
-
-                    }
-
                     @if (Model.User.WebAdminLoginCount != null)
                     {
                         <div class="col-3">
