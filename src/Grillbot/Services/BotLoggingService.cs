@@ -15,8 +15,6 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
-using Grillbot.Database;
-using Grillbot.Database.Entity;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 
@@ -32,6 +30,7 @@ namespace Grillbot.Services
         private ILogger<BotLoggingService> Logger { get; }
         private ApiStatistics ApiStatistics { get; }
         private IConfiguration Configuration { get; }
+        private ILoggerFactory LoggerFactory { get; }
 
         public ulong? LogRoomID
         {
@@ -43,7 +42,7 @@ namespace Grillbot.Services
         }
 
         public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
-            ApiStatistics apiStatistics, IConfiguration configuration)
+            ApiStatistics apiStatistics, IConfiguration configuration, ILoggerFactory loggerFactory)
         {
             Client = client;
             Commands = commands;
@@ -51,6 +50,7 @@ namespace Grillbot.Services
             Services = services;
             ApiStatistics = apiStatistics;
             Configuration = configuration;
+            LoggerFactory = loggerFactory;
         }
 
         public async Task OnLogAsync(LogMessage message)
@@ -82,21 +82,10 @@ namespace Grillbot.Services
                 }
             }
 
-            var repository = scopedProvider.GetService<IGrillBotRepository>();
             var logEmbedCreator = scopedProvider.GetService<LogEmbedCreator>();
-
-            var entity = new ErrorLogItem()
-            {
-                CreatedAt = DateTime.Now,
-                Data = $"{message.Source} {message.Message}\n{message.Exception}"
-            };
-
-            await repository.AddAsync(entity);
-            await repository.CommitAsync();
-
             try
             {
-                var logEmbed = logEmbedCreator.CreateErrorEmbed(message, entity);
+                var logEmbed = logEmbedCreator.CreateErrorEmbed(message);
                 var channel = Client.GetChannel(LogRoomID.Value) as IMessageChannel;
 
                 var contentBytes = Encoding.UTF8.GetBytes(message.Exception.ToString());
@@ -107,14 +96,7 @@ namespace Grillbot.Services
             }
             catch (Exception ex)
             {
-                var errEntity = new ErrorLogItem()
-                {
-                    CreatedAt = DateTime.Now,
-                    Data = ex.ToString()
-                };
-
-                await repository.AddAsync(errEntity);
-                await repository.CommitAsync();
+                Logger.LogError(ex, "");
             }
         }
 
@@ -165,21 +147,30 @@ namespace Grillbot.Services
         {
             if (!CanLogException(exception)) return;
 
-            switch (severity)
+            try
             {
-                case LogSeverity.Warning when exception == null:
-                    Logger.LogWarning($"{source}\t{message}");
-                    break;
-                case LogSeverity.Warning when exception != null:
-                    Logger.LogWarning(exception, $"{source}\t{message}");
-                    break;
-                case LogSeverity.Critical:
-                case LogSeverity.Error:
-                    Logger.LogCritical(exception, $"{source}\t{message}");
-                    break;
-                default:
-                    Logger.LogInformation($"{source}\t{message}");
-                    break;
+                var logger = LoggerFactory.CreateLogger(source);
+
+                switch (severity)
+                {
+                    case LogSeverity.Warning when exception == null:
+                        logger.LogWarning(message);
+                        break;
+                    case LogSeverity.Warning when exception != null:
+                        logger.LogWarning(exception, message);
+                        break;
+                    case LogSeverity.Critical:
+                    case LogSeverity.Error:
+                        logger.LogError(exception, message);
+                        break;
+                    default:
+                        logger.LogInformation(message);
+                        break;
+                }
+            }
+            catch (ObjectDisposedException ex)
+            {
+                Console.WriteLine(ex.ToString());
             }
         }
 
