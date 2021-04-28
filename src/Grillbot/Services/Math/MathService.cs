@@ -1,13 +1,14 @@
 using Discord.WebSocket;
 using Grillbot.Models.Math;
-using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
+#pragma warning disable RCS1212 // Remove redundant assignment.
 namespace Grillbot.Services.Math
 {
     public class MathService : IInitiable
@@ -15,13 +16,13 @@ namespace Grillbot.Services.Math
         public List<MathSession> Sessions { get; }
         private static readonly object Locker = new object();
         private ILogger<MathService> Logger { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
 
-        public MathService(ILogger<MathService> logger, ConfigurationService configurationService)
+        public MathService(ILogger<MathService> logger, IConfiguration configuration)
         {
             Sessions = new List<MathSession>();
             Logger = logger;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
         }
 
         private void InitSessions()
@@ -67,14 +68,12 @@ namespace Grillbot.Services.Math
             MathCalcResult result = null;
 
             var user = (SocketGuildUser)message.Author;
-
-            var boosterRoleId = ConfigurationService.GetValue(Enums.GlobalConfigItems.ServerBoosterRoleId);
+            var boosterRoleId = Configuration["ServerBoosterRoleId"];
 
             try
             {
                 bool booster = !string.IsNullOrEmpty(boosterRoleId) && user.Roles.Any(o => o.Id == Convert.ToUInt64(boosterRoleId));
                 session = LockAndGetSession(input, booster);
-
                 input = ("" + input).Trim(); // treatment against null values.
 
                 var parser = new ExpressionParser(input);
@@ -125,7 +124,7 @@ namespace Grillbot.Services.Math
                     {
                         result = task.Result;
                         return result;
-                  }
+                    }
                 }
                 catch (Exception ex)
                 {

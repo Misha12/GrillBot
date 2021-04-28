@@ -5,7 +5,7 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
-using Grillbot.Services.Config;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -20,12 +20,12 @@ namespace Grillbot.Services
         private IServiceProvider ServiceProvider { get; }
         private string CommandPrefix { get; }
 
-        public HelpEmbedRenderer(CommandService commandService, IServiceProvider serviceProvider, ConfigurationService configurationService)
+        public HelpEmbedRenderer(CommandService commandService, IServiceProvider serviceProvider, IConfiguration configuration)
         {
             CommandService = commandService;
             ServiceProvider = serviceProvider;
 
-            CommandPrefix = configurationService.GetValue(Enums.GlobalConfigItems.CommandPrefix);
+            CommandPrefix = configuration["CommandPrefix"];
             if (string.IsNullOrEmpty(CommandPrefix))
                 CommandPrefix = "$";
         }
@@ -76,7 +76,7 @@ namespace Grillbot.Services
 
             builder
                 .Append(command.Name).Append(' ')
-                .Append(string.Join(" ", command.Parameters.Select(o => "{" + o.Name + "}")));
+                .AppendJoin(" ", command.Parameters.Select(o => "{" + o.Name + "}"));
 
             var field = new EmbedFieldBuilder()
                 .WithName(builder.ToString())
@@ -156,7 +156,7 @@ namespace Grillbot.Services
             {
                 builder
                     .Append("Parametry: ")
-                    .AppendLine(string.Join(", ", command.Parameters.Select(o => o.Name)));
+                    .AppendJoin(", ", command.Parameters.Select(o => o.Name)).AppendLine();
             }
 
             var summary = ProcessSummary(command);

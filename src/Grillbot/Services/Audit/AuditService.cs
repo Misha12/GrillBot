@@ -16,9 +16,9 @@ using Grillbot.Models;
 using Grillbot.Models.Audit;
 using Grillbot.Models.Embed;
 using Grillbot.Services.BackgroundTasks;
-using Grillbot.Services.Config;
 using Grillbot.Services.MessageCache;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using System;
 using System.Collections.Generic;
 using System.IO;
@@ -35,19 +35,19 @@ namespace Grillbot.Services.Audit
         private DiscordSocketClient Client { get; }
         private BotState BotState { get; }
         private IMessageCache MessageCache { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
         private BackgroundTaskQueue BackgroundTaskQueue { get; }
         private IFileSystemRepository FileSystem { get; }
 
         public AuditService(IGrillBotRepository grillBotRepository, SearchService searchService, DiscordSocketClient client, BotState botState,
-            IMessageCache messageCache, ConfigurationService configurationService, BackgroundTaskQueue backgroundTaskQueue, IFileSystemRepository fileSystem)
+            IMessageCache messageCache, IConfiguration configuration, BackgroundTaskQueue backgroundTaskQueue, IFileSystemRepository fileSystem)
         {
             GrillBotRepository = grillBotRepository;
             SearchService = searchService;
             Client = client;
             BotState = botState;
             MessageCache = messageCache;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
             BackgroundTaskQueue = backgroundTaskQueue;
             FileSystem = fileSystem;
         }
@@ -215,8 +215,7 @@ namespace Grillbot.Services.Audit
 
         public async Task ProcessBoostChangeAsync(SocketGuildUser before, SocketGuildUser after)
         {
-            var boosterRoleId = ConfigurationService.GetValue(GlobalConfigItems.ServerBoosterRoleId);
-
+            var boosterRoleId = Configuration["ServerBoosterRoleId"];
             if (string.IsNullOrEmpty(boosterRoleId) || after.Roles.SequenceEqual(before.Roles))
                 return;
 
@@ -233,7 +232,7 @@ namespace Grillbot.Services.Audit
 
         private async Task NotifyBoostChangeAsync(SocketGuildUser user, string message, SocketRole boosterRole)
         {
-            var adminChannelId = ConfigurationService.GetValue(GlobalConfigItems.AdminChannel);
+            var adminChannelId = Configuration["AdminChannel"];
             if (string.IsNullOrEmpty(adminChannelId))
                 return;
 

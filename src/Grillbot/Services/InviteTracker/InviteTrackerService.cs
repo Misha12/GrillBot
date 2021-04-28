@@ -7,9 +7,9 @@ using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
 using Grillbot.Models;
 using Grillbot.Models.Invites;
-using Grillbot.Services.Config;
 using Grillbot.Services.Initiable;
 using Microsoft.EntityFrameworkCore;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.Logging;
 using Newtonsoft.Json.Linq;
 using System;
@@ -26,17 +26,17 @@ namespace Grillbot.Services.InviteTracker
         private DiscordSocketClient Discord { get; }
         private BotState BotState { get; }
         private ILogger<InviteTrackerService> Logger { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
         private SearchService SearchService { get; }
         private IGrillBotRepository GrillBotRepository { get; }
 
         public InviteTrackerService(DiscordSocketClient discord, BotState botState, ILogger<InviteTrackerService> logger,
-            ConfigurationService configurationService, SearchService searchService, IGrillBotRepository grillBotRepository)
+            IConfiguration configuration, SearchService searchService, IGrillBotRepository grillBotRepository)
         {
             Discord = discord;
             BotState = botState;
             Logger = logger;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
             SearchService = searchService;
             GrillBotRepository = grillBotRepository;
         }
@@ -118,8 +118,7 @@ namespace Grillbot.Services.InviteTracker
                 BaseAddress = new Uri(global::Discord.DiscordConfig.APIUrl)
             };
 
-            var token = ConfigurationService.Token;
-            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {token}");
+            httpClient.DefaultRequestHeaders.Add("Authorization", $"Bot {Configuration["Token"]}");
 
             var vanityData = await httpClient.GetAsync($"guilds/{guild.Id}/vanity-url");
 
