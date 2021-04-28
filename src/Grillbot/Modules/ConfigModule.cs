@@ -65,7 +65,7 @@ namespace Grillbot.Modules
             using var service = GetService<IGrillBotRepository>();
             var methods = await service.Service.ConfigRepository.GetAllMethods(Context.Guild.Id, true).ToListAsync();
 
-            foreach (var group in methods.GroupBy(o => o.Group))
+            foreach (var group in methods.GroupBy(o => o.Group).OrderBy(o => o.Key))
             {
                 var page = new PaginatedEmbedPage(null);
 
@@ -74,8 +74,7 @@ namespace Grillbot.Modules
                     var value = string.Join("\n", new[]
                     {
                         $"ID: **{method.ID}**",
-                        $"Počet oprávnění: **{method.Permissions.Count.FormatWithSpaces()}**",
-                        $"Počet použití: **{method.UsedCount.FormatWithSpaces()}**"
+                        $"Počet oprávnění: **{method.Permissions.Count.FormatWithSpaces()}**"
                     });
 
                     page.AddField($"{method.Group}/{method.Command}", value);

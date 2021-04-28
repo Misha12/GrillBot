@@ -1,14 +1,11 @@
 using Discord;
 using Discord.Commands;
-using Grillbot.Database;
-using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Extensions;
 using Grillbot.Services.Audit;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Statistics;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Logging;
-using Newtonsoft.Json.Linq;
 using System;
 using System.Linq;
 using System.Threading.Tasks;
@@ -63,7 +60,7 @@ namespace Grillbot.Handlers
                 var auditService = scope.ServiceProvider.GetService<AuditService>();
                 await auditService.LogCommandAsync(command, context);
 
-                await LogCommandAsync(command, context, scope.ServiceProvider);
+                LogCommand(command, context);
             }
             catch (Exception ex)
             {
@@ -73,7 +70,7 @@ namespace Grillbot.Handlers
             BotState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
-        private async Task LogCommandAsync(Optional<CommandInfo> command, ICommandContext context, IServiceProvider scopedProvider)
+        private void LogCommand(Optional<CommandInfo> command, ICommandContext context)
         {
             var guild = context.Guild == null ? "NoGuild" : $"{context.Guild.Name} ({context.Guild.Id})";
             var channel = context.Channel == null ? "NoChannel" : $"#{context.Channel.Name} ({context.Channel.Id})";
@@ -84,23 +81,6 @@ namespace Grillbot.Handlers
 
             if (command.IsSpecified)
                 InternalStatistics.IncrementCommand(commandName);
-
-            if (context.Guild != null && command.IsSpecified)
-            {
-                var cmd = command.Value;
-
-                var grillBotRepository = scopedProvider.GetService<IGrillBotRepository>();
-
-                var config = await grillBotRepository.ConfigRepository.FindConfigAsync(context.Guild.Id, cmd.Module.Group, cmd.Name, false);
-                if (config == null)
-                {
-                    config = MethodsConfig.Create(context.Guild, cmd.Module.Group, cmd.Name, false, new JObject());
-                    grillBotRepository.Add(config);
-                }
-
-                config.UsedCount++;
-                await grillBotRepository.CommitAsync();
-            }
         }
 
         public void Dispose()
