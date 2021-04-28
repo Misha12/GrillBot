@@ -14,7 +14,6 @@ using System.Net.Sockets;
 using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.ErrorHandling;
-using Grillbot.Services.Statistics.ApiStats;
 using System.Text;
 using Microsoft.Extensions.Configuration;
 
@@ -27,8 +26,6 @@ namespace Grillbot.Services
         private DiscordSocketClient Client { get; }
         private CommandService Commands { get; }
         private IServiceProvider Services { get; }
-        private ILogger<BotLoggingService> Logger { get; }
-        private ApiStatistics ApiStatistics { get; }
         private IConfiguration Configuration { get; }
         private ILoggerFactory LoggerFactory { get; }
 
@@ -41,14 +38,12 @@ namespace Grillbot.Services
             }
         }
 
-        public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
-            ApiStatistics apiStatistics, IConfiguration configuration, ILoggerFactory loggerFactory)
+        public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, IConfiguration configuration,
+            ILoggerFactory loggerFactory)
         {
             Client = client;
             Commands = commands;
-            Logger = logger;
             Services = services;
-            ApiStatistics = apiStatistics;
             Configuration = configuration;
             LoggerFactory = loggerFactory;
         }
@@ -58,7 +53,6 @@ namespace Grillbot.Services
             using var scope = Services.CreateScope();
 
             Write(message.Severity, message.Message, message.Source, message.Exception);
-            ApiStatistics.Increment(message);
             await PostException(message, scope.ServiceProvider).ConfigureAwait(false);
         }
 
@@ -96,7 +90,7 @@ namespace Grillbot.Services
             }
             catch (Exception ex)
             {
-                Logger.LogError(ex, "");
+                Console.WriteLine(ex.ToString());
             }
         }
 

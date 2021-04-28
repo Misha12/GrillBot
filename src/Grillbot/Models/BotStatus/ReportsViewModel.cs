@@ -1,5 +1,4 @@
 using Discord;
-using Grillbot.Services.Statistics.ApiStats;
 using System;
 using System.Collections.Generic;
 
@@ -12,7 +11,6 @@ namespace Grillbot.Models.BotStatus
         public Dictionary<string, Tuple<int, long>> Database { get; set; }
         public GCMemoryInfo GCMemoryInfo { get; set; }
         public SimpleBotStatus BotStatus { get; set; }
-        public List<ApiStatsData> Api { get; set; }
         public ConnectionState ConnectionState { get; set; }
         public int Latency { get; set; }
         public LoginState LoginState { get; set; }
