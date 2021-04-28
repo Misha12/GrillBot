@@ -1,6 +1,5 @@
 using Discord.Commands;
 using System.Threading.Tasks;
-using Grillbot.Services.MemeImages;
 using Grillbot.Attributes;
 using Grillbot.Models.Config.Dynamic;
 using Grillbot.Extensions.Discord;
@@ -22,6 +21,7 @@ using Grillbot.Resources.Peepolove;
 using System.Drawing;
 using GrapeCity.Documents.Imaging;
 using Grillbot.Resources.Peepoangry;
+using Grillbot.Resources.MeatImages;
 
 namespace Grillbot.Modules
 {
@@ -29,11 +29,17 @@ namespace Grillbot.Modules
     [Name("Ostatní zbytečnosti")]
     public class MemeModule : BotModuleBase
     {
-        public MemeModule(IServiceProvider provider) : base(provider: provider)
+        private Random Random { get; }
+
+        public MemeModule(IServiceProvider provider, Random random) : base(provider: provider)
         {
             if (!Directory.Exists("ImageCache"))
                 Directory.CreateDirectory("ImageCache");
+
+            Random = random;
         }
+
+        #region MeatImages
 
         [Command("nudes")]
         public async Task SendNudeAsync()
@@ -49,17 +55,27 @@ namespace Grillbot.Modules
 
         private async Task SendAsync(string category)
         {
-            using var service = GetService<MemeImagesService>();
-            var content = await service.Service.GetRandomFileAsync(Context.Guild, category);
+            var images = typeof(MeatImagesResources).GetProperties()
+                .Where(o => o.PropertyType == typeof(Bitmap) && o.Name.StartsWith($"{category}_"))
+                .Select(o => o.GetValue(null, null) as Bitmap)
+                .Where(o => o != null)
+                .ToList();
 
-            if (content == null)
+            if (images.Count == 0)
             {
-                await ReplyAsync("Nemám žádný obrázek.");
+                await ReplyMessageAsync("Nemám žádný obrázek");
                 return;
             }
 
-            await ReplyFileAsync(content, $"{category}.png");
+            var image = images[Random.Next(images.Count)];
+            using var ms = new MemoryStream();
+            image.Save(ms, SysImgFormat.Png);
+            ms.Seek(0, SeekOrigin.Begin);
+
+            await ReplyStreamAsync(ms, $"{category}.png");
         }
+
+        #endregion
 
         #region Peepolove
 
