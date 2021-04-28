@@ -53,9 +53,6 @@ namespace Grillbot.Database.Entity.MethodConfig
         [Column]
         public bool OnlyAdmins { get; set; }
 
-        [Column]
-        public long UsedCount { get; set; }
-
         public ISet<MethodPerm> Permissions { get; set; }
 
         public MethodsConfig()
