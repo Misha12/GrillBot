@@ -14,8 +14,8 @@ using Grillbot.TypeReaders;
 using Grillbot.Models;
 using System.Text;
 using Grillbot.Enums;
-using Grillbot.Services.Config;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.Extensions.Configuration;
 
 namespace Grillbot
 {
@@ -27,10 +27,10 @@ namespace Grillbot
         private InitService InitService { get; }
         private InternalStatistics InternalStatistics { get; }
         private BotState BotState { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
 
         public GrillBotService(IServiceProvider services, DiscordSocketClient client, CommandService commands, InternalStatistics internalStatistics,
-            InitService initService, BotState botState, ConfigurationService configurationService)
+            InitService initService, BotState botState, IConfiguration configuration)
         {
             Services = services;
             Client = client;
@@ -38,7 +38,7 @@ namespace Grillbot
             InternalStatistics = internalStatistics;
             InitService = initService;
             BotState = botState;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
 
             Client.Ready += OnClientReadyAsync;
         }
@@ -53,17 +53,16 @@ namespace Grillbot
 
         public async Task StartAsync(CancellationToken cancellationToken)
         {
-            if (string.IsNullOrEmpty(ConfigurationService.Token))
+            if (string.IsNullOrEmpty(Configuration["Token"]))
                 throw new ConfigException("Missing bot token in config.");
 
-            await Client.LoginAsync(TokenType.Bot, ConfigurationService.Token);
+            await Client.LoginAsync(TokenType.Bot, Configuration["Token"]);
             await Client.StartAsync();
 
             BotState.AppInfo = await Client.GetApplicationInfoAsync();
 
             Commands.AddTypeReader<JObject>(new JObjectTypeReader());
             Commands.AddTypeReader<GroupCommandMatch>(new GroupCommandMatchTypeReader());
-            Commands.AddTypeReader<GlobalConfigItems>(new EnumTypeReader<GlobalConfigItems>(true));
             Commands.AddTypeReader<EmoteInfoOrderType>(new EnumTypeReader<EmoteInfoOrderType>(false));
             Commands.AddTypeReader<SortType>(new EnumTypeReader<SortType>(false));
 
@@ -80,7 +79,7 @@ namespace Grillbot
 
         private Task SetActivityAsync()
         {
-            var activityMessage = ConfigurationService.GetValue(GlobalConfigItems.ActivityMessage);
+            var activityMessage = Configuration["ActivityMessage"];
 
             if (!string.IsNullOrEmpty(activityMessage) && activityMessage == "None")
                 return Client.SetGameAsync(null);

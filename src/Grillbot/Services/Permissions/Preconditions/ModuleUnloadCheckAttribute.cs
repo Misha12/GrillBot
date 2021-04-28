@@ -1,9 +1,7 @@
 using Discord.Commands;
 using Grillbot.Attributes;
-using Grillbot.Enums;
-using Grillbot.Services.Config;
+using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
-using Newtonsoft.Json;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -37,15 +35,8 @@ namespace Grillbot.Services.Permissions.Preconditions
 
         private List<string> GetUnloadedModules(IServiceProvider services)
         {
-            var unloadedModulesList = new List<string>();
-
-            var service = services.GetService<ConfigurationService>();
-            var unloadedModules = service.GetValue(GlobalConfigItems.UnloadedModules);
-
-            if (!string.IsNullOrEmpty(unloadedModules))
-                unloadedModulesList.AddRange(JsonConvert.DeserializeObject<List<string>>(unloadedModules));
-
-            return unloadedModulesList;
+            var configuration = services.GetService<IConfiguration>();
+            return configuration.GetSection("UnloadedModules").AsEnumerable().Where(o => o.Value != null).Select(o => o.Value).ToList();
         }
     }
 }

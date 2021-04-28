@@ -100,6 +100,12 @@ namespace Grillbot.FileSystem
             Add(item);
         }
 
+        public void Remove(string filename)
+        {
+            var entity = GetFilesList().FirstOrDefault(o => o.Filename == filename);
+            Remove(entity);
+        }
+
         public bool Remove(T item)
         {
             lock(_locker)
@@ -118,12 +124,6 @@ namespace Grillbot.FileSystem
         public void RemoveAt(int index)
         {
             Remove(this[index]);
-        }
-
-        public void Remove(string filename)
-        {
-            var entity = GetFilesList().FirstOrDefault(o => o.Filename == filename);
-            Remove(entity);
         }
 
         IEnumerator IEnumerable.GetEnumerator()

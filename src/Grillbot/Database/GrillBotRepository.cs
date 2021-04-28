@@ -18,7 +18,6 @@ namespace Grillbot.Database
         public EmoteStatsRepository EmoteStatsRepository => FindOrCreateRepository<EmoteStatsRepository>();
         public ErrorLogRepository ErrorLogRepository => FindOrCreateRepository<ErrorLogRepository>();
         public FilesRepository FilesRepository => FindOrCreateRepository<FilesRepository>();
-        public GlobalConfigRepository GlobalConfigRepository => FindOrCreateRepository<GlobalConfigRepository>();
         public ChannelStatsRepository ChannelStatsRepository => FindOrCreateRepository<ChannelStatsRepository>();
         public InviteRepository InviteRepository => FindOrCreateRepository<InviteRepository>();
         public ReminderRepository ReminderRepository => FindOrCreateRepository<ReminderRepository>();

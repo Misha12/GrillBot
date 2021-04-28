@@ -13,7 +13,6 @@ namespace Grillbot.Database
         EmoteStatsRepository EmoteStatsRepository { get; }
         ErrorLogRepository ErrorLogRepository { get; }
         FilesRepository FilesRepository { get; }
-        GlobalConfigRepository GlobalConfigRepository { get; }
         ChannelStatsRepository ChannelStatsRepository { get; }
         InviteRepository InviteRepository { get; }
         ReminderRepository ReminderRepository { get; }

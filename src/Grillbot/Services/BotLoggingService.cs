@@ -15,10 +15,10 @@ using System.Net.Http;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.Statistics.ApiStats;
-using Grillbot.Services.Config;
 using Grillbot.Database;
 using Grillbot.Database.Entity;
 using System.Text;
+using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Services
 {
@@ -31,26 +31,26 @@ namespace Grillbot.Services
         private IServiceProvider Services { get; }
         private ILogger<BotLoggingService> Logger { get; }
         private ApiStatistics ApiStatistics { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
 
         public ulong? LogRoomID
         {
             get
             {
-                var id = ConfigurationService.GetValue(Enums.GlobalConfigItems.ErrorLogChannel);
+                var id = Configuration["ErrorLogChannel"];
                 return string.IsNullOrEmpty(id) ? null : Convert.ToUInt64(id);
             }
         }
 
         public BotLoggingService(DiscordSocketClient client, CommandService commands, IServiceProvider services, ILogger<BotLoggingService> logger,
-            ApiStatistics apiStatistics, ConfigurationService configurationService)
+            ApiStatistics apiStatistics, IConfiguration configuration)
         {
             Client = client;
             Commands = commands;
             Logger = logger;
             Services = services;
             ApiStatistics = apiStatistics;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
         }
 
         public async Task OnLogAsync(LogMessage message)
@@ -144,7 +144,7 @@ namespace Grillbot.Services
                 return true;
             }
 
-            if(
+            if (
                 // 11 is magic constant represents error "Resource temporarily unavailable".
                 exception is HttpRequestException && exception.InnerException is SocketException socket && socket.ErrorCode == 11
             )

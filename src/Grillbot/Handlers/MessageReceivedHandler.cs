@@ -8,9 +8,8 @@ using Grillbot.Extensions.Discord;
 using Grillbot.Services.Initiable;
 using Grillbot.Modules.AutoReply;
 using Microsoft.Extensions.DependencyInjection;
-using Grillbot.Services.Config;
-using Grillbot.Enums;
 using Grillbot.Services.UserManagement;
+using Microsoft.Extensions.Configuration;
 
 namespace Grillbot.Handlers
 {
@@ -21,19 +20,18 @@ namespace Grillbot.Handlers
         private IServiceProvider Services { get; }
         private EmoteChain EmoteChain { get; }
         private InternalStatistics InternalStatistics { get; }
-        private ConfigurationService ConfigurationService { get; }
+        private IConfiguration Configuration { get; }
         private BotState BotState { get; }
 
         public MessageReceivedHandler(DiscordSocketClient client, CommandService commands, IServiceProvider services,
-            EmoteChain emoteChain, InternalStatistics internalStatistics, ConfigurationService configurationService,
-            BotState botState)
+            EmoteChain emoteChain, InternalStatistics internalStatistics, IConfiguration configuration, BotState botState)
         {
             Client = client;
             Commands = commands;
             Services = services;
             EmoteChain = emoteChain;
             InternalStatistics = internalStatistics;
-            ConfigurationService = configurationService;
+            Configuration = configuration;
             BotState = botState;
         }
 
@@ -86,7 +84,7 @@ namespace Grillbot.Handlers
             if (message.HasMentionPrefix(Client.CurrentUser, ref argPos))
                 return true;
 
-            var prefix = ConfigurationService.GetValue(GlobalConfigItems.CommandPrefix);
+            var prefix = Configuration["CommandPrefix"];
             if (string.IsNullOrEmpty(prefix))
                 prefix = "$";
 

@@ -4,7 +4,6 @@ using Grillbot.Modules.AutoReply;
 using Grillbot.Services.AdminServices;
 using Grillbot.Services.Audit;
 using Grillbot.Services.Channelboard;
-using Grillbot.Services.Config;
 using Grillbot.Services.Duck;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.InviteTracker;
@@ -41,7 +40,6 @@ namespace Grillbot.Services
                 .AddScoped<MemeImagesService>()
                 .AddScoped<PermissionsManager>()
                 .AddScoped<PinManagement>()
-                .AddSingleton<ConfigurationService>()
                 .AddScoped<ChannelStats>()
                 .AddScoped<InviteTrackerService>()
                 .AddScoped<ReminderService>()
