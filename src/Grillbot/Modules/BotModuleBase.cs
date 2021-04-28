@@ -123,6 +123,22 @@ namespace Grillbot.Modules
             return Context.Channel.SendFileAsync(filePath, options: options, allowedMentions: allowedMentions, messageReference: ReplyReference);
         }
 
+        public Task<IUserMessage> ReplyMessageAsync(string message = null, Embed embed = null)
+        {
+            var options = RequestOptions.Default;
+            var allowedMentions = CheckAndFixAllowedMentions(null);
+
+            return base.ReplyAsync(message, false, embed, options, allowedMentions, ReplyReference);
+        }
+
+        public Task<RestUserMessage> ReplyStreamAsync(Stream stream, string filename)
+        {
+            var options = RequestOptions.Default;
+            var allowedMentions = CheckAndFixAllowedMentions(null);
+
+            return Context.Channel.SendFileAsync(stream, filename, options: options, allowedMentions: allowedMentions, messageReference: ReplyReference);
+        }
+
         static protected AllowedMentions CheckAndFixAllowedMentions(AllowedMentions allowedMentions)
         {
             return allowedMentions ?? new AllowedMentions() { MentionRepliedUser = true };

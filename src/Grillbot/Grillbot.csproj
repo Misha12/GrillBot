@@ -54,6 +54,11 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Compile Update="Resources\MeatImages\MeatImagesResources.Designer.cs">
+      <DesignTime>True</DesignTime>
+      <AutoGen>True</AutoGen>
+      <DependentUpon>MeatImagesResources.resx</DependentUpon>
+    </Compile>
     <Compile Update="Resources\Peepoangry\PeepoangryResources.Designer.cs">
       <DesignTime>True</DesignTime>
       <AutoGen>True</AutoGen>
@@ -67,6 +72,10 @@
   </ItemGroup>
 
   <ItemGroup>
+    <EmbeddedResource Update="Resources\MeatImages\MeatImagesResources.resx">
+      <Generator>PublicResXFileCodeGenerator</Generator>
+      <LastGenOutput>MeatImagesResources.Designer.cs</LastGenOutput>
+    </EmbeddedResource>
     <EmbeddedResource Update="Resources\Peepoangry\PeepoangryResources.resx">
       <Generator>PublicResXFileCodeGenerator</Generator>
       <LastGenOutput>PeepoangryResources.Designer.cs</LastGenOutput>

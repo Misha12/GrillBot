@@ -8,7 +8,6 @@ using Grillbot.Services.Duck;
 using Grillbot.Services.ErrorHandling;
 using Grillbot.Services.InviteTracker;
 using Grillbot.Services.Math;
-using Grillbot.Services.MemeImages;
 using Grillbot.Services.MessageCache;
 using Grillbot.Services.Permissions;
 using Grillbot.Services.Reminder;
@@ -37,7 +36,6 @@ namespace Grillbot.Services
                 .AddScoped<BotStatusService>()
                 .AddScoped<ChannelboardWeb>()
                 .AddScoped<DuckDataLoader>()
-                .AddScoped<MemeImagesService>()
                 .AddScoped<PermissionsManager>()
                 .AddScoped<PinManagement>()
                 .AddScoped<ChannelStats>()
@@ -60,7 +58,8 @@ namespace Grillbot.Services
                 .AddScoped<PointsRenderService>()
                 .AddScoped<SearchService>()
                 .AddScoped<BirthdayService>()
-                .AddScoped<AuditService>();
+                .AddScoped<AuditService>()
+                .AddSingleton<System.Random>();
         }
 
         public static IServiceCollection AddDatabase(this IServiceCollection services, string connectionString)
