@@ -46,7 +46,6 @@ namespace Grillbot.Modules
                         $"ID: {item.ID}",
                         $"Příznaky: {string.Join(", ", item.GetFlagValues())}",
                         $"Metoda: {item.CompareType}",
-                        $"Počet použití: {item.CallsCount.FormatWithSpaces()}",
                         $"Kanál: {item.Channel}"
                     }));
 

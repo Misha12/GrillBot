@@ -24,9 +24,6 @@ namespace Grillbot.Database.Entity
         [Required]
         public string ReplyMessage { get; set; }
 
-        [NotMapped]
-        public int CallsCount { get; set; }
-
         [Column]
         public AutoReplyCompareTypes CompareType { get; set; }
 

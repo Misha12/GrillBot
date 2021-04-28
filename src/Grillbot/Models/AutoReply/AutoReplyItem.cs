@@ -12,7 +12,6 @@ namespace Grillbot.Models.AutoReply
         public string MustContains { get; set; }
         public string Reply { get; set; }
         public AutoReplyCompareTypes CompareType { get; set; }
-        public int CallsCount { get; set; }
         public string Channel { get; set; }
         public int Flags { get; set; }
 

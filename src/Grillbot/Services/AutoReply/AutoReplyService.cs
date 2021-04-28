@@ -57,7 +57,6 @@ namespace Grillbot.Modules.AutoReply
             if (!message.Content.Contains(item.MustContains, item.StringComparison))
                 return false;
 
-            item.CallsCount++;
             await message.Channel.SendMessageAsync(FormatMessage(item, message), allowedMentions: AllowedMentions);
             return true;
         }
@@ -67,7 +66,6 @@ namespace Grillbot.Modules.AutoReply
             if (!message.Content.Equals(item.MustContains, item.StringComparison))
                 return false;
 
-            item.CallsCount++;
             await message.Channel.SendMessageAsync(FormatMessage(item, message), allowedMentions: AllowedMentions);
             return true;
         }
@@ -83,7 +81,6 @@ namespace Grillbot.Modules.AutoReply
 
                     return new ReplyModel()
                     {
-                        CallsCount = item.CallsCount,
                         CompareType = item.CompareType,
                         ID = item.ID,
                         MustContains = item.MustContains,
