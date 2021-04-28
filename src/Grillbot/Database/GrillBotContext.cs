@@ -1,6 +1,5 @@
 using Grillbot.Database.Entity;
 using Grillbot.Database.Entity.AuditLog;
-using Grillbot.Database.Entity.Config;
 using Grillbot.Database.Entity.MethodConfig;
 using Grillbot.Database.Entity.Unverify;
 using Grillbot.Database.Entity.Users;
@@ -61,7 +60,6 @@ namespace Grillbot.Database
         public virtual DbSet<MethodsConfig> MethodsConfig { get; set; }
         public virtual DbSet<DiscordUser> Users { get; set; }
         public virtual DbSet<UserChannel> UserChannels { get; set; }
-        public virtual DbSet<GlobalConfigItem> GlobalConfig { get; set; }
         public virtual DbSet<Reminder> Reminders { get; set; }
         public virtual DbSet<Invite> Invites { get; set; }
         public virtual DbSet<EmoteStatItem> EmoteStatistics { get; set; }
