@@ -101,10 +101,10 @@ namespace Grillbot.Services.UserManagement
             return await UserHelper.MapUserAsync(DiscordClient, BotState, entity);
         }
 
-        public async Task SetBotAdminAsync(SocketGuild guild, SocketUser user, bool isAdmin)
+        public async Task ToggleBotAdminAsync(long userId)
         {
-            var entity = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
-            entity.IsBotAdmin = isAdmin;
+            var entity = await GrillBotRepository.UsersRepository.GetUserAsync(userId, UsersIncludes.None);
+            entity.IsBotAdmin = !entity.IsBotAdmin;
 
             await GrillBotRepository.CommitAsync();
         }
