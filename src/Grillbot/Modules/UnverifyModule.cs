@@ -1,12 +1,9 @@
-using Discord;
 using Discord.Commands;
 using Discord.WebSocket;
 using Grillbot.Attributes;
 using Grillbot.Exceptions;
 using Grillbot.Extensions;
 using Grillbot.Extensions.Discord;
-using Grillbot.Helpers;
-using Grillbot.Models.Embed;
 using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Services;
 using Grillbot.Services.Unverify;
@@ -20,7 +17,7 @@ namespace Grillbot.Modules
 {
     [Group("unverify")]
     [Name("Odebrání přístupu")]
-    [ModuleID("UnverifyModule")]
+    [ModuleID(nameof(UnverifyModule))]
     public class UnverifyModule : BotModuleBase
     {
         public UnverifyModule(PaginationService paginationService, IServiceProvider provider) : base(paginationService: paginationService, provider: provider)
@@ -69,9 +66,6 @@ namespace Grillbot.Modules
             {
                 case "list":
                     await ListUnverifyAsync();
-                    return true;
-                case "stats":
-                    await StatsAsync();
                     return true;
                 case "board":
                     await GetLeaderboardUrlAsync();
@@ -192,23 +186,6 @@ namespace Grillbot.Modules
             }
         }
 
-        [Command("stats")]
-        [Summary("Statistiky unverify")]
-        public async Task StatsAsync()
-        {
-            using var service = GetService<UnverifyService>();
-            var unverifies = await service.Service.GetCurrentUnverifies(Context.Guild);
-
-            var embed = new BotEmbed(Context.User, title: "Statistiky unverify")
-                .AddField("SelfUnverify", unverifies.Count(o => o.Profile.IsSelfUnverify).FormatWithSpaces(), true)
-                .AddField("Unverify", unverifies.Count(o => !o.Profile.IsSelfUnverify).FormatWithSpaces(), true)
-                .AddField("Celkem", unverifies.Count.FormatWithSpaces(), true);
-
-            await ReplyAsync(embed: embed.Build());
-        }
-
-        #region Leaderboard and stats
-
         [Command("board")]
         [Summary("Statistiky unverify.")]
         public async Task GetLeaderboardUrlAsync()
@@ -225,7 +202,5 @@ namespace Grillbot.Modules
             var url = string.Format(config.LeaderboardUrl, Context.Guild.Id);
             await ReplyAsync($"Leaderboard unverify: <{url}>");
         }
-
-        #endregion
     }
 }
