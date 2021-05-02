@@ -91,22 +91,19 @@ namespace Grillbot.Modules.AutoReply
                 }).ToList();
         }
 
-        public async Task SetActiveStatusAsync(SocketGuild guild, int id, bool disabled)
+        public async Task ToggleActiveStatusAsync(SocketGuild guild, int id)
         {
             var item = BotState.AutoReplyItems.Find(o => o.GuildIDSnowflake == guild.Id && o.ID == id);
 
             if (item == null)
                 throw new ArgumentException("Hledaná odpověď nebyla nalezena.");
 
-            if (item.IsDisabled == disabled)
-                throw new ArgumentException("Tato automatická odpověd již má požadovaný stav.");
-
             var dbItem = await GrillBotRepository.AutoReplyRepository.FindItemByIdAsync(id);
 
-            if (disabled)
-                dbItem.Flags |= (int)AutoReplyParams.Disabled;
-            else
+            if (dbItem.IsDisabled)
                 dbItem.Flags &= ~(int)AutoReplyParams.Disabled;
+            else
+                dbItem.Flags |= (int)AutoReplyParams.Disabled;
 
             await GrillBotRepository.CommitAsync();
             item.Flags = dbItem.Flags;
