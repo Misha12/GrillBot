@@ -66,35 +66,20 @@ namespace Grillbot.Modules
             await SendPaginatedEmbedAsync(embed);
         }
 
-        [Command("disable")]
-        [Summary("Deaktivuje automatickou odpověď.")]
-        public async Task DisableAsync(int id)
+        [Command("toggle")]
+        [Summary("Přepne stav automatické odpovědi (Zapnuto/Vypnuto)")]
+        public async Task ToggleAsync(int id)
         {
             try
             {
                 using var service = GetService<AutoReplyService>();
-                await service.Service.SetActiveStatusAsync(Context.Guild, id, true);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně deaktivována.");
-            }
-            catch (ArgumentException ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
-        }
+                await service.Service.ToggleActiveStatusAsync(Context.Guild, id);
 
-        [Command("enable")]
-        [Summary("Aktivuje automatickou odpověď.")]
-        public async Task EnableAsync(int id)
-        {
-            try
-            {
-                using var service = GetService<AutoReplyService>();
-                await service.Service.SetActiveStatusAsync(Context.Guild, id, false).ConfigureAwait(false);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně aktivována.").ConfigureAwait(false);
+                await ReplyMessageAsync($"Automatická odpověď s ID **{id}** byla úspěšně přepnuta.");
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyMessageAsync(ex.Message);
             }
         }
 
@@ -111,11 +96,11 @@ namespace Grillbot.Modules
 
                 using var service = GetService<AutoReplyService>();
                 await service.Service.AddReplyAsync(Context.Guild, parsedData);
-                await ReplyAsync("Automatická odpověď byla úspěšně přidána.");
+                await ReplyMessageAsync("Automatická odpověď byla úspěšně přidána.");
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyMessageAsync(ex.Message);
             }
         }
 
@@ -130,11 +115,11 @@ namespace Grillbot.Modules
 
                 using var service = GetService<AutoReplyService>();
                 await service.Service.EditReplyAsync(Context.Guild, id, parsedData);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně upravená.");
+                await ReplyMessageAsync($"Automatická odpověď s ID **{id}** byla úspěšně upravená.");
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyMessageAsync(ex.Message);
             }
         }
 
@@ -146,11 +131,11 @@ namespace Grillbot.Modules
             {
                 using var service = GetService<AutoReplyService>();
                 await service.Service.RemoveReplyAsync(Context.Guild, id).ConfigureAwait(false);
-                await ReplyAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
+                await ReplyMessageAsync($"Automatická odpověď s ID **{id}** byla úspěšně odebrána.").ConfigureAwait(false);
             }
             catch (ArgumentException ex)
             {
-                await ReplyAsync(ex.Message);
+                await ReplyMessageAsync(ex.Message);
             }
         }
 
@@ -178,7 +163,7 @@ namespace Grillbot.Modules
                 .AppendLine("0")
                 .AppendLine("*/ChannelID");
 
-            await ReplyAsync(builder.ToString());
+            await ReplyMessageAsync(builder.ToString());
         }
     }
 }
