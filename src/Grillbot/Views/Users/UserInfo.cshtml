@@ -25,7 +25,7 @@
         };
     }
 
-    var anyButtonVisible = Model.User.IsWebAdminBanned;
+    var anyButtonVisible = Model.User.IsWebAdminBanned || Model.CanToggleBotAdmin;
 }
 
 <div class="container">
@@ -53,6 +53,11 @@
                 @if (Model.User.IsWebAdminBanned)
                 {
                     <a class="btn btn-secondary btn-sm" asp-route-id="@Model.User.ID" asp-action="Unblock">Odblokovat</a>
+                }
+
+                @if (Model.CanToggleBotAdmin)
+                {
+                    <a class="btn btn-secondary btn-sm btn-@(Model.User.IsBotAdmin ? "danger" : "success")" asp-route-id="@Model.User.ID" asp-action="ToggleAdmin">Přepnout plná práva</a>
                 }
             </div>
         }

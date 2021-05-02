@@ -49,7 +49,7 @@ namespace Grillbot.Controllers
                     RedirectUri = string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl
                 });
 
-            return RedirectToAction("Index", "Unverify");
+            return Redirect(string.IsNullOrEmpty(returnUrl) ? "/" : returnUrl);
         }
 
         [AllowAnonymous]
