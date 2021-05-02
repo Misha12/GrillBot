@@ -10,7 +10,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Invite")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class InviteController : Controller
     {
         private InviteTrackerService InviteTrackerService { get; }

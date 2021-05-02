@@ -10,7 +10,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Users")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class UsersController : Controller
     {
         private DiscordSocketClient Client { get; }

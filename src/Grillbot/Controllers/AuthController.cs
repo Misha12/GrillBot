@@ -13,7 +13,6 @@ using System.Threading.Tasks;
 namespace Grillbot.Controllers
 {
     [Authorize]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuthController : Controller
     {
         private WebAuthenticationService WebAuth { get; }

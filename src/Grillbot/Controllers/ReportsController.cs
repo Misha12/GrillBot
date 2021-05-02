@@ -14,7 +14,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Reports")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class ReportsController : Controller
     {
         private BotStatusService StatusService { get; }

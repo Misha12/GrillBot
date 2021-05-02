@@ -16,7 +16,6 @@ namespace Grillbot.Controllers
     [Authorize]
     [Route("/")]
     [Route("Admin/Unverify")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class UnverifyController : Controller
     {
         private DiscordSocketClient DiscordClient { get; }
