@@ -446,62 +446,6 @@ namespace Grillbot.Services.Unverify
                 await user.RemoveRoleAsync(mutedRole);
         }
 
-        #region Imunity
-
-        public async Task SetImunityAsync(IGuild guild, IUser user, string groupName)
-        {
-            var dbUser = await GrillBotRepository.UsersRepository.GetOrCreateUserAsync(guild.Id, user.Id, UsersIncludes.None);
-
-            dbUser.UnverifyImunityGroup = groupName;
-            await GrillBotRepository.CommitAsync();
-        }
-
-        public async Task<Dictionary<string, int>> GetImunityGroupsAsync(IGuild guild)
-        {
-            var data = await GrillBotRepository.UsersRepository.GetUsersWithUnverifyImunity(guild.Id)
-                .GroupBy(o => o.UnverifyImunityGroup)
-                .Select(o => new
-                {
-                    GroupName = o.Key,
-                    Count = o.Count()
-                }).ToListAsync();
-
-            return data.ToDictionary(o => o.GroupName, o => o.Count);
-        }
-
-        public async Task RemoveImunityAsync(IGuild guild, IUser user)
-        {
-            var dbUser = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.None);
-
-            if (string.IsNullOrEmpty(dbUser?.UnverifyImunityGroup))
-                throw new ValidationException($"Uživatel **{user.GetFullName()}** neměl imunitu vůči unverify.");
-
-            dbUser.UnverifyImunityGroup = null;
-            await GrillBotRepository.CommitAsync();
-        }
-
-        public async Task<List<string>> GetUnverifyGroupUsersAsync(SocketGuild guild, string groupName)
-        {
-            var users = await GrillBotRepository.UsersRepository.GetUsersWithUnverifyImunity(guild.Id)
-                .Where(o => o.UnverifyImunityGroup == groupName)
-                .Select(o => o.UserID)
-                .ToListAsync();
-
-            var usernames = new List<string>();
-
-            foreach (var userID in users.Select(o => Convert.ToUInt64(o)))
-            {
-                var user = await guild.GetUserFromGuildAsync(userID);
-
-                if (user != null)
-                    usernames.Add($"> {user.GetFullName()}");
-            }
-
-            return usernames.OrderByDescending(o => o).ToList();
-        }
-
-        #endregion
-
         #region SelfUnverify
 
         public async Task AddSelfunverifyDefinitionsAsync(SocketGuild guild, string group, string[] values)

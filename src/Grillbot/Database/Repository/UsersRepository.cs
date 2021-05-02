@@ -199,12 +199,6 @@ namespace Grillbot.Database.Repository
                 .OrderBy(o => o.Unverify.EndDateTime);
         }
 
-        public IQueryable<UserEntity> GetUsersWithUnverifyImunity(ulong guildID)
-        {
-            return GetBaseQuery(UsersIncludes.None, false)
-                .Where(o => o.GuildID == guildID.ToString() && o.UnverifyImunityGroup != null);
-        }
-
         public async Task<UserEntity> CreateAndGetUserAsync(ulong guildId, ulong userId)
         {
             await Context.Database.ExecuteSqlRawAsync(

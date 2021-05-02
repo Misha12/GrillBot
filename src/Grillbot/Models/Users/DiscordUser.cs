@@ -37,7 +37,6 @@ namespace Grillbot.Models.Users
         public DateTime? UnverifyEndsAt { get; set; }
         public List<RemindItem> Reminders { get; set; }
         public List<InviteModel> CreatedInvites { get; set; }
-        public string UnverifyImunityGroup { get; set; }
         public DateTime? WebAdminBannedTo { get; set; }
 
         #region ReadOnlyProperties
@@ -64,7 +63,6 @@ namespace Grillbot.Models.Users
                 WebAdminLoginCount = dbUser.WebAdminLoginCount,
                 Flags = dbUser.Flags,
                 UnverifyEndsAt = dbUser.Unverify?.EndDateTime,
-                UnverifyImunityGroup = dbUser.UnverifyImunityGroup,
                 DiscordId = dbUser.UserIDSnowflake,
                 WebAdminBannedTo = dbUser.WebAdminBannedTo
             };
