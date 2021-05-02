@@ -46,9 +46,6 @@ namespace Grillbot.Database.Entity.Users
         public int FailedLoginCount { get; set; }
         public DateTime? WebAdminBannedTo { get; set; }
 
-        [StringLength(64)]
-        public string UnverifyImunityGroup { get; set; }
-
         [ForeignKey("UsedInviteCode")]
         public Invite UsedInvite { get; set; }
 

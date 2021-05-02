@@ -43,9 +43,6 @@ namespace Grillbot.Services.Unverify
 
             if (dbUser != null && (dbUser.Flags & (long)UserFlags.BotAdmin) != 0)
                 throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je nejvyšší administrátor bota.");
-
-            if (dbUser != null && !string.IsNullOrEmpty(dbUser.UnverifyImunityGroup))
-                throw new ValidationException($"Nelze provést odebrání přístupu, protože uživatel **{user.GetFullName()}** je imunní vůči unverify. Imunitní skupina: **{dbUser.UnverifyImunityGroup}**");
         }
 
         private void ValidateRoles(SocketGuild guild, SocketGuildUser user, bool selfUnverify)

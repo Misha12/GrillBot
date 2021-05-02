@@ -37,7 +37,7 @@ namespace Grillbot.Modules
             {
                 try
                 {
-                    if (await SetUnverifyRoutingAsync(time, reasonAndUserMentions))
+                    if (await SetUnverifyRoutingAsync(time))
                         return;
 
                     var usersToUnverify = Context.Message.MentionedUsers.Where(f => f != null).ToList();
@@ -62,7 +62,7 @@ namespace Grillbot.Modules
             }
         }
 
-        private async Task<bool> SetUnverifyRoutingAsync(string route, string otherParams)
+        private async Task<bool> SetUnverifyRoutingAsync(string route)
         {
             // Simply hack, because command routing cannot distinguish between a parameter and a function.
             switch (route)
@@ -73,17 +73,9 @@ namespace Grillbot.Modules
                 case "stats":
                     await StatsAsync();
                     return true;
-                case "printGroups":
-                    await PrintGroupsAsync();
-                    return true;
-                case "printGroupUsers":
-                    await PrintGroupUsersAsync(otherParams);
-                    return true;
                 case "board":
                     await GetLeaderboardUrlAsync();
                     return true;
-                case "removeImunity":
-                case "setImunity":
                 case "update":
                 case "remove":
                     throw new ThrowHelpException();
@@ -214,70 +206,6 @@ namespace Grillbot.Modules
 
             await ReplyAsync(embed: embed.Build());
         }
-
-        #region Imunity
-
-        [Command("setImunity")]
-        [Summary("Přiřazení imunity uživateli.")]
-        public async Task SetImunityAsync(IUser user, [Remainder] string groupName)
-        {
-            if (groupName.Length > 64)
-            {
-                await ReplyAsync("Maximální délka názvu skupiny je 64 znaků.");
-                return;
-            }
-
-            using var service = GetService<UnverifyService>();
-            await service.Service.SetImunityAsync(Context.Guild, user, groupName);
-            await ReplyAsync("Imunita nastavena.");
-        }
-
-        [Command("printGroups")]
-        [Summary("Získání seznamu skupin s imunitou.")]
-        public async Task PrintGroupsAsync()
-        {
-            using var service = GetService<UnverifyService>();
-            var groups = await service.Service.GetImunityGroupsAsync(Context.Guild);
-            var formated = groups.Select(o => $"> `{o.Key}`: {FormatHelper.FormatUsersCountCz(o.Value)}");
-
-            await ReplyChunkedAsync(formated.SplitInParts(10));
-        }
-
-        [Command("removeImunity")]
-        [Summary("Odebrání imunity uživateli.")]
-        public async Task RemoveImunityAsync(IUser user)
-        {
-            try
-            {
-                using var service = GetService<UnverifyService>();
-                await service.Service.RemoveImunityAsync(Context.Guild, user);
-                await ReplyAsync("Imunita odebrána.");
-            }
-            catch (ValidationException ex)
-            {
-                await ReplyAsync(ex.Message);
-            }
-        }
-
-        [Command("printGroupUsers")]
-        [Summary("Získání seznamu uživatelů s danou unverify skupinou.")]
-        public async Task PrintGroupUsersAsync([Remainder] string groupName)
-        {
-            if (groupName.Length > 64)
-            {
-                await ReplyAsync("Maximální délka názvu skupiny je 64 znaků.");
-                return;
-            }
-
-            using var service = GetService<UnverifyService>();
-            var usernames = await service.Service.GetUnverifyGroupUsersAsync(Context.Guild, groupName);
-
-            await ReplyAsync($"`{groupName}` ({FormatHelper.FormatUsersCountCz(usernames.Count)})");
-            if (usernames.Count > 0)
-                await ReplyChunkedAsync(usernames.SplitInParts(10));
-        }
-
-        #endregion
 
         #region Leaderboard and stats
 
