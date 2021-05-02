@@ -18,7 +18,7 @@
 <div class="container">
     <div class="card bg-dark">
         <div class="card-header">
-            <h4 class="card-title font-weight-light mb-0 pb-0">Unverify status</h4>
+            <h4 class="card-title font-weight-light mb-0 pb-0">Stav unverify</h4>
         </div>
 
         <div class="card-body">
@@ -28,6 +28,20 @@
             }
             else
             {
+                <table class="table table-sm table-bordered">
+                    <tr>
+                        <th style="width: 33%">SelfUnverify</th>
+                        <th style="width: 33%">Unverify</th>
+                        <th style="width: 33%">Celkem</th>
+                    </tr>
+
+                    <tr>
+                        <td>@Model.SelfUnverifyCount.FormatWithSpaces()</td>
+                        <td>@Model.UnverifyCount.FormatWithSpaces()</td>
+                        <td>@Model.Unverifies.Count.FormatWithSpaces()</td>
+                    </tr>
+                </table>
+
                 var item = Model.Unverifies[page - 1];
                 <partial name="CurrentlyUnverifiedPartial" model="item" />
 
