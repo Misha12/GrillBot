@@ -1,29 +1,30 @@
 using Discord;
 using Discord.Commands;
+using Discord.WebSocket;
 using Grillbot.Attributes;
-using Grillbot.Extensions;
 using Grillbot.Models.Embed;
-using Grillbot.Models.Embed.PaginatedEmbed;
 using Grillbot.Models.Math;
-using Grillbot.Services;
 using Grillbot.Services.Math;
+using Microsoft.Extensions.Configuration;
+using Microsoft.Extensions.Logging;
 using System;
-using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
 namespace Grillbot.Modules
 {
     [Name("Počítání")]
-    [ModuleID("MathModule")]
+    [ModuleID(nameof(MathModule))]
     [Group("math")]
     public class MathModule : BotModuleBase
     {
-        private MathService Calculator { get; }
+        private ILogger<MathModule> Logger { get; }
+        private IConfiguration Configuration { get; }
 
-        public MathModule(MathService calculator, PaginationService pagination) : base(paginationService: pagination)
+        public MathModule(ILogger<MathModule> logger, IConfiguration configuration)
         {
-            Calculator = calculator;
+            Logger = logger;
+            Configuration = configuration;
         }
 
         [Command("solve")]
@@ -32,7 +33,7 @@ namespace Grillbot.Modules
             " číslo na intervalu <x; y>\n- Fib(x): Fibonacciho posloupnost.")]
         public async Task SolveAsync([Remainder] string expression)
         {
-            var result = Calculator.Solve(expression, Context.Message);
+            var result = Solve(expression);
 
             var embed = new BotEmbed(Context.Message.Author, Color.Green)
                 .AddField("Výraz", $"`{expression}`", false);
@@ -75,70 +76,63 @@ namespace Grillbot.Modules
             await ReplyAsync(embed: embed.Build());
         }
 
-        [Command("sessions")]
-        [Summary("Výpočetní sessions")]
-        public async Task SessionsListAsync()
+        private MathCalcResult Solve(string input)
         {
-            var boosterSessions = Calculator.Sessions.Where(o => o.ForBooster);
-            var otherSessions = Calculator.Sessions.Where(o => !o.ForBooster);
+            var boosterRoleId = Configuration["ServerBoosterRoleId"];
+            bool booster = !string.IsNullOrEmpty(boosterRoleId) && ((Context.User as SocketGuildUser)?.Roles?.Any(o => o.Id == Convert.ToUInt64(boosterRoleId)) ?? false);
+            var time = 10000 * (booster ? 3 : 1);
+            input = ("" + input).Trim(); // treatment against null values.
 
-            var embed = new PaginatedEmbed()
+            var parser = new ExpressionParser(input);
+
+            if (parser.Empty)
+                return new MathCalcResult() { ErrorMessage = "Nelze spočítat prázdný výraz." };
+
+            if (!parser.IsValid)
+                return new MathCalcResult() { ErrorMessage = string.Join(Environment.NewLine, parser.Errors) };
+
+            try
             {
-                Pages = new List<PaginatedEmbedPage>()
+                var task = Task.Run(() =>
                 {
-                    RenderPage(boosterSessions, true),
-                    RenderPage(otherSessions, false)
-                },
-                ResponseFor = Context.User,
-                Title = "Výpočetní sessions"
-            };
+                    return new MathCalcResult()
+                    {
+                        IsValid = true,
+                        Result = parser.Expression.calculate(),
+                        ComputingTime = parser.Expression.getComputingTime() * 1000
+                    };
+                });
 
-            await SendPaginatedEmbedAsync(embed);
-        }
+                if (!task.Wait(time))
+                {
+                    try
+                    {
+                        task.Dispose();
+                    }
+#pragma warning disable RCS1075 // Avoid empty catch clause that catches System.Exception.
+                    catch (Exception) { /* This exception we can ignore. */ }
+#pragma warning restore RCS1075 // Avoid empty catch clause that catches System.Exception.
 
-        private static PaginatedEmbedPage RenderPage(IEnumerable<MathSession> sessions, bool booster)
-        {
-            var page = new PaginatedEmbedPage(booster ? "Server booster" : "Ostatní sessions");
-
-            foreach (var session in sessions)
-            {
-                page.AddField(
-                    $"#{session.ID} {(session.IsUsed ? "(Používá se)" : "")}".Trim(),
-                    $"Čas: **{TimeSpan.FromMilliseconds(session.ComputingTime)}**\nPočet použití: **{session.UsedCount.FormatWithSpaces()}**",
-                    true
-                );
+                    return new MathCalcResult()
+                    {
+                        IsTimeout = true,
+                        AssingedComputingTime = time
+                    };
+                }
+                else
+                {
+                    return task.Result;
+                }
             }
-
-            return page;
-        }
-
-        [Command("session")]
-        [Summary("Detail výpočetní jednotky.")]
-        public async Task SessionDetailAsync(int sessionId)
-        {
-            var session = Calculator.Sessions.Find(o => o.ID == sessionId);
-
-            if (session == null)
+            catch (Exception ex)
             {
-                await ReplyAsync($"Session s ID {sessionId} nebyla nalezena.");
-                return;
+                Logger.LogError(ex, "");
+
+                return new MathCalcResult()
+                {
+                    ErrorMessage = ex.Message
+                };
             }
-
-            var color = session.IsUsed ? Color.Green : Color.LightGrey;
-            var title = $"#{session.ID} {(session.IsUsed ? "(Používá se)" : "")}";
-
-            if (session.ForBooster)
-                title += " (Booster)";
-
-            var embed = new BotEmbed(Context.User, color, title.Trim())
-                .AddField("Výpočetní čas", TimeSpan.FromMilliseconds(session.ComputingTime).ToString(), true)
-                .AddField("Počet použití", session.UsedCount.FormatWithSpaces(), true);
-
-            embed
-                .AddField("Aktuální výraz", session.Expression ?? "-", false)
-                .AddField("Poslední výsledek", session.LastResult?.Format() ?? "-", false);
-
-            await ReplyAsync(embed: embed.Build());
         }
     }
 }

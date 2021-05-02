@@ -102,14 +102,6 @@ namespace Grillbot.Services
             return services;
         }
 
-        public static IServiceCollection AddMath(this IServiceCollection services)
-        {
-            services
-                .AddSingleton<MathService>();
-
-            return services;
-        }
-
         public static IServiceCollection AddLoggers(this IServiceCollection services)
         {
             services.AddLogging(opt =>
