@@ -7,8 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Permissions.Api;
-using System;
-using System.Collections.Generic;
 using Grillbot.Services.BackgroundTasks;
 using Microsoft.AspNetCore.StaticFiles;
 using Grillbot.Database;
@@ -75,7 +73,6 @@ namespace Grillbot
                 .AddSingleton<InitService>()
                 .AddSingleton(new BotState())
                 .AddBotFeatures()
-                .AddMath()
                 .AddEmoteChain()
                 .AddStatistics()
                 .AddPaginationServices()
