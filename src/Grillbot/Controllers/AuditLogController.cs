@@ -10,7 +10,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Audit")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class AuditLogController : Controller
     {
         private AuditService AuditService { get; }

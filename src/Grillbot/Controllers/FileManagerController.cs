@@ -10,7 +10,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("Admin/Files")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class FileManagerController : Controller
     {
         private FileExtensionContentTypeProvider ContentTypeProvider { get; }

@@ -13,7 +13,6 @@ namespace Grillbot.Controllers
 {
     [Authorize]
     [Route("leaderboard")]
-    [ApiExplorerSettings(IgnoreApi = true)]
     public class LeaderboardController : Controller
     {
         private ChannelStats ChannelStats { get; }
