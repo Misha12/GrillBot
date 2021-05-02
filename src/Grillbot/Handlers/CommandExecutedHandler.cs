@@ -17,16 +17,14 @@ namespace Grillbot.Handlers
         private CommandService CommandService { get; }
         private IServiceProvider Services { get; }
         private ILogger<CommandExecutedHandler> Logger { get; }
-        private BotState BotState { get; }
         private InternalStatistics InternalStatistics { get; }
 
-        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger, BotState botState,
+        public CommandExecutedHandler(CommandService commandService, IServiceProvider services, ILogger<CommandExecutedHandler> logger,
             InternalStatistics internalStatistics)
         {
             CommandService = commandService;
             Services = services;
             Logger = logger;
-            BotState = botState;
             InternalStatistics = internalStatistics;
         }
 
@@ -66,8 +64,6 @@ namespace Grillbot.Handlers
             {
                 Logger.LogError(ex, "");
             }
-
-            BotState.RunningCommands.RemoveAll(o => o.Id == context.Message.Id);
         }
 
         private void LogCommand(Optional<CommandInfo> command, ICommandContext context)

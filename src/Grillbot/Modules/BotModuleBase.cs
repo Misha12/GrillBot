@@ -98,23 +98,6 @@ namespace Grillbot.Modules
             await userMessage.DeleteMessageAsync(deleteOptions);
         }
 
-        public async Task<RestUserMessage> ReplyImageAsync(System.Drawing.Image bitmap, string filename)
-        {
-            using var ms = new MemoryStream();
-
-            bitmap.Save(ms, System.Drawing.Imaging.ImageFormat.Png);
-            ms.Position = 0;
-
-            return await Context.Channel.SendFileAsync(ms, filename);
-        }
-
-        public async Task<RestUserMessage> ReplyFileAsync(byte[] content, string filename)
-        {
-            using var ms = new MemoryStream(content);
-
-            return await Context.Channel.SendFileAsync(ms, filename);
-        }
-
         public Task<RestUserMessage> ReplyFileAsync(string filePath, AllowedMentions allowedMentions = null)
         {
             var options = RequestOptions.Default;
