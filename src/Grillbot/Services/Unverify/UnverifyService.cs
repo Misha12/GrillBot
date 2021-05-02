@@ -32,7 +32,6 @@ namespace Grillbot.Services.Unverify
         public UnverifyLogger UnverifyLogger { get; }
         private UnverifyMessageGenerator MessageGenerator { get; }
         private UnverifyTimeParser TimeParser { get; }
-        private BotState BotState { get; }
         private DiscordSocketClient DiscordClient { get; }
         private BotLoggingService Logger { get; }
         private ILogger<UnverifyService> AppLogger { get; }
@@ -40,7 +39,7 @@ namespace Grillbot.Services.Unverify
         private BackgroundTaskQueue Queue { get; }
 
         public UnverifyService(UnverifyChecker checker, UnverifyProfileGenerator profileGenerator, UnverifyLogger logger,
-            UnverifyMessageGenerator messageGenerator, UnverifyTimeParser timeParser, BotState botState, DiscordSocketClient discord,
+            UnverifyMessageGenerator messageGenerator, UnverifyTimeParser timeParser, DiscordSocketClient discord,
             BotLoggingService loggingService, ILogger<UnverifyService> appLogger, IGrillBotRepository grillBotRepository,
             BackgroundTaskQueue queue)
         {
@@ -49,7 +48,6 @@ namespace Grillbot.Services.Unverify
             UnverifyLogger = logger;
             MessageGenerator = messageGenerator;
             TimeParser = timeParser;
-            BotState = botState;
             DiscordClient = discord;
             Logger = loggingService;
             AppLogger = appLogger;
@@ -273,8 +271,6 @@ namespace Grillbot.Services.Unverify
         {
             try
             {
-                BotState.CurrentReturningUnverifyFor.Add(user);
-
                 var userEntity = await GrillBotRepository.UsersRepository.GetUserAsync(guild.Id, user.Id, UsersIncludes.Unverify);
 
                 if (userEntity?.Unverify == null)
@@ -336,10 +332,6 @@ namespace Grillbot.Services.Unverify
                 var message = new LogMessage(LogSeverity.Error, nameof(UnverifyService), "An error occured when unverify returning access.", ex);
                 await Logger.OnLogAsync(message);
                 return MessageGenerator.CreateRemoveAccessManuallyFailed(user, ex);
-            }
-            finally
-            {
-                BotState.CurrentReturningUnverifyFor.RemoveAll(o => o.Id == user.Id);
             }
         }
 

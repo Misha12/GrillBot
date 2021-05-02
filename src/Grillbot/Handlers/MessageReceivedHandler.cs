@@ -46,7 +46,6 @@ namespace Grillbot.Handlers
             int argPos = 0;
             if (IsCommand(userMessage, ref argPos))
             {
-                BotState.RunningCommands.Add(message);
                 await Commands.ExecuteAsync(context, userMessage.Content[argPos..], Services).ConfigureAwait(false);
 
                 if (context.Guild != null)
