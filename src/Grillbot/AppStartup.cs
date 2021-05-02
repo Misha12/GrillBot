@@ -7,7 +7,6 @@ using Microsoft.Extensions.Configuration;
 using Microsoft.Extensions.DependencyInjection;
 using Grillbot.Services.Initiable;
 using Grillbot.Services.Permissions.Api;
-using Microsoft.OpenApi.Models;
 using System;
 using System.Collections.Generic;
 using Grillbot.Services.BackgroundTasks;
@@ -43,49 +42,7 @@ namespace Grillbot
                 .AddMemoryCache()
                 .AddCors()
                 .AddMessageCache()
-                .AddHttpClient();
-
-            services.AddSwaggerGen(setup =>
-            {
-                var apiInfo = new OpenApiInfo()
-                {
-                    Contact = new OpenApiContact()
-                    {
-                        Name = "GrillBot",
-                        Url = new Uri("https://github.com/Misha12/GrillBot")
-                    },
-                    License = new OpenApiLicense() { Name = "MIT" },
-                    Title = "GrillBot API",
-                    Version = "v1"
-                };
-
-                setup.SwaggerDoc("v1", apiInfo);
-
-                setup.AddSecurityDefinition("GrillBot", new OpenApiSecurityScheme()
-                {
-                    Description = "GrillBot authorization token. BotAdmin user can generate this tokens for user (or bot) accounts.",
-                    In = ParameterLocation.Header,
-                    Name = "Authorization",
-                    Scheme = "GrillBot",
-                    Type = SecuritySchemeType.ApiKey
-                });
-
-                setup.AddSecurityRequirement(new OpenApiSecurityRequirement()
-                {
-                    {
-                        new OpenApiSecurityScheme()
-                        {
-                            Reference = new OpenApiReference()
-                            {
-                                Type = ReferenceType.SecurityScheme,
-                                Id = "GrillBot"
-                            }
-                        }, new List<string>()
-                    }
-                });
-            });
-
-            services
+                .AddHttpClient()
                 .AddScoped<FileExtensionContentTypeProvider>()
                 .AddControllersWithViews();
 
@@ -139,8 +96,6 @@ namespace Grillbot
             var serviceProvider = app.ApplicationServices;
 
             app
-                .UseSwagger()
-                .UseSwaggerUI(o => o.SwaggerEndpoint("/swagger/v1/swagger.json", "API v1"))
                 .UseCors(o => o.AllowAnyHeader().AllowAnyMethod().AllowAnyOrigin())
                 .UseRouting()
                 .UseMiddleware<DiscordAuthorizeMiddleware>()
