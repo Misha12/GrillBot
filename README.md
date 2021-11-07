@@ -1,5 +1,9 @@
 # GrillBot
 
+The GrillBot project has been officially moved to [GitLab](https://gitlab.com/grillbot).
+
+This repository represents the latest release under MIT licence. There will be no more activity here.
+
 [![Build Status](https://github.com/misha12/GrillBot/workflows/.NET%20Core/badge.svg)](https://github.com/Misha12/GrillBot/actions)
 [![GitHub license](https://img.shields.io/github/license/Naereen/StrapDown.js.svg)](https://github.com/Naereen/StrapDown.js/blob/master/LICENSE)
 [![Maintenance](https://img.shields.io/badge/Maintained%3F-yes-green.svg)](https://GitHub.com/Misha12/grillbot/graphs/commit-activity)
